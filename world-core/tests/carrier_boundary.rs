@@ -296,7 +296,8 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
 
     // ② 诱饵 cwd：一份**全是垃圾**的 `deploy/`（应用全停、载体件全换）
     let decoy = tmpdir("c02-decoy");
-    let dd = decoy.join("deploy").join("units");   // ★ 镜像仓内布局：单元在 deploy/units/
+    // ★ 诱饵沙盒**镜像仓内布局**：单元在 `deploy/units/`
+    let dd = decoy.join("deploy").join("units");
     fs::create_dir_all(&dd).unwrap();
     fs::write(
         dd.join("junk.service"),
