@@ -80,12 +80,14 @@ fn world_files(d: &Path) -> (PathBuf, PathBuf, PathBuf) {
     let ledger = d.join("ledger.jsonl");
     let onto = d.join("src/ontology_definition/ontology.json");
     let pol = d.join("src/gate/policy.json");
+    // 沙箱要保持与仓内**同样的相对布局**（法律已搬进 src/ 下）⇒ 先建父目录
+    fs::create_dir_all(onto.parent().unwrap()).unwrap();
+    fs::create_dir_all(pol.parent().unwrap()).unwrap();
     fs::copy(
         manifest().join("src/ontology_definition/ontology.json"),
         &onto,
     )
     .unwrap();
-    fs::create_dir_all(pol.parent().unwrap()).unwrap();
     fs::copy(manifest().join("src/gate/policy.json"), &pol).unwrap();
     (ledger, onto, pol)
 }
@@ -126,6 +128,9 @@ fn start_kernel(d: &Path, ledger: &Path, onto: &Path, pol: &Path, actor: &str, n
                      "actor":actor,
                      "owner":"fixture"}));
     polv["listeners"] = serde_json::Value::Array(decl);
+    if let Some(d) = pol.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(pol, polv.to_string()).unwrap();
     let log = d.join("kernel.log");
     let out = fs::File::create(&log).unwrap();

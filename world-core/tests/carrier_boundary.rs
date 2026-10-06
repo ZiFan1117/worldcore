@@ -392,7 +392,7 @@ fn c03_world_sources_never_read_the_carrier_units() {
     // ★ **唯一的一处豁免**：`src/ontology_definition/mod.rs` 里那张**载体专有串表**（`const TOKENS`）——
     //   判据要**禁**这些词，就得先**知道**这些词。豁免**只**覆盖那一张表的行区间
     //   （**现算区间**，不写死行号、不写死命中数）；表外再出现一处 ⇒ 必红。
-    let guard_file = src.join("ontology.rs");
+    let guard_file = src.join("ontology_definition/mod.rs");
     let guard_text = fs::read_to_string(&guard_file).unwrap();
     let (tok_lo, tok_hi) = {
         let lines: Vec<&str> = guard_text.lines().collect();

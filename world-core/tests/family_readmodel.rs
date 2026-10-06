@@ -177,6 +177,9 @@ fn write_ledger(p: &Path, lines: &[Value]) {
         .map(|e| serde_json::to_string(e).unwrap())
         .collect::<Vec<_>>()
         .join("\n");
+    if let Some(d) = p.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(p, format!("{text}\n")).unwrap();
     chmod600(p);
 }
@@ -931,6 +934,9 @@ fn append_raw_with_chain(lp: &Path, mut ev: Value) {
     }
     text.push_str(&serde_json::to_string(&ev).unwrap());
     text.push('\n');
+    if let Some(d) = lp.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(lp, text).unwrap();
 }
 

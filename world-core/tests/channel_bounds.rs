@@ -430,6 +430,9 @@ fn l06_the_factory_config_really_carries_the_four_numbers() {
 // 反例的形态＝**往渲染物里加一行映射**（真实违规形态），不是造畸形 JSON。
 
 fn write_json(p: &Path, v: &Value) {
+    if let Some(d) = p.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     std::fs::write(p, serde_json::to_string_pretty(v).unwrap()).unwrap();
 }
 

@@ -233,7 +233,6 @@ fn qg02_crash_recovery_with_a_torn_tail() {
     let clean = synthesize(&d, n);
     let clean_len = fs::metadata(&clean).unwrap().len();
     let lp = d.join("crashed.jsonl");
-    fs::create_dir_all(lp.parent().unwrap()).unwrap();
     fs::copy(&clean, &lp).unwrap();
 
     // 半行：被截断的 JSON，且**不含换行**

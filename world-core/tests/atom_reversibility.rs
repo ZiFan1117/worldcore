@@ -90,6 +90,7 @@ fn write_policy(dir: &Path, caps: Value) -> PathBuf {
         );
     }
     let p = dir.join("src/gate/policy.json");
+    fs::create_dir_all(p.parent().unwrap()).unwrap();
     fs::write(
         &p,
         serde_json::to_string_pretty(&json!({
@@ -141,7 +142,7 @@ fn write_ontology(dir: &Path, caps: &Value) -> PathBuf {
 
 /// 写一份载体执行清单（`cap.d/<name>.json`）。
 fn write_manifest(dir: &Path, name: &str, risk: &str, undo: &str, confirm: &str) {
-    let d = dir.join("cap.d");
+    let d = dir.join("src/carrier/cap.d");
     fs::create_dir_all(&d).unwrap();
     fs::write(
         d.join(format!("{name}.json")),
