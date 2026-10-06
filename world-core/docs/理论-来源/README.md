@@ -10,7 +10,7 @@
 
 ### 来源一 · 退役架构料（主源）
 
-- 路径（逐字）：`D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06\`
+- 路径（逐字）：`语义世界-架构\`
 
 | 读数 | 值 | 口径 |
 |---|---|---|
@@ -71,7 +71,7 @@
 ### 4.1 两个来源的规模
 
 ```powershell
-$root='D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06'
+$root='语义世界-架构'
 (Get-ChildItem -LiteralPath $root -Recurse -File).Count
 (Get-ChildItem -LiteralPath $root -Recurse -File | Measure-Object -Sum Length).Sum
 (Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object { $_.Extension -in '.md','.txt' } | Measure-Object -Sum Length).Sum
@@ -114,7 +114,7 @@ git -C 'D:\Code\08-worldcore-openspec' status --porcelain
 $W='D:\Code\08-worldcore-openspec\world-core\docs\理论-来源'
 $files=Get-ChildItem -LiteralPath $W -File -Filter '*.md' | Select-Object -ExpandProperty FullName
 $src=@()
-$src+=Get-ChildItem -LiteralPath 'D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06' -Recurse -File | Select-Object -ExpandProperty Name
+$src+=Get-ChildItem -LiteralPath '语义世界-架构' -Recurse -File | Select-Object -ExpandProperty Name
 $src+=Get-ChildItem -LiteralPath 'D:\Code\heavy-archive\90-retired-2026-10-06\_提案' -Recurse -File | Select-Object -ExpandProperty Name
 $src+=Get-ChildItem -LiteralPath 'D:\Code\08-worldcore-openspec' -Recurse -File | Select-Object -ExpandProperty Name
 $src=$src | Sort-Object -Unique

@@ -71,8 +71,8 @@
 | **代码结构是否合规（原子化）** | `python world-core/tools/module_graph.py`——单意图／`deps == import` 且无环／四件同夹；它同时是 `check.sh` 的第 ⑨ 步 |
 | **流程文档（谁在什么时候按什么规矩做的）** | `world-core/docs/S0-立项/` → `S1-需求/` → `S2-设计/` → `S3-骨架/` → `S4-实现/` → `S5-测试/` → `S6-验收/`（阶段号就是目录号） |
 | **书的原文（上位标准）** | `world-core/docs/理论/语义世界-理论书-第一版-合订.md`（**唯一正件**；书 ＞ 规格 ＞ 流程） |
-| **设计／评审／规程／研究料** | **已退役到归档**（2026-10-06，作者指示"这些文档不需要了、放到相应的地方"）→ `D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06\`（76 篇顶层文档 ＋ 研究料，共 93 MB／2 608 件） |
-| **上游供料（只读素材）** | **已移出本仓**（2026-10-06）→ `D:\Code\heavy-archive\worldcore-上游料-2026-10-06\`：`refs/`（36 个上游标准料目录＋`_standards-PROVENANCE.md`）、`omarchy/`、`omarchy-pkgs/` |
+| **设计／评审／规程／研究料** | **在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）→ 仓根 `语义世界-架构/`（76 篇顶层文档 ＋ 研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。它是**退役料**（只读；精华见 `world-core/docs/理论-来源/`） |
+| **上游供料（只读素材）** | **在仓内留档、不入库** → 仓根 `refs/`（36 个上游标准料目录＋`_standards-PROVENANCE.md`）、`omarchy/`、`omarchy-pkgs/`；`.gitignore`（`:2-4`）挡在版外 |
 
 **三步走（从"一句话需求"到"一行代码"）**：
 1. **承诺**：先按能力名去 `openspec/specs/` 找到那条 `Requirement`；
@@ -90,20 +90,20 @@
 
 | 一层条目 | 一句话 | 入库件数（实测） |
 |---|---|---|
-| **`world-core/`** | **世界核心**：Rust 实现（`src/`、`tests/`、`ontology.json`、`policy.json`）＋**流程文档**（`docs/`）＋**门禁工具**（`tools/`）＋出厂门禁 `check.sh` | 131 |
-| **`openspec/`** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档的改动）＋`schemas/`（融合档 `opsx-swe-gb`）＋`BOOK/`（书的派生工作件）＋`openspec/generated/BRIDGE.md`／`MAINTENANCE.md`／`config.yaml` | 63 |
+| **`world-core/`** | **世界核心**：Rust 实现（`src/`＝9 个模块夹＋`lib.rs`／`main.rs`；`tests/`）＋**法律**（`src/ontology_definition/ontology.json`、`src/gate/policy.json`；随原子走）＋**流程文档**（`docs/`）＋**门禁工具**（`tools/`）＋**部署面**（`deploy/`：`units/`＋`install.sh`＋`README.md`）＋出厂门禁 `check.sh` | — |
+| **`openspec/`** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档）＋`schemas/`（融合档）＋`gen/`（生成器）＋`generated/`（生成物：`BRIDGE.md`／`specmap.json`／`节对齐.md`）＋`work/`（工作区）＋`README.md`（目录分工）／`MAINTENANCE.md`／`config.yaml`。**书与对照表不在这**：在 `world-core/docs/理论/`（正件＋`落点/`＋`尺子-理念条目.md`＋`冲突总账.md`） | — |
 | **`.github/`** | **门禁自身**：`workflows/world-core-gate.yml`（CI 八作业）＋`PULL_REQUEST_TEMPLATE.md`（PR＝一次正式评审的记录） | 2 |
-| ~~`语义世界-架构/`~~ | **已退役到归档（2026-10-06）**：设计／评审／规程／研究料（76 篇顶层文档＋研究料，共 93 MB／2 608 件）；**刻意不进版本控制**。落点 `D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06\`。★ 连带：`world-core/tools/kind_guard.py` 的扫描候选里**已含这个归档位置**，宿主机上该判据仍真跑（实测 **184 篇／0 红**，与退役前同一读数） | **0**（不入库；已不在工作树） |
+| `语义世界-架构/` | **退役料，在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）：设计／评审／规程／研究料（76 篇顶层文档＋研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。★ 它是 `world-core/tools/kind_guard.py` 的扫描面：**现取 184 篇／红 0／`STATUS=PASS`**（`check.sh` ⑦b）。**精华**见 `world-core/docs/理论-来源/` | **0**（不入库；在工作树） |
 | ~~`agentd/`~~ | **已退场（2026-10-06）**：Go 参考实现（28 件）按作者裁定移除工作树 —— `WC-FC-2026-005` §3.1「不再作独立组件」；能力面已由 **Rust 版**接替（`world-core/src/agent/` 4 件 ＋ `world-core/tests/agent_*.rs` 4 件，读数见该 change）。**旧件仍在 git 历史**：`git show deafbae:agentd/cmd/agentd/main.go` | **0**（已移出工作树） |
-| ~~`omarchy/`~~ | **已移出（2026-10-06）**：上游源码快照（73 MB），与代码并列很突兀、作者判定无用 ⇒ 落 `D:\Code\heavy-archive\worldcore-上游料-2026-10-06\omarchy\` | **0**（不入库；已不在工作树） |
-| ~~`omarchy-pkgs/`~~ | **已移出（2026-10-06）**：同上，包构建那一半（9 MB） ⇒ 落 `…\worldcore-上游料-2026-10-06\omarchy-pkgs\` | **0**（不入库；已不在工作树） |
-| ~~`refs/`~~ | **已移出（2026-10-06）**：上游**标准料库**——36 个子目录（`bfo-2020`／`iao`／`in-toto`／`rekor`／`opa`／`c2sp`／`w3c-trace-context`／`skos`／`prov-o`…）＋`_standards-PROVENANCE.md`，**1.18 GB／63 648 件**（本仓磁盘占用的大头）⇒ 落 `…\worldcore-上游料-2026-10-06\refs\`。★ 一处**运行时输入**连带改：`world-core/tools/fetch_bfo_terms.py` 的缺省 `--owl` 现在**先看仓内、再看归档** | **0**（不入库；已不在工作树） |
+| `omarchy/` | 上游源码快照（73 MB）：**在仓内留档、不入库**（`.gitignore:2-4`） | **0**（不入库；在工作树） |
+| `omarchy-pkgs/` | 同上，包构建那一半（9 MB）：**在仓内留档、不入库** | **0**（不入库；在工作树） |
+| `refs/` | 上游**标准料库**——36 个子目录（`bfo-2020`／`iao`／`in-toto`／`rekor`／`opa`／`c2sp`／`w3c-trace-context`／`skos`／`prov-o`…）＋`_standards-PROVENANCE.md`，**1.18 GB／63 648 件**（本仓磁盘占用的大头）：**在仓内留档、不入库**。★ 运行时输入：`world-core/tools/fetch_bfo_terms.py` 的缺省 `--owl` 先看仓内 | **0**（不入库；在工作树） |
 | `.agents/` | **AI 侧工作流技能**：`worldcore-sdd`／`openspec-swe-gb-fusion` 两篇 `SKILL.md` | 8 |
 | `README.md` | 本件（前门，含 **§〇「代码在哪」**） | — |
-| `check.sh` | **仓根唯一入口**：**转发**到 `world-core/check.sh`（出厂门禁 21 步）。⚠️ 它**自己什么也不跑** —— 只把这一次调用交出去；入口断链时 rc=2，**不报绿** | — |
+| `check.sh` | **仓根唯一入口**：**转发**到 `world-core/check.sh`（出厂门禁 **22 步**）。⚠️ 它**自己什么也不跑** —— 只把这一次调用交出去；入口断链时 rc=2，**不报绿** | — |
 | `变更记录.md` | 2026-09-25 那次目录重排的**旧编号对照表**；它描述的正是**已退场**的布局（实测 41 处旧路径引用），保留作史料 | — |
 | `.gitattributes` | 行尾与 BOM 纪律：`.sh/.rs/.json/.yml/.yaml/.py/.csv/.md` 等一律 `eol=lf`（`:8`、`:16-23`、`:33`）；`*.ps1` **必须带 UTF-8 BOM**（`:24-28`） | — |
-| `.gitignore` | 把上游料与设计夹挡在版外：`omarchy/`、`omarchy-pkgs/`、`refs/`（`:2-4`，三者 2026-10-06 已**移出工作树**，条目留着防再落回）、`语义世界-架构/`（同日退役到归档，条目同样留着） | — |
+| `.gitignore` | **挡在版外但留在工作树**：`omarchy/`、`omarchy-pkgs/`、`refs/`（`:2-4`）、`语义世界-架构/`（`:10`）、`_料/`（`:59-60`＝上游过程料）、`_脚本/`（过程脚本）——按作者 2026-10-07 口径「**东西都在 08 里**」，由本件决定入不入库 | — |
 
 > **`world-core/` 再深一层**（本件用到的三处）：`docs/`＝流程文档、`tools/`＝门禁工具与守卫、
 > `src/`＋`tests/`＝Rust 实现与测试；另有 `cap.d/`（能力声明样本）、`deploy/`、`templates/`（七类模板）、
