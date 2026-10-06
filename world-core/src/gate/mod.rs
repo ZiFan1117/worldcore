@@ -31,7 +31,6 @@
 
 pub mod guard;
 use crate::carrier::capd::{Manifest as CarrierManifest, Risk as CarrierRisk};
-use crate::gate::guard;
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

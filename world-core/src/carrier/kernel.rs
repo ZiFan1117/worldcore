@@ -70,7 +70,9 @@ impl Reply {
 
     /// 出错时**必须带可判定的错误码**，否则说明内核违约。
     pub fn error_code(&self) -> Option<&str> {
-        self.error.as_deref().and_then(crate::common::error::code_of)
+        self.error
+            .as_deref()
+            .and_then(crate::common::error::code_of)
     }
 }
 

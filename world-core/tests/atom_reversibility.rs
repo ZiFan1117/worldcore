@@ -32,7 +32,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use world_core::carrier::capd::Risk;
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -114,7 +114,8 @@ fn write_policy(dir: &Path, caps: Value) -> PathBuf {
 /// 本函数按与 `write_policy` **同一个入参**（`caps` 的键集）补本体那一侧，
 /// 于是"两处同名"这件事在夹具里是**构造出来的**，不是顺手写对的。
 fn write_ontology(dir: &Path, caps: &Value) -> PathBuf {
-    let text = fs::read_to_string(manifest_dir().join("src/ontology_definition/ontology.json")).unwrap();
+    let text =
+        fs::read_to_string(manifest_dir().join("src/ontology_definition/ontology.json")).unwrap();
     let mut v: Value = serde_json::from_str(&text).unwrap();
     for (name, spec) in caps.as_object().expect("caps 必须是对象") {
         let kind = spec.get("kind").cloned().unwrap_or(json!("invoke"));

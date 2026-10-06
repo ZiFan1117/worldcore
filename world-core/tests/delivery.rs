@@ -27,7 +27,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use world_core::common::pairing;
-use world_core::{delivery, event, World};
+use world_core::{World, common::{delivery, event}};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()

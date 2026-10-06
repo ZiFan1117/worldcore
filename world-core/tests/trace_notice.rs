@@ -40,7 +40,7 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::{json, Value};
-use world_core::{event, Envelope, World};
+use world_core::{common::event, Envelope, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -63,9 +63,15 @@ fn manifest() -> PathBuf {
 fn run(d: &Path, args: &[&str]) -> (i32, String, String) {
     let mut argv: Vec<String> = vec![
         "--ontology".into(),
-        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".into(),
-        manifest().join("src/gate/policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".into(),
         d.join("ledger.jsonl").display().to_string(),
     ];
@@ -485,9 +491,10 @@ fn f67_flags_land_through_the_write_entry_and_unknown_ones_are_kept() {
     );
     // 反假：这两个旗标**不在**出厂本体的声明里（`ontology.json` 的 `flags` 是空数组）——
     // 否则本用例验的不是"未知旗标"。
-    let ont: Value =
-        serde_json::from_str(&fs::read_to_string(manifest().join("src/ontology_definition/ontology.json")).unwrap())
-            .unwrap();
+    let ont: Value = serde_json::from_str(
+        &fs::read_to_string(manifest().join("src/ontology_definition/ontology.json")).unwrap(),
+    )
+    .unwrap();
     assert_eq!(
         ont["flags"].as_array().map(Vec::len),
         Some(0),

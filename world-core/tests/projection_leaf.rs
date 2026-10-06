@@ -102,9 +102,15 @@ fn run_in(dir: Option<&Path>, args: &[&str]) -> Out {
 fn args_for(lp: &Path, tail: &[&str]) -> Vec<String> {
     let mut v = vec![
         "--ontology".to_string(),
-        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".to_string(),
-        manifest().join("src/gate/policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".to_string(),
         lp.display().to_string(),
     ];

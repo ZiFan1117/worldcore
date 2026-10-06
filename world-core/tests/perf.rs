@@ -42,7 +42,7 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use world_core::{event, ledger, World};
+use world_core::{common::event, ledger, World};
 
 const DEFAULT_N: usize = 100_000;
 const DEFAULT_SAMPLES: usize = 20;

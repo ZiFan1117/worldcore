@@ -266,13 +266,23 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
     w.commit(
         "change",
         "world://user",
-        world_core::common::event::change_body("world://notice/n-1", "muted", json!(null), json!(true)),
+        world_core::common::event::change_body(
+            "world://notice/n-1",
+            "muted",
+            json!(null),
+            json!(true),
+        ),
     )
     .expect("`muted: bool` 写 `true` 必须落笔");
     w.commit(
         "change",
         "world://user",
-        world_core::common::event::change_body("world://job/j-1", "status", json!(null), json!("doing")),
+        world_core::common::event::change_body(
+            "world://job/j-1",
+            "status",
+            json!(null),
+            json!("doing"),
+        ),
     )
     .expect("`status: enum(todo,doing,done)` 写 `doing` 必须落笔");
 
@@ -281,7 +291,12 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
         .commit(
             "change",
             "world://user",
-            world_core::common::event::change_body("world://notice/n-2", "muted", json!(null), json!(1)),
+            world_core::common::event::change_body(
+                "world://notice/n-2",
+                "muted",
+                json!(null),
+                json!(1),
+            ),
         )
         .expect_err("`muted: bool` 写整数必须被拒");
     assert!(
@@ -457,7 +472,12 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
         .commit(
             "change",
             "world://user",
-            world_core::common::event::change_body("world://notice/n-9", "muted", json!(null), json!(true)),
+            world_core::common::event::change_body(
+                "world://notice/n-9",
+                "muted",
+                json!(null),
+                json!(true),
+            ),
         )
         .expect_err("声明为内嵌的类型，两段形态必须被拒");
     assert!(
@@ -500,7 +520,12 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
     w3.commit(
         "change",
         "world://user",
-        world_core::common::event::change_body("world://notice/n-9", "muted", json!(null), json!(true)),
+        world_core::common::event::change_body(
+            "world://notice/n-9",
+            "muted",
+            json!(null),
+            json!(true),
+        ),
     )
     .expect("去掉内嵌标记后，两段形态必须重新合法（证明上面的红**是那一格造成的**）");
 }
@@ -865,7 +890,10 @@ fn m10_five_element_sections_live_under_underscore_keys_so_the_vocabulary_identi
         "只改 `_` 键里的说明文字不该换身份"
     );
     // ⑤ 顺便钉住"按类型实例计数"这个读数面在**纯数据**上也成立（不依赖 `World`）
-    let cells = world_core::ontology_instance::readmodel::DeclaredCells::new(vec!["world".into()], BTreeMap::new());
+    let cells = world_core::ontology_instance::readmodel::DeclaredCells::new(
+        vec!["world".into()],
+        BTreeMap::new(),
+    );
     assert!(cells.instance_limit("notice").is_none());
 }
 
@@ -1229,7 +1257,12 @@ fn m14_usage_lists_unused_declarations_but_never_fails() {
         w.commit(
             "change",
             "world://user",
-            world_core::common::event::change_body("world://notice/n-1", "muted", json!(null), json!(true)),
+            world_core::common::event::change_body(
+                "world://notice/n-1",
+                "muted",
+                json!(null),
+                json!(true),
+            ),
         )
         .unwrap();
     }

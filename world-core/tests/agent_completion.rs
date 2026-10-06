@@ -29,7 +29,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use world_core::agent::completion::{completions_in, pending, Completion, Status, NOTICE_TYPE};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()

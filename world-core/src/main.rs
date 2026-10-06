@@ -446,10 +446,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
             return ExitCode::from(2);
         }
     };
-    let mut bound: Vec<(
-        std::os::unix::net::UnixListener,
-        world_core::bus::Listener,
-    )> = Vec::new();
+    let mut bound: Vec<(std::os::unix::net::UnixListener, world_core::bus::Listener)> = Vec::new();
     for listener in listeners {
         let sock = match listener.local_addr() {
             Ok(a) => a.as_pathname().map(|x| x.to_path_buf()).unwrap_or_default(),

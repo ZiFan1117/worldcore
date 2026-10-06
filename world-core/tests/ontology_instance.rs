@@ -41,7 +41,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use world_core::ontology_definition::Ontology;
 use world_core::ontology_instance::readmodel::{DeclaredCells, State};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 // ────────────────────────── 夹具 ──────────────────────────
 

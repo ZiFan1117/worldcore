@@ -71,9 +71,15 @@ fn run(args: &[&str]) -> (i32, String, String) {
 fn check_args(d: &std::path::Path) -> Vec<String> {
     vec![
         "--ontology".into(),
-        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".into(),
-        manifest().join("src/gate/policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".into(),
         d.join("ledger.jsonl").display().to_string(),
         "check".into(),
@@ -106,9 +112,15 @@ fn cli02_after_append_check_reports_chained() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("src/gate/policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -150,9 +162,15 @@ fn cli03_require_chain_refuses_chainless_ledger() {
     let common = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("src/gate/policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -237,9 +255,15 @@ fn cli05_project_check_reports_same_source() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("src/gate/policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -273,9 +297,15 @@ fn cli06_require_chain_allows_empty_but_refuses_chainless_data() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("src/gate/policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
             "--require-chain".into(),
@@ -390,8 +420,14 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
     let d = tmpdir("cli09");
     let lp = d.join("ledger.jsonl");
     let (ont_s, pol_s, lp_s) = (
-        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
-        manifest().join("src/gate/policy.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         lp.display().to_string(),
     );
 
@@ -469,9 +505,15 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
 fn args_for(lp: &std::path::Path, tail: &[&str]) -> Vec<String> {
     let mut v = vec![
         "--ontology".to_string(),
-        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".to_string(),
-        manifest().join("src/gate/policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".to_string(),
         lp.display().to_string(),
     ];

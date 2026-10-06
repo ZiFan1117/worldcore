@@ -25,7 +25,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -201,7 +201,10 @@ fn b04_bare_subject_is_a_registered_gap_not_a_declared_entity() {
     let (_d, _lp, mut w) = open_world("b04");
 
     // 它不是实体引用（没有 `<实体>/<实例>` 这一段）⇒ 今天不受 concepts 约束
-    assert_eq!(world_core::ontology_definition::Ontology::entity_of("world://s"), None);
+    assert_eq!(
+        world_core::ontology_definition::Ontology::entity_of("world://s"),
+        None
+    );
     assert_eq!(
         world_core::ontology_definition::Ontology::entity_of("world://notice/n-1"),
         Some("notice")

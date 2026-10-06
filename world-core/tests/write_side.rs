@@ -80,7 +80,11 @@ fn world_files(d: &Path) -> (PathBuf, PathBuf, PathBuf) {
     let ledger = d.join("ledger.jsonl");
     let onto = d.join("src/ontology_definition/ontology.json");
     let pol = d.join("src/gate/policy.json");
-    fs::copy(manifest().join("src/ontology_definition/ontology.json"), &onto).unwrap();
+    fs::copy(
+        manifest().join("src/ontology_definition/ontology.json"),
+        &onto,
+    )
+    .unwrap();
     fs::copy(manifest().join("src/gate/policy.json"), &pol).unwrap();
     (ledger, onto, pol)
 }

@@ -18,7 +18,7 @@ use serde_json::json;
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -711,7 +711,9 @@ fn t17_rollback_is_an_appended_compensating_event() {
     assert_eq!(s.seen(), 2);
 
     // 判据 3：重算一致（读模型对回滚无需任何特殊分支）
-    let recomputed = world_core::ontology_instance::readmodel::State::fold(&w.ledger().read_all().unwrap()).unwrap();
+    let recomputed =
+        world_core::ontology_instance::readmodel::State::fold(&w.ledger().read_all().unwrap())
+            .unwrap();
     assert_eq!(recomputed.to_json().to_string(), s.to_json().to_string());
 }
 
