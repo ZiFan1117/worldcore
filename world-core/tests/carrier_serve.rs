@@ -2,8 +2,8 @@
 //!
 //! ## 为什么单列一个测试件
 //!
-//! `deploy/world-core.service` 逐字是 `Type=notify` ＋ `ExecStart=… serve`，
-//! 而 `deploy/world-core.socket` 逐字写着「监听套接字归载体所有；内核进程通过**继承的
+//! `deploy/units/world-core.service` 逐字是 `Type=notify` ＋ `ExecStart=… serve`，
+//! 而 `deploy/units/world-core.socket` 逐字写着「监听套接字归载体所有；内核进程通过**继承的
 //! 描述符**拿到它（`sd_listen_fds` 语义）」。⇒ 内核这一侧**必须有**对应实现，
 //! 否则单元装上也起不来。本文件钉的就是**它拒启的那三格**与**报到顺序**。
 //!

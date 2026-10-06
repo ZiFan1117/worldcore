@@ -54,7 +54,7 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn deploy_dir() -> PathBuf {
-    manifest_dir().join("deploy")
+    manifest_dir().join("deploy").join("units")
 }
 
 /// 读一个 unit 文件里的**指令行**：`键=值`（忽略注释与空行）。
@@ -296,7 +296,8 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
 
     // ② 诱饵 cwd：一份**全是垃圾**的 `deploy/`（应用全停、载体件全换）
     let decoy = tmpdir("c02-decoy");
-    let dd = decoy.join("deploy");
+    // ★ 诱饵沙盒**镜像仓内布局**：单元在 `deploy/units/`
+    let dd = decoy.join("deploy").join("units");
     fs::create_dir_all(&dd).unwrap();
     fs::write(
         dd.join("junk.service"),
@@ -410,7 +411,7 @@ fn c03_world_sources_never_read_the_carrier_units() {
 
     let mut hits: Vec<String> = Vec::new();
     // ★ **第二处豁免：`src/main.rs` 的 `USAGE` 帮助文本块**（现算行区间，不写死）。
-    //   为什么必须豁免：用户在终端里**要看到**"`serve` 是 `deploy/world-core.service` 的
+    //   为什么必须豁免：用户在终端里**要看到**"`serve` 是 `deploy/units/world-core.service` 的
     //   `ExecStart` 指向的东西"——那是**说给人听的话**，不是"世界在读那个件"；
     //   而判据的主张是**后者**。⇒ 与本体那张载体串表同一处置：**结构化、现算**的豁免，
     //   而不是"凡字符串字面量都放过"（那会把判据变成空的）。
@@ -538,14 +539,14 @@ fn c03_world_sources_never_read_the_carrier_units() {
     };
     // 不该红的两形（都是**说给人听**或**注释**，世界没读任何东西）：
     let fake_comment = "// 指路：见 deploy/README.md";
-    let fake_msg = "eprintln!(\"为什么：`deploy/world-core.socket` 把套接字交给载体\");";
+    let fake_msg = "eprintln!(\"为什么：`deploy/units/world-core.socket` 把套接字交给载体\");";
     assert!(!hit(fake_comment), "注释里的指路**不许**被当成违规");
     assert!(
         !hit(fake_msg),
         "**说给人听的文本**（错误消息/帮助）里命名一个件**不许**被当成'世界在读它'"
     );
     // 该红的那一形（世界真的去读它）：
-    let fake_bad = "let t = fs::read_to_string(\"deploy/world-core.service\").unwrap();";
+    let fake_bad = "let t = fs::read_to_string(\"deploy/units/world-core.service\").unwrap();";
     assert!(
         hit(fake_bad),
         "判定器必须能抓到合成违规（否则上面那句『0 命中』是恒真实现）"
