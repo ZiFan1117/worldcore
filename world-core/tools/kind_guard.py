@@ -47,7 +47,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(HERE))  # world-core/tools/ -> world
 # 真实布局变过两次，两次都记在这儿：
 #   · 2026-10-05 之前：`<仓父>/语义世界-架构`（`D:\Code\08-worldcore-openspec\world-core\tools\` → `D:\Code\语义世界-架构`）
 #   · 2026-10-06 起：**并入本仓**（`.gitignore` 挡着）→ `<仓>/语义世界-架构`；同日作者指示
-#     "这些文档不需要了、放到相应的地方" ⇒ 整夹退役到归档 `<D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06>`
+#     "这些文档不需要了、放到相应的地方" ⇒ 整夹退役到归档 `<语义世界-架构>`
 #     ⇒ **候选里必须有它**，否则本条判据会静默变成"未校验"（实测：不加这一格时，
 #        `python tool/kind_guard.py --allow-missing` 打印"未找到架构件目录…**未校验**"）。
 DEFAULT_CANDIDATES = (
@@ -56,7 +56,7 @@ DEFAULT_CANDIDATES = (
     os.path.join(REPO_ROOT, "语义世界-架构"),
     os.path.join(REPO_ROOT, "docs", "架构"),
     # ↓ 2026-10-06 退役后的落点（**绝对路径**：归档在仓外）
-    r"D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06",
+    r"语义世界-架构",
 )
 
 # ── 判据 ①②③ 的字样（判据正文见文件头）────────────────────────────────
