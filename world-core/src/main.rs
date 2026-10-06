@@ -20,7 +20,7 @@ world-core —— 世界核心（语义事件是唯一真相）
   usage                      **只报告**「声明了、但账本里零使用」的类型与字段
                              （**不是判据**：合法状态，给作者决定「要不要沉淀／要不要删」的输入；
                              为什么它不红 = 法律的本分是「先声明、后使用」；**只读**）
-  serve                      载体拉起的入口（`deploy/world-core.service` 的 ExecStart 指向它）：
+  serve                      载体拉起的入口（`deploy/units/world-core.service` 的 ExecStart 指向它）：
                              从**继承的 fd 3** 取监听套接字（socket activation），
                              受理前向 `$NOTIFY_SOCKET` 发 `READY=1`，有 `$WATCHDOG_USEC` 时按半周期发 `WATCHDOG=1`。
                              缺 `LISTEN_FDS`／`LISTEN_PID` 不符／fd 3 不可用 ⇒ **拒启并点名**；
@@ -217,7 +217,7 @@ fn main() -> ExitCode {
         // ★ **只报告、绝不红**（见 `cmd_usage` 的文档；它不是判据）。
         "usage" => cmd_usage(&ontology, &ledger, &policy),
         // ★ **载体拉起**：读继承的描述符（socket activation）＋ 向 `$NOTIFY_SOCKET` 报到。
-        // 这是 `deploy/world-core.service` 的 `ExecStart` 指向的东西（见内联模块 `serve` 的文档）。
+        // 这是 `deploy/units/world-core.service` 的 `ExecStart` 指向的东西（见内联模块 `serve` 的文档）。
         // ★★ **A-05 必须在服务路径上也跑**（真缺陷修复）：
         //   此前 `--owner-uid` 的「打错即拒启」**只写在 `check` 分支里**，而 `cmd_serve` 的签名里
         //   **根本没有 `owner_uid`** ⇒ 服务路径上它被**静默丢弃**，属主断言在真正跑的那条路径上
@@ -379,7 +379,7 @@ fn cmd_usage(o: &Path, l: &Path, p: &Path) -> ExitCode {
     ExitCode::SUCCESS
 }
 
-/// ★ **`serve` —— 载体拉起的入口**（`deploy/world-core.service` 的 `ExecStart` 指向它）。
+/// ★ **`serve` —— 载体拉起的入口**（`deploy/units/world-core.service` 的 `ExecStart` 指向它）。
 ///
 /// 顺序（**每一步失败都当场点名并 rc=2**，与载体约定的 `Type=notify` 对齐）：
 /// 1. 读 `LISTEN_FDS`／`LISTEN_PID` ⇒ 缺／不符 ⇒ `ext.world.Serve.*` 拒启；
@@ -1843,8 +1843,8 @@ mod serve {
     //!
     //! ## 这一模块为什么存在
     //!
-    //! `deploy/world-core.service` 逐字写的是 `Type=notify` ＋ `ExecStart=… serve`，
-    //! 而 `deploy/world-core.socket` 逐字写着「监听套接字**归载体所有**；内核进程通过**继承的
+    //! `deploy/units/world-core.service` 逐字写的是 `Type=notify` ＋ `ExecStart=… serve`，
+    //! 而 `deploy/units/world-core.socket` 逐字写着「监听套接字**归载体所有**；内核进程通过**继承的
     //! 描述符**拿到它（`sd_listen_fds` 语义）」。⇒ 内核这一侧必须有对应的实现，
     //! **否则单元装上也起不来**：`Type=notify` 等一个永远不来的 `READY=1`，
     //! 描述符也没人去接。
@@ -1896,7 +1896,7 @@ mod serve {
     ///
     /// ## 为什么"缺 `LISTEN_FDS`"是**拒启**而不是"退化成本地建套接字"
     ///
-    /// `deploy/world-core.socket` 把监听套接字的所有权**交给载体**（`Accept=no` ＋ 继承 fd）。
+    /// `deploy/units/world-core.socket` 把监听套接字的所有权**交给载体**（`Accept=no` ＋ 继承 fd）。
     /// 若 `serve` 在拿不到继承 fd 时**自己 `bind` 一个**，就出现了**第二个**监听者：
     /// 载体手上那个与进程自己建的那个会**各自接受连接**——"一个口一个身份"当场不成立。
     /// ⇒ 宁可拒启并**说清**（那是部署问题，不是运行时问题）。
@@ -1913,7 +1913,7 @@ mod serve {
                 return Err(
                     "ext.world.Serve.NoListenFds: 没有 `LISTEN_FDS`（也没看到 `LISTEN_PID`）——\
                      **`serve` 只从载体继承监听套接字**，不自己 `bind`。\n\
-                     \x20 为什么：`deploy/world-core.socket` 把套接字所有权交给载体（`Accept=no` ＋ 继承 fd）；\
+                     \x20 为什么：`deploy/units/world-core.socket` 把套接字所有权交给载体（`Accept=no` ＋ 继承 fd）；\
                      自己再建一个就会出现**两个监听者**，「一个口一个身份」当场不成立。\n\
                      \x20 处置：用 `systemctl start world-core.service`（由 socket 单元喂 fd），\
                      或在测试里按 `sd_listen_fds` 的约定设 `LISTEN_FDS=1`／`LISTEN_PID=<本进程>` 并让 fd 3 可用"

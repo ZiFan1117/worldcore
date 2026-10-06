@@ -91,7 +91,7 @@ ensure_dir() {
 install_units() {
   for f in $UNITS; do
     if [ ! -f "$SRC_DIR/$f" ]; then say "缺单元文件：$SRC_DIR/$f" >&2; exit 1; fi
-    install -m 0644 "$SRC_DIR/$f" "$UNIT_DIR/$f"
+    install -m 0644 "$SRC_DIR/units/$f" "$UNIT_DIR/$f"
     say "  已装单元：$f"
   done
 }

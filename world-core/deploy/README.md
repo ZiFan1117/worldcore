@@ -1,3 +1,15 @@
+## 〇、本夹是什么（夹内分工）
+
+> **本夹 ＝ 部署面**（一个面一个夹）：把「**三进程三身份一条总线**」落成 systemd 单元与装机脚本。
+> 它**不占模块号**（登记见 `WC-MODREG-001` §2.1）。夹内四件各司其职：
+
+| 件 | 是什么 |
+|---|---|
+| `README.md`（本件） | **契约文档**：部署形态的声明（单元 ↔ 法律 ↔ 渲染物三方一致的口径） |
+| `units/`（5 件） | **实现**：`world-core.socket`／`world-core.service`／`world-core-actd.service`／`world-core-omarchy.socket`／`world-core-dsh.socket` |
+| `install.sh` | **装机**：建身份、装单元、种出厂法律、起总线（`UNITS=` 是本面的**唯一单元清单**） |
+| （判据与测试不在本夹） | 判据＝`world-core/tools/carrier_contract.py`（`check.sh` ⑥c）；测试＝`world-core/tests/carrier_boundary.rs` |
+
 # 世界核心的部署形态 —— **三个进程，三个身份，一条总线**
 
 > 本目录是**可直接用的部署件**：让它由载体管理器（systemd）拉起，而不是靠人手工敲命令。
@@ -276,7 +288,7 @@ WantedBy=multi-user.target
 | 2 | **第二个口没人受理** | ★现取（T29）：服务日志 `[登记] ext.world.Serve.ExtraListenFds: LISTEN_FDS=2 … 而 serve 今天只接第一个（fd 3）` ⇒ ★**口建出来了、第二个口没人受理**（"起了 ≠ 受理得到"）。落在 `cmd_serve`（`bus` 的件） |
 | 3 | **`world-core serve` / `project serve` 两个子命令尚未实现** | 现形态是 `channel serve <socket> <n>` 与一次性 `carrier serve`；★`LISTEN_FDS` 语义**已接**（现取 `LISTEN_FDS=2` 读得到），**但只受理第一个 fd** |
 | 4 | 看门狗报到（`WATCHDOG=1`）尚未实现 | `WatchdogSec=` 已写在单元里；进程侧未接 ⇒ 实装时须先做，否则会被反复重启 |
-| 5 | **部署件 ≡ 仓：今天【一致】；但 ⑫ 仍无执行体** | ★现取：`/etc/systemd/system/world-core.service` 与 `deploy/world-core.service` **同 sha256、同 5773 B**（17:14:15 装的），`grep -n '^Sockets='` 两处皆 rc=1（`Sockets` 只出现在注释）⇒ **本条已不成立**（曾记"仍是含 `Sockets=` 的旧版"——**那是当时的读数，现取已否**）。★ **仍成立的一半**：⑫「部署件 ≡ 仓」**没有判据盯着**（机件与仓件各自漂了不会红）⇒ 这一条要留着，但记的是**执行体缺位**，不是"两处不同" |
+| 5 | **部署件 ≡ 仓：今天【一致】；但 ⑫ 仍无执行体** | ★现取：`/etc/systemd/system/world-core.service` 与 `deploy/units/world-core.service` **同 sha256、同 5773 B**（17:14:15 装的），`grep -n '^Sockets='` 两处皆 rc=1（`Sockets` 只出现在注释）⇒ **本条已不成立**（曾记"仍是含 `Sockets=` 的旧版"——**那是当时的读数，现取已否**）。★ **仍成立的一半**：⑫「部署件 ≡ 仓」**没有判据盯着**（机件与仓件各自漂了不会红）⇒ 这一条要留着，但记的是**执行体缺位**，不是"两处不同" |
 | 6 | 动态身份的**明确禁止** | 见"主体身份必须稳定"：任何会被回收的动态身份都不得用于长期出现在事件里的主体 |
 | 7 | `world-projection` 的**停机段读数**未验 | 口径＝"世界停着那一段必须印【离线】"；★**未验·原因＝窗口太短**（世界只停约 1 秒）⇒ ★下次重启类动作**在重启前**先把那个循环挂起来 |
 

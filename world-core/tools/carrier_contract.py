@@ -52,7 +52,8 @@ HAS_PWD = pwd is not None
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)                      # world-core/
-DEPLOY = os.path.join(ROOT, 'deploy')
+DEPLOY = os.path.join(ROOT, 'deploy')                 # 面根（契约文档与装机脚本在这）
+UNITS_DIR = os.path.join(DEPLOY, 'units')             # 单元在这
 POLICY = os.path.join(ROOT, 'src', 'gate', 'policy.json')
 README = os.path.join(DEPLOY, 'README.md')
 CHANNEL = '/etc/world-core/channel.json'          # 现役载体上的渲染物（可用 --channel 覆盖）
@@ -193,7 +194,11 @@ def load_sockets(path):
 
 
 def judge(deploy_dir, policy_path, readme_path, channel_path=None):
-    """返回 (rows, reds)；rows＝每条判据的读数，reds＝红的条号。"""
+    """返回 (rows, reds)；rows＝每条判据的读数，reds＝红的条号。
+
+    ★ 取径模型：`deploy_dir` ＝ **面根**（`install.sh`／`README.md`）；**单元在 `deploy_dir/units/`**。
+    """
+    units_dir = os.path.join(deploy_dir, 'units')
     rows, reds = [], []
 
     def add(no, name, ok, detail):
@@ -213,17 +218,17 @@ def judge(deploy_dir, policy_path, readme_path, channel_path=None):
         units = []
     else:
         missing = [u for u in units
-                   if not os.path.isfile(os.path.join(deploy_dir, u))
-                   or os.path.getsize(os.path.join(deploy_dir, u)) == 0]
+                   if not os.path.isfile(os.path.join(units_dir, u))
+                   or os.path.getsize(os.path.join(units_dir, u)) == 0]
         add('①a', '清单里的单元存在且非空', not missing,
             '清单 %d 件；缺/空：%s' % (len(units), ','.join(missing) if missing else '无'))
 
-    sock = os.path.join(deploy_dir, 'world-core.socket')
-    core = os.path.join(deploy_dir, 'world-core.service')
+    sock = os.path.join(units_dir, 'world-core.socket')
+    core = os.path.join(units_dir, 'world-core.service')
     # ★ 投影单元**只在清单里有它时**才当主体（今天已摘除 ⇒ ④b 记"未校验"，见下）
     proj_name = next((u for u in units if 'projectd' in u), None)
-    proj = os.path.join(deploy_dir, proj_name) if proj_name else ''
-    actd = os.path.join(deploy_dir, 'world-core-actd.service')
+    proj = os.path.join(units_dir, proj_name) if proj_name else ''
+    actd = os.path.join(units_dir, 'world-core-actd.service')
     sock_txt = read(sock) if os.path.isfile(sock) else ''
     core_txt = read(core) if os.path.isfile(core) else ''
     proj_txt = read(proj) if proj and os.path.isfile(proj) else ''
@@ -290,13 +295,13 @@ def judge(deploy_dir, policy_path, readme_path, channel_path=None):
         'listeners=%s（要找 %r）' % ('缺少该键' if listeners is None else listeners, listen))
 
     # ⑪ **清单 ≡ 实际**（★"三处清单"变一处：唯一来源＝`install.sh` 的 `UNITS=`）
-    files = sorted(f for f in os.listdir(deploy_dir)
+    files = sorted(f for f in os.listdir(units_dir)
                    if f.endswith('.socket') or f.endswith('.service'))
     if units is None or not units:
         add('⑪a', '清单里每个单元都有文件', False, '读不出 `install.sh` 的 `UNITS=` ⇒ **无法对账**')
         add('⑪b', '目录里每个单元都在清单里（或已登记未启用）', False, '同上')
     else:
-        nofile = [u for u in units if not os.path.isfile(os.path.join(deploy_dir, u))]
+        nofile = [u for u in units if not os.path.isfile(os.path.join(units_dir, u))]
         unlisted = [f for f in files if f not in units and f not in NOT_INSTALLED]
         add('⑪a', '清单里每个单元都有文件', not nofile, '清单 %d 件；缺文件=%s' % (len(units), nofile or '无'))
         add('⑪b', '目录里每个单元都在清单里（或已登记未启用）', not unlisted,
@@ -429,8 +434,9 @@ def self_test():
         # ★ 清单的**唯一来源**＝`install.sh`（本件不再自带一份）⇒ 夹具必须把 `install.sh` 一起复制，
         #   否则 `unit_list(tmp)` 读不到 ⇒ ①a／⑪ 判红（★那不是假红，是**夹具没把法律面搬全**）。
         UNITS_T = unit_list(DEPLOY) or UNITS_FALLBACK
+        os.makedirs(os.path.join(tmp, 'units'), exist_ok=True)
         for u in UNITS_T:
-            shutil.copy(os.path.join(DEPLOY, u), os.path.join(tmp, u))
+            shutil.copy(os.path.join(UNITS_DIR, u), os.path.join(tmp, 'units', u))
         shutil.copy(os.path.join(DEPLOY, 'install.sh'), os.path.join(tmp, 'install.sh'))
         # ★ 夹具里 `install.sh` 的 `UIDS=` 指到 **`/etc`**（Lead 钉死的部署面路径）⇒ 夹具必须先把它
         #   改到**夹具自己的目录里**：否则自测会去读（甚至写）`/etc` —— ★**测试绝不许碰 `/etc`**。
@@ -509,13 +515,13 @@ def self_test():
         base_rows, base_reds = judge(tmp, pol, os.path.join(tmp, 'README.md'), chan)
         print('  基线（照抄的单元）：红 %d 条 -> %s' % (len(base_reds), ','.join(base_reds)))
 
-        # ★ 反例的"原文"必须**现取**：`deploy/world-core.socket` 的 `SocketMode=` 会被**别人**改。
+        # ★ 反例的"原文"必须**现取**：`deploy/units/world-core.socket` 的 `SocketMode=` 会被**别人**改。
         #   实测（2026-10-05 T11，VM 私有镜像）：`bus` 把它从 `0660` 改成 `0600` 之后，
         #   本自测的 ⑥b 因为**找不到** `SocketMode=0660` 而 `[skip]` ⇒ **整场自测 `RC=1`**。
         #   ⇒ 锚点从**当前单元件**读出来，只把"改成坏值"这一步写死。
         #   （同族：同日 `cargo fmt` 因别人的件而红 ⇒ **判据/自测的输入也会被别人动到**；
         #     与 E22「三行其实是十行」同一个病：**"我跑的输入是谁的"**。）
-        cur_mode = find_one(read(os.path.join(DEPLOY, 'world-core.socket')), 'SocketMode') or '0660'
+        cur_mode = find_one(read(os.path.join(UNITS_DIR, 'world-core.socket')), 'SocketMode') or '0660'
 
         cases = [
             ('①a', 'world-core.socket', None, '删文件', 'rm'),
@@ -545,8 +551,8 @@ def self_test():
         for no, fn, old, new, how in cases:
             # 每个反例用干净副本
             for u in UNITS_T:
-                shutil.copy(os.path.join(DEPLOY, u), os.path.join(tmp, u))
-            target = os.path.join(tmp, fn)
+                shutil.copy(os.path.join(UNITS_DIR, u), os.path.join(tmp, 'units', u))
+            target = os.path.join(tmp, 'units', fn)
             if how == 'rm':
                 os.remove(target)
             else:
@@ -563,7 +569,7 @@ def self_test():
             if not hit:
                 bad += 1
         # ── ⑪b 负控：目录里塞一个**不在清单里**的单元件 ⇒ 必红
-        stray = os.path.join(tmp, 'world-core-stray.socket')
+        stray = os.path.join(tmp, 'units', 'world-core-stray.socket')
         with io.open(stray, 'w', encoding='utf-8', newline='\n') as f:
             f.write('[Socket]\nListenStream=/run/world-core/stray.sock\n')
         _, reds = judge(tmp, pol, os.path.join(tmp, 'README.md'), chan)

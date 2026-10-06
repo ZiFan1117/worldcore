@@ -12,7 +12,7 @@
 ## 但这一格今天【对而不可复现】
 那一行修复（`ExecStartPre=+/bin/chown …`）**只在机器上**，**不在仓里**：
 * 仓内五件 `grep ExecStartPre` ⇒ **0 命中**；
-* 而仓内 `deploy/world-core.service` 仍有 `User=` ＋ `RuntimeDirectory=` —— **那是把属主拉回 965 的那套机制**。
+* 而仓内 `deploy/units/world-core.service` 仍有 `User=` ＋ `RuntimeDirectory=` —— **那是把属主拉回 965 的那套机制**。
 ⇒ ★ 所以：**一旦从仓内重新部署/重建，属主就会走回 965，而【没有任何判据会红】**。
   这一件就是那条判据。
 
