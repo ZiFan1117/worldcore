@@ -530,6 +530,7 @@ fn c09_symlinked_law_is_refused() {
 
     // 真本体放在别处，policy.json 用软链指向它
     let real = d.join("real-policy.json");
+    fs::create_dir_all(real.parent().unwrap()).unwrap();
     fs::copy(policy(), &real).unwrap();
     let link = d.join("src/gate/policy.json");
     symlink(&real, &link).unwrap();
@@ -539,6 +540,7 @@ fn c09_symlinked_law_is_refused() {
 
     // 对照：真实文件不得被拒（否则上面的断言可能因"什么都拒"而假通过）
     let copy = d.join("policy-real.json");
+    fs::create_dir_all(copy.parent().unwrap()).unwrap();
     fs::copy(policy(), &copy).unwrap();
     assert!(
         World::open(&ontology(), &lp, &copy).is_ok(),
@@ -551,6 +553,7 @@ fn c09_symlinked_law_is_refused() {
     // 与"账本被另一个写者占着"混在一起（那会让本断言失去判别力）。
     let lp2 = d.join("ledger2.jsonl");
     let real_ont = d.join("real-ontology.json");
+    fs::create_dir_all(real_ont.parent().unwrap()).unwrap();
     fs::copy(ontology(), &real_ont).unwrap();
     let ont_link = d.join("ontology-link.json");
     symlink(&real_ont, &ont_link).unwrap();
@@ -563,6 +566,7 @@ fn c09_symlinked_law_is_refused() {
     );
     // 对照：把内容**真放**到该路径上，同一次启动必须成功（证明上面拒的是"链接"这件事）
     let real_copy = d.join("ontology-real.json");
+    fs::create_dir_all(real_copy.parent().unwrap()).unwrap();
     fs::copy(ontology(), &real_copy).unwrap();
     assert!(
         World::open(&real_copy, &lp2, &policy()).is_ok(),
@@ -581,6 +585,7 @@ fn c10_owner_assertion_detects_wrong_owner() {
 
     let d = tmpdir("c10");
     let f = d.join("law.json");
+    fs::create_dir_all(f.parent().unwrap()).unwrap();
     fs::copy(policy(), &f).unwrap();
 
     let my_uid = fs::metadata(&f).unwrap().uid();
@@ -1548,6 +1553,7 @@ fn c24_known_codeless_outlets_carry_no_ext_world_prefix() {
 
     // ① 符号链接：内容真放一份在别处，法律用一个指向它的软链
     let real = d.join("real-policy.json");
+    fs::create_dir_all(real.parent().unwrap()).unwrap();
     fs::copy(policy(), &real).unwrap();
     let link = d.join("policy-link.json");
     symlink(&real, &link).unwrap();
@@ -2071,6 +2077,7 @@ fn c35_the_ledger_alone_reproduces_the_same_state_elsewhere() {
 
     // ② **只带账本**：把账本文件复制到乙地（另一个目录、另一个绝对路径），甲地不参与
     let lp_b = there.join("history.jsonl");
+    fs::create_dir_all(lp_b.parent().unwrap()).unwrap();
     fs::copy(&lp_a, &lp_b).expect("复制账本");
 
     let read_lines = |p: &Path| -> Vec<Value> {

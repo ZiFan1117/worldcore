@@ -85,6 +85,7 @@ fn world_files(d: &Path) -> (PathBuf, PathBuf, PathBuf) {
         &onto,
     )
     .unwrap();
+    fs::create_dir_all(pol.parent().unwrap()).unwrap();
     fs::copy(manifest().join("src/gate/policy.json"), &pol).unwrap();
     (ledger, onto, pol)
 }

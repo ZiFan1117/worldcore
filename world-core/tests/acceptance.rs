@@ -571,6 +571,7 @@ fn t11_world_refuses_to_start_when_law_is_writable_by_others() {
     let d = tmpdir("t11");
     let lp = d.join("ledger.jsonl");
     let pol = d.join("src/gate/policy.json");
+    fs::create_dir_all(pol.parent().unwrap()).unwrap();
     fs::copy(policy(), &pol).unwrap();
     fs::set_permissions(&d, fs::Permissions::from_mode(0o700)).unwrap();
 
@@ -629,6 +630,7 @@ fn t13_running_world_does_not_reread_policy() {
     let d = tmpdir("t13");
     let lp = d.join("ledger.jsonl");
     let pol = d.join("src/gate/policy.json");
+    fs::create_dir_all(pol.parent().unwrap()).unwrap();
     fs::copy(policy(), &pol).unwrap();
 
     let mut w = World::open(&ontology(), &lp, &pol).unwrap();
@@ -817,6 +819,7 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
 
     let d = tmpdir("t16");
     let (lp, pol_copy) = seed_world(&d);
+    fs::create_dir_all(pol_copy.parent().unwrap()).unwrap();
     fs::copy(policy(), &pol_copy).unwrap();
     let w = World::open(&ontology(), &lp, &pol_copy).unwrap();
     let state = w.read_model().unwrap();

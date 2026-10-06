@@ -87,7 +87,10 @@ trap 'rm -rf "$SB"' EXIT
 # 若沙箱目录本身不可穿越，那条断言会因**目录权限**而通过（与套接字权限无关）——那是假绿。
 # 755 与 `check.sh` 的沙箱同口径，且组/其他人仍**不可写**（guard 的静态墙不受影响）。
 chmod 755 "$SB"
-cp src/ontology_definition/ontology.json src/gate/policy.json "$SB"/
+# ★ 沙盒必须**保持与仓内同样的相对布局**（法律搬进 src/ 后不再平铺）：
+mkdir -p "$SB/src/ontology_definition" "$SB/src/gate"
+cp src/ontology_definition/ontology.json "$SB/src/ontology_definition/ontology.json"
+cp src/gate/policy.json "$SB/src/gate/policy.json"
 chmod 600 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 L="$SB/ledger.jsonl"
 
