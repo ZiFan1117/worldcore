@@ -43,9 +43,9 @@
 | **法律** | 本体（形状：`ontology.json`）+ 门禁策略（权限：`policy.json`），两者皆纯文本、且须放在被管者不可写之处 | `WC-HLD-001-v0.1.md` §1.3 |
 | **真相** | 账本 `ledger.jsonl`：只追加、纯文本、语言无关 | 同上 |
 | **咽喉** | `World::commit` —— 进程内唯一能改世界的函数 | `src/lib.rs:133` |
-| **静态墙** | 对法律与真相所在位置的权限检查（文件 + 所在目录），不合格即拒绝启动 | `src/guard.rs:43`、`src/guard.rs:69-88` |
-| **同源头** | 每份投影输出的第一行，携带 `world` / `vocab` / `last_seq` / `state` 五项身份（与 `WC-FMT-001` §5 同口径） | `src/project/mod.rs:77`、`src/project/mod.rs:124` |
-| **门禁加摩擦** | 不可逆动作对白名单外主体返回 `AwaitApproval`（拒绝执行但不静默） | `src/gate.rs:269`（`decide`） |
+| **静态墙** | 对法律与真相所在位置的权限检查（文件 + 所在目录），不合格即拒绝启动 | `src/gate/guard.rs:43`、`src/gate/guard.rs:69-88` |
+| **同源头** | 每份投影输出的第一行，携带 `world` / `vocab` / `last_seq` / `state` 五项身份（与 `WC-FMT-001` §5 同口径） | `src/gui_projection/mod.rs:77`、`src/gui_projection/mod.rs:124` |
+| **门禁加摩擦** | 不可逆动作对白名单外主体返回 `AwaitApproval`（拒绝执行但不静默） | `src/gate/mod.rs:269`（`decide`） |
 | **信封 / 信纸** | 信封＝事件外层字段（`world,kind,id,seq,at,actor,flags,body` + 可选 `to,trace`）；信纸＝`body` 的家族特定载荷 | `ontology.json` 的 `envelope.required`、`envelope.optional` |
 
 ## §2 总体设计
@@ -68,8 +68,8 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 层间**硬约束**（违反即设计级缺陷，逐条出处 `WC-MODREG-001-v0.1.md` §三）：
 
 1. **L2/L4 不得写 L1**：读模型与投影都不能改账本（`REQ-F-012`）；
-2. **L3 是唯一写入通道**：`World::commit` 之外没有第二条写路径（`REQ-F-006`，类型级保证见 `src/lib.rs:57-62`、`src/ledger.rs:286` 的 `pub(crate)`）；
-3. **L4 之间不交互**：两个投影只接受 `(&State, world, vocab)`，无共享可变状态（`REQ-F-020`，`src/project/language.rs:22`、`src/project/visual.rs:29`）；
+2. **L3 是唯一写入通道**：`World::commit` 之外没有第二条写路径（`REQ-F-006`，类型级保证见 `src/lib.rs:57-62`、`src/ledger/mod.rs:286` 的 `pub(crate)`）；
+3. **L4 之间不交互**：两个投影只接受 `(&State, world, vocab)`，无共享可变状态（`REQ-F-020`，`src/gui_projection/language.rs:22`、`src/gui_projection/visual.rs:29`）；
 4. **M05 不得依赖 L4**：门禁不关心"谁会看到"，只关心"能不能做"。
 
 ### 2.2 进程与部署视图
@@ -78,14 +78,14 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 |---|---|---|
 | 进程模型 | **单进程、单可执行文件**；`src/main.rs` 只做参数解析与 7 个子命令分发 | `src/main.rs:31`、`src/main.rs:99-352` |
 | 交互方式 | CLI 子命令 `check` / `kinds` / `policy` / `append` / `read` / `state` / `project` | `src/main.rs:11`（`USAGE`） |
-| 跨进程入口 | Unix 域套接字 + 文本行协议；**一个套接字一个身份，权限即身份**（`bind()` 后 `chmod 0600` + `chown` 到目标 uid） | `src/channel.rs:9-20`、`src/channel.rs:168-187` |
+| 跨进程入口 | Unix 域套接字 + 文本行协议；**一个套接字一个身份，权限即身份**（`bind()` 后 `chmod 0600` + `chown` 到目标 uid） | `src/bus/mod.rs:9-20`、`src/bus/mod.rs:168-187` |
 | 配置来源 | 三个显式路径：`ontology.json` / `policy.json` / `ledger.jsonl`；库 API `World::open` 三个参数全部必填，无隐藏默认 | `src/lib.rs:68-72` |
 | 退出码 | `0` 成功 / `1` 用法错误 / `2` 法律、账本、门禁、读模型或投影错误 | `src/main.rs:11`（`USAGE` 末段） |
-| 对外协议 | **纯文本**（JSON Lines / JSON）；不引入二进制序列化 | `REQ-N-001`；`src/ledger.rs:496`（`encode_line`） |
-| 启动顺序 | 加载本体 → 加载策略（含静态墙）→ 打开账本（**先取单写者锁**，再读文件）→ 校验 `seq` 连续 → 恢复 `next_seq` → 核验摘要链 → 词表版本一致性自检；任一步失败即拒绝启动 | `src/lib.rs:68-99`、`src/ledger.rs:166-231` |
+| 对外协议 | **纯文本**（JSON Lines / JSON）；不引入二进制序列化 | `REQ-N-001`；`src/ledger/mod.rs:496`（`encode_line`） |
+| 启动顺序 | 加载本体 → 加载策略（含静态墙）→ 打开账本（**先取单写者锁**，再读文件）→ 校验 `seq` 连续 → 恢复 `next_seq` → 核验摘要链 → 词表版本一致性自检；任一步失败即拒绝启动 | `src/lib.rs:68-99`、`src/ledger/mod.rs:166-231` |
 | 启动不折叠 | 启动**不折叠账本**，故坏账本不会在启动时暴露，只在 `state` / `project` 被调用时报错（退出码 `2`） | `src/main.rs:200-234`、`src/main.rs:295-310` |
-| 权限与 uid 编排 | `policy.json`/`ontology.json` 属主＝核心 uid、mode `0644` 或更严；账本 `0600`；三者**所在目录** `0755` 且不得 group/other 可写；agent 进程为**不同 uid** | `src/guard.rs:43-88`、`src/guard.rs:132`、`src/main.rs:28` 附近的 `--owner-uid` 断言 |
-| 停机 | v1 **无优雅停机协议**：进程被终止最多留下一个残缺末行，由下次启动丢弃；锁随进程结束自动释放 | `src/ledger.rs:112-116`（`Drop` 删锁）、`src/ledger.rs:192-209`（丢半行） |
+| 权限与 uid 编排 | `policy.json`/`ontology.json` 属主＝核心 uid、mode `0644` 或更严；账本 `0600`；三者**所在目录** `0755` 且不得 group/other 可写；agent 进程为**不同 uid** | `src/gate/guard.rs:43-88`、`src/gate/guard.rs:132`、`src/main.rs:28` 附近的 `--owner-uid` 断言 |
+| 停机 | v1 **无优雅停机协议**：进程被终止最多留下一个残缺末行，由下次启动丢弃；锁随进程结束自动释放 | `src/ledger/mod.rs:112-116`（`Drop` 删锁）、`src/ledger/mod.rs:192-209`（丢半行） |
 
 ### 2.3 数据流
 
@@ -109,11 +109,11 @@ ontology.json ──vocab_hash_of──► vocab_hash ────────�
 ```
 
 出处：`src/lib.rs:133-195`（`commit` 五步顺序）、`src/lib.rs:255-257`（`read_model` 全量折叠）、
-`src/readmodel.rs:202`（`State::fold`）、`src/readmodel.rs:234`（`digest`）、
-`src/project/language.rs:22`／`src/project/visual.rs:29`（两个渲染函数）、
-`src/project/mod.rs:124`（`assert_same_source`）、`src/ontology.rs:240`（`vocab_hash_of`）。
-**读模型零持久形态**；唯一的持久缓存是 `M08` 快照（`src/checkpoint.rs:69`），其"不是第二真相"的地位由
-「带 `base_seq` + 可核验 + 删掉可重算逐字节相同」三条不变量保证（`src/checkpoint.rs:122-152`、`src/checkpoint.rs:167`），不由约定保证。
+`src/ontology_instance/readmodel.rs:202`（`State::fold`）、`src/ontology_instance/readmodel.rs:234`（`digest`）、
+`src/gui_projection/language.rs:22`／`src/gui_projection/visual.rs:29`（两个渲染函数）、
+`src/gui_projection/mod.rs:124`（`assert_same_source`）、`src/ontology_definition/mod.rs:240`（`vocab_hash_of`）。
+**读模型零持久形态**；唯一的持久缓存是 `M08` 快照（`src/ontology_instance/checkpoint.rs:69`），其"不是第二真相"的地位由
+「带 `base_seq` + 可核验 + 删掉可重算逐字节相同」三条不变量保证（`src/ontology_instance/checkpoint.rs:122-152`、`src/ontology_instance/checkpoint.rs:167`），不由约定保证。
 
 ### 2.4 模块依赖与「无循环依赖」
 
@@ -129,24 +129,24 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 | 调用方 → 被调方 | 证据（源码坐标） |
 |---|---|
-| `M01` → `M05`（静态墙 `guard`） | `src/ontology.rs:81` |
-| `M02` → `M05`（静态墙 `guard`） | `src/ledger.rs:15`、`src/ledger.rs:177`、`src/ledger.rs:190` |
+| `M01` → `M05`（静态墙 `guard`） | `src/ontology_definition/mod.rs:81` |
+| `M02` → `M05`（静态墙 `guard`） | `src/ledger/mod.rs:15`、`src/ledger/mod.rs:177`、`src/ledger/mod.rs:190` |
 | `M04` → `M01` / `M02` / `M03` / `M05` | `src/lib.rs:30-33`、`src/lib.rs:68-99`、`src/lib.rs:133-195` |
-| `M04` → `M06`、`M07`（投影层） | `src/main.rs:296`（`use world_core::project::{self, language, visual}`）、`src/main.rs:317/321/325-327` |
-| `M05`（`gate`）→ `M05`（`guard`，同模块内；**不计入模块级图**（2026-09-27 加注）） | `src/gate.rs:32` |
-| `M08` → `M03`、`M05` | `src/checkpoint.rs:32-33` |
-| `M09` → `M04`（经 `World`）、`M05` | `src/channel.rs:52`、`src/channel.rs:172`、`src/channel.rs:230-231` |
-| `M06` → `M03`、`project` 共享纯函数 | `src/project/language.rs:17-18` |
-| `M07` → `M03`、`project` 共享纯函数 | `src/project/visual.rs:25-26` |
-| `project` 共享面 → `M03` | `src/project/mod.rs:43`（`crate::ontology` 只出现在 `src/project/mod.rs:28` 的文档注释里） |
-| `M03` → **无生产出边** | `src/readmodel.rs` 全文只有 `src/readmodel.rs:249` 一处 `use crate::event`，它位于 `src/readmodel.rs:246-247` 的 `#[cfg(test)] mod unit` 内 |
+| `M04` → `M06`、`M07`（投影层） | `src/main.rs:296`（`use world_core::gui_projection::{self, language, visual}`）、`src/main.rs:317/321/325-327` |
+| `M05`（`gate`）→ `M05`（`guard`，同模块内；**不计入模块级图**（2026-09-27 加注）） | `src/gate/mod.rs:32` |
+| `M08` → `M03`、`M05` | `src/ontology_instance/checkpoint.rs:32-33` |
+| `M09` → `M04`（经 `World`）、`M05` | `src/bus/mod.rs:52`、`src/bus/mod.rs:172`、`src/bus/mod.rs:230-231` |
+| `M06` → `M03`、`project` 共享纯函数 | `src/gui_projection/language.rs:17-18` |
+| `M07` → `M03`、`project` 共享纯函数 | `src/gui_projection/visual.rs:25-26` |
+| `project` 共享面 → `M03` | `src/gui_projection/mod.rs:43`（`crate::ontology_definition` 只出现在 `src/gui_projection/mod.rs:28` 的文档注释里） |
+| `M03` → **无生产出边** | `src/ontology_instance/readmodel.rs` 全文只有 `src/ontology_instance/readmodel.rs:249` 一处 `use crate::common::event`，它位于 `src/ontology_instance/readmodel.rs:246-247` 的 `#[cfg(test)] mod unit` 内 |
 | `M01` / `M02` / `M03` → `M04` / `M08` / `M09` | **无**：上表已穷举全部 `crate::` 引用点 |
 
 **结论（可复算的拓扑序见证）**：把上表当作有向图（边＝调用方 → 被调方）做 Kahn 剥层，得到
 `{M03, M05} → {M01, M02, M06, M07, M08} → {M04} → {M09}`（**2026-09-27 复算值**：9 个模块全部剥离 ⇒ 无环），九个模块全部被剥离
 ⇒ **不存在循环依赖**（`M05` 无出边，是汇聚点；`M03` 在生产代码中无出边）。
 **一处须登记的差异**：`WC-MODREG-001-v0.1.md` §二 把 `M05` 的依赖模块记为「`M01`（家族/字段）」、
-§三 记「`M01` → `M05`：无」，而源码的实际方向是 **`M01` → `M05`（静态墙）**，且 `src/gate.rs` 未引用本体。
+§三 记「`M01` → `M05`：无」，而源码的实际方向是 **`M01` → `M05`（静态墙）**，且 `src/gate/mod.rs` 未引用本体。
 该差异**不构成环**（两个方向都不是双向边），但登记表与代码的方向需对齐。
 
 ## §3 模块划分与职责
@@ -155,18 +155,18 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 | 模块号 | 模块名 | 层 | 职责（一句话） | 实现位置 | 依赖模块 | 承载接口 | 现状 |
 |---|---|---|---|---|---|---|---|
-| `M01` | 本体（Ontology） | L1 法律与事实 | 世界的**法律**：一条事件长什么样、什么算合法；并给出**词表身份** | `src/ontology.rs`、`ontology.json` | `M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M05`）** | `IF-005` | 已实现 |
-| `M02` | 账本（Ledger） | L1 法律与事实 | 世界的**事实**：只追加的语义事件日志；分配 `seq`；崩溃尾迹处理 | `src/ledger.rs` | `M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M05`）** | `IF-001` | 已实现 |
-| `M03` | 读模型（Read Model） | L2 状态 | **状态 = 折叠账本**；派生物、可随时删掉重算 | `src/readmodel.rs` | **无**（生产代码零出边）　**（现取：与 `WC-MODREG-001` §2 一致 ＝ 无）** | `IF-009` | 已实现 |
+| `M01` | 本体（Ontology） | L1 法律与事实 | 世界的**法律**：一条事件长什么样、什么算合法；并给出**词表身份** | `src/ontology_definition/mod.rs`、`ontology.json` | `M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M05`）** | `IF-005` | 已实现 |
+| `M02` | 账本（Ledger） | L1 法律与事实 | 世界的**事实**：只追加的语义事件日志；分配 `seq`；崩溃尾迹处理 | `src/ledger/mod.rs` | `M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M05`）** | `IF-001` | 已实现 |
+| `M03` | 读模型（Read Model） | L2 状态 | **状态 = 折叠账本**；派生物、可随时删掉重算 | `src/ontology_instance/readmodel.rs` | **无**（生产代码零出边）　**（现取：与 `WC-MODREG-001` §2 一致 ＝ 无）** | `IF-009` | 已实现 |
 | `M04` | 运行时（Runtime） | L3 治理与机制 | 装配与启动；**唯一写入口** `World::commit` | `src/lib.rs`、`src/main.rs` | `M01`、`M02`、`M03`、`M05`、`M06`、`M07`　**（⚠ 本表此格过期：`WC-MODREG-001` §2 作 `M01`、`M02`、`M03`、`M05`、`M06`、`M07`、`M08`、`M09`、`M10`；本表漏 `M08`/`M09`/`M10` ⇒ 待对齐，以 §2 为准）** | `IF-008` | 已实现 |
-| `M05` | 门禁（Gate） | L3 治理与机制 | 一件事**现在能不能做**：默认拒绝 + 按不可逆性加摩擦 + 拒绝留痕；并含**静态墙** | `src/gate.rs`、`src/guard.rs`、`policy.json` | **无**（含静态墙，自身零出边）　**（⚠ 本表此格过期：`WC-MODREG-001` §2 作 `M10`（`src/gate.rs` 的真出边）；本表旧值写作「自身零出边」⇒ 待对齐，以 §2 为准）** | `IF-002` | 已实现 |
-| `M06` | 语言投影（Language Projection） | L4 出口 | 结构化出口：逐行 JSON，给程序读 | `src/project/language.rs` | `M03`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`）** | `IF-003` | 已实现 |
-| `M07` | 视觉投影（Visual Projection） | L4 出口 | 渲染出口：终端可读，**排版仍可被审计** | `src/project/visual.rs` | `M03`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`）** | `IF-004` | 已实现 |
-| `M08` | 检查点（Checkpoint） | L2 状态 | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同 | `src/checkpoint.rs` | `M03`、`M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`、`M05`）** | `IF-010` | 已实现 |
-| `M09` | 通道（Channel） | L3 治理与机制 | 跨进程入口：**一个套接字一个身份**，权限即身份 | `src/channel.rs` | `M04`、`M05`　**（⚠ 本表此格过期：`WC-MODREG-001` §2 作 `M05`；本表旧值多写了 `M04` ⇒ 待对齐，以 §2 为准）** | `IF-006` | 已实现 |
+| `M05` | 门禁（Gate） | L3 治理与机制 | 一件事**现在能不能做**：默认拒绝 + 按不可逆性加摩擦 + 拒绝留痕；并含**静态墙** | `src/gate/mod.rs`、`src/gate/guard.rs`、`policy.json` | **无**（含静态墙，自身零出边）　**（⚠ 本表此格过期：`WC-MODREG-001` §2 作 `M10`（`src/gate/mod.rs` 的真出边）；本表旧值写作「自身零出边」⇒ 待对齐，以 §2 为准）** | `IF-002` | 已实现 |
+| `M06` | 语言投影（Language Projection） | L4 出口 | 结构化出口：逐行 JSON，给程序读 | `src/gui_projection/language.rs` | `M03`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`）** | `IF-003` | 已实现 |
+| `M07` | 视觉投影（Visual Projection） | L4 出口 | 渲染出口：终端可读，**排版仍可被审计** | `src/gui_projection/visual.rs` | `M03`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`）** | `IF-004` | 已实现 |
+| `M08` | 检查点（Checkpoint） | L2 状态 | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同 | `src/ontology_instance/checkpoint.rs` | `M03`、`M05`　**（现取：与 `WC-MODREG-001` §2 一致 ＝ `M03`、`M05`）** | `IF-010` | 已实现 |
+| `M09` | 通道（Channel） | L3 治理与机制 | 跨进程入口：**一个套接字一个身份**，权限即身份 | `src/bus/mod.rs` | `M04`、`M05`　**（⚠ 本表此格过期：`WC-MODREG-001` §2 作 `M05`；本表旧值多写了 `M04` ⇒ 待对齐，以 §2 为准）** | `IF-006` | 已实现 |
 
-**共同模块（不占模块号）**：`src/event.rs`（信封与信纸构造，属 `M01` 的机制面）、
-`src/project/mod.rs`（投影同源判定，横跨 `M06`/`M07`）——出处 `WC-MODREG-001-v0.1.md` §二 表末段。
+**共同模块（不占模块号）**：`src/common/event.rs`（信封与信纸构造，属 `M01` 的机制面）、
+`src/gui_projection/mod.rs`（投影同源判定，横跨 `M06`/`M07`）——出处 `WC-MODREG-001-v0.1.md` §二 表末段。
 **★ 本表「依赖模块」列与 `WC-MODREG-001` §2 的关系（如实：**本表不权威**）**：
 该列是**引用**，**唯一权威是 `WC-MODREG-001` §2**。逐行现取比对的结果写在每行行末：
 标「现取：与 §2 一致」的六行（`M01`／`M02`／`M03`／`M06`／`M07`／`M08`）与 §2 逐边相符；
@@ -179,7 +179,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | 行 | 本表当前值 | `WC-MODREG-001` §2 的真值 | 差在哪 |
 |---|---|---|---|
 | `M04` | `M01`、`M02`、`M03`、`M05`、`M06`、`M07` | `M01`、`M02`、`M03`、`M05`、`M06`、`M07`、`M08`、`M09`、`M10` | 本表**漏 `M08`／`M09`／`M10`** 三项 |
-| `M05` | **无**（含静态墙，自身零出边） | `M10`（`src/gate.rs` 的真出边） | 本表写作"自身零出边"，**与实现相反** |
+| `M05` | **无**（含静态墙，自身零出边） | `M10`（`src/gate/mod.rs` 的真出边） | 本表写作"自身零出边"，**与实现相反** |
 | `M09` | `M04`、`M05` | `M05` | 本表**多写了 `M04`** 一项 |
 
 **状态（如实，不许读成已消除）**：**"数据不符"这一条仍然开着**——
@@ -188,13 +188,13 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 **为什么不在同一笔里改**：改数据要**同时动本表与 §2 的权威口径**，属**另一件**（走"改 → 评审 → 签"）；
 把两件事混在一笔里，是本仓反复吃亏的形态。⇒ **本待办的完成判据**＝三行值与 §2 逐边相等，且本表行尾标注随之改为「与 §2 一致」。
 
-**模块内机制（不占模块号）**：`src/ledger.rs` 的 `Sink`（落笔 I/O 缝，`pub(crate)`，4 个 I/O 原语：
-`byte_len`/`put`/`sync`/`truncate`，见 `src/ledger.rs:44-50`），生产实现只有 `FileSink`（`src/ledger.rs:58-72`）。
+**模块内机制（不占模块号）**：`src/ledger/mod.rs` 的 `Sink`（落笔 I/O 缝，`pub(crate)`，4 个 I/O 原语：
+`byte_len`/`put`/`sync`/`truncate`，见 `src/ledger/mod.rs:44-50`），生产实现只有 `FileSink`（`src/ledger/mod.rs:58-72`）。
 
 > **「现状」列的读法**：本列按三态（已实现／部分实现／未实现（待 S4））改写
 > `WC-MODREG-001-v0.1.md` §二「现状」列的登记值；九行原值均为「✅ 已实现」。
 > **模块级"已实现"不等于其承载的每条需求都已实现**——例如 `M09` 的四个资源边界（`REQ-F-026`）在
-> `src/channel.rs:193` 的 `serve_once` 里一个都没有（`WC-SRS-001-v0.1.md` §三 `REQ-F-026` 行）。
+> `src/bus/mod.rs:193` 的 `serve_once` 里一个都没有（`WC-SRS-001-v0.1.md` §三 `REQ-F-026` 行）。
 > 逐条需求的现状见 §7。
 
 ### 3.1 边界为什么划在这里（只补理由，不复述登记表）
@@ -242,16 +242,16 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 | 编号 | 名称 | 形态 | 提供方 | 现状 |
 |---|---|---|---|---|
-| `IF-001` | 账本读写 | 进程内 | `M02`（`src/ledger.rs`） | 已实现 |
-| `IF-002` | 门禁裁决 | 进程内 | `M05`（`src/gate.rs` + `src/guard.rs` + `policy.json`） | 已实现 |
-| `IF-003` | 语言投影出口 | 文本（JSON Lines） | `M06`（`src/project/language.rs`） | 已实现 |
-| `IF-004` | 视觉投影出口 | 文本（可审计排版） | `M07`（`src/project/visual.rs`） | 已实现 |
-| `IF-005` | 词表身份 | 进程内 | `M01`（`src/ontology.rs`） | 已实现 |
-| `IF-006` | 跨进程通道 | 外部（Unix 域套接字 + 文本行协议） | `M09`（`src/channel.rs`） | 已实现 |
+| `IF-001` | 账本读写 | 进程内 | `M02`（`src/ledger/mod.rs`） | 已实现 |
+| `IF-002` | 门禁裁决 | 进程内 | `M05`（`src/gate/mod.rs` + `src/gate/guard.rs` + `policy.json`） | 已实现 |
+| `IF-003` | 语言投影出口 | 文本（JSON Lines） | `M06`（`src/gui_projection/language.rs`） | 已实现 |
+| `IF-004` | 视觉投影出口 | 文本（可审计排版） | `M07`（`src/gui_projection/visual.rs`） | 已实现 |
+| `IF-005` | 词表身份 | 进程内 | `M01`（`src/ontology_definition/mod.rs`） | 已实现 |
+| `IF-006` | 跨进程通道 | 外部（Unix 域套接字 + 文本行协议） | `M09`（`src/bus/mod.rs`） | 已实现 |
 | `IF-007` | **宿主文件系统**（外部依赖） | 外部依赖：OS 文件语义（文件/目录 + mode 位） | OS；消费方 `M02`/`M05` | 已实现 |
 | `IF-008` | 运行时入口（CLI） | 外部：命令行 `argv`，纯文本 stdout/stderr 分流 | `M04`（`src/main.rs`） | 已实现 |
-| `IF-009` | 状态折叠与重建 | 进程内 | `M03`（`src/readmodel.rs`） | 已实现 |
-| `IF-010` | 检查点读写与核验 | 内部 + 纯文本 JSON 文件 | `M08`（`src/checkpoint.rs`） | 已实现 |
+| `IF-009` | 状态折叠与重建 | 进程内 | `M03`（`src/ontology_instance/readmodel.rs`） | 已实现 |
+| `IF-010` | 检查点读写与核验 | 内部 + 纯文本 JSON 文件 | `M08`（`src/ontology_instance/checkpoint.rs`） | 已实现 |
 
 出处：`WC-HLD-001-v0.1.md` §6.4 的 10 行接口清单（其权威出处为 `WC-IC-001` §一 与 `WC-IRS-001` §3.1，
 两处同为 10 行）。**接口编号一律三位 `IF-0xx`**，出处 `WC-MODREG-001-v0.1.md` §四 末行。
@@ -263,16 +263,16 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 | 编号 | 决策 | 理由（一句话） | 被否方案 | 代价 | 出处 |
 |---|---|---|---|---|---|
-| `D-01` | 门禁**默认拒绝**；可逆动作免检但留痕；不可逆动作只允许 `irreversible_actors` 白名单主体执行，白名单外拿 `AwaitApproval` | 默认允许的系统，其安全性等于"没人写错规则"——而规则一定会写错 | ① 默认允许 + 黑名单；② 所有动作都要批准 | 新能力上线必须显式登记，初期"麻烦"；且 v1 无审批通道 | `WC-HLD-001-v0.1.md` §4.1；`src/gate.rs:269-296` |
-| `D-02` | 静态墙**同时看文件与所在目录**（`mode & 0o022 == 0`），任一条不满足即**拒绝启动**；并拒绝符号链接 | 只锁文件挡不住"删掉再放一个新的"——目录权限才是"这条法律能不能被整体换掉"的答案 | ① 只查文件；② 仅打印警告继续运行 | 部署时目录权限必须正确，构成一条部署要求 | `WC-HLD-001-v0.1.md` §4.2；`src/guard.rs:43-97`、`src/guard.rs:105` |
+| `D-01` | 门禁**默认拒绝**；可逆动作免检但留痕；不可逆动作只允许 `irreversible_actors` 白名单主体执行，白名单外拿 `AwaitApproval` | 默认允许的系统，其安全性等于"没人写错规则"——而规则一定会写错 | ① 默认允许 + 黑名单；② 所有动作都要批准 | 新能力上线必须显式登记，初期"麻烦"；且 v1 无审批通道 | `WC-HLD-001-v0.1.md` §4.1；`src/gate/mod.rs:269-296` |
+| `D-02` | 静态墙**同时看文件与所在目录**（`mode & 0o022 == 0`），任一条不满足即**拒绝启动**；并拒绝符号链接 | 只锁文件挡不住"删掉再放一个新的"——目录权限才是"这条法律能不能被整体换掉"的答案 | ① 只查文件；② 仅打印警告继续运行 | 部署时目录权限必须正确，构成一条部署要求 | `WC-HLD-001-v0.1.md` §4.2；`src/gate/guard.rs:43-97`、`src/gate/guard.rs:105` |
 | `D-03` | 法律与真相的路径**必须显式传入**：库 API `World::open` 三参数全必填、**不设隐藏默认值** | 若提供隐式默认路径，就会出现"改了 A、其实读的是 B"这类看起来生效、实际没生效的事故 | 默认 `./policy.json` 并在缺失时内置一份"宽松默认" | 命令行更长；CLI 层的文档化默认值仍在（`src/main.rs:25-27`） | `WC-HLD-001-v0.1.md` §4.3；`src/lib.rs:68-72`、`src/main.rs:25-27` |
-| `D-04` | 词表身份**内容寻址**：对规范化 JSON（剔 `_` 开头说明键）求指纹，两份投影首行必须携带它 | 若各自读一份词表副本，"同源"只能靠人比对文件——那不叫证明 | ① 用文件字节哈希；② 不设身份、只比对渲染结果 | 指纹是 FNV-1a（**非加密**），可能碰撞；**不得用于安全判断** | `WC-HLD-001-v0.1.md` §4.4；`src/ontology.rs:144`、`src/ontology.rs:240` |
-| `D-05` | 读模型 **v1 零持久形态**；`M08` 快照今后若接入，必须带 `base_seq`，且"从快照续算"必须与"从头重算"结果相同 | 一旦有持久形态，就出现"读模型与账本不一致"这一整类故障 | v1 就加快照以"提升性能" | 大账本上每次读状态都是 O(n)；触发阈值仍未定 | `WC-HLD-001-v0.1.md` §4.5、§4.5.1；`src/lib.rs:255-257`、`src/checkpoint.rs:122-152` |
+| `D-04` | 词表身份**内容寻址**：对规范化 JSON（剔 `_` 开头说明键）求指纹，两份投影首行必须携带它 | 若各自读一份词表副本，"同源"只能靠人比对文件——那不叫证明 | ① 用文件字节哈希；② 不设身份、只比对渲染结果 | 指纹是 FNV-1a（**非加密**），可能碰撞；**不得用于安全判断** | `WC-HLD-001-v0.1.md` §4.4；`src/ontology_definition/mod.rs:144`、`src/ontology_definition/mod.rs:240` |
+| `D-05` | 读模型 **v1 零持久形态**；`M08` 快照今后若接入，必须带 `base_seq`，且"从快照续算"必须与"从头重算"结果相同 | 一旦有持久形态，就出现"读模型与账本不一致"这一整类故障 | v1 就加快照以"提升性能" | 大账本上每次读状态都是 O(n)；触发阈值仍未定 | `WC-HLD-001-v0.1.md` §4.5、§4.5.1；`src/lib.rs:255-257`、`src/ontology_instance/checkpoint.rs:122-152` |
 | `D-06` | **零外部依赖纪律**：直接依赖仅 `serde_json`；自用指纹自行实现 | 世界核心是地基——依赖链是攻击面也是移植成本 | 引入 `sha2` 等成熟库以获得加密强度指纹 | 指纹弱；一旦用于安全用途就是误用 | `WC-HLD-001-v0.1.md` §4.6；`Cargo.toml` 的 `[dependencies]` |
 | `D-07` | 回滚 = **追加补偿事件**，不提供 `undo`/`revert` API | 若提供 `undo`，它迟早会被实现成"抹掉最后一条"——那一刻账本就不再是证据 | `undo` 命令内部追加补偿事件（形式上安全） | 调用方要自己写补偿事件 | `WC-HLD-001-v0.1.md` §4.7 |
-| `D-08` | 投影是**出口节点**：只接受 `(&State, world, vocab)` 返回 `String`，不共享缓存、不互相调用 | 若允许投影持有状态，它们会各自演化出"自己那份真相"，同源随即失效 | 视觉投影复用语言投影的输出再美化 | 两个投影**共用** `project/mod.rs::group_by_subject` 这一纯函数（有意为之）；共享**状态**被否 | `WC-HLD-001-v0.1.md` §4.8；`src/project/mod.rs:53` |
+| `D-08` | 投影是**出口节点**：只接受 `(&State, world, vocab)` 返回 `String`，不共享缓存、不互相调用 | 若允许投影持有状态，它们会各自演化出"自己那份真相"，同源随即失效 | 视觉投影复用语言投影的输出再美化 | 两个投影**共用** `project/mod.rs::group_by_subject` 这一纯函数（有意为之）；共享**状态**被否 | `WC-HLD-001-v0.1.md` §4.8；`src/gui_projection/mod.rs:53` |
 | `D-09` | 账本与投影一律**纯文本**（JSON Lines / JSON / 可读文本）+ 退出码 `0/1/2` 三档含义固定 | 账本必须能被 `awk`/`jq`/Python/Go 直接读；换语言重建世界不需要解码器 | 二进制 / `bincode` / 自定义紧凑格式 | 体积大、无索引（将来若需要，索引必须可重建） | `WC-HLD-001-v0.1.md` §4.9；`src/main.rs:11` |
-| `D-10` | 折叠**报错而不猜**：序号断裂、旧值不符、未知家族三类一律拒绝折叠 | "账本是唯一真相"若允许读模型默默容忍坏数据，就成了一句空话——权威性由**拒绝**维持 | 遇到坏行就跳过并记录警告（"尽力而为"） | 一条坏事件会让整个读模型不可用（故意的 fail loud） | `WC-HLD-001-v0.1.md` §4.10；`src/readmodel.rs:87-123`、`src/readmodel.rs:202` |
+| `D-10` | 折叠**报错而不猜**：序号断裂、旧值不符、未知家族三类一律拒绝折叠 | "账本是唯一真相"若允许读模型默默容忍坏数据，就成了一句空话——权威性由**拒绝**维持 | 遇到坏行就跳过并记录警告（"尽力而为"） | 一条坏事件会让整个读模型不可用（故意的 fail loud） | `WC-HLD-001-v0.1.md` §4.10；`src/ontology_instance/readmodel.rs:87-123`、`src/ontology_instance/readmodel.rs:202` |
 
 ## §5 框架假设清单
 
@@ -282,21 +282,21 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 | 编号 | 假设内容 | 验证时点（可证伪的环节） | 若不成立的影响与代价 | 可复算坐标 / 命令 |
 |---|---|---|---|---|
-| `FA-01` | **运行平台为 Linux**（含 `/proc` 与 POSIX mode 位语义） | S3 骨架在干净 VM 上跑通时（`check.sh` 自打印 `uname -sr`）；R2 框架评审 | `src/guard.rs:91-96` 在非 Unix 上**跳过**全部静态墙检查；`src/ledger.rs:104-106` 陈旧锁"持有者是否存活"恒判为否 ⇒ 活锁被回收 ⇒ 双写者。代价＝安全承诺在部署面失效，`guard`/`ledger`/`channel` 三处需按目标平台重写 | `src/guard.rs:35-36`（"本项目构建与运行都在 Linux VM 内"）、`src/ledger.rs:104-106`、`src/channel.rs:15-20`；`bash check.sh` |
-| `FA-02` | **单写者**：任一时刻只有一个世界核心实例写同一本账 | S5 并发/多进程测试；R2 前（取锁流程仍有四步非原子窗口：`src/ledger.rs:121-137`） | 两个写者各按内存 `next_seq` 追加 ⇒ 重号/缺号 ⇒ 下次启动 `SeqGap` 拒启（`src/ledger.rs:223-229`）、**世界锁死**。代价＝人工核算与账本修复，属 P0 | `src/ledger.rs:91`、`src/ledger.rs:119-159`、`src/ledger.rs:166-168`；`cargo test --locked --test contract c07`、`c08` |
-| `FA-03` | **账本写路径是追加写**；唯一非追加动作是启动期截掉末尾半行 | S5（账本只追加判据，`DR-01`）；R2 评审 | 任何"原地改写/删除既有行"的路径都会让 `REQ-F-001` 与 `DR-01` 同时失效；而摘要链只能检出**局部**篡改、整本重写检不出（`src/ledger.rs:458`） ⇒ 无技术手段恢复信任。代价＝真相的可信性归零 | `src/ledger.rs:233-235`（`append(true)`）、`src/ledger.rs:314-316`、`src/ledger.rs:323`、`src/ledger.rs:196-209`（唯一的 `set_len`）；`cargo test --locked --test contract c22` |
-| `FA-04` | **本体以 `ontology.json` 为唯一来源**，且其内容"只加不改"（词表版本 `world=1`） | R2 冻结框架基线时；S5（`REQ-F-027`/`REQ-F-030` 的回归判据） | 事件构造器版本与本体声明不符 ⇒ **能启动却一条都写不进**（该自检已前移到启动期，`src/lib.rs:85-92`，代价是"世界起不来"）；若本体被就地改语义，旧账本的折叠结果不再可复现 ⇒ `REQ-F-011` 失效 | `ontology.json`（顶层 `"world": 1`）、`src/ontology.rs:71`、`src/lib.rs:73`、`src/lib.rs:85-92`；`cargo test --locked --test acceptance t6` |
+| `FA-01` | **运行平台为 Linux**（含 `/proc` 与 POSIX mode 位语义） | S3 骨架在干净 VM 上跑通时（`check.sh` 自打印 `uname -sr`）；R2 框架评审 | `src/gate/guard.rs:91-96` 在非 Unix 上**跳过**全部静态墙检查；`src/ledger/mod.rs:104-106` 陈旧锁"持有者是否存活"恒判为否 ⇒ 活锁被回收 ⇒ 双写者。代价＝安全承诺在部署面失效，`guard`/`ledger`/`channel` 三处需按目标平台重写 | `src/gate/guard.rs:35-36`（"本项目构建与运行都在 Linux VM 内"）、`src/ledger/mod.rs:104-106`、`src/bus/mod.rs:15-20`；`bash check.sh` |
+| `FA-02` | **单写者**：任一时刻只有一个世界核心实例写同一本账 | S5 并发/多进程测试；R2 前（取锁流程仍有四步非原子窗口：`src/ledger/mod.rs:121-137`） | 两个写者各按内存 `next_seq` 追加 ⇒ 重号/缺号 ⇒ 下次启动 `SeqGap` 拒启（`src/ledger/mod.rs:223-229`）、**世界锁死**。代价＝人工核算与账本修复，属 P0 | `src/ledger/mod.rs:91`、`src/ledger/mod.rs:119-159`、`src/ledger/mod.rs:166-168`；`cargo test --locked --test contract c07`、`c08` |
+| `FA-03` | **账本写路径是追加写**；唯一非追加动作是启动期截掉末尾半行 | S5（账本只追加判据，`DR-01`）；R2 评审 | 任何"原地改写/删除既有行"的路径都会让 `REQ-F-001` 与 `DR-01` 同时失效；而摘要链只能检出**局部**篡改、整本重写检不出（`src/ledger/mod.rs:458`） ⇒ 无技术手段恢复信任。代价＝真相的可信性归零 | `src/ledger/mod.rs:233-235`（`append(true)`）、`src/ledger/mod.rs:314-316`、`src/ledger/mod.rs:323`、`src/ledger/mod.rs:196-209`（唯一的 `set_len`）；`cargo test --locked --test contract c22` |
+| `FA-04` | **本体以 `ontology.json` 为唯一来源**，且其内容"只加不改"（词表版本 `world=1`） | R2 冻结框架基线时；S5（`REQ-F-027`/`REQ-F-030` 的回归判据） | 事件构造器版本与本体声明不符 ⇒ **能启动却一条都写不进**（该自检已前移到启动期，`src/lib.rs:85-92`，代价是"世界起不来"）；若本体被就地改语义，旧账本的折叠结果不再可复现 ⇒ `REQ-F-011` 失效 | `ontology.json`（顶层 `"world": 1`）、`src/ontology_definition/mod.rs:71`、`src/lib.rs:73`、`src/lib.rs:85-92`；`cargo test --locked --test acceptance t6` |
 | `FA-05` | **无外部服务依赖**：直接依赖只有 `serde_json` 一个 crate，无网络/数据库/守护进程 | 每次新增依赖时（CI 已挂机械断言）；R2 | 地基的移植成本上升、攻击面扩大；换语言重建世界需要解码器 ⇒ 与 `REQ-N-001`（语言无关）的精神冲突。代价＝地基每多一个依赖，将来重建世界的代价高一截 | `Cargo.toml` 的 `[dependencies]` 仅 `serde_json = "1"`；`tools/ci_self_check.py`；`cargo tree --locked` |
 | `FA-06` | **单进程**：本体/账本/读模型/门禁同进程，**进程内无并发写** | S3 骨架跑通时复核；S5（若引入长驻服务） | 需重新设计写入互斥与状态一致性。代价＝引入并发设施，并把"唯一写入口"从**类型级**保证（私有字段 + `pub(crate)`）降级为约定 | `src/lib.rs:57-62`、`src/lib.rs:133`、`src/lib.rs:12-17`；`rg -n 'thread::spawn\|Mutex\|RwLock\|Arc<' world-core/src` |
 | `FA-07` | **账本规模可控**：全量折叠（时间 O(n)、空间 O(n)）在本版规模下可接受 | S5（重放性能度量；`WC-TP-001-v0.1.md` §五 缺口 3） | 每次读状态变慢或内存峰值过高 ⇒ 必须提前把 `M08` 快照接进读取路径，而接入又触发 `FA-14` 的代价（坏快照语义）。代价＝提前引入一整类一致性风险 | `src/lib.rs:255-257`、`src/main.rs:200`、`tests/perf.rs:177`；`cargo test --release --locked --test perf -- --ignored --nocapture` |
-| `FA-08` | **宿主文件系统语义**：写入 + `sync_data` 足以在**进程崩溃**（**不含掉电**）之间保住"已回执"的事件 | R2 前（与"已回执"的定义一并裁定）；S6（真实磁盘/掉电故障实验） | `commit` 返回成功的事件可能丢失 ⇒ "零丢失"口径不成立，恢复目标需重定。代价＝需求层口径要改，无法靠实现补 | `src/ledger.rs:280-285`（自述"掉电仍可能丢已 ack 的事件"）、`src/ledger.rs:327-336`、`src/ledger.rs:69`；`cargo test --locked --test acceptance t3`、`tests/perf.rs:220` |
-| `FA-09` | **静态墙的有效前提**：法律与真相文件及其所在目录属主均为核心 uid，被管者为**不同 uid** | S6 部署演练；R2 前补启动自检（`WC-TP-001-v0.1.md` §五 缺口 5） | 被管者若恰为文件属主，mode 再严也无效 ⇒ `REQ-F-015`「门禁不可绕过」在真实部署里不成立。代价＝安全承诺失效，且属主编排在部署侧，代码补救不了 | `src/guard.rs:31`（"只看 mode 位，不看属主"）、`src/guard.rs:43-88`、`src/guard.rs:132`、`[--owner-uid]`（`src/main.rs:11`）；`cargo test --locked --test contract c10` |
-| `FA-10` | **`actor` 字符串可代表真实身份**（**CLI 路径**） | S5/S6 威胁模型评审；CLI 面缺口已在 `WC-SRS-001-v0.1.md` §三 `REQ-F-025` 行登记 | 被管者自称白名单主体即绕过白名单与能力表 ⇒ 门禁在 CLI 路径上只剩"礼貌"。代价＝必须把 CLI 也接到身份通道，或显式声明"CLI 仅供属主使用" | `src/channel.rs:5-7`（自述 CLI 的 `actor` 是命令行参数）、`src/channel.rs:9-11`；`cargo test --locked --test contract c14` |
-| `FA-11` | **门禁策略形态够用**：单文件 `policy.json`（`capabilities` + `writes` + `irreversible_actors` + `subjects.allow`）足以表达 v1 治理需求；裁决**不看** `verb`/`params` | 随策略冻结（R2 框架评审） | 需要"主体 × 能力 × 作用域"粒度 ⇒ 策略格式变更走变更控制并重跑全部契约用例。代价＝契约与策略同时升级 | `src/gate.rs:269-296`（`decide`）、`src/gate.rs:222-244`（`authorize_write`）、`src/gate.rs:103-211`（加载期校验）、`policy.json`；`cargo test --locked --test contract c03` |
-| `FA-12` | **词表内容寻址够用**：FNV-1a（非加密）足以判定"是不是同一份词表"，且**不用于安全判断** | R2 评审确认"非加密用途"可接受 | 碰撞 ⇒ 换词表检不出，`REQ-F-020` 的"同源"判定退化；升级为加密哈希又要引入依赖（与 `FA-05` 冲突）。代价＝二选一 | `src/ontology.rs:144`、`src/ontology.rs:240`、`src/project/mod.rs:124`；`cargo test --locked --lib vocab_hash`（`src/ontology.rs:258`、`src/ontology.rs:282`） |
-| `FA-13` | **纯文本格式够用**：JSON Lines 的体积与解析开销可接受 | S5（重放性能与体积度量，含 `QG-05`） | 需要索引或压缩 ⇒ 索引必须可重建（`M08` 范畴），否则"删掉派生数据即可重建"的命题失效。代价＝新增一类可损坏的持久物 | `REQ-N-001`；`tools/plain_text_audit.py`（含 `--self-test`）；`src/ledger.rs:496`、`src/project/visual.rs:29`/`src/project/visual.rs:62` |
-| `FA-14` | **v1 的启动与读取路径不读检查点快照** | **`M08` 接 CLI 的合并请求中出现对 `read_model_with_checkpoint` 的生产调用 ⇒ 本条立即为假**（可证伪事件；原写「分册冻结时复核」已改，因那不能使本条为假） | 一旦接入启动路径，必须**同时**实现"坏快照降级重算"，否则一个坏缓存会变成拒启开关 ⇒ 缓存升格成第二真相。代价＝启动语义与恢复语义都要重写并重测 | `src/lib.rs:20`（全仓唯一一处 `pub mod checkpoint;`）、`src/main.rs:200`、`src/checkpoint.rs:167`（`read_model_with_checkpoint` 的调用者全在 `tests/` 内）；`rg -n 'checkpoint\|Checkpoint' world-core/src/main.rs world-core/src/readmodel.rs`（零命中） |
-| `FA-15` | **账本以字节 `0x0A` 分帧**，且写侧序列化会把 `U+000A` 转义为 `\n`（正文里的换行不破坏分帧） | S5（需补"值含换行/`0x0A` 的往返"用例——该项**未在** `WC-TP-001-v0.1.md` §五 的缺口表内，属本节新增待办） | 一条事件的字节里出现真实 `0x0A` ⇒ 被读成两条、双双解析失败 ⇒ 账本不可读且**无自动恢复路径**。代价＝需人工按字节修复账本 | `src/ledger.rs:198`、`src/ledger.rs:213`、`src/ledger.rs:314-316`、`src/ledger.rs:403`；`cargo test --locked --test contract c22` |
+| `FA-08` | **宿主文件系统语义**：写入 + `sync_data` 足以在**进程崩溃**（**不含掉电**）之间保住"已回执"的事件 | R2 前（与"已回执"的定义一并裁定）；S6（真实磁盘/掉电故障实验） | `commit` 返回成功的事件可能丢失 ⇒ "零丢失"口径不成立，恢复目标需重定。代价＝需求层口径要改，无法靠实现补 | `src/ledger/mod.rs:280-285`（自述"掉电仍可能丢已 ack 的事件"）、`src/ledger/mod.rs:327-336`、`src/ledger/mod.rs:69`；`cargo test --locked --test acceptance t3`、`tests/perf.rs:220` |
+| `FA-09` | **静态墙的有效前提**：法律与真相文件及其所在目录属主均为核心 uid，被管者为**不同 uid** | S6 部署演练；R2 前补启动自检（`WC-TP-001-v0.1.md` §五 缺口 5） | 被管者若恰为文件属主，mode 再严也无效 ⇒ `REQ-F-015`「门禁不可绕过」在真实部署里不成立。代价＝安全承诺失效，且属主编排在部署侧，代码补救不了 | `src/gate/guard.rs:31`（"只看 mode 位，不看属主"）、`src/gate/guard.rs:43-88`、`src/gate/guard.rs:132`、`[--owner-uid]`（`src/main.rs:11`）；`cargo test --locked --test contract c10` |
+| `FA-10` | **`actor` 字符串可代表真实身份**（**CLI 路径**） | S5/S6 威胁模型评审；CLI 面缺口已在 `WC-SRS-001-v0.1.md` §三 `REQ-F-025` 行登记 | 被管者自称白名单主体即绕过白名单与能力表 ⇒ 门禁在 CLI 路径上只剩"礼貌"。代价＝必须把 CLI 也接到身份通道，或显式声明"CLI 仅供属主使用" | `src/bus/mod.rs:5-7`（自述 CLI 的 `actor` 是命令行参数）、`src/bus/mod.rs:9-11`；`cargo test --locked --test contract c14` |
+| `FA-11` | **门禁策略形态够用**：单文件 `policy.json`（`capabilities` + `writes` + `irreversible_actors` + `subjects.allow`）足以表达 v1 治理需求；裁决**不看** `verb`/`params` | 随策略冻结（R2 框架评审） | 需要"主体 × 能力 × 作用域"粒度 ⇒ 策略格式变更走变更控制并重跑全部契约用例。代价＝契约与策略同时升级 | `src/gate/mod.rs:269-296`（`decide`）、`src/gate/mod.rs:222-244`（`authorize_write`）、`src/gate/mod.rs:103-211`（加载期校验）、`policy.json`；`cargo test --locked --test contract c03` |
+| `FA-12` | **词表内容寻址够用**：FNV-1a（非加密）足以判定"是不是同一份词表"，且**不用于安全判断** | R2 评审确认"非加密用途"可接受 | 碰撞 ⇒ 换词表检不出，`REQ-F-020` 的"同源"判定退化；升级为加密哈希又要引入依赖（与 `FA-05` 冲突）。代价＝二选一 | `src/ontology_definition/mod.rs:144`、`src/ontology_definition/mod.rs:240`、`src/gui_projection/mod.rs:124`；`cargo test --locked --lib vocab_hash`（`src/ontology_definition/mod.rs:258`、`src/ontology_definition/mod.rs:282`） |
+| `FA-13` | **纯文本格式够用**：JSON Lines 的体积与解析开销可接受 | S5（重放性能与体积度量，含 `QG-05`） | 需要索引或压缩 ⇒ 索引必须可重建（`M08` 范畴），否则"删掉派生数据即可重建"的命题失效。代价＝新增一类可损坏的持久物 | `REQ-N-001`；`tools/plain_text_audit.py`（含 `--self-test`）；`src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`src/gui_projection/visual.rs:62` |
+| `FA-14` | **v1 的启动与读取路径不读检查点快照** | **`M08` 接 CLI 的合并请求中出现对 `read_model_with_checkpoint` 的生产调用 ⇒ 本条立即为假**（可证伪事件；原写「分册冻结时复核」已改，因那不能使本条为假） | 一旦接入启动路径，必须**同时**实现"坏快照降级重算"，否则一个坏缓存会变成拒启开关 ⇒ 缓存升格成第二真相。代价＝启动语义与恢复语义都要重写并重测 | `src/lib.rs:20`（全仓唯一一处 `pub mod checkpoint;`）、`src/main.rs:200`、`src/ontology_instance/checkpoint.rs:167`（`read_model_with_checkpoint` 的调用者全在 `tests/` 内）；`rg -n 'checkpoint\|Checkpoint' world-core/src/main.rs world-core/src/ontology_instance/readmodel.rs`（零命中） |
+| `FA-15` | **账本以字节 `0x0A` 分帧**，且写侧序列化会把 `U+000A` 转义为 `\n`（正文里的换行不破坏分帧） | S5（需补"值含换行/`0x0A` 的往返"用例——该项**未在** `WC-TP-001-v0.1.md` §五 的缺口表内，属本节新增待办） | 一条事件的字节里出现真实 `0x0A` ⇒ 被读成两条、双双解析失败 ⇒ 账本不可读且**无自动恢复路径**。代价＝需人工按字节修复账本 | `src/ledger/mod.rs:198`、`src/ledger/mod.rs:213`、`src/ledger/mod.rs:314-316`、`src/ledger/mod.rs:403`；`cargo test --locked --test contract c22` |
 
 ## §6 测试计划初稿
 
@@ -351,7 +351,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | # | 待补项 | 为什么还不能算数 | 承接环节 |
 |---|---|---|---|
 | 1 | **覆盖率未度量** | "哪些路径被验到"目前是人工判定，不是数值证据 | S5 前接入覆盖率工具（`WC-TP-001-v0.1.md` §五 缺口 1） |
-| 2 | **真实硬件/文件系统故障** | 现有故障注入注入的是**故障形状**（`src/ledger.rs:515-726` 的 `Sink` 替身与 `U20`–`U22`），不是真实磁盘满/EIO | S6；且结论中须写明"单元注入 ≠ 真实故障"（同上缺口 2） |
+| 2 | **真实硬件/文件系统故障** | 现有故障注入注入的是**故障形状**（`src/ledger/mod.rs:515-726` 的 `Sink` 替身与 `U20`–`U22`），不是真实磁盘满/EIO | S6；且结论中须写明"单元注入 ≠ 真实故障"（同上缺口 2） |
 | 3 | **性能目标值** | 读数可取（`tests/perf.rs`），但**目标值仍为候选、须人工确认**，故不得声称达标；`kill -9` 与 ≥100 次样本未做 | S5（同上缺口 3；`REQ-N-008` 前置条件已具备） |
 | 4 | **跨 uid 通道未测** | 现有用例只证明"同 uid 可连、冒充被拒"（`tests/contract.rs:627`），"别的 uid 连不上"仅有间接支撑 | S5 / 跨 uid 原型后续批次（同上缺口 4） |
 | 5 | **无部署类验收项** | 部署形态的独立验收项缺失 | R1/R6 前由人裁定是否补需求（同上缺口 5） |
@@ -528,7 +528,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | # | 纪律 | 设计落点 |
 |---|---|---|
 | 1 | **一个进程** | 本体/账本/读模型/运行时/门禁同进程（`M01`–`M05`），不拆 |
-| 2 | **一个写入口** | `World::commit` 是唯一写入路径；`Ledger` 的落笔能力字段私有（现为 `sink`，`Box<dyn Sink>`，`src/ledger.rs:79`），**类型级**保证；`Ledger::append` 亦为 `pub(crate)`、不再是公开 API（`src/ledger.rs:286`） |
+| 2 | **一个写入口** | `World::commit` 是唯一写入路径；`Ledger` 的落笔能力字段私有（现为 `sink`，`Box<dyn Sink>`，`src/ledger/mod.rs:79`），**类型级**保证；`Ledger::append` 亦为 `pub(crate)`、不再是公开 API（`src/ledger/mod.rs:286`） |
 | 3 | **法律在前、落笔在后** | `commit` 内顺序固定：取号→造事件→**法律校验**→**门禁裁决**→落笔 |
 | 4 | **状态是算出来的** | 读模型自身**零持久形态** ⇒ 结构上不存在"读模型与账本不一致"；**唯一的持久缓存是 `M08` 快照**，其"不是第二真相"的地位由 §4.5 的不变量（带 `base_seq`、可核验、删掉可重算）保证，不由约定保证 |
 
@@ -648,7 +648,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 | 层 | 出厂内容 | 扩展方式 | 判定行为 |
 |---|---|---|---|
-| `envelope`（信封） | `required` 8 项 + `optional` 2 项（原文 "required": ["world", "kind", "id", "seq", "at", "actor", "flags", "body"]） | 加**可选**字段不破坏旧读方 | `src/ontology.rs:160-167` 只查 `required` 存在性 |
+| `envelope`（信封） | `required` 8 项 + `optional` 2 项（原文 "required": ["world", "kind", "id", "seq", "at", "actor", "flags", "body"]） | 加**可选**字段不破坏旧读方 | `src/ontology_definition/mod.rs:160-167` 只查 `required` 存在性 |
 | `families`（家族） | 3 个：`change`/`act`/`notice` | 加家族**不必改代码**（`Ontology::validate` 按 `families` **动态查**，`:178-183`） | **未知家族 → 拒绝**（`UnknownKind`） |
 | `flags`（能力旗标） | **空数组**（`ontology.json` 的顶层 `"flags": []`） | 加旗标**只加不改** | **未知旗标 → 必须忽略**（前向兼容） |
 | `concepts`（实体概念） | 2 个：`notice`/`job`，各带字段 | **扩展走账本里的词表定义事件**——这是 `ontology.json` `concepts` 的 `_comment` 原文口径（"最小集；扩展走账本里的词表定义事件"） | 读模型不解释 `concepts`（实测：`readmodel.rs` 不含 `concepts`） |
@@ -658,7 +658,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 > "v1 最小集 = 3、可扩展"）属 `WC-SRS-001`，**本轮不在本文件授权范围内**，须由 SRS 的
 > 处置执行员落笔（`WC-SCMP-001` §8.4 **`G-24`** 的处置②：R2 在 HLD 增"家族演进与向前兼容"一节）。
 > 本条与 `G-24` 的三个未规定点一一对应：① 词表升版规则未写（"加家族算不算要升 `world`"）→
-> 见 §十 待定项与 `G-24`；② 读模型遇未知家族是**硬拒绝**（`src/readmodel.rs:110-115`
+> 见 §十 待定项与 `G-24`；② 读模型遇未知家族是**硬拒绝**（`src/ontology_instance/readmodel.rs:110-115`
 > `ReadModel.UnknownKind`），"旧二进制读含新家族的账本会拒绝折叠"——**安全但脆弱**，
 > 策略未定；③ "谁能加家族、走什么 CR"未定。
 
@@ -681,7 +681,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 - **决策**：v1 读模型**零持久形态**（无缓存文件、无内存缓存跨调用复用）；
   `M08` 快照今后若实现，必须带 `base_seq`，且"从快照续算"必须与"从头重算"结果相同。
-- **现状订正（2026-09-27 实测）**：`src/checkpoint.rs`（176 行）**已实现**（`WC-MODREG-001` §二 记
+- **现状订正（2026-09-27 实测）**：`src/ontology_instance/checkpoint.rs`（176 行）**已实现**（`WC-MODREG-001` §二 记
   "✅ 已实现（项目 Step 3）"），但**尚未接入任何 CLI 子命令**：`main.rs` 的 `check`/`state`/`project`
   都直接 `read_model()` 全量折叠，**不读快照**。故"v1 读模型零持久形态"对**运行路径**仍成立，
   而"`M08` 今后若实现"这句话已**过期**——实现已在，只是没接进启动/读取路径。
@@ -704,7 +704,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
   ③ 拒绝只发生在**显式**使用快照的调用面上（`Checkpoint::verify` 失败即拒绝续算，
   调用方须回落到全量折叠），**不得**沉默地用坏快照继续。
 - **实现现状（实测）**：`Checkpoint::verify` 要求 `base_seq` 存在
-  （`src/checkpoint.rs:100-101`，错误码 `ext.world.Checkpoint.MissingBaseSeq`）、
+  （`src/ontology_instance/checkpoint.rs:100-101`，错误码 `ext.world.Checkpoint.MissingBaseSeq`）、
   账本里不晚于 `base_seq` 的条数必须**恰好等于**它（`:128-132`，`ext.world.Checkpoint.Stale`）、
   重算前缀指纹必须相符；**未核验**的续算被刻意命名为 `resume_unverified`（`:152`）。
   ⚠️ 由于快照**尚未接入启动路径**，"坏快照会不会拒启"在**当前实现里不可能发生**；
@@ -780,20 +780,20 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 | 字段 | 必填 | 类型 | 说明 |
 |---|---|---|---|
-| `world` | ✅ | `integer` | 词表版本；不符即拒（`BadVersion`）。出厂值 `1`（`src/event.rs:16`） |
-| `kind` | ✅ | `enum(change, act, notice)` | 三个家族；**未知 `kind` → 校验拒绝**（`ext.world.Ontology.UnknownKind`，`src/ontology.rs:181`） |
-| `id` | ✅ | `string` | 事件身份，形如 `e<纳秒>-<进程内计数>`（`src/event.rs:40-43`，不引 uuid 库） |
+| `world` | ✅ | `integer` | 词表版本；不符即拒（`BadVersion`）。出厂值 `1`（`src/common/event.rs:16`） |
+| `kind` | ✅ | `enum(change, act, notice)` | 三个家族；**未知 `kind` → 校验拒绝**（`ext.world.Ontology.UnknownKind`，`src/ontology_definition/mod.rs:181`） |
+| `id` | ✅ | `string` | 事件身份，形如 `e<纳秒>-<进程内计数>`（`src/common/event.rs:40-43`，不引 uuid 库） |
 | `seq` | ✅ | `integer` | **由账本分配**，全局单增 |
-| `at` | ✅ | `integer`（Unix 秒） | **顺序由 `seq` 决定，`at` 只作辅助**（`src/event.rs:73-78`，非负） |
+| `at` | ✅ | `integer`（Unix 秒） | **顺序由 `seq` 决定，`at` 只作辅助**（`src/common/event.rs:73-78`，非负） |
 | `actor` | ✅ | `string` | 世界内身份，如 `world://user` |
-| `flags` | ✅ | `array` | 能力旗标；**未知旗标必须忽略**（前向兼容）。出厂已定义旗标集**为空**（`src/event.rs:19`，`FLAGS: [&str; 0]`） |
-| `body` | ✅ | `object` | 家族信纸（类型为对象，`src/ontology.rs:185-191` 强校验） |
+| `flags` | ✅ | `array` | 能力旗标；**未知旗标必须忽略**（前向兼容）。出厂已定义旗标集**为空**（`src/common/event.rs:19`，`FLAGS: [&str; 0]`） |
+| `body` | ✅ | `object` | 家族信纸（类型为对象，`src/ontology_definition/mod.rs:185-191` 强校验） |
 | `to` / `trace` | ⬜ | `string` / `string` | 目的地（空=广播）/ 因果链（引发本条的那条事件 `id`）。类型出处：`ontology.json` 的 `envelope.fields` 中这两个键（原文 `"to": "string  # 目的地；空 = 广播"`、`"trace": "string  # 因果：引发本条的那条事件的 id"`） |
 
 > **类型来源与口径**：信封各字段的类型出自 `ontology.json` 的 `envelope.fields` 映射
 > （键为字段名、值为**带 `#` 注释的类型串**，如 `"seq": "integer  # 在账本中的位置，全局单增，由世界分配"`）
-> ——**那是唯一的类型声明处**；`src/event.rs` 是构造侧的事实对照。
-> ⚠️ **本体不校验字段的 JSON 类型**：`Ontology::validate`（`src/ontology.rs:157-201`）
+> ——**那是唯一的类型声明处**；`src/common/event.rs` 是构造侧的事实对照。
+> ⚠️ **本体不校验字段的 JSON 类型**：`Ontology::validate`（`src/ontology_definition/mod.rs:157-201`）
 > 只做四件事——信封必填存在性、`world` 版本、家族存在、信纸必填存在性；
 > **不含任何类型断言**（写 `"world": "1"` 会在 `:169` 取 `as_u64` 失败而落到 `got=0` →
 > 被 `BadVersion` 拒绝，属**间接**检出；`seq`/`at` 同理无独立断言）。
@@ -802,7 +802,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 > **上游差异登记 ①（`trace` 的同口径对偶）**：与"未知 `kind` 必须拒绝"相反，
 > **未知 `flags` 必须忽略**（`ontology.json` 的 `envelope.fields.flags` 原文
-> `"flags": "array  # 能力旗标；未知旗标必须忽略"`、`src/event.rs:19`）——
+> `"flags": "array  # 能力旗标；未知旗标必须忽略"`、`src/common/event.rs:19`）——
 > 这两条是**对偶**的：家族是**结构**（认不出就不能解释），旗标是**能力声明**（认不出不影响解释）。
 > 本文件此前只写了旗标那一半，现补齐另一半。
 
@@ -835,7 +835,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 > **✅ 该项已裁定（R0）：`requires_approval` 删字段**（`WC-R4-DISP-001` §三 E-5）——
 > **执行时点 = R2 冻结 `framework/v0.1` 之前**，字段**不参与裁决**（`decide` 只查 `irreversible_actors`）；
 > `main.rs` 的"需批准"打印分支与加载期自检同批删除 ⇒ "承诺与实现不符"在 R2 冻结前消除。
-> ✅ **删改动作已落笔并已核对**：提交 `1217c8f`（2026-09-27 核对：`world-core/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归）。
+> ✅ **删改动作已落笔并已核对**：提交 `1217c8f`（2026-09-27 核对：`world-core/src/gate/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate/mod.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归）。
 
 > **上游差异登记 ②（并订正一处出处错误）**：本行原写
 > "外部参考中 **23 处引用**均未出现 `trace`"——**出处错了**。
@@ -848,34 +848,34 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 | 家族 | 必填 | 类型 | 语义要点 |
 |---|---|---|---|
-| `change` | `subject` `path` `before` `after` | `subject`/`path` = `string`（`src/readmodel.rs:128-135` 有断言）；`before`/`after` = **任意 JSON 值**（`src/readmodel.rs:159-162` 原样存入，**无类型断言**） | **`before` 必带**：patch 没有逆操作，不记旧值就回不去 |
-| `act` | `capability` `verb` `request_id` | 三者皆 `string`（构造侧 `src/event.rs:52-59`） | 结果本身也是一条事件 |
-| `notice` | `type` `subject` | 二者皆 `string`（构造侧 `src/event.rs:62-64`） | 完工铃、门禁流水等 |
+| `change` | `subject` `path` `before` `after` | `subject`/`path` = `string`（`src/ontology_instance/readmodel.rs:128-135` 有断言）；`before`/`after` = **任意 JSON 值**（`src/ontology_instance/readmodel.rs:159-162` 原样存入，**无类型断言**） | **`before` 必带**：patch 没有逆操作，不记旧值就回不去 |
+| `act` | `capability` `verb` `request_id` | 三者皆 `string`（构造侧 `src/common/event.rs:52-59`） | 结果本身也是一条事件 |
+| `notice` | `type` `subject` | 二者皆 `string`（构造侧 `src/common/event.rs:62-64`） | 完工铃、门禁流水等 |
 
 **各家族的可选字段（此前漏记，据 `ontology.json:29/34/39` 补齐）**：
 `change` 无可选字段；`act` 可选 `params`；`notice` 可选 `payload`。
-构造侧形状见 `src/event.rs:47-64`（`change_body`/`act_body`/`notice_body`）。
+构造侧形状见 `src/common/event.rs:47-64`（`change_body`/`act_body`/`notice_body`）。
 
 > ⚠️ **类型口径的实测边界（不夸大）**：`before`/`after` 的"任意 JSON 值"是**实测结论**，
 > 不是规范声明——`ontology.json` 的 `families` 只列**字段名**、不含类型，
-> `src/ontology.rs:192-199` 也只查字段**存在性**。
-> 读模型侧则**有**类型假设：`src/readmodel.rs:159-162` 把 `after` **原样存入**
+> `src/ontology_definition/mod.rs:192-199` 也只查字段**存在性**。
+> 读模型侧则**有**类型假设：`src/ontology_instance/readmodel.rs:159-162` 把 `after` **原样存入**
 > `objects[subject][path]`（`after` 缺省为 `Value::Null`，`:139`；连 `null` 都能存进去），
 > 而 `before` 只与"折叠出的当前值"做**相等比较**（`:142-157`），同样不含类型断言。
 > 登记为【待验证】事项：**"信纸字段的类型契约"目前无唯一出处**——
 > 验证方法 = 逐条比对 `ontology.json` 的 `families` 与
-> `src/readmodel.rs::apply_change` 里对该字段的实际使用，列出"有断言/无断言"清单。
+> `src/ontology_instance/readmodel.rs::apply_change` 里对该字段的实际使用，列出"有断言/无断言"清单。
 
 #### 5.3 账本格式
 
 - **一行一条事件**的 JSON Lines，UTF-8，LF 结尾；**只追加**；
 - **行分隔约定（上游差异登记 ③）**：**任何字段的内容都不得在行内出现真实的 `0x0A` 字节**。
-  这是**分帧**的前提——账本读回以字节 `0x0A` 切分（`src/ledger.rs:198` 用
+  这是**分帧**的前提——账本读回以字节 `0x0A` 切分（`src/ledger/mod.rs:198` 用
   `rposition(|b| *b == b'\n')` 定位最后一条完整行、`:213` 用
   `split(|b| *b == b'\n')` 逐条切），一条事件的字节里只要有一个未转义的 `0x0A`，
   就会被读成两条、双双解析失败（`read_from` 在 `:403` 以 `BufReader::lines()` 逐行读）。
   口径落在**编码层**：`serde_json::to_string` 序列化时把 `U+000A` 转义为两个字符 `\` `n`
-  （写侧 `src/ledger.rs:315-316`：先 `to_string` 再 `push('\n')`），
+  （写侧 `src/ledger/mod.rs:315-316`：先 `to_string` 再 `push('\n')`），
   故"正文里的换行"**合法**——它不以真实 `0x0A` 出现。
   ⚠️ **须在 `WC-ONT-001-v0.1`（本体说明）与账本格式说明里同样写死**——本文件不是它的唯一出处。
   ⚠️ **当前无任何门禁或测试断言这条**（实测：`world-core/tests/*.rs` 里
@@ -891,7 +891,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 - `seq` 必须从 1 连续递增，**缺号即拒绝启动**；
 - **摘要链（`chain` 字段，`WC-CR-003` D1）**：每条事件在落笔时被写入一个 `chain` 值，
   算法为 `fnv1a64(前值 + "\n" + 去除 chain 后的规范形式)`，创世种子为常量 `"genesis"`
-  （`src/ledger.rs:423-441`）。**三态语义**（`src/ledger.rs:451-484`，用例 `c16`/`c17`/`c18`/`c21`）：
+  （`src/ledger/mod.rs:423-441`）。**三态语义**（`src/ledger/mod.rs:451-484`，用例 `c16`/`c17`/`c18`/`c21`）：
   | 账本状态 | 行为 |
   |---|---|
   | **全部事件都有 `chain`** | **逐环核验**；任一环断裂 → `ChainMismatch` → **拒绝启动**（用例 `c20`） |
@@ -915,16 +915,16 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 
 > ⚠️ **`requires_approval` 已裁定（R0）：删字段**（`WC-R4-DISP-001` §三 E-5）——**上面的样例已去掉该键**；
 > **执行时点 = R2 冻结 `framework/v0.1` 之前**；字段**不参与裁决**（`decide` 只查 `irreversible_actors`），
-> 而 `main.rs` 打印"需批准"却没有审批通道 ⇒ 承诺与实现不符，故删。**该删除已落笔并已核对**：提交 `1217c8f`（2026-09-27 核对：`world-core/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归）。
+> 而 `main.rs` 打印"需批准"却没有审批通道 ⇒ 承诺与实现不符，故删。**该删除已落笔并已核对**：提交 `1217c8f`（2026-09-27 核对：`world-core/src/gate/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate/mod.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归）。
 
-**逐字段语义表**（字段／类型／缺省／**是否裁决输入**／加载期校验；行号见 `src/gate.rs`）：
+**逐字段语义表**（字段／类型／缺省／**是否裁决输入**／加载期校验；行号见 `src/gate/mod.rs`）：
 
 | 字段 | 类型 | 缺省 | **是否裁决输入** | 加载期校验（不满足即**拒绝加载**） |
 |---|---|---|---|---|
 | `policy` | 整数 | **无缺省** | 否 | `:103-111` 必须存在且**必须等于 `1`**，否则拒载 |
 | `capabilities` | 对象 | **无缺省** | ✅ **是**（`decide` 的判据来源） | `:113-146` 必须存在；每项 `reversible` **必填布尔**（`:119-122`）；`capabilities` 为空 → 拒载 |
 | `capabilities.<名>.reversible` | 布尔 | **无缺省** | ✅ **是**（`gate.rs:292` `decide` 读它决定免检/加摩擦） | 缺 → 拒载（`:122`） |
-| ~~`capabilities.<名>.requires_approval`~~ | 布尔 | `false`（`:123-126`） | ⚠️ **不参与裁决**——只在 `summary()` / `main.rs` 打印（`gate.rs:322`、`main.rs:177`）；与 `reversible=true` 同时为真 → **拒载**（`:127-131`）。⚠️ **该字段已裁定删除（R0，`WC-R4-DISP-001` §三 E-5）并已落笔**（提交 `1217c8f`（2026-09-27 核对：`world-core/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归））——故**本行是历史登记**：字段、"矛盾组合拒载"自检与 `policy` 子命令的打印均已不在代码里 | （原）类型须为布尔；矛盾组合拒载——**该自检已随字段删除而移除** |
+| ~~`capabilities.<名>.requires_approval`~~ | 布尔 | `false`（`:123-126`） | ⚠️ **不参与裁决**——只在 `summary()` / `main.rs` 打印（`gate.rs:322`、`main.rs:177`）；与 `reversible=true` 同时为真 → **拒载**（`:127-131`）。⚠️ **该字段已裁定删除（R0，`WC-R4-DISP-001` §三 E-5）并已落笔**（提交 `1217c8f`（2026-09-27 核对：`world-core/src/gate/policy.json` 与 `src/main.rs` 对 `requires_approval` **零命中**，`src/gate/mod.rs` 仅剩 2 条说明性注释（`:40`、`:130`），`tests/contract.rs` 保留一条"旧策略带该键仍能加载（多余键被忽略）"的兼容回归））——故**本行是历史登记**：字段、"矛盾组合拒载"自检与 `policy` 子命令的打印均已不在代码里 | （原）类型须为布尔；矛盾组合拒载——**该自检已随字段删除而移除** |
 | `writes` | 对象 | **无缺省** | ✅ **是**（`authorize_write` 的判据来源，`change` 家族） | `:168-196` **必须存在**（缺失即拒载，`:171-175` 的理由写明"否则 `change` 可绕过一切裁决"）；每项须为**数组**（`:181-183`）；为空 → 拒载。键名以 `_` 开头者**跳过**（`:178-180`，给注释用） |
 | `irreversible_actors` | 字符串数组 | **空数组**（`:199-208` `unwrap_or_default`）——**缺省即"无人可做不可逆动作"** | ✅ **是**（`gate.rs:293-296` `decide` 读它决定是否 `AwaitApproval`） | **无**存在性校验（缺省合法）；元素非字符串者被**静默丢弃**（`:204` `filter_map`） |
 | `subjects.allow` | 字符串数组 | **无缺省** | ✅ **是**（白名单，`decide`/`authorize_write` 都先查它） | `:148-165` 必须存在且非空（为空 → 拒载）；结尾 `*` 前缀匹配 |
@@ -937,7 +937,7 @@ L1 法律与事实   M01 本体 · 门禁策略 · M02 账本        ← 最终�
 - 支持结尾 `*` 的前缀匹配；
 - 策略**启动时一次读入，运行中不重读**（消除"运行中改规则"窗口，`t13` 锁死）；
 - 加载的最后一步是**静态墙**：策略文件对 group/other 可写即拒载
-  （`src/gate.rs:211`，`guard::assert_not_other_writable`）。
+  （`src/gate/mod.rs:211`，`guard::assert_not_other_writable`）。
 
 > ⚠️ **不补这两段的后果（`WC-R4-DISP-001` 已实测）**：`writes` 缺失会被**拒载**（`:171`），
 > 即"照旧版 HLD 造一份策略"会在启动时直接失败；而 `irreversible_actors` 缺失**不报错**，
@@ -969,11 +969,11 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 
 | 调用方 → 被调方 | 接口 | 生效家族 | 约束 |
 |---|---|---|---|
-| `M04` → `M01` | `Ontology::load` / `validate` / `world` / `vocab_hash` | **全部三个家族** | 加载失败即拒绝启动；`validate` 对**未知 `kind`** 报 `UnknownKind`（`src/ontology.rs:181`） |
+| `M04` → `M01` | `Ontology::load` / `validate` / `world` / `vocab_hash` | **全部三个家族** | 加载失败即拒绝启动；`validate` 对**未知 `kind`** 报 `UnknownKind`（`src/ontology_definition/mod.rs:181`） |
 | `M04` → `M05` | `Policy::load` / `decide`（`gate.rs:274`） | **仅 `act`** | 拒绝/加摩擦均记 `notice`；`decide` **不看 `verb`/`params`**（`verb` 只进理由文本，`gate.rs:279`） |
 | `M04` → `M05` | `Policy::authorize_write`（`gate.rs:227`） | **仅 `change`** | **写裁决**：`actor` 能否写 `subject`；拒绝则记 `notice(gate.write-rejected)` 并返回 `Err`，**原事件不落笔**（`src/lib.rs:169-189`） |
 | `M04` → `M05` | **无** | `notice` | ⚠️ **`notice` 当前不过闸**（免检）——它是通告、不改状态，且门禁自己的流水就是 `notice`（`src/lib.rs:132`、`:191`）。**这是已披露的现状，不是遗漏**；若要收紧须走一次设计决定 |
-| `M04` → `M02` | `Ledger::open` / `next_seq` / `append` | — | `append` 校验 `seq == next_seq`；`append` 为 `pub(crate)`（`src/ledger.rs:286`） |
+| `M04` → `M02` | `Ledger::open` / `next_seq` / `append` | — | `append` 校验 `seq == next_seq`；`append` 为 `pub(crate)`（`src/ledger/mod.rs:286`） |
 | `M03` → `M02` | `Ledger::read_all` / `read_from` | — | 只读 |
 | `M06`/`M07` → `M03` | `State::entries` / `last_seq` / `digest` | — | **只读**；投影不得持有状态 |
 | `M01` → `M05` | 无 | — | 两者互不依赖（形状 vs 权限） |
@@ -991,10 +991,10 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 `check` / `kinds` / `policy` / `append <kind> <json-body> [actor] [--trace <id>] [--flag <名>]...` / `read [from]` /
 `state [--json]` / `project {language|visual|check}`。
 
-#### 6.3 跨进程通道（**已实现**：`src/channel.rs`，项目 Step 6）
+#### 6.3 跨进程通道（**已实现**：`src/bus/mod.rs`，项目 Step 6）
 
 > ⚠️ **状态订正（2026-09-27 实测）**：本节标题与 §6.4 的 `IF-006` 此前均标为"**待建**"（当时引用的是**项目 Step 6**），
-> **两处均已过期**——`src/channel.rs`（269 行）已实现，`WC-IC-001` §一 接口清单的 `IF-006` 行亦记"**已实现**，项目 Step 6"。
+> **两处均已过期**——`src/bus/mod.rs`（269 行）已实现，`WC-IC-001` §一 接口清单的 `IF-006` 行亦记"**已实现**，项目 Step 6"。
 > 保留下方的设计约束（它们仍是**约束**，不是"将来再说"）。
 
 设计约束（今天就定，避免将来返工）：
@@ -1002,14 +1002,14 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 - **纯文本行协议**：一行一条事件或一条请求，UTF-8，与账本同一词汇；
 - **必须过咽喉**：任何来自通道的写入都必须经 `World::commit`，
   通道不得持有 `Ledger` 的写句柄（否则门禁被绕过的路径就又出现了）
-  ——实现落点：`src/channel.rs:230-231` 调 `world.commit(...)`，**落笔的 `actor` 取自身份映射、
+  ——实现落点：`src/bus/mod.rs:230-231` 调 `world.commit(...)`，**落笔的 `actor` 取自身份映射、
   不取自请求**（`:231` 传的是 `expect.actor`）；
 - **版本与身份显式**：请求须携带 `actor` 与词表版本，不做隐式协商
   ——⚠️ **实现与之有差异**：请求体**不含 `actor`**（含则必须与内核身份一致，
-  `src/channel.rs:219-224` 拒绝不一致者），身份由**套接字权限**强制
+  `src/bus/mod.rs:219-224` 拒绝不一致者），身份由**套接字权限**强制
   （`bind()` 里 `chmod 0600` + `chown` 到目标 uid，`:181-187`，文档头 `:9-11`）。
   即"身份显式"从"**请求里写**"改成了"**内核给出**"——这是**加强**，非放宽；用例 `c14` 锁死。
-- **已知缺口**：`channel.json` **未纳入静态墙**（`src/channel.rs:73` 的 `load` 不调 `guard::`），
+- **已知缺口**：`channel.json` **未纳入静态墙**（`src/bus/mod.rs:73` 的 `load` 不调 `guard::`），
   见 §7.3 与 §十 待定项 6。
 
 #### 6.4 接口清单
@@ -1023,16 +1023,16 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 
 | 编号 | 名称 | 形态 | 提供方 | 现状 |
 |---|---|---|---|---|
-| `IF-001` | 账本读写 | 进程内 | `M02`（`src/ledger.rs`） | ✅ |
-| `IF-002` | 门禁裁决 | 进程内 | `M05`（`src/gate.rs` ＋ `src/guard.rs` ＋ `world-core/policy.json`） | ✅ |
-| `IF-003` | 语言投影出口 | 文本（JSON Lines） | `M06`（`src/project/language.rs`） | ✅ |
-| `IF-004` | 视觉投影出口 | 文本（可审计排版） | `M07`（`src/project/visual.rs`） | ✅ |
-| `IF-005` | 词表身份 | 进程内 | `M01`（`src/ontology.rs`） | ✅ |
-| `IF-006` | 跨进程通道 | 外部（跨进程）：Unix 域套接字 + 文本行协议 | `M09`（`src/channel.rs`） | ✅ 已实现（项目 Step 6；v1 一次一连接） |
+| `IF-001` | 账本读写 | 进程内 | `M02`（`src/ledger/mod.rs`） | ✅ |
+| `IF-002` | 门禁裁决 | 进程内 | `M05`（`src/gate/mod.rs` ＋ `src/gate/guard.rs` ＋ `world-core/src/gate/policy.json`） | ✅ |
+| `IF-003` | 语言投影出口 | 文本（JSON Lines） | `M06`（`src/gui_projection/language.rs`） | ✅ |
+| `IF-004` | 视觉投影出口 | 文本（可审计排版） | `M07`（`src/gui_projection/visual.rs`） | ✅ |
+| `IF-005` | 词表身份 | 进程内 | `M01`（`src/ontology_definition/mod.rs`） | ✅ |
+| `IF-006` | 跨进程通道 | 外部（跨进程）：Unix 域套接字 + 文本行协议 | `M09`（`src/bus/mod.rs`） | ✅ 已实现（项目 Step 6；v1 一次一连接） |
 | `IF-007` | **宿主文件系统**（**外部依赖**） | 外部依赖：OS 文件语义（文件/目录 + mode 位） | OS（Linux）；消费方 `M02`/`M05` | ✅ 依赖已在（本体/策略/账本三个路径）；⚠️ **此前本节漏登记**——它是"静态墙"的作用对象，不登记会让人误以为核心自足 |
 | `IF-008` | **运行时入口（CLI）** | 外部（用户/运维）：命令行 `argv`，纯文本 stdout/stderr 分流 | `M04`（`src/main.rs`） | ✅ 已实现 |
-| `IF-009` | **状态折叠与重建** | 进程内 | `M03`（`src/readmodel.rs`） | ✅ 已实现 |
-| `IF-010` | **检查点读写与核验** | 内部（进程内）＋ 纯文本 JSON 文件 | `M08`（`src/checkpoint.rs`） | ✅ 已实现（⚠️ **未接 CLI**，见 §7.1 与 §十#1a） |
+| `IF-009` | **状态折叠与重建** | 进程内 | `M03`（`src/ontology_instance/readmodel.rs`） | ✅ 已实现 |
+| `IF-010` | **检查点读写与核验** | 内部（进程内）＋ 纯文本 JSON 文件 | `M08`（`src/ontology_instance/checkpoint.rs`） | ✅ 已实现（⚠️ **未接 CLI**，见 §7.1 与 §十#1a） |
 
 **两套编号并存——对照关系（不要混用）**
 
@@ -1078,7 +1078,7 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 5. 任一步失败 → **拒绝启动**，退出码 `2`。
 
 > 顺序不可交换：**先在脑子里装上法律，再去碰事实**。
-> 第 3 步里的子顺序也固定：**先取锁**（`Ledger::open` 的第一件事，`src/ledger.rs:168`）
+> 第 3 步里的子顺序也固定：**先取锁**（`Ledger::open` 的第一件事，`src/ledger/mod.rs:168`）
 > 再读文件——否则两个进程会同时读改写（§12 `A-01`）。
 
 **启动是否载入检查点（`M08`）——裁决**：**不载入**。
@@ -1087,7 +1087,7 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 - **理由**：`WC-CR-006` **§三 技术线 A 的 `M-4`「规模实测」条**的「最小补丁」原文写
   "**再给 checkpoint 接 CLI 面并只在显式要求时核验**"——即"**接 CLI 面 + 仅显式核验**"。
   ⚠️ 该条**没有**说"启动不得载入"，故"启动不载入"是本文件**据其方向作出的裁决**，不是 CR 的原文。
-- **实测依据（可复现）**：`world-core/src/main.rs` 与 `src/readmodel.rs` 对 `checkpoint`/`Checkpoint`
+- **实测依据（可复现）**：`world-core/src/main.rs` 与 `src/ontology_instance/readmodel.rs` 对 `checkpoint`/`Checkpoint`
   **零命中**；全仓只有 `src/lib.rs:20` 的 `pub mod checkpoint;` 一处声明。
   ⇒ 当前**没有任何启动或读取路径会碰到快照文件**，"坏快照拒启"在现实现里不可能发生。
 - ⚠️ **待人工裁定（上下游冲突）**：与上游 `2-依据/15` 的方向可能相反
@@ -1110,7 +1110,7 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 | 1 | 本体文件缺失/坏 JSON/缺 `world` 版本/家族为空 | `t6`、`c04` |
 | 1b | **事件构造器版本与本体声明的 `world` 不一致**（`VersionMismatch`） | ⚠ **无专属用例**（`src/lib.rs:85-92`），登记 |
 | 2 | 账本 `seq` 缺号 | `t4` |
-| 3 | 策略文件坏 JSON/缺 `policy`/版本不为 `1`/能力表为空/白名单为空/~~`reversible` 与 `requires_approval` 矛盾~~（⚠️ **该组合校验已随 R0 裁定删除 `requires_approval` 一并移除**——提交 `1217c8f`；`c03` 的原第 ⑤ 类已删，未知/多余键改为**被忽略**，并另立"旧策略带该键仍能加载"的对照回归）/**缺 `writes` 段**/`writes` 为空 | `c03`（`policy_load_rejects_every_malformed_shape`）＋ `src/gate.rs` 内联测试 |
+| 3 | 策略文件坏 JSON/缺 `policy`/版本不为 `1`/能力表为空/白名单为空/~~`reversible` 与 `requires_approval` 矛盾~~（⚠️ **该组合校验已随 R0 裁定删除 `requires_approval` 一并移除**——提交 `1217c8f`；`c03` 的原第 ⑤ 类已删，未知/多余键改为**被忽略**，并另立"旧策略带该键仍能加载"的对照回归）/**缺 `writes` 段**/`writes` 为空 | `c03`（`policy_load_rejects_every_malformed_shape`）＋ `src/gate/mod.rs` 内联测试 |
 | 4 | 策略**文件**对 group/other 可写 | `t11`（`:460-464`）、`WC-CON01-001` §二 ④ |
 | 5 | 策略**所在目录**对 group/other 可写 | `t11`（`:466-470`） |
 | 6 | 账本**文件**对 group/other 可写 | `t12`（`:485-489`） |
@@ -1118,7 +1118,7 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 | 8 | 法律或真相是**符号链接** | `c09`（仅测**策略**软链；账本/本体软链无专属用例） |
 | 9 | **账本已被另一实例占用**（`*.lock` 存在且持有者 pid 存活） | **`c07`**（`second_writer_is_refused`；断言 `Ledger.Locked` + 理由含"单写者"；并验证 `Drop` 后锁释放） |
 | 10 | **陈旧锁自动回收**（持有者已不存在） | **`c08`**（`stale_lock_is_reclaimed`；锁内容写 `999999999` ⇒ 应被回收并重写为本进程 pid） |
-| 11 | **锁文件无法创建**（`LockFail`，如目录不可写） | ⚠ **无专属用例**（`src/ledger.rs:147-158`），登记 |
+| 11 | **锁文件无法创建**（`LockFail`，如目录不可写） | ⚠ **无专属用例**（`src/ledger/mod.rs:147-158`），登记 |
 | 12 | 账本被**篡改**（摘要链逐环核验不符 → `ChainMismatch`） | `c20` |
 | 12b | 账本**部分事件有链、部分没有**（`MixedChain`） | `c17` |
 | 12c | 账本**全部无链** 且传了 `--require-chain` 且有事件 | `cli03`（`cli.rs:116`）；空账本不算违规见 `cli06`（`:214`） |
@@ -1128,24 +1128,24 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 > 并用"⚠ 无专属用例"如实标出**尚未被编号用例覆盖**的行（第 7/11 行）——
 > 不把"实现了"写成"测过了"（`WC-RV-R2-001-v0.1.md` **§五 必须回改的文档表述**
 > 表的 `WC-HLD-001 §7.2` 行原文指出本表表头"**全部实测过**"的口径写过头的）。
-> 第 7 行的函数级覆盖在 `src/guard.rs` 内联测试 `:194-198`（"目录可写 → 也必须拒绝"），
+> 第 7 行的函数级覆盖在 `src/gate/guard.rs` 内联测试 `:194-198`（"目录可写 → 也必须拒绝"），
 > 但它用的是临时 `law.json`，**不构成"账本目录"的验收级证据**。
 > 第 4/5/6/7 行同属一个函数 `guard::assert_not_other_writable`
-> （`src/guard.rs:43`，内部门检查在 `:69-88`），差别只在调用点与角色名。
+> （`src/gate/guard.rs:43`，内部门检查在 `:69-88`），差别只在调用点与角色名。
 
 #### 7.3 权限与 uid 编排（**部署要求**，非建议）
 
 | 对象 | 要求 | 理由 | 代码落点（实测） |
 |---|---|---|---|
-| `policy.json` | 属主=世界核心的 uid（通常 root），mode `0644` 或更严 | 被管者不得能写（法律之墙） | `src/gate.rs:211` |
-| `ontology.json` | 同上 | 词表即契约 | `src/ontology.rs:81` |
-| 账本文件 | 属主=世界核心的 uid，mode `0600` | 真相不得由被管者写 | `src/ledger.rs:190` |
-| **本体/策略/账本所在目录** | 属主=世界核心的 uid，mode `0755`（**不得** group/other 可写） | 防止"删掉再放一个新的" | `src/guard.rs:69-88`（三个调用点共用同一段目录检查） |
-| **通道 socket 目录** | **不得** group/other 可写 | 否则套接字可被替换，与法律/账本同理 | `src/channel.rs:172`（`assert_not_other_writable(dir, "通道目录")`；⚠ **无专属用例**，登记） |
-| **通道 socket 文件** | bind 后**立刻** `chmod 0600` 并 `chown` 给该身份的目标 uid | **权限即身份**：只有那个 uid 能 `connect`，内核在连接时就挡住别人 | `src/channel.rs:181-187` |
+| `policy.json` | 属主=世界核心的 uid（通常 root），mode `0644` 或更严 | 被管者不得能写（法律之墙） | `src/gate/mod.rs:211` |
+| `ontology.json` | 同上 | 词表即契约 | `src/ontology_definition/mod.rs:81` |
+| 账本文件 | 属主=世界核心的 uid，mode `0600` | 真相不得由被管者写 | `src/ledger/mod.rs:190` |
+| **本体/策略/账本所在目录** | 属主=世界核心的 uid，mode `0755`（**不得** group/other 可写） | 防止"删掉再放一个新的" | `src/gate/guard.rs:69-88`（三个调用点共用同一段目录检查） |
+| **通道 socket 目录** | **不得** group/other 可写 | 否则套接字可被替换，与法律/账本同理 | `src/bus/mod.rs:172`（`assert_not_other_writable(dir, "通道目录")`；⚠ **无专属用例**，登记） |
+| **通道 socket 文件** | bind 后**立刻** `chmod 0600` 并 `chown` 给该身份的目标 uid | **权限即身份**：只有那个 uid 能 `connect`，内核在连接时就挡住别人 | `src/bus/mod.rs:181-187` |
 | **`channel.json`** | 属主=世界核心的 uid，**不得** group/other 可写 | ⚠️ **当前未纳入静态墙**（`channel.rs:73` 的 `load` 只读文件，**未调任何 `guard::` 断言**）。而它决定"哪个 socket 对应哪个 `uid → actor`"——能改它就能**改身份映射**，与法律同级。**本表把它列为要求**；实现侧补一条 `guard::assert_not_other_writable(path, "通道配置")` 即可（登记为 §十 待定项 6 的同类缺口） | ⚠️ **缺**（要求在此，实现未做） |
-| **检查点快照文件** | 由创建路径自行过静态墙（v1 未接 CLI，故当前无生产调用点） | 缓存也要过墙（`assert_after_create` 检查文件+目录），否则"改缓存"成为绕过路径 | `src/checkpoint.rs:81`（`assert_after_create(path, "检查点（缓存）")`） |
-| agent 进程 | **不同 uid**（如 `agent`），且不在上述文件的属主之列 | 静态墙只挡"非属主"；被管者若恰是属主，mode 再严也没用 | `--owner-uid` 断言：`src/main.rs:111-121`、`guard::assert_owned_by`（`src/guard.rs:132`），用例 `c10` |
+| **检查点快照文件** | 由创建路径自行过静态墙（v1 未接 CLI，故当前无生产调用点） | 缓存也要过墙（`assert_after_create` 检查文件+目录），否则"改缓存"成为绕过路径 | `src/ontology_instance/checkpoint.rs:81`（`assert_after_create(path, "检查点（缓存）")`） |
+| agent 进程 | **不同 uid**（如 `agent`），且不在上述文件的属主之列 | 静态墙只挡"非属主"；被管者若恰是属主，mode 再严也没用 | `--owner-uid` 断言：`src/main.rs:111-121`、`guard::assert_owned_by`（`src/gate/guard.rs:132`），用例 `c10` |
 
 > ⚠️ 最后一行是本设计**最大的部署依赖**：静态墙查的是 **mode 位**，不查属主身份
 > （见 `WC-CON01-001` §五 遗留 2）。属主编排必须在部署时落实，
@@ -1157,9 +1157,9 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 |---|---|---|
 | 1 | 无 Landlock / seccomp 自缚 | S2 之后评估内核版本与可移植性 |
 | 2 | 被拒动作每次写一条 `notice`，可被灌 | 需限流或合并策略 |
-| 3 | ~~无并发控制（单进程假定）~~ **部分已实现（2026-09-26）**：已有 `*.lock` **单写者锁**（`src/ledger.rs:98-159`，用例 `c07`/`c08`），CLI 每命令一新进程的窗口重叠已被挡住。⚠️ **仍未关闭**：锁存在竞态（§12 `A-01`）且非 Linux 上陈旧锁判定退化（`:104-106`）；**并发控制的范围只覆盖"同一本账本"**，"阻塞等待"与"锁持有者身份核验"未做 | 若将来多进程或长驻服务，须完成锁的健壮化（去竞态 + 平台无关的持有者判定） |
+| 3 | ~~无并发控制（单进程假定）~~ **部分已实现（2026-09-26）**：已有 `*.lock` **单写者锁**（`src/ledger/mod.rs:98-159`，用例 `c07`/`c08`），CLI 每命令一新进程的窗口重叠已被挡住。⚠️ **仍未关闭**：锁存在竞态（§12 `A-01`）且非 Linux 上陈旧锁判定退化（`:104-106`）；**并发控制的范围只覆盖"同一本账本"**，"阻塞等待"与"锁持有者身份核验"未做 | 若将来多进程或长驻服务，须完成锁的健壮化（去竞态 + 平台无关的持有者判定） |
 | 4 | 账本无索引、无保留窗策略 | 随 `M08` 与运维需求定 |
-| 5 | ~~通道未实现（`IF-006`）~~ **已实现（2026-09-26）**：`src/channel.rs`，**身份由套接字权限强制**（一 socket 一 uid），请求自称无效；**长驻服务与并发未做**（v1 一次一连接） | 项目 Step 6（长驻版待定） |
+| 5 | ~~通道未实现（`IF-006`）~~ **已实现（2026-09-26）**：`src/bus/mod.rs`，**身份由套接字权限强制**（一 socket 一 uid），请求自称无效；**长驻服务与并发未做**（v1 一次一连接） | 项目 Step 6（长驻版待定） |
 
 ---
 
@@ -1230,12 +1230,12 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 
 | # | 待定项 | 为何未定 | 时点 | 责任人 |
 |---|---|---|---|---|
-| 1a | `M08` 检查点的**落盘格式** | **已定，不再是待定项**（2026-09-27 实测）：`WC-LLD-001 §七`（`:100`）已写死 `{checkpoint:1, base_seq, digest, state}`，与 `src/checkpoint.rs:70-75` 逐字段一致。⚠️ 但**归属未定**：是并入 `WC-LFMT-001-v0.1`/`WC-CKFMT-001` 受控，还是按 `WC-R4-DISP-001` §二 A-4 的**优先方案**声明"缓存格式不受控（只需版本号递增 + 拒读旧版）"——**待人裁定**（A-4 是"部分采纳"，两支未选） | R2（随 A-4 裁定） | 技术负责人 |
+| 1a | `M08` 检查点的**落盘格式** | **已定，不再是待定项**（2026-09-27 实测）：`WC-LLD-001 §七`（`:100`）已写死 `{checkpoint:1, base_seq, digest, state}`，与 `src/ontology_instance/checkpoint.rs:70-75` 逐字段一致。⚠️ 但**归属未定**：是并入 `WC-LFMT-001-v0.1`/`WC-CKFMT-001` 受控，还是按 `WC-R4-DISP-001` §二 A-4 的**优先方案**声明"缓存格式不受控（只需版本号递增 + 拒读旧版）"——**待人裁定**（A-4 是"部分采纳"，两支未选） | R2（随 A-4 裁定） | 技术负责人 |
 | 1b | `M08` 检查点的**触发阈值**（何时必须上快照） | **仍待定**：需先有数据规模与 QG-02/QG-05 数值（【候选】待人工）。`WC-CR-006` §三 **M-4** 已实测 100 万条 = 冷启动 6.7–13.3 s、峰值 RSS **1857 MB**（≈7.6× 账本体积）——**规模证据有了，阈值口径还没有** | S3 后 | 质量保证 |
-| 1c | `M08` 检查点是否**携带 `world` / `vocab_hash`** | **未定**（实测：`Checkpoint::write` 的四个字段为 `checkpoint`/`base_seq`/`digest`/`state`，`src/checkpoint.rs:70-75`，**不含** `world` 与 `vocab_hash`）。风险：换词表后旧快照仍能通过"格式校验"，只有 `verify` 重算才可能发现不符 | R2 | 技术负责人 |
+| 1c | `M08` 检查点是否**携带 `world` / `vocab_hash`** | **未定**（实测：`Checkpoint::write` 的四个字段为 `checkpoint`/`base_seq`/`digest`/`state`，`src/ontology_instance/checkpoint.rs:70-75`，**不含** `world` 与 `vocab_hash`）。风险：换词表后旧快照仍能通过"格式校验"，只有 `verify` 重算才可能发现不符 | R2 | 技术负责人 |
 | 2 | 接口契约的**份数**（每模块一份 / 合并为 1 份） | **`WC-CR-002` D1「合并为 1 份」已被项目负责人否决（2026-09-27）**，原话「接口文档要单独呀，现在只是说接口少，不代表以后接口少」。**✅ E-3 已裁定（`WC-R4-DISP-001` §三 E-3）**：`WC-IRS-001` **不拆**（需求侧保持 1 册）；"独立成文"在**设计侧**落地 = 按模块分册 `WC-IC-M01`…`WC-IC-M09`，**R2 前落成并冻结**；**驳回"只覆盖 `M04`+`M09` 的最小版"**（那是裁剪不是拆分：会让 7 个模块同时处于"IC 无效 + IRS 不覆盖"）；分册触发条件（`IF-` 接口 > 20 / 单册正文 > 1500 行 / 出现第二个独立对外协议）与总则册必须保留的 8 项表见 `WC-IC-001` 头部"生效条件与形态裁决"。另：`WC-IRS-001`（接口**需求**）与 `WC-IC-001`（接口**契约**）是**两份独立文档** | R2（分册落成并冻结） | 技术负责人 |
 | 3 | Landlock / seccomp 是否纳入 v1 | 需评估内核版本与可移植性收益 | R2 | 技术负责人 |
-| 4 | 被拒动作的限流策略 | 与通道一并设计更合理；⚠️ **通道已实现**（`src/channel.rs`、`channel.json`；见 §7.4#5），故"与通道一并"这个**理由已部分过期**——限流仍是独立缺口 | R2 | 技术负责人 |
+| 4 | 被拒动作的限流策略 | 与通道一并设计更合理；⚠️ **通道已实现**（`src/bus/mod.rs`、`channel.json`；见 §7.4#5），故"与通道一并"这个**理由已部分过期**——限流仍是独立缺口 | R2 | 技术负责人 |
 | 5 | 阶段二（PID 1）对分层的改动 | 不在本期范围 | 阶段二立项 | 项目负责人 |
 | 6 | **生效路径的打印面不完整**（消 `F-22` 悬空引用） | `append`(`src/main.rs:252-286`)、`read`(`:349-371`)、`kinds`(`:235-250`)、`project language\\ | visual`(`:313-319`) **不打印生效路径**，而"每次启动必须把生效路径打印出来"是 §4.3 的承诺 ⇒ 对 4 个子命令不成立。**判据（可判定）**：4 个子命令各跑一次，输出中须出现本体/策略/账本中它所实际读取的那一份的**绝对路径**；**关闭时点：R2 前**；含"本项目没有 `--version`"同批处理 | R2 前　技术负责人 |
 
@@ -1281,10 +1281,10 @@ ontology.json ──规范化(剔 _键)──► vocab_hash ─┐
 
 | 编号 | 假设 | 置信度 | 若不成立的后果 | 验证时点 | 责任人 | 状态 |
 |---|---|---|---|---|---|---|
-| `A-01` | **单写者**：任一时刻只有一个世界核心实例写同一本账 | 中（原"低"；锁已实现，风险面缩小到"锁失效"而非"完全无锁"） | 两个写者各自按内存 `next_seq` 追加 ⇒ **重号/缺号** ⇒ 下次启动 `SeqGap` 拒启、世界锁死 | **R2 前**（须消除锁竞态；并给非 Linux 平台一条明确的陈旧锁判定） | 技术负责人 | ⚠️ **部分（2026-09-27 订正）**：<br>① **锁已实现**：`src/ledger.rs:85-96` / `:98-116` / `:119-159`，用例 `c07`（第二个写者被拒 + `Drop` 后释放）、`c08`（陈旧锁回收）；验收测试 `t4` 仍覆盖 `SeqGap`。<br>② **仍未关闭，原因是该锁存在竞态**。**论证（推理，非实测）**：`acquire_lock` 的取锁是**四步非原子**——`create_new` 失败 → `read_to_string(锁文件)` 读 pid → 判 `/proc/<pid>` 存活 → `remove_file` 后 `continue` 重试（`src/ledger.rs:121-137`）。`create_new(true)` 只保证**创建**这一步原子（`:101-102` 的注释这么写），**不保证**这四步整体原子：若另一实例在"判定为陈旧"与"删锁"之间抢到锁并写入自己的 pid，则本次 `remove_file` 会**删掉一把活锁** ⇒ 互斥被破坏。后果与 `A-01` 原后果同类（重号 ⇒ `SeqGap` 拒启、世界锁死），**不是**数据损坏。<br>③ **非 Linux 平台**：陈旧锁判定依赖 `/proc/<pid>`，非 Linux 上"持有者是否存活"**恒判为否** ⇒ 陈旧锁总被回收（实现自述见 `src/ledger.rs:104-106`）。<br>⚠️ **与处置表口径的差异（重要）**：`WC-R4-DISP-001` §二 C 组给出的统一口径是"已有 `*.lock` 单写者锁；`A-01` 未关闭的原因是**该锁存在竞态**"。**前半句实测成立**；**后半句在源码里没有依据**——`src/ledger.rs` 全篇未出现"竞态/race"字样，实现自述的局限是**陈旧锁判定的平台退化**（`:104-106`）。本行按实测写：**竞态是推理结论（②）、平台退化是源码自述（③），二者是不同的问题，不要混为一条。** |
-| `A-02` | **单进程**：本体/账本/读模型/门禁同进程，进程内无并发写 | 中 | 需重新设计写入互斥与状态一致性 | S3 骨架跑通时复核 | 技术负责人 | 部分（进程内仍无并发设施；**跨进程的一条已被 `A-01` 的单写者锁挡住**，见 `src/ledger.rs:98-159`） |
+| `A-01` | **单写者**：任一时刻只有一个世界核心实例写同一本账 | 中（原"低"；锁已实现，风险面缩小到"锁失效"而非"完全无锁"） | 两个写者各自按内存 `next_seq` 追加 ⇒ **重号/缺号** ⇒ 下次启动 `SeqGap` 拒启、世界锁死 | **R2 前**（须消除锁竞态；并给非 Linux 平台一条明确的陈旧锁判定） | 技术负责人 | ⚠️ **部分（2026-09-27 订正）**：<br>① **锁已实现**：`src/ledger/mod.rs:85-96` / `:98-116` / `:119-159`，用例 `c07`（第二个写者被拒 + `Drop` 后释放）、`c08`（陈旧锁回收）；验收测试 `t4` 仍覆盖 `SeqGap`。<br>② **仍未关闭，原因是该锁存在竞态**。**论证（推理，非实测）**：`acquire_lock` 的取锁是**四步非原子**——`create_new` 失败 → `read_to_string(锁文件)` 读 pid → 判 `/proc/<pid>` 存活 → `remove_file` 后 `continue` 重试（`src/ledger/mod.rs:121-137`）。`create_new(true)` 只保证**创建**这一步原子（`:101-102` 的注释这么写），**不保证**这四步整体原子：若另一实例在"判定为陈旧"与"删锁"之间抢到锁并写入自己的 pid，则本次 `remove_file` 会**删掉一把活锁** ⇒ 互斥被破坏。后果与 `A-01` 原后果同类（重号 ⇒ `SeqGap` 拒启、世界锁死），**不是**数据损坏。<br>③ **非 Linux 平台**：陈旧锁判定依赖 `/proc/<pid>`，非 Linux 上"持有者是否存活"**恒判为否** ⇒ 陈旧锁总被回收（实现自述见 `src/ledger/mod.rs:104-106`）。<br>⚠️ **与处置表口径的差异（重要）**：`WC-R4-DISP-001` §二 C 组给出的统一口径是"已有 `*.lock` 单写者锁；`A-01` 未关闭的原因是**该锁存在竞态**"。**前半句实测成立**；**后半句在源码里没有依据**——`src/ledger/mod.rs` 全篇未出现"竞态/race"字样，实现自述的局限是**陈旧锁判定的平台退化**（`:104-106`）。本行按实测写：**竞态是推理结论（②）、平台退化是源码自述（③），二者是不同的问题，不要混为一条。** |
+| `A-02` | **单进程**：本体/账本/读模型/门禁同进程，进程内无并发写 | 中 | 需重新设计写入互斥与状态一致性 | S3 骨架跑通时复核 | 技术负责人 | 部分（进程内仍无并发设施；**跨进程的一条已被 `A-01` 的单写者锁挡住**，见 `src/ledger/mod.rs:98-159`） |
 | `A-03` | **账本规模可控**：读模型全量折叠（时间 O(n)、空间 O(n)）在本版数据规模下可接受 | 低 | 每次读状态变慢/爆内存 ⇒ 必须提前上快照（`M08`）或流式折叠 | S5（QG-05 度量，M-05） | 质量保证 | ⛔ 未验证（**数值仍是【候选】，须人工给定**） |
-| `A-04` | **宿主文件系统语义**：`flush`+`sync_data` 足以在进程崩溃与**掉电**之间保住"已回执"的事件 | 中 | 掉电可能丢"`commit` 已返回 Ok"的事件 ⇒ QG-02 的"零丢失"口径不成立 | **R2 前**（须与 `WC-SQAP-001` 裁定"已回执"定义） | 质量保证 | 部分（2026-09-26 已加 `sync_data`，见 `src/ledger.rs:66-68`；**口径已裁定（R0 2026-09-27）**。✅ **`E-4` 取"写法乙"并已落笔（`WC-R0-DS-001` 附件 A-4 授权项①）**：本假设**收窄为"进程崩溃"**——**"掉电"不在 v1 担保范围**（`WC-SQAP-001` §2.1 `QG-02` 与 §2.1.2 `M-02` 已同步收窄；该边界须作为**已声明边界**写进 `WC-REL-001` 版本说明「已知问题」）。**不得据此宣称已覆盖掉电**） |
+| `A-04` | **宿主文件系统语义**：`flush`+`sync_data` 足以在进程崩溃与**掉电**之间保住"已回执"的事件 | 中 | 掉电可能丢"`commit` 已返回 Ok"的事件 ⇒ QG-02 的"零丢失"口径不成立 | **R2 前**（须与 `WC-SQAP-001` 裁定"已回执"定义） | 质量保证 | 部分（2026-09-26 已加 `sync_data`，见 `src/ledger/mod.rs:66-68`；**口径已裁定（R0 2026-09-27）**。✅ **`E-4` 取"写法乙"并已落笔（`WC-R0-DS-001` 附件 A-4 授权项①）**：本假设**收窄为"进程崩溃"**——**"掉电"不在 v1 担保范围**（`WC-SQAP-001` §2.1 `QG-02` 与 §2.1.2 `M-02` 已同步收窄；该边界须作为**已声明边界**写进 `WC-REL-001` 版本说明「已知问题」）。**不得据此宣称已覆盖掉电**） |
 | `A-05` | **静态墙的有效前提**：本体/策略/账本及其**祖先目录**属主均为核心 uid，被管者为**不同 uid** | 中 | mode 位对属主无效 ⇒ "不可绕过"在真实部署中不成立 | **R2 前**（须加启动自检） | 技术负责人 | ⛔ 未验证（评审 FIND-04；CON-01 只测了目录级） |
 | `A-06` | **`actor` 可信**：`actor` 字符串可代表真实身份 | 低 | 被管者自称白名单主体即可绕过白名单与能力表 | **项目 Step 6**（通道层绑定 uid/对端凭证） | 技术负责人 | ⛔ **未验证**（评审 FIND-06；v1 威胁模型未含身份伪造——须显式声明） |
 | `A-07` | **零外部依赖可维持**：`serde_json` 是唯一直接依赖且长期足够 | 中 | 需引入新依赖 ⇒ 走评审；地基的移植成本上升 | 每次新增依赖时（已有机械断言） | 技术负责人 | ✅ 有会失败的检查（`ci_self_check.py`） |
@@ -1387,9 +1387,9 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 |---|---|---|
 | `DEBT-01` | 错误以中文散文 `String` 返回，机器需匹配子串判错 | 评审 F-16 |
 | `DEBT-02` | 静态墙只看 mode、不看属主 | `A-05`、FIND-04 |
-| `DEBT-03` | ~~无单写者锁~~ **已有 `*.lock` 单写者锁（2026-09-26）**：`src/ledger.rs:85-96`（`Ledger._lock: LockGuard`）、`:98-116`（`LockGuard`，`Drop` 即 `remove_file`）、`:119-159`（`acquire_lock`，`OpenOptions::create_new(true)` 实现"创建即独占"，不引 `libc`/`flock`）。⚠️ **仍未关闭，原因是该锁存在竞态**（本文件 §12 `A-01` 给论证）**且非 Linux 平台上陈旧锁判定退化**（`:104-106` 自述）。⚠️ 实现自身的注释写的是"**会削弱互斥强度，但不会造成数据损坏**"，**没有写"竞态"二字**——"存在竞态"是据 `:119-159` 的"取锁四步非原子"**推出的**，属推理、非源码原话 | FIND-08 / `c07`、`c08` |
+| `DEBT-03` | ~~无单写者锁~~ **已有 `*.lock` 单写者锁（2026-09-26）**：`src/ledger/mod.rs:85-96`（`Ledger._lock: LockGuard`）、`:98-116`（`LockGuard`，`Drop` 即 `remove_file`）、`:119-159`（`acquire_lock`，`OpenOptions::create_new(true)` 实现"创建即独占"，不引 `libc`/`flock`）。⚠️ **仍未关闭，原因是该锁存在竞态**（本文件 §12 `A-01` 给论证）**且非 Linux 平台上陈旧锁判定退化**（`:104-106` 自述）。⚠️ 实现自身的注释写的是"**会削弱互斥强度，但不会造成数据损坏**"，**没有写"竞态"二字**——"存在竞态"是据 `:119-159` 的"取锁四步非原子"**推出的**，属推理、非源码原话 | FIND-08 / `c07`、`c08` |
 | `DEBT-04` | 被拒流水无来源认证（任何人可造 `gate.rejected`） | FIND-05 |
-| `DEBT-05` | ~~账本无 hash 链~~ **账本已有摘要链（`WC-CR-003`）**：`chain` 字段（`src/ledger.rs:306-312`）、`event_chain`（`:426-441`）、`verify_chain`（`:458-484`）、启动核验（`src/lib.rs:78`），用例 `c16`/`c17`/`c18`/`c19`/`c20`/`c21`。**仍未关闭的部分**：① 链只能检出**局部**篡改，**整本重写检不出**（用例 `c18` 锁死）；② **读模型的 `before` 旧值核对仍是自洽检查**——它只与"折叠出的当前值"比，**不依赖链**，故"账本被整体换掉且链一起重算"时它不会报警；③ 无链的旧账本**默认放行**（只警告）。**原文"账本无 hash 链"已过期，已订正** | FIND-06 / `WC-CR-003`；本文件 §5.3 已补链格式 |
+| `DEBT-05` | ~~账本无 hash 链~~ **账本已有摘要链（`WC-CR-003`）**：`chain` 字段（`src/ledger/mod.rs:306-312`）、`event_chain`（`:426-441`）、`verify_chain`（`:458-484`）、启动核验（`src/lib.rs:78`），用例 `c16`/`c17`/`c18`/`c19`/`c20`/`c21`。**仍未关闭的部分**：① 链只能检出**局部**篡改，**整本重写检不出**（用例 `c18` 锁死）；② **读模型的 `before` 旧值核对仍是自洽检查**——它只与"折叠出的当前值"比，**不依赖链**，故"账本被整体换掉且链一起重算"时它不会报警；③ 无链的旧账本**默认放行**（只警告）。**原文"账本无 hash 链"已过期，已订正** | FIND-06 / `WC-CR-003`；本文件 §5.3 已补链格式 |
 | `DEBT-06` | 无 Landlock/seccomp 自缚 | HLD §7.4 |
 | ~~`DEBT-07`~~ | ~~不可逆能力**无批准出口**~~ **✅ 已关闭（2026-09-26）**：v1 规则定为"不可逆只允许 `irreversible_actors` 白名单主体执行"，白名单外主体的拒绝理由**明说无审批通道**；测试 `t10`/`c11` 锁死 | FIND-12 |
 | `DEBT-08` | `REQ-F-006` 缺**编译期**反例证据（trybuild/`compile_fail`） | 评审 T-02 |
@@ -1455,7 +1455,7 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 - **停机**：v1 **无优雅停机协议**——进程被终止时最多留下一个残缺末行，
   由下次启动丢弃；**没有"收到 SIGTERM 后 flush"的语义**。
   ⚠️ **订正（2026-09-27 实测）**：原文写"也没有锁"，**已过期**——锁已实现，
-  且**随进程结束自动释放**（`LockGuard::Drop` 删锁文件，`src/ledger.rs:112-116`）。
+  且**随进程结束自动释放**（`LockGuard::Drop` 删锁文件，`src/ledger/mod.rs:112-116`）。
   仍成立的是：被 `SIGKILL` 时不跑 `Drop`、留下陈旧锁，靠下次启动回收（用例 `c08`）。
   ⚠️ 这是**已知缺口**，随 `A-01` 的**锁竞态**一并设计。
 
@@ -1606,21 +1606,21 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 
 | `FA` 编号 | 推导依据（既有 HLD 的假设 / 源码坐标 / 既有文档章节） | 可核对的原文签名 |
 |---|---|---|
-| `FA-01` | `WC-HLD-001-v0.1.md` §7.3 末段与 §12（框架假设清单）；源码 `src/guard.rs:35-36`、`src/ledger.rs:104-106`、`src/channel.rs:15-20`；`check.sh` 的"主机"打印行 | "本项目构建与运行都在 Linux VM 内"；"陈旧锁判定依赖 `/proc/<pid>`（Linux）"；`uname -sr` |
-| `FA-02` | `WC-HLD-001-v0.1.md` §12 `A-01` 行；源码 `src/ledger.rs:91`、`:119-159`、`:166-168`、`:223-229`；用例 `c07`/`c08`（`tests/contract.rs:337`、`:356`） | "**单写者**：任一时刻只有一个世界核心实例写同一本账" |
-| `FA-03` | `WC-HLD-001-v0.1.md` §5.3（账本格式）；源码 `src/ledger.rs:233-235`、`:314-316`、`:323`、`:196-209`；`WC-SRS-001-v0.1.md` §三 `DR-01` | "**一行一条事件**的 JSON Lines，UTF-8，LF 结尾；**只追加**" |
-| `FA-04` | `WC-HLD-001-v0.1.md` §5.1、§5.4、§7.1 第 4 步；源码 `ontology.json`（顶层 `"world": 1`）、`src/ontology.rs:71`、`src/lib.rs:85-92`；`WC-SRS-001-v0.1.md` §三 `DR-11` ④ | "**词表版本一致性自检**：`event::WORLD_VERSION` 必须等于本体声明的 `world`"；"兼容性义务：读模型零义务、检查点零义务、本体**只加不改**" |
+| `FA-01` | `WC-HLD-001-v0.1.md` §7.3 末段与 §12（框架假设清单）；源码 `src/gate/guard.rs:35-36`、`src/ledger/mod.rs:104-106`、`src/bus/mod.rs:15-20`；`check.sh` 的"主机"打印行 | "本项目构建与运行都在 Linux VM 内"；"陈旧锁判定依赖 `/proc/<pid>`（Linux）"；`uname -sr` |
+| `FA-02` | `WC-HLD-001-v0.1.md` §12 `A-01` 行；源码 `src/ledger/mod.rs:91`、`:119-159`、`:166-168`、`:223-229`；用例 `c07`/`c08`（`tests/contract.rs:337`、`:356`） | "**单写者**：任一时刻只有一个世界核心实例写同一本账" |
+| `FA-03` | `WC-HLD-001-v0.1.md` §5.3（账本格式）；源码 `src/ledger/mod.rs:233-235`、`:314-316`、`:323`、`:196-209`；`WC-SRS-001-v0.1.md` §三 `DR-01` | "**一行一条事件**的 JSON Lines，UTF-8，LF 结尾；**只追加**" |
+| `FA-04` | `WC-HLD-001-v0.1.md` §5.1、§5.4、§7.1 第 4 步；源码 `ontology.json`（顶层 `"world": 1`）、`src/ontology_definition/mod.rs:71`、`src/lib.rs:85-92`；`WC-SRS-001-v0.1.md` §三 `DR-11` ④ | "**词表版本一致性自检**：`event::WORLD_VERSION` 必须等于本体声明的 `world`"；"兼容性义务：读模型零义务、检查点零义务、本体**只加不改**" |
 | `FA-05` | `WC-HLD-001-v0.1.md` §4.6、§12 `A-07` 行；`Cargo.toml` 的 `[dependencies]`；`tools/ci_self_check.py`；`WC-SRS-001-v0.1.md` §三 `REQ-N-002` | "**零外部依赖纪律**（含『指纹用非加密实现』的选择）"；"直接依赖仅 `serde_json`" |
 | `FA-06` | `WC-HLD-001-v0.1.md` §2.2 纪律 1、§12 `A-02` 行；源码 `src/lib.rs:12-17`、`:57-62`、`:133` | "**一个进程**：本体/账本/读模型/运行时/门禁同进程（`M01`–`M05`），不拆" |
 | `FA-07` | `WC-HLD-001-v0.1.md` §4.5、§12 `A-03` 行；源码 `src/lib.rs:255-257`、`src/main.rs:200`、`tests/perf.rs:177` | "**账本规模可控**：读模型全量折叠（时间 O(n)、空间 O(n)）在本版数据规模下可接受" |
-| `FA-08` | `WC-HLD-001-v0.1.md` §12 `A-04` 行、§5.3 末段、§15.2；源码 `src/ledger.rs:280-285`、`:327-336`、`:69` | "**宿主文件系统语义**：`flush`+`sync_data` 足以在进程崩溃与**掉电**之间保住『已回执』的事件" |
-| `FA-09` | `WC-HLD-001-v0.1.md` §7.3、§12 `A-05` 行；源码 `src/guard.rs:31`、`:43-88`、`:132`；`src/main.rs` 的 `--owner-uid` | "**静态墙的有效前提**：本体/策略/账本及其**祖先目录**属主均为核心 uid，被管者为**不同 uid**" |
-| `FA-10` | `WC-HLD-001-v0.1.md` §12 `A-06` 行、§6.3；源码 `src/channel.rs:5-7`、`:9-11`；`WC-SRS-001-v0.1.md` §三 `REQ-F-025` | "**`actor` 可信**：`actor` 字符串可代表真实身份"；"CLI 的 `actor` 是**命令行参数**" |
-| `FA-11` | `WC-HLD-001-v0.1.md` §4.1、§5.4、§12 `A-10` 行；源码 `src/gate.rs:103-211`、`:222-244`、`:269-296`；`policy.json` | "**门禁策略形态够用**：单文件 `policy.json` + 能力名/主体白名单/写入授权足以表达 v1 的治理需求" |
-| `FA-12` | `WC-HLD-001-v0.1.md` §4.4、§12 `A-09` 行；源码 `src/ontology.rs:144`、`:240`、`src/project/mod.rs:124`；`WC-SRS-001-v0.1.md` §三 `DR-04` | "**词表内容寻址够用**：FNV-1a（非加密）足以判定『是不是同一份词表』"；"指纹是 FNV-1a（**非加密**），可能碰撞" |
-| `FA-13` | `WC-HLD-001-v0.1.md` §4.9、§12 `A-08` 行；源码 `src/ledger.rs:496`、`src/project/visual.rs:29`/`:62`；`tools/plain_text_audit.py` | "**纯文本格式够用**：JSON Lines 的体积与解析开销可接受"；"**语言无关**" |
-| `FA-14` | `WC-HLD-001-v0.1.md` §7.1「启动是否载入检查点（`M08`）——裁决」、§4.5 现状订正段；源码 `src/lib.rs:20`、`src/main.rs:200`、`src/checkpoint.rs:167` | "**不载入**"；"`v1` 启动**不读快照**，一切由账本全量折叠" |
-| `FA-15` | `WC-HLD-001-v0.1.md` §5.3「行分隔约定（上游差异登记 ③）」；源码 `src/ledger.rs:198`、`:213`、`:314-316`、`:403` | "**任何字段的内容都不得在行内出现真实的 `0x0A` 字节**"；"`serde_json::to_string` 序列化时把 `U+000A` 转义为两个字符" |
+| `FA-08` | `WC-HLD-001-v0.1.md` §12 `A-04` 行、§5.3 末段、§15.2；源码 `src/ledger/mod.rs:280-285`、`:327-336`、`:69` | "**宿主文件系统语义**：`flush`+`sync_data` 足以在进程崩溃与**掉电**之间保住『已回执』的事件" |
+| `FA-09` | `WC-HLD-001-v0.1.md` §7.3、§12 `A-05` 行；源码 `src/gate/guard.rs:31`、`:43-88`、`:132`；`src/main.rs` 的 `--owner-uid` | "**静态墙的有效前提**：本体/策略/账本及其**祖先目录**属主均为核心 uid，被管者为**不同 uid**" |
+| `FA-10` | `WC-HLD-001-v0.1.md` §12 `A-06` 行、§6.3；源码 `src/bus/mod.rs:5-7`、`:9-11`；`WC-SRS-001-v0.1.md` §三 `REQ-F-025` | "**`actor` 可信**：`actor` 字符串可代表真实身份"；"CLI 的 `actor` 是**命令行参数**" |
+| `FA-11` | `WC-HLD-001-v0.1.md` §4.1、§5.4、§12 `A-10` 行；源码 `src/gate/mod.rs:103-211`、`:222-244`、`:269-296`；`policy.json` | "**门禁策略形态够用**：单文件 `policy.json` + 能力名/主体白名单/写入授权足以表达 v1 的治理需求" |
+| `FA-12` | `WC-HLD-001-v0.1.md` §4.4、§12 `A-09` 行；源码 `src/ontology_definition/mod.rs:144`、`:240`、`src/gui_projection/mod.rs:124`；`WC-SRS-001-v0.1.md` §三 `DR-04` | "**词表内容寻址够用**：FNV-1a（非加密）足以判定『是不是同一份词表』"；"指纹是 FNV-1a（**非加密**），可能碰撞" |
+| `FA-13` | `WC-HLD-001-v0.1.md` §4.9、§12 `A-08` 行；源码 `src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`:62`；`tools/plain_text_audit.py` | "**纯文本格式够用**：JSON Lines 的体积与解析开销可接受"；"**语言无关**" |
+| `FA-14` | `WC-HLD-001-v0.1.md` §7.1「启动是否载入检查点（`M08`）——裁决」、§4.5 现状订正段；源码 `src/lib.rs:20`、`src/main.rs:200`、`src/ontology_instance/checkpoint.rs:167` | "**不载入**"；"`v1` 启动**不读快照**，一切由账本全量折叠" |
+| `FA-15` | `WC-HLD-001-v0.1.md` §5.3「行分隔约定（上游差异登记 ③）」；源码 `src/ledger/mod.rs:198`、`:213`、`:314-316`、`:403` | "**任何字段的内容都不得在行内出现真实的 `0x0A` 字节**"；"`serde_json::to_string` 序列化时把 `U+000A` 转义为两个字符" |
 
 **`FA-xx` ↔ 既有 `A-xx` 对照（只作索引，不改变附录 A 的原文）**
 
@@ -1628,11 +1628,11 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 |---|---|---|
 | `FA-02` / `FA-06` / `FA-07` / `FA-08` / `FA-09` / `FA-10` / `FA-11` / `FA-12` / `FA-13` | `A-01` / `A-02` / `A-03` / `A-04` / `A-05` / `A-06` / `A-10` / `A-09` / `A-08` | **归纳改写**（重写为"假设内容 / 验证时点 / 若不成立的影响与代价 / 可复算坐标"四段式） |
 | `FA-01` | 无单条 `A-xx` 对应 | **新归纳**：由 §7.3、§12 的散落陈述与三处源码自述（`guard.rs:35-36`、`ledger.rs:104-106`、`channel.rs:15-20`）归纳而成 |
-| `FA-03` | 无单条 `A-xx` 对应 | **新归纳**：由 §5.3 的账本格式与 `src/ledger.rs` 的写路径归纳而成 |
+| `FA-03` | 无单条 `A-xx` 对应 | **新归纳**：由 §5.3 的账本格式与 `src/ledger/mod.rs` 的写路径归纳而成 |
 | `FA-04` | 无单条 `A-xx` 对应 | **新归纳**：由 §7.1 第 4 步的启动自检与 `src/lib.rs:85-92` 归纳而成 |
 | `FA-05` | `A-07` | 归纳改写 |
 | `FA-14` | 无单条 `A-xx` 对应 | **新归纳**：由 §7.1 的启动裁决与 `src/lib.rs:20` 的唯一声明处归纳而成 |
-| `FA-15` | 无单条 `A-xx` 对应 | **新归纳**：由 §5.3「行分隔约定」与 `src/ledger.rs` 的分帧实现归纳而成 |
+| `FA-15` | 无单条 `A-xx` 对应 | **新归纳**：由 §5.3「行分隔约定」与 `src/ledger/mod.rs` 的分帧实现归纳而成 |
 
 **未纳入 `FA` 清单的既有假设**：`A-01`–`A-10` 全部已被 `FA-01`–`FA-15` 覆盖（`A-07`→`FA-05`、`A-08`→`FA-13`、
 `A-09`→`FA-12`、`A-10`→`FA-11`、`A-01`→`FA-02`、`A-02`→`FA-06`、`A-03`→`FA-07`、`A-04`→`FA-08`、

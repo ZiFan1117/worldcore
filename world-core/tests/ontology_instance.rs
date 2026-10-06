@@ -32,15 +32,15 @@
 //! - **不判"内嵌形态对不对"**：四段形态里第 3 段**不是**按 `part_of` 声明的内嵌类型时，
 //!   本层退回首段（与 `Ontology::entity_of` 同口径）；"错内嵌形态"由**写侧**
 //!   （`UndeclaredEmbeddedMarker`）判——**本层不抢它的错**；
-//! - **不判定义面**（"定义面里不许出现实例数据"是另一条，落点在 `src/ontology.rs`）。
+//! - **不判定义面**（"定义面里不许出现实例数据"是另一条，落点在 `src/ontology_definition/mod.rs`）。
 
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::ontology::Ontology;
-use world_core::readmodel::{DeclaredCells, State};
+use world_core::ontology_definition::Ontology;
+use world_core::ontology_instance::readmodel::{DeclaredCells, State};
 use world_core::{event, World};
 
 // ────────────────────────── 夹具 ──────────────────────────
@@ -74,11 +74,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 /// 造一份临时本体：读出厂本体 → 按 `edit` 改 → 落盘（`0600`，静态墙要求）。

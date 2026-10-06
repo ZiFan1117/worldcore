@@ -10,7 +10,7 @@
 //!
 //! ## 每条断言的"会红"条件（改坏哪一行会打红哪一条）
 //!
-//! - `a01` ← `src/gate.rs` 的 `cross_check_reversibility` 里那句
+//! - `a01` ← `src/gate/mod.rs` 的 `cross_check_reversibility` 里那句
 //!   `return Err(format!("ext.world.Gate.ReversibilityMismatch: …`)：删掉它（或让它恒 `Ok`）
 //!   ⇒ `a01` 变红（冲突配置竟能启动）。
 //! - `a02` ← 同函数的判据取反（例如把 `carrier_says_reversible != cap.reversible`
@@ -24,7 +24,7 @@
 //! - `a04` ← `Policy::verdict` 里 `.filter(|c| !c.reversible)` 那段：
 //!   换成"看 `agent` 是不是白名单"（即书判红的旧口径：摩擦挂在执行者身份上）
 //!   ⇒ 白名单主体执行不可逆动作时 `friction == None` ⇒ `a04` 变红。
-//! - `a05` ← `src/gate.rs` 的 `decide` 里 `level = self.level_name(c)`：
+//! - `a05` ← `src/gate/mod.rs` 的 `decide` 里 `level = self.level_name(c)`：
 //!   去掉它 ⇒ 拒绝流水里读不到等级 ⇒ `a05` 变红。
 
 use serde_json::{json, Value};
@@ -41,7 +41,7 @@ fn tmpdir(tag: &str) -> PathBuf {
         .as_nanos();
     let d = std::env::temp_dir().join(format!("wc-atomrev-{tag}-{n}"));
     fs::create_dir_all(&d).unwrap();
-    // 出厂法律不得对 group/other 可写（`src/guard.rs`）；umask 非 022 时
+    // 出厂法律不得对 group/other 可写（`src/gate/guard.rs`）；umask 非 022 时
     // `create_dir_all` 可能建出 0777 的目录，那会让"拒启"的**理由**变成权限而不是互校，
     // 断言就失去了判别力。故显式收紧。
     #[cfg(unix)]
@@ -57,11 +57,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 /// 写一份合法的临时策略（含 `writes` 段——默认拒绝要求它必须存在）。
@@ -70,7 +70,7 @@ fn factory_policy() -> PathBuf {
 ///
 /// 入参 `caps` 的每一项带 `kind`（能力层）与 `reversible`（动作层）；本函数把它
 /// **拆成两层**落盘：`capabilities.<名字>.kind` ＋ `actions.<名字>.capability/reversible`
-/// （出厂 `policy.json` 同形；判据见 `src/gate.rs::Policy::load`）。
+/// （出厂 `policy.json` 同形；判据见 `src/gate/mod.rs::Policy::load`）。
 /// ⇒ 调用点的夹具**没变宽**（仍是"一项能力一条动作"这个最小形态），
 /// 变的是它落到哪一层——两层的拆法在**这里**写一次。
 fn write_policy(dir: &Path, caps: Value) -> PathBuf {
@@ -89,7 +89,7 @@ fn write_policy(dir: &Path, caps: Value) -> PathBuf {
             }),
         );
     }
-    let p = dir.join("policy.json");
+    let p = dir.join("src/gate/policy.json");
     fs::write(
         &p,
         serde_json::to_string_pretty(&json!({
@@ -114,7 +114,7 @@ fn write_policy(dir: &Path, caps: Value) -> PathBuf {
 /// 本函数按与 `write_policy` **同一个入参**（`caps` 的键集）补本体那一侧，
 /// 于是"两处同名"这件事在夹具里是**构造出来的**，不是顺手写对的。
 fn write_ontology(dir: &Path, caps: &Value) -> PathBuf {
-    let text = fs::read_to_string(manifest_dir().join("ontology.json")).unwrap();
+    let text = fs::read_to_string(manifest_dir().join("src/ontology_definition/ontology.json")).unwrap();
     let mut v: Value = serde_json::from_str(&text).unwrap();
     for (name, spec) in caps.as_object().expect("caps 必须是对象") {
         let kind = spec.get("kind").cloned().unwrap_or(json!("invoke"));

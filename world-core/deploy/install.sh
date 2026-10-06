@@ -98,10 +98,14 @@ install_units() {
 
 seed_config() {
   # 法律与本体必须由部署方提供；这里只把仓内的样例放过去（**不覆盖已有**）
-  for f in ontology.json policy.json; do
-    if [ -f "$SRC_DIR/../$f" ] && [ ! -f "$CONF_DIR/$f" ]; then
-      install -m 0644 "$SRC_DIR/../$f" "$CONF_DIR/$f"
-      # ★ 法律属主：A-05（`src/guard.rs::assert_owned_by`）在服务路径上判的就是这两份
+  for f in src/ontology_definition/ontology.json src/gate/policy.json; do
+    # ★ 装到配置目录时**摊平**（只取文件名）：服务单元的 `ExecStart` 读的是
+    #   `/etc/world-core/ontology.json` 与 `/etc/world-core/policy.json`，
+    #   仓内那份在 `src/` 下是**源码布局**，不是装机布局（2026-10-07 结构迁移后订正）。
+    for_base="$(basename "$f")"
+    if [ -f "$SRC_DIR/../$f" ] && [ ! -f "$CONF_DIR/$for_base" ]; then
+      install -m 0644 "$SRC_DIR/../$f" "$CONF_DIR/$for_base"
+      # ★ 法律属主：A-05（`src/gate/guard.rs::assert_owned_by`）在服务路径上判的就是这两份
       #   （调用点实参＝本体／门禁策略／账本三件；`channel.json` 与 `cap.d/` **不在其中**，故不 chown）。
       #   目录维持 root（有意为之）：目录归 root ⇒ 核心用户不能"替换"法律；
       #   文件归核心 uid ⇒ 只能改内容，而改动会过门禁、会落账。
@@ -125,7 +129,7 @@ seed_config() {
   GEN="$SRC_DIR/../tools/gen_owner_uid.py"
   RENDER="$SRC_DIR/../tools/render_channel.py"
   if [ -f "$GEN" ]; then
-    if python3 "$GEN" --policy "$SRC_DIR/../policy.json" --out "$UIDS" >/dev/null 2>&1; then
+    if python3 "$GEN" --policy "$SRC_DIR/../src/gate/policy.json" --out "$UIDS" >/dev/null 2>&1; then
       say "  已生成 uid 映射：$UIDS（由 tools/gen_owner_uid.py 读本机用户库）"
     else
       say "  ⚠ tools/gen_owner_uid.py 跑不动（看它的用法：--policy/--out）——"
@@ -135,7 +139,7 @@ seed_config() {
     say "  ⚠ 缺 $GEN（uid 映射的生产者）——渲染链缺一环"
   fi
   if [ -f "$RENDER" ] && [ -f "$UIDS" ]; then
-    if python3 "$RENDER" --policy "$SRC_DIR/../policy.json" --uids "$UIDS" \
+    if python3 "$RENDER" --policy "$SRC_DIR/../src/gate/policy.json" --uids "$UIDS" \
          --out "$CONF_DIR/channel.json" >/dev/null 2>&1; then
       chmod 0644 "$CONF_DIR/channel.json"
       say "  已渲染身份映射：$CONF_DIR/channel.json（$RENDER 从法律生成，勿手改）"
@@ -190,11 +194,11 @@ verify() {
     return 1
   fi
 
-  # ★ 法律属主：A-05 在**服务路径**上判的就是这两份（`src/guard.rs::assert_owned_by`，
+  # ★ 法律属主：A-05 在**服务路径**上判的就是这两份（`src/gate/guard.rs::assert_owned_by`，
   #   调用点实参＝本体／门禁策略／账本）。属主不对 ⇒ **服务一上服务路径就起不来**。
   #   ⚠️ `channel.json` 与 `cap.d/` **不在 A-05 的判定范围内** ⇒ 本判据**不判**它们。
   core_uid="$(id -u "$CORE_USER" 2>/dev/null || echo '')"
-  for f in ontology.json policy.json; do
+  for f in src/ontology_definition/ontology.json src/gate/policy.json; do
     if [ -f "$CONF_DIR/$f" ]; then
       got="$(stat -c '%u' "$CONF_DIR/$f" 2>/dev/null || echo '取不到')"
       if [ "$got" = "$core_uid" ]; then
@@ -227,7 +231,7 @@ verify() {
     say "  [ok] 载体执行器默认拒绝高危动作"
   fi
 
-  # ★ 套接字权限：**三处口径统一为 0600**（单元／`src/channel.rs::bind()`／盘上）。
+  # ★ 套接字权限：**三处口径统一为 0600**（单元／`src/bus/mod.rs::bind()`／盘上）。
   #   为什么判：生产走 socket activation ⇒ 单元给的就是盘上那个值，而它此前是 0660 而
   #   代码文档写 0600 ⇒ 同一个事实两个取值、都不红。这里只看**指令行**（注释里出现不算）。
   for u in world-core.socket world-core-omarchy.socket world-core-dsh.socket; do

@@ -26,15 +26,15 @@
 //! | **前值必须带上** | [`ExternalChange::before`] 是 `Option<Value>`：`None` ⇒ **报错**；显式的 `null` 前值是**合法**的前值 | 拿 `null`／新值顶 ⇒ 账本里出现一个**没人说过**的旧值 |
 //! | **翻不出来不许猜** | [`translate`] 只认**逐字相等**的 (主体, 字段)；不在声明里 ⇒ **报错** | 猜一个相近的名字 ⇒ 那个名字进账本变成"事实" |
 //!
-//! ⚠️ 「没有前值」与「前值是空」是**两件事**（与 `src/event.rs:141-147` 的 `with_trace`
+//! ⚠️ 「没有前值」与「前值是空」是**两件事**（与 `src/common/event.rs:141-147` 的 `with_trace`
 //! 同一口径：`None` 与"指向空"不同）。故这里用 `Option` 而不是"拿 `Value::Null` 兼作缺省"。
 //!
 //! ## 为什么 `Declared` 是个**窄接口**（而不是直接收一份本体）
 //!
 //! 本模块只需要知道**一件事**：某个 (主体, 字段) 在出厂声明里吗。把宽度压到这一处，
-//! 与 `src/channel.rs` 的 `RequestSink` 是同一手法——**收方只需回答一个问题**。
+//! 与 `src/bus/mod.rs` 的 `RequestSink` 是同一手法——**收方只需回答一个问题**。
 //! 还有一条硬理由：`M10` 与 `M01`／`M05` 之间**不得新增 import 边**
-//! （`M05 → M10` 已存在：`src/gate.rs:32` 读载体清单）；反向再连即**成环**，
+//! （`M05 → M10` 已存在：`src/gate/mod.rs:32` 读载体清单）；反向再连即**成环**，
 //! `WC-ATOM-001` §二 A-4 不许，`tools/module_graph.py` 判据② 会红。
 
 use serde_json::{json, Value};
@@ -123,7 +123,7 @@ pub fn translate(ext: &ExternalChange, declared: &dyn Declared) -> Result<Value,
         ));
     }
 
-    // 信纸形状与 `src/event.rs:168` 的 `change_body` 逐字一致：
+    // 信纸形状与 `src/common/event.rs:168` 的 `change_body` 逐字一致：
     // `subject` / `path` / `before` / `after` 四项，一个不多一个不少。
     Ok(json!({
         "subject": ext.subject,
@@ -181,7 +181,7 @@ mod unit {
         );
         let e = translate(&ext, &book()).unwrap_err();
         assert_eq!(
-            crate::error::code_of(&e),
+            crate::common::error::code_of(&e),
             Some("ext.world.Carrier.NoPreviousValue"),
             "{e}"
         );
@@ -217,7 +217,7 @@ mod unit {
         );
         let e = translate(&ext, &book()).unwrap_err();
         assert_eq!(
-            crate::error::code_of(&e),
+            crate::common::error::code_of(&e),
             Some("ext.world.Carrier.UnmappableField"),
             "{e}"
         );

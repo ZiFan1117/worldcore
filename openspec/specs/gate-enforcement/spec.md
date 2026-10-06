@@ -67,7 +67,7 @@
 - **THEN** 可逆动作免检且事件不带摩擦旗标（但照样落账）；不可逆动作放行且事件带 `gate.friction:high`，
       该旗标随事件落进账本
 - **证据**：`tests/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
-      —— 变异：把 `world-core/src/gate.rs:572-584` 的 `Policy::verdict` 改成按主体身份判摩擦 ⇒ 本条变红。
+      —— 变异：把 `world-core/src/gate/mod.rs:572-584` 的 `Policy::verdict` 改成按主体身份判摩擦 ⇒ 本条变红。
 
 #### Scenario: 拒绝流水必须说清它拒绝了什么
 
@@ -158,7 +158,7 @@ SHALL NOT 被读成"风险等级不参与门禁"。
 - **THEN** 拒绝启动，拒绝理由含 `ext.world.Gate.ReversibilityMismatch` 并点名该能力、
       写出两处各写了什么，且**账本文件根本不被创建**（一个字节都没落）
 - **证据**：`world-core/tests/atom_reversibility.rs::a01_conflicting_reversibility_refuses_to_start`
-      —— 变异：把 `world-core/src/gate.rs::cross_check_reversibility` 的 `return Err(…)` 删掉
+      —— 变异：把 `world-core/src/gate/mod.rs::cross_check_reversibility` 的 `return Err(…)` 删掉
       （或让它恒 `Ok`）⇒ 本条变红（冲突配置竟能启动）。
 
 #### Scenario: 两处一致即正常启动，且闸读得到等级
@@ -181,7 +181,7 @@ SHALL NOT 被读成"风险等级不参与门禁"。
       （第三项 `job.start`：世界侧可逆 ＋ 载体侧留撤销点 ⇒ 照样启动）
       与 `world-core/tests/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
       （不可逆动作必带摩擦旗标）
-      —— 变异：把 `world-core/src/gate.rs::cross_check_reversibility` 的载体侧判据换成读 `undo`
+      —— 变异：把 `world-core/src/gate/mod.rs::cross_check_reversibility` 的载体侧判据换成读 `undo`
       ⇒ `a02` 变红。
 
 ### Requirement: 通告的闸，以及门禁不可绕过的部分实现边界

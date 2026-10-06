@@ -188,14 +188,14 @@
 | 编号 | 类别 | 需求内容（本项目的落地口径） | 验证方式 | 本版状态 |
 |---|---|---|---|---|
 | `IF-REQ-01` | 定义完整性 | 每个接口必须定义：编号、名称、类型、方向、提供方、消费方、触发条件、协议、数据格式、字段表、错误行为、幂等性、超时与重试、版本兼容策略、验收判据。**缺任一项视为未定义** | 本文件 §十 自查表逐项判定 | 10/10 条已定义（§三）；**`IF-006` 的超时/限流/版本兼容为【待确认】**（见 §3.6.7） |
-| `IF-REQ-02` | 错误码 | 所有**可编程判定**的错误必须以 `ext.world.<域>.<原因>` 开头，冒号之后才是人话；**禁止**只给中文散文 | 契约测试 `tests/contract.rs::c15_errors_carry_machine_readable_codes`（`:683`）；`src/error.rs::code_of`（`:43`） | **部分满足**：`Gate.*`/`Ledger.*`/`Ontology.*`/`ReadModel.*`/`Channel.*`/`Checkpoint.*`/`World.*` 已带码；**`Policy.*` 与 `Guard.*` 在源码中尚未带码**（§七 未担保 7.2） |
+| `IF-REQ-02` | 错误码 | 所有**可编程判定**的错误必须以 `ext.world.<域>.<原因>` 开头，冒号之后才是人话；**禁止**只给中文散文 | 契约测试 `tests/contract.rs::c15_errors_carry_machine_readable_codes`（`:683`）；`src/common/error.rs::code_of`（`:43`） | **部分满足**：`Gate.*`/`Ledger.*`/`Ontology.*`/`ReadModel.*`/`Channel.*`/`Checkpoint.*`/`World.*` 已带码；**`Policy.*` 与 `Guard.*` 在源码中尚未带码**（§七 未担保 7.2） |
 | `IF-REQ-03` | 幂等 | 每个接口必须**明确二选一**声明幂等性；**非幂等的写类接口必须给出幂等键或"禁止自动重试"约束** | 集成用例（重复提交）；本版逐条列于 §三 各接口"幂等性"行 | 10/10 已声明（`IF-001`/`IF-002`/`IF-006` 的写入路径非幂等，均给出幂等键或重试禁令） |
 | `IF-REQ-04` | 超时 | 每个接口必须定义**调用方超时**与**服务方处理上限**，且**服务方上限 < 调用方超时** | 设计核查 | **1/10 满足**（仅 `IF-006` 适用且【待确认】）；其余 9 条为**同步进程内/一次一进程**调用，**不存在独立的调用方超时通道**——本条对这 9 条**不适用**，理由逐条写在各接口"超时与重试"行 |
 | `IF-REQ-05` | 重试 | 重试策略必须显式声明（次数、间隔、退避），且**重试必须幂等** | 集成用例（注入超时） | 10/10 已声明。关键约束：`IF-002` 的 `commit` 类**禁止盲目自动重试**（重复即两条事件） |
 | `IF-REQ-06` | 兼容 | 接口变更必须声明兼容级别：**兼容扩展** / **破坏性变更**（需并行期与弃用通告） | 变更评审 R5（`WC-IC-001` `IF-D-01`）；本文档 §十二.3 分级表 | 10/10 已声明兼容级别；**破坏性变更面**具体为：`IF-008` 的退出码/`READY`/`[FAIL]` 字面量、`IF-004` 的排版缩进、`IF-001`/`IF-010` 的指纹与链算法 |
 | `IF-REQ-07` | 安全 | 所有**跨信任域**接口必须鉴权；敏感字段传输与日志中必须脱敏 | 安全用例 | **仅 `IF-006` 是跨信任域接口**，其鉴权机制为"**一 socket 一 uid，权限即身份**"（§3.6.3），已实测（`c14`）；传输加密**不适用**（本机 Unix 域套接字，无网络暴露）；**脱敏：全部接口均无敏感字段**（无口令/令牌类字段，见 §七 未担保 7.7） |
 | `IF-REQ-08` | 可观测 | 每个接口必须有唯一 `trace_id` 贯穿调用链，日志可关联 | 日志抽样 | **仍不适用（本版），但理由已变（2026-09-27 订正）**：① 信封 `trace` 的**地位已裁定**——`WC-R0-DS-001` §三 **E-1** 裁定"**保留为需求**"，落点为 `WC-SRS-001` `REQ-F-031`（6 条可判定判据）；⇒ 原先"其地位尚未裁定（E-1 待人裁定）"这一理由**已作废**，**§十一 未决项 3 随之关闭**；② 本条要求的"**`trace_id` 贯穿调用链、日志可关联**"是**分布式调用链**语义，v1 单机单进程**没有调用链可贯穿**，且 `trace` 的**链长度与截断策略已定为 v1 不担保项**（§六 6.2 第 15 项）⇒ 本条**仍不适用**，但已是**"有裁定的不适用"**，不再是"未决" |
-| `IF-REQ-09` | 限流 | 对外接口必须定义限流阈值与超限行为 | 压测用例 | **仅 `IF-006` 适用**，且**阈值未定**【待确认】——`WC-MODREG-001` §二 记 M09 为"v1 一次一连接"，长驻服务与并发**未做**（`src/channel.rs:48-49`）；**不得**编造阈值（§3.6.7） |
+| `IF-REQ-09` | 限流 | 对外接口必须定义限流阈值与超限行为 | 压测用例 | **仅 `IF-006` 适用**，且**阈值未定**【待确认】——`WC-MODREG-001` §二 记 M09 为"v1 一次一连接"，长驻服务与并发**未做**（`src/bus/mod.rs:48-49`）；**不得**编造阈值（§3.6.7） |
 | `IF-REQ-10` | 时间与编码 | 字符集统一 **UTF-8**；行尾统一 `LF`；文本协议不依赖任何语言专有编码 | `tools/plain_text_audit.py`（`TC-020`）；`.gitattributes` 的 `*.md text eol=lf` 等规则 | 已满足：账本为 JSON Lines（`REQ-F-003`）；本文件自身行尾 LF、UTF-8 无 BOM |
 
 > **本版对模板的一处收紧（记录理由，避免被读成"裁剪"）**：
@@ -277,13 +277,13 @@
 | **接口编号** | `IF-001`（= `WC-IC-001` `IF-001`） |
 | **接口名称** | 账本读写 |
 | **类型 / 方向** | 内部接口（同步）/ 双向（写入 + 读回） |
-| **提供方** | `M02` 账本（`src/ledger.rs`、`WC-MODREG-001` §「二、模块登记表」的「M02 账本（Ledger）」`） |
+| **提供方** | `M02` 账本（`src/ledger/mod.rs`、`WC-MODREG-001` §「二、模块登记表」的「M02 账本（Ledger）」`） |
 | **消费方** | `M03` 读模型、`M04` 运行时（**经 `World::commit`，不直接持有可变引用**）、CLI 的 `read` 子命令 |
 | **触发条件** | ① 世界启动（打开、丢半行、校验 `seq` 连续）；② 每次 `World::commit` 落笔；③ `state`/`project`/`read` 需要读回事件 |
 | **协议 / 数据格式** | 进程内调用；持久形态为**纯文本 JSON Lines**，一行一条完整事件，**文件必须以 `\n` 结尾** |
 | **支撑需求** | `REQ-F-001`、`REQ-F-003`、`REQ-F-004`、`REQ-F-005`、`REQ-F-014`、`REQ-F-022`、`REQ-N-001` |
 | **关联设计** | `WC-IC-001` §2.1；`WC-HLD-001` §5.3、§7.2 |
-| **实现位置（源码为唯一事实）** | `src/ledger.rs`：打开 `Ledger::open`（`:166`）、追加 `Ledger::append`（`:286`，**`pub(crate)`**）、读 `read_from`（`:399`）、`read_all`（`:418`）、`last_seq`（`:258`）、`next_seq`（`:254`）、`load_chain`（`:372`）、`is_chained`（`:394`） |
+| **实现位置（源码为唯一事实）** | `src/ledger/mod.rs`：打开 `Ledger::open`（`:166`）、追加 `Ledger::append`（`:286`，**`pub(crate)`**）、读 `read_from`（`:399`）、`read_all`（`:418`）、`last_seq`（`:258`）、`next_seq`（`:254`）、`load_chain`（`:372`）、`is_chained`（`:394`） |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M02 账本（Ledger）」` 记 M02 为「✅ 已实现（项目 Step 1）」） |
 
 #### 3.2.2 接口需求（**必须满足什么**）
@@ -313,25 +313,25 @@
 
 | 错误码 | 触发条件 | 源码位置 | 调用方期望处置 | 可重试 |
 |---|---|---|---|---|
-| `ext.world.Ledger.Locked` | 锁文件存在且持有者 pid 仍存活 | `src/ledger.rs:138` | 等另一实例结束；**确认其已崩溃**才删锁文件后重启。**不得**盲删 | 延后重试 |
-| `ext.world.Ledger.LockFail` | 锁文件无法创建 / 反复出现 | `src/ledger.rs:149`、`:156` | 检查目录权限与残留锁 | 是 |
-| `ext.world.Ledger.CreateFail` | 账本不存在且创建失败 | `src/ledger.rs:175` | 检查路径与权限 | 是 |
-| `ext.world.Ledger.ReadFail` | 文件不可读 | `src/ledger.rs:196`、`:401`、`:404` | 检查权限/介质 | 是 |
-| `ext.world.Ledger.TruncateFail` | 丢半行时截断失败 | `src/ledger.rs:207` | **拒绝启动**，人工检查 | 否（人工） |
-| `ext.world.Ledger.Corrupt` | 某行不是合法 JSON | `src/ledger.rs:218`、`:409` | 人工核查；**不得**静默丢弃已 ack 事件 | 否（人工） |
-| `ext.world.Ledger.MissingSeq` | 某行缺 `seq` | `src/ledger.rs:222`、`:298` | 人工核查账本 | 否（人工） |
-| `ext.world.Ledger.SeqGap` | `seq` 不连续 | `src/ledger.rs:225` | **拒绝启动**；人工核查（可能被外部改写或损坏） | 否（人工） |
-| `ext.world.Ledger.OpenFail` | 校验通过后再次打开失败 | `src/ledger.rs:237` | 检查权限/竞态 | 是 |
-| `ext.world.Ledger.SeqMismatch` | 传入 `seq` ≠ `next_seq` | `src/ledger.rs:301` | 调用方缺陷（取号与落笔脱节）——**不得**重试同一条 | 否 |
-| `ext.world.Ledger.EncodeFail` | 事件无法序列化 | `src/ledger.rs:315`、`:437`、`:497` | 检查事件形状 | 否 |
-| `ext.world.Ledger.StatFail` | 取文件长度失败（回滚基准拿不到） | `src/ledger.rs:321` | 检查文件句柄 | 是 |
-| `ext.world.Ledger.WriteFail` | 写入失败（磁盘满/中断）；**括注含"是否已回滚"** | `src/ledger.rs:352`、`:359` | 已回滚 ⇒ 可重试；未回滚 ⇒ 账本已污染 | **有条件**（见左） |
-| `ext.world.Ledger.SyncFail` | `fsync` 失败 | `src/ledger.rs:333` | **停止写入**，人工检查后重启 | 否（人工） |
-| `ext.world.Ledger.Poisoned` | 此前回滚失败或 `fsync` 失败 | `src/ledger.rs:289` | **拒绝一切后续写入**，人工检查 | 否（人工） |
-| `ext.world.Ledger.NoChain` | 全部事件无 `chain` | `src/ledger.rs:465` | v1 兼容：放行但**必须警示**；`--require-chain` 下**拒绝启动**（`rc=2`） | 否 |
-| `ext.world.Ledger.MixedChain` | 部分有链、部分没有 | `src/ledger.rs:470` | **拒绝启动**——"比无链更危险" | 否（人工） |
-| `ext.world.Ledger.MissingChain` | 链上某条缺 `chain` | `src/ledger.rs:481` | 拒绝启动 | 否（人工） |
-| `ext.world.Ledger.ChainMismatch` | 某条 `chain` 与重算不符（局部篡改/重排/插入） | `src/ledger.rs:484` | **拒绝启动**；人工核查唯一真相 | 否（人工） |
+| `ext.world.Ledger.Locked` | 锁文件存在且持有者 pid 仍存活 | `src/ledger/mod.rs:138` | 等另一实例结束；**确认其已崩溃**才删锁文件后重启。**不得**盲删 | 延后重试 |
+| `ext.world.Ledger.LockFail` | 锁文件无法创建 / 反复出现 | `src/ledger/mod.rs:149`、`:156` | 检查目录权限与残留锁 | 是 |
+| `ext.world.Ledger.CreateFail` | 账本不存在且创建失败 | `src/ledger/mod.rs:175` | 检查路径与权限 | 是 |
+| `ext.world.Ledger.ReadFail` | 文件不可读 | `src/ledger/mod.rs:196`、`:401`、`:404` | 检查权限/介质 | 是 |
+| `ext.world.Ledger.TruncateFail` | 丢半行时截断失败 | `src/ledger/mod.rs:207` | **拒绝启动**，人工检查 | 否（人工） |
+| `ext.world.Ledger.Corrupt` | 某行不是合法 JSON | `src/ledger/mod.rs:218`、`:409` | 人工核查；**不得**静默丢弃已 ack 事件 | 否（人工） |
+| `ext.world.Ledger.MissingSeq` | 某行缺 `seq` | `src/ledger/mod.rs:222`、`:298` | 人工核查账本 | 否（人工） |
+| `ext.world.Ledger.SeqGap` | `seq` 不连续 | `src/ledger/mod.rs:225` | **拒绝启动**；人工核查（可能被外部改写或损坏） | 否（人工） |
+| `ext.world.Ledger.OpenFail` | 校验通过后再次打开失败 | `src/ledger/mod.rs:237` | 检查权限/竞态 | 是 |
+| `ext.world.Ledger.SeqMismatch` | 传入 `seq` ≠ `next_seq` | `src/ledger/mod.rs:301` | 调用方缺陷（取号与落笔脱节）——**不得**重试同一条 | 否 |
+| `ext.world.Ledger.EncodeFail` | 事件无法序列化 | `src/ledger/mod.rs:315`、`:437`、`:497` | 检查事件形状 | 否 |
+| `ext.world.Ledger.StatFail` | 取文件长度失败（回滚基准拿不到） | `src/ledger/mod.rs:321` | 检查文件句柄 | 是 |
+| `ext.world.Ledger.WriteFail` | 写入失败（磁盘满/中断）；**括注含"是否已回滚"** | `src/ledger/mod.rs:352`、`:359` | 已回滚 ⇒ 可重试；未回滚 ⇒ 账本已污染 | **有条件**（见左） |
+| `ext.world.Ledger.SyncFail` | `fsync` 失败 | `src/ledger/mod.rs:333` | **停止写入**，人工检查后重启 | 否（人工） |
+| `ext.world.Ledger.Poisoned` | 此前回滚失败或 `fsync` 失败 | `src/ledger/mod.rs:289` | **拒绝一切后续写入**，人工检查 | 否（人工） |
+| `ext.world.Ledger.NoChain` | 全部事件无 `chain` | `src/ledger/mod.rs:465` | v1 兼容：放行但**必须警示**；`--require-chain` 下**拒绝启动**（`rc=2`） | 否 |
+| `ext.world.Ledger.MixedChain` | 部分有链、部分没有 | `src/ledger/mod.rs:470` | **拒绝启动**——"比无链更危险" | 否（人工） |
+| `ext.world.Ledger.MissingChain` | 链上某条缺 `chain` | `src/ledger/mod.rs:481` | 拒绝启动 | 否（人工） |
+| `ext.world.Ledger.ChainMismatch` | 某条 `chain` 与重算不符（局部篡改/重排/插入） | `src/ledger/mod.rs:484` | **拒绝启动**；人工核查唯一真相 | 否（人工） |
 
 > **说明**：`Ledger.NoChain`/`MixedChain`/`MissingChain`/`ChainMismatch` 来自 `WC-CR-003`（摘要链）。
 > `c16`–`c21`（`tests/contract.rs:801`/`:846`/`:868`/`:890`/`:921`/`:957`）为其实测证据。
@@ -390,10 +390,10 @@
 
 1. **I/O 故障注入无工具**：`ENOSPC`/`EINTR` 类真实 I/O 失败**本项目尚无注入工具**
    （`WC-TP-001` §五 缺口 2，照实登记）。三条加固分支（回滚/污染/`SyncFail`）的实测
-   依赖 `Sink` 缝的测试替身 `FlakySink`（`src/ledger.rs:42-51`、`WC-UT-001` 的 `U20`–`U22`）。
+   依赖 `Sink` 缝的测试替身 `FlakySink`（`src/ledger/mod.rs:42-51`、`WC-UT-001` 的 `U20`–`U22`）。
    ⇒ **生产路径上的 `fsync` 是否真的会发生并被执行，本文件不作担保**（§七 未担保 7.4）。
 2. **陈旧锁判定依赖 `/proc/<pid>`（Linux）**：非 Linux 平台上"持有者是否存活"恒判为否，
-   **陈旧锁总会被回收** ⇒ 互斥强度被削弱（`src/ledger.rs:104-106` 自述）。
+   **陈旧锁总会被回收** ⇒ 互斥强度被削弱（`src/ledger/mod.rs:104-106` 自述）。
 
 ---
 
@@ -406,13 +406,13 @@
 | **接口编号** | `IF-002`（= `WC-IC-001` `IF-002`） |
 | **接口名称** | 门禁裁决 |
 | **类型 / 方向** | 内部接口（同步）/ 入 |
-| **提供方** | `M05` 门禁（`src/gate.rs`、`src/guard.rs`、`policy.json`；`WC-MODREG-001` §「二、模块登记表」的「M05 门禁（Gate）」`） |
+| **提供方** | `M05` 门禁（`src/gate/mod.rs`、`src/gate/guard.rs`、`policy.json`；`WC-MODREG-001` §「二、模块登记表」的「M05 门禁（Gate）」`） |
 | **消费方** | `M04` 运行时（**唯一咽喉** `World::commit`，`src/lib.rs:133`） |
 | **触发条件** | 每次 `World::commit`：`kind=act` ⇒ 能力裁决；`kind=change` ⇒ 写入授权裁决；`kind=notice` ⇒ **当前免检**（`src/lib.rs:191`） |
 | **协议 / 数据格式** | 进程内调用；策略为纯文本 JSON（`policy.json`），启动时**一次读入、运行中不重读** |
 | **支撑需求** | `REQ-F-015`、`REQ-F-016`、`REQ-F-017` |
 | **关联设计** | `WC-IC-001` §2.2；`WC-HLD-001` §4.1–§4.3、§6.1、§7.2、§7.3 |
-| **实现位置** | `src/gate.rs`：`Policy::load`（`:97`）、`Policy::decide`、`Policy::authorize_write`；`src/guard.rs`：`assert_not_other_writable`（`:43`）、`assert_not_symlink`（`:105`）、`assert_owned_by`（`:132`）、`assert_after_create`（`:156`）；`policy.json` |
+| **实现位置** | `src/gate/mod.rs`：`Policy::load`（`:97`）、`Policy::decide`、`Policy::authorize_write`；`src/gate/guard.rs`：`assert_not_other_writable`（`:43`）、`assert_not_symlink`（`:105`）、`assert_owned_by`（`:132`）、`assert_after_create`（`:156`）；`policy.json` |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M05 门禁（Gate）」` 记 M05 为「✅ 已实现（项目 Step 5）」）；`REQ-F-015` 整体为**部分实现**（见 3.3.9） |
 
 #### 3.3.2 接口需求
@@ -428,7 +428,7 @@
 | `IF-002-R07` | **静态墙**：本体/策略/账本的**文件与其所在目录**不得对 group/other 可写；**拒绝符号链接**；检查失败即**拒绝启动**（fail loud） | 输入 把 `policy.json` 或 `ontology.json` 改成 0666｜观测 `check` rc 与 stderr｜期望 rc=2 且点名路径与 mode | 若 0666 的法律仍能启动 ⇒ 判不通过（观测面 rc=0；`TC-025`/`TC-026` 同族） |
 | `IF-002-R08` | **运行中不重读策略**：磁盘上改了策略，**须重启才生效**（消除"运行中改规则"的窗口） | 输入 运行期在磁盘上改 `policy.json`｜观测 **同一进程**后续裁决所用的规则｜期望 仍按启动时载入的旧规则（须重启才生效）｜**本条的端到端观测面需要长驻进程，而 v1 CLI 无长驻子命令** ⇒ **承载用例 = `TC-027`（集成级，`tests/acceptance.rs::t13_running_world_does_not_reread_policy`）**，本条如实标注为**集成级验证面** | 若改盘上策略后同一进程立即改判 ⇒ 判不通过（观测面 前后两次裁决结论相反；该断言在 `TC-027` 内，**会红**） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
 | `IF-002-R09` | **属主断言**（可选，`--owner-uid`）：属主不符 ⇒ 拒绝启动。它是**部署方的自证工具**，不是自动安全机制——**没人传 `expected_uid` 时它不会运行** | 输入 `--owner-uid <一个不等于文件属主的 uid>`｜观测 `check` 的 rc｜期望 rc=2；**省略该开关**时不运行属主断言、rc=0（它是部署方自证工具，不是自动安全机制） | 若传错 uid 仍能启动 ⇒ 判不通过（观测面 rc=0；`TC-054` 已把该断言做成可执行） |
-|  `IF-002-R10`  |  门禁**不得**依赖 L4 出口（门禁不关心"谁会看到"，只关心"能不能做"；`WC-MODREG-001` §三 硬约束 4）  |  输入 `src/gate.rs` 的源码面｜观测 `gate` 对投影/渲染符号的引用｜期望 **零引用**（门禁不关心「谁会看到」，只关心「能不能做」）  |  若 `src/gate.rs` 出现对 `project`/`visual`/`language` 的引用 ⇒ 判不通过（观测面 `grep -nE 'project\|visual\|language' src/gate.rs` 命中）  |
+|  `IF-002-R10`  |  门禁**不得**依赖 L4 出口（门禁不关心"谁会看到"，只关心"能不能做"；`WC-MODREG-001` §三 硬约束 4）  |  输入 `src/gate/mod.rs` 的源码面｜观测 `gate` 对投影/渲染符号的引用｜期望 **零引用**（门禁不关心「谁会看到」，只关心「能不能做」）  |  若 `src/gate/mod.rs` 出现对 `project`/`visual`/`language` 的引用 ⇒ 判不通过（观测面 `grep -nE 'project\|visual\|language' src/gate/mod.rs` 命中）  |
 
 #### 3.3.3 输入 / 输出
 
@@ -446,14 +446,14 @@
 | `ext.world.Gate.Rejected` | 未声明能力 / 白名单外 | `src/lib.rs:145`、`:152` | 属**正常拒绝**：调用方读理由；流水在账本里 |
 | `ext.world.Gate.AwaitingApproval` | 不可逆动作 + 主体不在 `irreversible_actors` | `src/lib.rs:156`、`:164` | **不要等批准**（v1 无审批通道） |
 | `ext.world.Gate.WriteRejected` | `change` 的目标主体不在该 actor 的可写集合内 | `src/lib.rs:179`、`:187` | 属**正常拒绝**；如需写入须改策略（走 R5） |
-| `ext.world.Policy.*` | 策略坏 JSON / 缺 `policy` / 版本不符 / 缺 `capabilities` / 能力缺 `reversible` / `reversible` 与 `requires_approval` 矛盾 / 能力表空 / 白名单空 / 缺 `writes` / `writes` 为空 / `writes` 的值不是数组 | `src/gate.rs:99`、`:101`、`:106`、`:108`、`:116`、`:122`、`:128`、`:141`、`:160`、`:171`、`:183`、`:191` | 按提示补正；**不要**为了让世界启动而放宽策略 |
-| `ext.world.Guard.*`（静态墙、符号链接、属主） | 文件或目录对 group/other 可写 / 路径是符号链接 / 属主不符 / 无法判定 | `src/guard.rs:59`、`:78`、`:107`、`:115`、`:140` | `chmod go-w <路径>`（必要时同时收紧目录）；属主须为核心 uid |
+| `ext.world.Policy.*` | 策略坏 JSON / 缺 `policy` / 版本不符 / 缺 `capabilities` / 能力缺 `reversible` / `reversible` 与 `requires_approval` 矛盾 / 能力表空 / 白名单空 / 缺 `writes` / `writes` 为空 / `writes` 的值不是数组 | `src/gate/mod.rs:99`、`:101`、`:106`、`:108`、`:116`、`:122`、`:128`、`:141`、`:160`、`:171`、`:183`、`:191` | 按提示补正；**不要**为了让世界启动而放宽策略 |
+| `ext.world.Guard.*`（静态墙、符号链接、属主） | 文件或目录对 group/other 可写 / 路径是符号链接 / 属主不符 / 无法判定 | `src/gate/guard.rs:59`、`:78`、`:107`、`:115`、`:140` | `chmod go-w <路径>`（必要时同时收紧目录）；属主须为核心 uid |
 
 > ⚠️⚠️ **重大不一致（本文件必须如实写出）**：上表 `Policy.*` 与 `Guard.*` 两行是
 > **`WC-IC-001` §三 与 `WC-R4-DISP-001` §「D 组」的「错误码表缺四族（M03-D02/M04-D05/M06-D1」` 所要求**的错误码族，但**源码中不存在这两个前缀**——
 > 实测：`grep -rn "ext\.world\.Policy\.\|ext\.world\.Guard\." world-core/src` **零命中**
 > （仅命中 `docs/S0-立项/WC-CR-006-v0.1.md:72` 的一条**未实施方案**）。
-> `src/gate.rs` 与 `src/guard.rs` 的错误**全部是中文散文**，
+> `src/gate/mod.rs` 与 `src/gate/guard.rs` 的错误**全部是中文散文**，
 > 最外层 `World::open` 原样上抛 ⇒ **这两族的错误目前无法被程序判定**。
 > ⇒ 对应 `WC-R4-DISP-001` §「D 组」的「错误码表缺四族（M03-D02/M04-D05/M06-D1」` 的处置**尚未落实**，本文件把它登记为 §十一 未决项 4，
 > 并写入 §七 未担保 7.2。
@@ -477,7 +477,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 版本标识 | `policy.json` 的 `policy` 字段（现为 `1`），版本不符即拒启（`src/gate.rs:107`） |
+| 版本标识 | `policy.json` 的 `policy` 字段（现为 `1`），版本不符即拒启（`src/gate/mod.rs:107`） |
 | **兼容扩展** | 新增能力项、新增 `writes` 条目、新增 `irreversible_actors` 条目（**收紧**方向） |
 | **破坏性变更** | 删除能力项、放宽 `writes`、把不可逆改成可逆（**均为降低保护**，须走 R5） |
 | 冻结 | 正式能力表由 S2 的 `WC-CAP-001` 冻结为框架基线（`policy.json:4` 自标"**候选值，不是需求方给定**"） |
@@ -499,27 +499,27 @@
 | 5 | 运行中改磁盘策略**不生效** | `TC-027`（`t13_running_world_does_not_reread_policy`） |
 | 6 | 法律/账本对 group/other 可写 ⇒ 拒启；**符号链接** ⇒ 拒启；属主不符 ⇒ 拒启 | `TC-025`、`TC-026`、`c09`（`:363`）、`c10`（`:391`） |
 | 7 | 跨 uid 真实隔离（root vs `agent`）15/15 | `TC-013`（`tools/con01-no-bypass.sh`）、`WC-CON01-001` |
-| 8 | **默认拒绝 / 加摩擦 / 白名单 / 前缀匹配** 4 项 | `TC-028`（`src/gate.rs::unit::*`） |
+| 8 | **默认拒绝 / 加摩擦 / 白名单 / 前缀匹配** 4 项 | `TC-028`（`src/gate/mod.rs::unit::*`） |
 
 #### 3.3.9 已知缺口（**不假装满足**）
 
 1. **`REQ-F-015` 整体为"部分实现"**：`WC-SRS-001` §「三、功能需求」的 **`REQ-F-015`** 行口径——"进程内 + 静态墙已跨 uid 实测；
    **通道层与 Landlock 自缚未做**"（见 `WC-CON01-001`）。
-2. **静态墙只看 mode 位，不看属主**（`src/guard.rs:31` 自述）：若被管者恰是文件属主，mode 再严也没用。
+2. **静态墙只看 mode 位，不看属主**（`src/gate/guard.rs:31` 自述）：若被管者恰是文件属主，mode 再严也没用。
 3. **`requires_approval` 是"不参与裁决的字段"**（**订正**：本文件初稿写作"影响裁决的字段"，**是错的**）：
-   `src/gate.rs` 的 `Policy::decide` **只查 `irreversible_actors`**，**不读 `requires_approval`**；
+   `src/gate/mod.rs` 的 `Policy::decide` **只查 `irreversible_actors`**，**不读 `requires_approval`**；
    该字段只被两处读到——① **加载期自检**：`reversible && requires_approval` 即**拒载**
-   （`src/gate.rs:127-131`）；② **摘要/打印**：`policy` 子命令的 `summary()` 序列化该字段
-   （`src/gate.rs:322`）与 `src/main.rs:177` 的分级打印用它选分支。
+   （`src/gate/mod.rs:127-131`）；② **摘要/打印**：`policy` 子命令的 `summary()` 序列化该字段
+   （`src/gate/mod.rs:322`）与 `src/main.rs:177` 的分级打印用它选分支。
    ⇒ 它是**不参与裁决**、但**并非死代码**的字段（2026-09-27 逐行核对源码后订正）。
    **该字段已由 R0 裁定删除（E-5），删改动作见 `WC-CR-006`/`WC-LLD-001`。**
-4. **静态墙的目录检查存在 fail-open 路径**：`src/guard.rs:69` 用了
+4. **静态墙的目录检查存在 fail-open 路径**：`src/gate/guard.rs:69` 用了
    `.filter(|d| !d.as_os_str().is_empty())`，导致紧随其后的"空串 ⇒ `.`"分支**永不可达**；
-   且 `src/guard.rs:75` 的 `if let Ok(dmeta) = std::fs::metadata(dir)` **无 else ⇒ stat 失败即静默不检查**。
+   且 `src/gate/guard.rs:75` 的 `if let Ok(dmeta) = std::fs::metadata(dir)` **无 else ⇒ stat 失败即静默不检查**。
    ⇒ **默认相对路径（`--ledger ledger.jsonl`）+ 0777 工作目录下，静态墙不生效**。
    该缺口由 `WC-CR-006` **S-1** 登记，**但 `WC-CR-006` 状态为"仅拟稿，未实施"**（`WC-CR-006` §「(文首)」的「状态 仅拟稿，未实施（承 WC-CR-005 的做法：获批前」`），
    故**当前源码仍然如此**。⚠ 本条第 1 句是本文件**亲自读码确认**的（行号已核）；
-   第 3 句的"实测 `rc=0`/`rc=2`"结论出自 `WC-CR-006` §「S-1【高】src/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」`，本文件**未在 VM 内复现**【待验证】。
+   第 3 句的"实测 `rc=0`/`rc=2`"结论出自 `WC-CR-006` §「S-1【高】src/gate/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」`，本文件**未在 VM 内复现**【待验证】。
 
 ---
 
@@ -532,13 +532,13 @@
 | **接口编号** | `IF-003`（= `WC-IC-001` `IF-003`） |
 | **接口名称** | 语言投影出口（结构化出口，给程序读） |
 | **类型 / 方向** | 文本出口（同步）/ 出 |
-| **提供方** | `M06` 语言投影（`src/project/language.rs`；`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」`） |
+| **提供方** | `M06` 语言投影（`src/gui_projection/language.rs`；`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」`） |
 | **消费方** | 任何语言的程序、测试、`IF-008` 的 `project language` 子命令（**所列「任何语言的程序」不再包含 `agentd`（Go）**——它已以 Rust 并入世界核心；〔2026-09-28 按作者裁定三〕**让的是哪一条**＝原逐字「含 `agentd`（Go）」；**为什么让**＝裁定三；**谁批的**＝**作者**） |
 | **触发条件** | `world-core project language`（`src/main.rs:313`） |
 | **协议 / 数据格式** | stdout 纯文本；**JSON Lines**：第 1 行为同源头，其后每行一个主体 |
 | **支撑需求** | `REQ-F-018`、`REQ-F-020` |
 | **关联设计** | `WC-IC-001` §2.5；`WC-HLD-001` §3、§6.4 |
-| **实现位置** | `src/project/language.rs::render`（`:22`）、`parse`（`:42`）；同源头 `src/project/mod.rs::header_line`（`:77`） |
+| **实现位置** | `src/gui_projection/language.rs::render`（`:22`）、`parse`（`:42`）；同源头 `src/gui_projection/mod.rs::header_line`（`:77`） |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」` 记 M06 为「✅ 已实现（项目 Step 7）」） |
 
 #### 3.4.2 输出契约（**逐字**，改动需走 R5）
@@ -552,11 +552,11 @@
 
 | 编号 | 需求内容 | 验收判据（**输入 ｜ 观测 ｜ 期望**） | **「应当失败」的反例**（写不出观测面的一律标【待验证】并给验证命令） |
 |---|---|---|---|
-| `IF-003-R01` | 第 1 行**必须**是同源头，**必须**含 5 个字段：`projection`（值恒为 `language`）、`world`、`vocab`、`last_seq`、`state`，字段间以**单个空格**分隔；格式与 `src/project/mod.rs:78-82` 逐字一致 | 输入 真实二进制 + 非空账本｜期望 首行严格匹配 `^#world-core projection=language world=\d+ vocab=\S+ last_seq=\d+ state=\S+$`（字段间**单个空格**、无多余空格） | 若首行缺任一字段或用了多个空格 ⇒ 判不通过（观测面 独立正则失配；`TC-050` ③ 已实测该断言） |
+| `IF-003-R01` | 第 1 行**必须**是同源头，**必须**含 5 个字段：`projection`（值恒为 `language`）、`world`、`vocab`、`last_seq`、`state`，字段间以**单个空格**分隔；格式与 `src/gui_projection/mod.rs:78-82` 逐字一致 | 输入 真实二进制 + 非空账本｜期望 首行严格匹配 `^#world-core projection=language world=\d+ vocab=\S+ last_seq=\d+ state=\S+$`（字段间**单个空格**、无多余空格） | 若首行缺任一字段或用了多个空格 ⇒ 判不通过（观测面 独立正则失配；`TC-050` ③ 已实测该断言） |
 | `IF-003-R02` | 其后每行**必须**是一个主体，形状为 `{"subject":<string>,"fields":{<路径>:<JSON 值>}}`；**必须是合法 JSON**，可被任何语言解析 | 输入 `project language` 的每一行（首行除外）｜观测 逐行 `json.loads` 与键集合｜期望 全部可解析，且键**恰为** `subject` 与 `fields` | 若某行不是合法 JSON、或键集合不符 ⇒ 判不通过（观测面 `json.loads` 抛错 / 键集合差集非空；`TC-016` ② 与 `TC-042` 均依赖该断言） |
 | `IF-003-R03` | **同一份账本 ⇒ 同样的字节**：主体与字段路径**有序**（`BTreeMap` 保证），故输出确定 | 输入 同一账本、**两次独立进程**各跑一次｜观测 两次输出的**全部字节**｜期望 逐字节相同（`BTreeMap` 保证键有序） | 若两次输出不同 ⇒ 判不通过（观测面 `sha256` 不等；`TC-050` ① 已实测该断言） |
 | `IF-003-R04` | **投影只减不增**：只反映账本折叠出的状态，**不得**猜测、**不得**补默认值、**不得**新增账本里不存在的事实 | 输入 `project language` 的解析结果 P 与 `state --json` 的 `objects` S｜观测 **P \ S** 与同键值不等数｜期望 **两者皆 = 0**（投影只减不增） | 若投影里出现 S 中没有的三元组、或同键值不等 ⇒ 判不通过（观测面 EXTRA/DIFF ≠ 0；`TC-042` 已实测**注入反假会红**） |
-| `IF-003-R05` | 渲染函数**必须只接受 `(&State, world, vocab)` 并返回 `String`**——**不持有状态**、**不得**调用视觉投影、**不得**读账本 | 输入 `src/project/language.rs` 的源码面｜观测 `pub fn render` 签名与文件内的 `ledger`/`visual` 引用｜期望 签名为 `(&State, u64, &str) -> String`，且不持有状态、不调用视觉投影、不读账本 | 若 `render` 增加了状态字段、或引用 `ledger`/`visual` ⇒ 判不通过（观测面 签名或引用面变化） |
+| `IF-003-R05` | 渲染函数**必须只接受 `(&State, world, vocab)` 并返回 `String`**——**不持有状态**、**不得**调用视觉投影、**不得**读账本 | 输入 `src/gui_projection/language.rs` 的源码面｜观测 `pub fn render` 签名与文件内的 `ledger`/`visual` 引用｜期望 签名为 `(&State, u64, &str) -> String`，且不持有状态、不调用视觉投影、不读账本 | 若 `render` 增加了状态字段、或引用 `ledger`/`visual` ⇒ 判不通过（观测面 签名或引用面变化） |
 | `IF-003-R06` | 首行**必须**与视觉投影的首行**逐字一致**（仅 `projection=` 的值不同） | 输入 同一次运行的两份投影首行｜观测 `world`/`vocab`/`last_seq`/`state` **四要素**｜期望 逐字节相同（仅 `projection=` 的值不同） | 若四要素有一项不同 ⇒ 判不通过（观测面 四要素比较不等；`TC-050` ② 已实测该断言） |
 | `IF-003-R07` | **输出异常必须整体拒绝，不得跳过、不得降级**（`WC-R4-DISP-001` §「D 组」的「§2.5 投影表无异常列（M06-D11/M07-D05） 」` 的处置） | 输入 一份**折叠会报错**的坏账本（断号/旧值说谎/未知家族）｜观测 `project language` 的 rc 与 stdout｜期望 rc=2 且 **stdout 上不产出任何投影行**（整体拒绝、不跳过、不降级） | 若坏账本下仍打印出部分投影行 ⇒ 判不通过（观测面 stdout 非空且 rc=0；`TC-056` 已把该断言做成可执行） |
 | `IF-003-R08` | 语言无关：输出为纯文本，**不得**含任何语言专有二进制序列化（`REQ-N-001`） | 输入 投影输出文件｜观测 `tools/plain_text_audit.py` 的 rc｜期望 rc=0（纯文本 UTF-8、无 NUL、无控制字符） | 若输出含 `NUL` 或语言专有二进制序列化痕迹 ⇒ 判不通过（观测面 审计器 rc=1；`TC-020` 含正反例自证） |
@@ -565,9 +565,9 @@
 
 | 错误码 | 触发条件 | 源码位置 | 处置 |
 |---|---|---|---|
-| **无（渲染不失败）** | `render` 的签名不返回 `Result`（`src/project/language.rs:22`）——**在状态已成功折叠的前提下**，渲染本身没有失败路径 | — | — |
+| **无（渲染不失败）** | `render` 的签名不返回 `Result`（`src/gui_projection/language.rs:22`）——**在状态已成功折叠的前提下**，渲染本身没有失败路径 | — | — |
 | 上游错误（必先发生） | 账本打不开 / 读模型拒绝折叠 ⇒ **根本到不了渲染** | `src/main.rs:296-309` | `rc=2`，stderr 打印上游错误码（见 `IF-001`/`IF-006` 各表） |
-| `语言投影第 N 行不是合法 JSON` / `缺 subject` / `缺 fields` | 反向：由 `parse` 解析**外部文本**时可能发生 | `src/project/language.rs:49`、`:53`、`:57` | **【待验证】**：这三条**不带 `ext.world.` 前缀**，**不符** `IF-REQ-02`。取证：`grep -n "投影第" src/project/language.rs` |
+| `语言投影第 N 行不是合法 JSON` / `缺 subject` / `缺 fields` | 反向：由 `parse` 解析**外部文本**时可能发生 | `src/gui_projection/language.rs:49`、`:53`、`:57` | **【待验证】**：这三条**不带 `ext.world.` 前缀**，**不符** `IF-REQ-02`。取证：`grep -n "投影第" src/gui_projection/language.rs` |
 
 > **口径澄清（避免误读）**：`IF-003-R07` 的"整体拒绝"指的是**上游**（账本/读模型）出错时
 > 本接口**不得**输出半份投影；不是指渲染中途会失败——渲染在成功路径上**不返回错误**。
@@ -595,7 +595,7 @@
 |---|---|---|
 | 1 | 逐行 JSON，解析回来与读模型**逐项相等** | `TC-016`（`t14_language_projection_matches_read_model`） |
 | 2 | 首行的 `state=`/`last_seq=` 与 `state` 子命令一致；**反假**：追加后指纹必变 | `TC-039`（`tools/system_acceptance.sh`） |
-| 3 | 同源头解析/缺字段/非整数被拒 | `TC-030`（`src/project/mod.rs::unit::*`） |
+| 3 | 同源头解析/缺字段/非整数被拒 | `TC-030`（`src/gui_projection/mod.rs::unit::*`） |
 | 4 | 两次独立运行比对 ⇒ 逐字节一致 | **【待验证】未见现成用例**——取证：`grep -rn "两次\|twice\|twice_run" world-core/tests`（关联 §四 的 `IF-003a` 规程） |
 | 5 | 投影不改账本 | `TC-037` |
 
@@ -610,13 +610,13 @@
 | **接口编号** | `IF-004`（= `WC-IC-001` `IF-004`） |
 | **接口名称** | 视觉投影出口（渲染出口，给人看） |
 | **类型 / 方向** | 文本出口（同步）/ 出 |
-| **提供方** | `M07` 视觉投影（`src/project/visual.rs`；`WC-MODREG-001` §「二、模块登记表」的「M07 视觉投影（Visual Projection）」`） |
+| **提供方** | `M07` 视觉投影（`src/gui_projection/visual.rs`；`WC-MODREG-001` §「二、模块登记表」的「M07 视觉投影（Visual Projection）」`） |
 | **消费方** | 人（终端）、审计脚本（**排版即契约**）、测试、`IF-008` 的 `project visual` 子命令 |
 | **触发条件** | `world-core project visual`（`src/main.rs:317`） |
 | **协议 / 数据格式** | stdout 纯文本；同源头首行 + **可审计排版** |
 | **支撑需求** | `REQ-F-019`、`REQ-F-020` |
 | **关联设计** | `WC-IC-001` §2.5；`WC-HLD-001` §3、§6.4 |
-| **实现位置** | `src/project/visual.rs::render`（`:29`）、`parse`（`:62`） |
+| **实现位置** | `src/gui_projection/visual.rs::render`（`:29`）、`parse`（`:62`） |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M07 视觉投影（Visual Projection）」` 记 M07 为「✅ 已实现（项目 Step 8）」） |
 
 #### 3.5.2 输出契约（**逐字**，改动需走 R5）
@@ -645,12 +645,12 @@
 | 其余 | 标题、分隔线、空行 | 审计脚本**一律忽略** |
 
 > ⚠️ `parse` 有一个**歧义面**（读码发现，须由 `IF-004-R07` 锁死）：
-> `src/project/visual.rs:80-85` 用 `line.strip_prefix("  ")` 判定主体行，
+> `src/gui_projection/visual.rs:80-85` 用 `line.strip_prefix("  ")` 判定主体行，
 > 而**恰好 6 空格缩进的字段行也以 2 空格开头**——它靠"先判 6 空格并 `continue`"来避免误判。
 > ⇒ 任何**以 6 空格开头的行**都会被当成字段行；**字段行的 ` = ` 分隔符不得出现在主体名里**。
 > 该约束**必须**写进契约，否则将来加一种新的缩进层级就会静默破坏审计脚本。
 > **【待验证】**：本文件推断的是解析逻辑的**脆弱点**，未见针对性反例用例——
-> 取证：`grep -n "字段行出现在主体行之前" world-core/src/project/visual.rs`（`:70`）并补一条反例。
+> 取证：`grep -n "字段行出现在主体行之前" world-core/src/gui_projection/visual.rs`（`:70`）并补一条反例。
 
 #### 3.5.4 接口需求
 
@@ -658,9 +658,9 @@
 |---|---|---|---|
 | `IF-004-R01` | 第 1 行**必须**是同源头，且**必须**与语言投影的第 1 行逐字一致（仅 `projection` 值不同） | 输入 同一次运行的两份投影首行｜观测 四要素｜期望 逐字节相同（仅 `projection=` 值不同） | 若四要素不同 ⇒ 判不通过（观测面 四要素比较不等；`TC-050` ② 同断言） |
 | `IF-004-R02` | **排版是可审计契约**：主体行 2 空格、字段行 6 空格 + `路径 = 值`；**改动需走 R5** | 输入 `project visual` 的输出文件｜观测 `tools/visual_layout_audit.py --file` 的 rc｜期望 rc=0（主体行**恰 2 空格**、字段行**恰 6 空格** + `路径 = 值`、分隔线 44 个 `U+2500`、首行严格、字段行不得先于主体行、全部行可归类） | 若缩进／分隔线长度／行序任一不合契约 ⇒ 判不通过（观测面 独立审计器 rc=1；`TC-051` 已实测「改坏缩进必红」） |
-| `IF-004-R03` | **字段值必须是合法 JSON 字面量**（`parse` 用 `serde_json::from_str` 回读，`src/project/visual.rs:74`） | 输入 含**换行与控制字符**的值（`"a\nb\tc"`）｜观测 渲染输出中该字段的字节｜期望 值以 JSON 字面量**转义**形式出现在**同一行**内、且可被 `json.loads` 回读 | 若值里出现**裸换行/裸制表符**（一行变两行、排版破碎）⇒ 判不通过（观测面 独立审计器契约 10 报违反；`TC-051` 样本身份 = `newline`） |
-| `IF-004-R04` | **账本为空时必须渲染空态行**，且**不得**输出任何主体行（`src/project/visual.rs:36-39`） | 输入 **空账本**｜观测 渲染输出的行数与内容｜期望 恰 **4 行**：首行/标题/分隔线/空态行，**且不得有任何主体行** | 若非空状态的行被打印、或空态行缺失 ⇒ 判不通过（观测面 独立审计器契约 5；`TC-051` 样本身份 = `empty`） |
-| `IF-004-R05` | **不得**复用语言投影的输出、**不得**读对方的 `String`、**不得**持有状态（`WC-MODREG-001` §三 硬约束 3；`07/2-依据/15` §7.3） | 输入 `src/project/visual.rs` 的源码面｜观测 对语言投影的引用与状态持有｜期望 不复用对方输出、不读对方的 `String`、不持有状态 | 若 `visual.rs` 引用 `language` 模块 ⇒ 判不通过（观测面 `grep -n 'language' src/project/visual.rs` 命中） |
+| `IF-004-R03` | **字段值必须是合法 JSON 字面量**（`parse` 用 `serde_json::from_str` 回读，`src/gui_projection/visual.rs:74`） | 输入 含**换行与控制字符**的值（`"a\nb\tc"`）｜观测 渲染输出中该字段的字节｜期望 值以 JSON 字面量**转义**形式出现在**同一行**内、且可被 `json.loads` 回读 | 若值里出现**裸换行/裸制表符**（一行变两行、排版破碎）⇒ 判不通过（观测面 独立审计器契约 10 报违反；`TC-051` 样本身份 = `newline`） |
+| `IF-004-R04` | **账本为空时必须渲染空态行**，且**不得**输出任何主体行（`src/gui_projection/visual.rs:36-39`） | 输入 **空账本**｜观测 渲染输出的行数与内容｜期望 恰 **4 行**：首行/标题/分隔线/空态行，**且不得有任何主体行** | 若非空状态的行被打印、或空态行缺失 ⇒ 判不通过（观测面 独立审计器契约 5；`TC-051` 样本身份 = `empty`） |
+| `IF-004-R05` | **不得**复用语言投影的输出、**不得**读对方的 `String`、**不得**持有状态（`WC-MODREG-001` §三 硬约束 3；`07/2-依据/15` §7.3） | 输入 `src/gui_projection/visual.rs` 的源码面｜观测 对语言投影的引用与状态持有｜期望 不复用对方输出、不读对方的 `String`、不持有状态 | 若 `visual.rs` 引用 `language` 模块 ⇒ 判不通过（观测面 `grep -n 'language' src/gui_projection/visual.rs` 命中） |
 | `IF-004-R06` | `render` **只接受 `(&State, world, vocab)` 并返回 `String`**；签名与语言投影**同形** | 输入 源码面｜观测 `pub fn render` 签名｜期望 `(&State, u64, &str) -> String`，与语言投影**同形** | 若两侧签名不同形 ⇒ 判不通过（观测面 签名文本不等） |
 | `IF-004-R07` | **排版文法必须无歧义**：字段行的识别规则与主体行的识别规则**不得重叠**；任何新增行类型**必须**给出与既有规则的互斥证明 | 输入 渲染输出｜观测 独立解析器对每一行的**唯一归类**｜期望 未归类行数 = 0（字段行规则与主体行规则**不重叠**：2 空格 vs 6 空格、且主体行必须匹配 `world://`） | 若出现一行同时符合两条规则、或两条规则都不符合 ⇒ 判不通过（观测面 独立审计器契约 6/9；`TC-051` 的 M11 变异已实测报红） |
 | `IF-004-R08` | **输出异常必须整体拒绝，不得跳过、不得降级**（同 `IF-003-R07`） | 输入 一份折叠会报错的坏账本｜观测 `project visual` 的 rc 与 stdout｜期望 rc=2 且不产出任何投影行 | 若坏账本下仍打印部分投影 ⇒ 判不通过（观测面 stdout 非空且 rc=0；`TC-056` 同断言） |
@@ -674,7 +674,7 @@
 | 2 | `WC-IC-001` §2.5 | 渲染契约与不变量③ |
 | 3 | `WC-LLD-001` M07 节 | 渲染实现与"期望渲染样本"（`WC-R4-DISP-001` §二 F 组"渲染无期望样本"行要求补字节级基准） |
 | 4 | 审计脚本（提取字段行的那一段） | 缩进常量与分隔符 |
-| 5 | 测试：`TC-017`（`t15`）、`TC-030`（`src/project/mod.rs::unit::*`） | 基准文本与断言 |
+| 5 | 测试：`TC-017`（`t15`）、`TC-030`（`src/gui_projection/mod.rs::unit::*`） | 基准文本与断言 |
 | 6 | 变更单 | 走 R5（`WC-IC-001` `IF-D-01`；`WC-SQAP-001` §8.1 P3 对违反 `IC §2.5③` 的定级） |
 
 #### 3.5.6 错误行为 / 幂等性 / 超时
@@ -682,7 +682,7 @@
 | 项 | 内容 |
 |---|---|
 | 错误码 | 与 `IF-003` 同构：**渲染在成功路径上无失败返回**；上游错误 ⇒ 到不了渲染，`rc=2` |
-| `视觉投影里字段行出现在主体行之前` / `缺少 \` = \` 分隔` / `字段值不是合法 JSON` | 由 `parse` 解析外部文本时可能发生；**不带 `ext.world.` 前缀**（`src/project/visual.rs:70`、`:73`、`:75`）⇒ **不符** `IF-REQ-02`【待验证】 |
+| `视觉投影里字段行出现在主体行之前` / `缺少 \` = \` 分隔` / `字段值不是合法 JSON` | 由 `parse` 解析外部文本时可能发生；**不带 `ext.world.` 前缀**（`src/gui_projection/visual.rs:70`、`:73`、`:75`）⇒ **不符** `IF-REQ-02`【待验证】 |
 | **幂等性** | **是**（同一账本 ⇒ 同样字节）；**无幂等键** |
 | **超时 / 重试** | **不适用**（一次性 stdout 渲染）；可安全重复调用 |
 
@@ -691,7 +691,7 @@
 | # | 判据 | 验证方式 |
 |---|---|---|
 | 1 | 人能读懂 **且** 排版可被审计脚本提取（字段行可解析回 `(主体,路径,值)`） | `TC-017`（`t15_visual_projection_is_human_readable_yet_auditable`，`tests/acceptance.rs:657`）。⚠ 该用例断言的是**子串包含**（`:669` 断言 `  world://notice/n-1`、`:670` 断言 `      muted = true`）**与解析回读**（`:673` 调用 `visual::parse`）——即**它依赖同模块的 `parse()`** |
-| 2 | 首行与语言投影逐字一致（仅 `projection` 不同） | `TC-030`（`src/project/mod.rs::unit::same_state_is_same_source`，含 `replace("projection=…")` 比对，`src/project/mod.rs:178-182`） |
+| 2 | 首行与语言投影逐字一致（仅 `projection` 不同） | `TC-030`（`src/gui_projection/mod.rs::unit::same_state_is_same_source`，含 `replace("projection=…")` 比对，`src/gui_projection/mod.rs:178-182`） |
 | 3 | 空账本 ⇒ 空态行，且无主体行 | **【待验证】未见现成用例**——`t15` 用的是 `seed_world(&d)`（**非空世界**，`tests/acceptance.rs:661`），全文检索 `账本为空` 在 `tests/*.rs` **零命中**；取证：`Select-String -Path tests\*.rs -Pattern "账本为空"`（本文件已执行，零命中） |
 | 4 | **独立于同模块 `parse()`** 的排版用例（字节级期望样本） | **❌ 未见现成用例**：`t15` 的判据②正是"解析回来与读模型逐项一致"（`tests/acceptance.rs:672-678`），**它本身就是同模块 `parse()`**。`WC-R4-DISP-001` §「G 组」的「排版无验证面（M07-D03/D08/D13） 采纳」` 明确要求"增**独立于**同模块 `parse()` 的排版用例（字节级期望样本，最好放 L3）" ⇒ **该处置尚未落实** |
 
@@ -706,13 +706,13 @@
 | **接口编号** | `IF-005`（= `WC-IC-001` `IF-005`） |
 | **接口名称** | 词表身份（vocab hash） |
 | **类型 / 方向** | 内部接口（同步）/ 出 |
-| **提供方** | `M01` 本体（`src/ontology.rs`、`ontology.json`；`WC-MODREG-001` §「二、模块登记表」的「M01 本体（Ontology）」`） |
+| **提供方** | `M01` 本体（`src/ontology_definition/mod.rs`、`ontology.json`；`WC-MODREG-001` §「二、模块登记表」的「M01 本体（Ontology）」`） |
 | **消费方** | `M06`、`M07`（写入同源头）、`IF-008` 的 `project check` |
 | **触发条件** | 每次渲染投影时取一次（`src/main.rs:310`） |
 | **协议 / 数据格式** | 进程内调用；返回字符串 `fnv1a64:<16 位十六进制>` |
 | **支撑需求** | `REQ-F-020` |
 | **关联设计** | `WC-IC-001` §2.3；`WC-HLD-001` §4.4 |
-| **实现位置** | `src/ontology.rs::vocab_hash`（`WC-MODREG-001` §「二、模块登记表」的「M01 本体（Ontology）」`）；`src/project/mod.rs::header_line`（`:77`） |
+| **实现位置** | `src/ontology_definition/mod.rs::vocab_hash`（`WC-MODREG-001` §「二、模块登记表」的「M01 本体（Ontology）」`）；`src/gui_projection/mod.rs::header_line`（`:77`） |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M01 本体（Ontology）」` 记 M01 为「✅ 已实现（项目 Step 0.5）」） |
 
 #### 3.6.2 接口需求
@@ -721,7 +721,7 @@
 |---|---|---|---|
 | `IF-005-R01` | 词表身份**必须**是**内容寻址**的：同一份词表 ⇒ 同一身份；词表任一字节变化 ⇒ 身份变化 | 输入 同一份 `ontology.json` 的两次加载、以及**改了枚举取值**的一份｜观测 `project language` 首行的 `vocab=`｜期望 同一份 ⇒ 同一值；改语义 ⇒ **必变**；**只改说明文字** ⇒ 不变（避免假警报） | 若改语义后 `vocab=` 不变、或只改注释就变 ⇒ 判不通过（观测面 两值相等/不等与期望相反；`TC-050` ⑤ 与 `TC-016` 末段已实测） |
 | `IF-005-R02` | 身份**必须**被两份投影**逐字**出示在同源头的 `vocab=` 字段（`07/2-依据/14` §4.2） | 输入 两份投影的首行｜观测 `vocab=` 字段｜期望 **逐字相同**，且该值即身份值本身（不是截断或别名） | 若两处 `vocab=` 不等、或有任一处缺该字段 ⇒ 判不通过（观测面 四要素比较不等；`TC-050` ②③ 已实测） |
-| `IF-005-R03` | 身份**不得**用于安全判断（它是 FNV-1a，**非加密**；`src/readmodel.rs:231-233`、`src/ontology.rs:142-143`「不得用于安全判断」同口径） | 输入 源码面与文档面｜观测 「不得用于安全判断」的声明位置｜期望 该声明**在库且可定位**（`src/ontology.rs` 与 `src/readmodel.rs` 各一处），且身份算法为 **FNV-1a 非加密** | 若依据该 hash 做任何授权/信任判断 ⇒ 判不通过（观测面 代码搜索 `vocab_hash` 出现在 `gate`/`guard` 的判定路径上） |
+| `IF-005-R03` | 身份**不得**用于安全判断（它是 FNV-1a，**非加密**；`src/ontology_instance/readmodel.rs:231-233`、`src/ontology_definition/mod.rs:142-143`「不得用于安全判断」同口径） | 输入 源码面与文档面｜观测 「不得用于安全判断」的声明位置｜期望 该声明**在库且可定位**（`src/ontology_definition/mod.rs` 与 `src/ontology_instance/readmodel.rs` 各一处），且身份算法为 **FNV-1a 非加密** | 若依据该 hash 做任何授权/信任判断 ⇒ 判不通过（观测面 代码搜索 `vocab_hash` 出现在 `gate`/`guard` 的判定路径上） |
 | `IF-005-R04` | 身份**不构成"账本身份"**：它只声明"用哪份法律解释"，**不担保正文**、**不担保账本未被替换** | 输入 本文件 §3.6 的担保边界节｜观测 「不构成账本身份」是否逐字写明｜期望 写明「只声明用哪份法律解释、不担保正文、不担保账本未被替换」 | 若读者可据此推断「hash 相同 ⇒ 账本可信」⇒ 判不通过（观测面 该声明缺失或与之矛盾） |
 |  `IF-005-R05`  |  **算法与规范化口径必须有参数字面量、可被第三方复现**——即"给定同一份 `ontology.json`，任何人算出的 hash 必须相同"  |  输入 ① `WC-ONT-001-v0.1` §5.4 记录的参数字面量；② 真实二进制对出厂本体算出的值｜观测 两者比较｜期望 **逐字相同** = `fnv1a64:6a96abfa9a969462`（**本轮已回算一致**）  |  若第三方按 §5.4 的参数字面量复算出的值 ≠ 二进制输出的值 ⇒ 判不通过（观测面 两值不等；复算命令 = `project language \| head -1`）  |
 
@@ -745,8 +745,8 @@
 >
 > | 项 | 值 | `WC-ONT-001-v0.1` 记录位置 | **源码位置（本文件复算）** |
 > |---|---|---|---|
-> | FNV-1a 64 offset basis | `0xcbf2_9ce4_8422_2325` | §5.4 | `src/ontology.rs:241` |
-> | FNV-1a 64 prime | `0x0000_0100_0000_01b3` | §5.4 | `src/ontology.rs:242` |
+> | FNV-1a 64 offset basis | `0xcbf2_9ce4_8422_2325` | §5.4 | `src/ontology_definition/mod.rs:241` |
+> | FNV-1a 64 prime | `0x0000_0100_0000_01b3` | §5.4 | `src/ontology_definition/mod.rs:242` |
 > | 规范化 | 递归剔除 `_` 开头键 + `Value::to_string()`（紧凑、键有序） | §5.2 | `strip_comments`（`:222-237`）、`canonical`（`:243`） |
 > | 输入 | 规范化字符串的 **UTF-8 字节** | §5.4 | `:245` |
 > | 输出 | `fnv1a64:` + 16 位小写十六进制 | §5.4 | `:249` |
@@ -766,13 +766,13 @@
 |---|---|
 | **幂等性** | **是**（纯函数，同一词表 ⇒ 同一值） |
 | **超时 / 重试** | **不适用** |
-| **错误行为** | 本体加载失败（`Ontology.ReadFail`/`BadJson`/`NoVersion`/`NoEnvelope`/`NoFamilies`/`BadField`，`src/ontology.rs:73`/`:75`/`:86`/`:90`/`:97`/`:113`/`:209`）⇒ 整个世界拒启（`rc=2`），**根本到不了取 hash 这一步** |
+| **错误行为** | 本体加载失败（`Ontology.ReadFail`/`BadJson`/`NoVersion`/`NoEnvelope`/`NoFamilies`/`BadField`，`src/ontology_definition/mod.rs:73`/`:75`/`:86`/`:90`/`:97`/`:113`/`:209`）⇒ 整个世界拒启（`rc=2`），**根本到不了取 hash 这一步** |
 
 | # | 判据 | 验证方式 |
 |---|---|---|
-| 1 | 换词表 ⇒ 两份投影**必报不同源** | `TC-018`（`t16`）、`TC-030`（`src/project/mod.rs::unit::different_vocab_is_detected`） |
+| 1 | 换词表 ⇒ 两份投影**必报不同源** | `TC-018`（`t16`）、`TC-030`（`src/gui_projection/mod.rs::unit::different_vocab_is_detected`） |
 | 2 | 同源头的 `vocab=` 在两份投影中逐字一致 | `TC-030`（`same_state_is_same_source`） |
-| 3 | 第三方可用同一算法复现该身份值 | **【待验证（已改善）】**：算法与参数字面量已有对外载体 `WC-ONT-001-v0.1.md` §5.4/§5.5 + 附录 A（本文件已亲核其内容与 `src/ontology.rs:241-249` 一致）；**但** ① `WC-ONT-001-v0.1.md` 本身**未经评审**（`git status` 显示 `??` 未跟踪）；② 其记录的 `fnv1a64:6a96abfa9a969462` **本文件未复算** |
+| 3 | 第三方可用同一算法复现该身份值 | **【待验证（已改善）】**：算法与参数字面量已有对外载体 `WC-ONT-001-v0.1.md` §5.4/§5.5 + 附录 A（本文件已亲核其内容与 `src/ontology_definition/mod.rs:241-249` 一致）；**但** ① `WC-ONT-001-v0.1.md` 本身**未经评审**（`git status` 显示 `??` 未跟踪）；② 其记录的 `fnv1a64:6a96abfa9a969462` **本文件未复算** |
 
 ---
 
@@ -788,13 +788,13 @@
 | **接口编号** | `IF-006`（= `WC-IC-001` `IF-006`） |
 | **接口名称** | 跨进程通道 |
 | **类型 / 方向** | 跨进程接口（同步，一次一连接）/ 双向 |
-| **提供方** | `M09` 通道（`src/channel.rs`、`channel.json`；`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」`） |
+| **提供方** | `M09` 通道（`src/bus/mod.rs`、`channel.json`；`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」`） |
 | **消费方** | 任何**本机**进程；**本项目内部的** Agent 运行时（Rust，`world-core/src/agent/**`）是第一个预期消费方（`WC-SDP-001` §3.2、K-03）——**不再是跨语言消费方**。**让路三要素**：**让的是哪一条**＝原逐字「`agentd`（Go，跨语言）是第一个预期消费方」；**为什么让**＝作者裁定三（实现语言改为 Rust、并入世界核心）⇒ 混语言这一层不存在；**谁批的**＝**作者**（2026-09-28）。 |
 | **触发条件** | 对端 `connect()` 到某监听套接字并发出一行请求 |
 | **协议 / 数据格式** | **Unix 域套接字 + 文本行协议**：一行 JSON 请求 → 一行 JSON 应答；纯文本、语言无关 |
 | **支撑需求** | `REQ-F-016`（将来的请求入口）；与 `K-03`（混语言接口）相关 |
 | **关联设计** | `WC-IC-001` §2.x / §五 未决 3；`WC-HLD-001` §6.3、§7.4 缺口 5 |
-| **实现位置** | `src/channel.rs`：`ChannelConfig::load`（`:73`）、`listener_for`（`:123`）、`parse_request`（`:138`）、`bind`（`:168`，`cfg(unix)`）、`serve_once`（`:193`，`cfg(unix)`） |
+| **实现位置** | `src/bus/mod.rs`：`ChannelConfig::load`（`:73`）、`listener_for`（`:123`）、`parse_request`（`:138`）、`bind`（`:168`，`cfg(unix)`）、`serve_once`（`:193`，`cfg(unix)`） |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M09 通道（Channel）」` 记 M09 为「✅ 已实现（项目 Step 6；v1 一次一连接）」）；**长驻服务与并发未做** |
 
 #### 3.7.2 帧格式与字段表（**逐字**）
@@ -804,7 +804,7 @@
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `kind` | string | **是** | 事件家族；缺 ⇒ `Channel.BadRequest`。**未知家族由本体层拒绝**（`Ontology.UnknownKind`） |
-| `body` | object | 否（缺省 `null`） | 家族信纸；形状由本体校验（`src/channel.rs:146`） |
+| `body` | object | 否（缺省 `null`） | 家族信纸；形状由本体校验（`src/bus/mod.rs:146`） |
 | `actor` | string | **否** | 请求**自称**的身份。**存在时必须与内核身份一致，否则拒绝**。**不填是正常用法** |
 
 **应答**（一行 JSON）：
@@ -813,7 +813,7 @@
 |---|---|---|---|
 | `ok` | bool | 是 | `true` = 已落笔；`false` = 失败 |
 | `event` | object | `ok=true` 时 | 落笔后的事件（含 `seq`、`chain`） |
-| `error` | string | `ok=false` 时 | 错误理由（**含 `ext.world.*` 错误码前缀**，因为它是 `World::commit` 的 `Err` 原文，见 `src/channel.rs:237`） |
+| `error` | string | `ok=false` 时 | 错误理由（**含 `ext.world.*` 错误码前缀**，因为它是 `World::commit` 的 `Err` 原文，见 `src/bus/mod.rs:237`） |
 
 **配置**（`channel.json`，纯文本 JSON）：
 
@@ -829,12 +829,12 @@
 
 | 编号 | 需求内容 | 验收判据（**输入 ｜ 观测 ｜ 期望**） | **「应当失败」的反例**（写不出观测面的一律标【待验证】并给验证命令） |
 |---|---|---|---|
-| `IF-006-R01` | **身份不得来自请求自称**。落笔时的 `actor` **一律取自套接字 ↔ uid 映射**（`src/channel.rs:231`） | 输入 一条**自称他人 `actor`** 的通道请求｜观测 落笔事件的 `actor` 与响应｜期望 `actor` **一律取自套接字 ↔ uid 映射**，不等于请求里的自称；不一致时先回一行 `{"ok":false,…}` 再返回错误、**不落笔**｜承载 = `TC-044`（集成级，`c14`） | 若落笔事件的 `actor` 等于请求里的自称 ⇒ 判不通过（观测面 账本 `actor` 字段；`TC-044` 会红） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
+| `IF-006-R01` | **身份不得来自请求自称**。落笔时的 `actor` **一律取自套接字 ↔ uid 映射**（`src/bus/mod.rs:231`） | 输入 一条**自称他人 `actor`** 的通道请求｜观测 落笔事件的 `actor` 与响应｜期望 `actor` **一律取自套接字 ↔ uid 映射**，不等于请求里的自称；不一致时先回一行 `{"ok":false,…}` 再返回错误、**不落笔**｜承载 = `TC-044`（集成级，`c14`） | 若落笔事件的 `actor` 等于请求里的自称 ⇒ 判不通过（观测面 账本 `actor` 字段；`TC-044` 会红） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
 | `IF-006-R02` | 身份由**内核**强制：`bind()` 后立即 `chmod 0600` 并 `chown` 给目标 uid ⇒ **只有那个 uid 能 `connect()`**——比"连上来再问你是谁"更早、更硬 | 输入 真实 Unix 套接字（`bind()` 后的文件 mode/属主）｜观测 `stat` 的 `mode` 与 `uid`｜期望 `0600` 且属主 = 目标 uid ⇒ **只有那个 uid 能 `connect()`** | 若套接字是 `0666` 或属主不符 ⇒ 判不通过（观测面 `stat -c '%a %u'`；`TC-044` 同族；**端到端观测面需要长驻服务进程，v1 CLI 不提供** ⇒ 如实标注为**集成级验证面**） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
-| `IF-006-R03` | `bind()` **必须**拒绝在"对 group/other 可写"的目录里创建套接字（否则套接字可被替换，与法律/账本同理，`src/channel.rs:171-173`） | 输入 在「对 group/other 可写」的目录里 `bind()`｜观测 返回值｜期望 拒绝创建套接字（否则套接字可被替换，与法律/账本同理） | 若在 0777 目录里成功建套接字 ⇒ 判不通过（观测面 返回 `Ok`；`TC-044` 同族） |
-| `IF-006-R04` | 通道**不得**持有 `Ledger` 的写句柄；任何写入**必须**经 `World::commit`（`WC-HLD-001` §「6.3 跨进程通道」的「**必须过咽喉**」条） | 输入 `src/channel.rs` 的源码面｜观测 是否持有 `Ledger` 的写句柄｜期望 **不持有**；任何写入必须经 `World::commit` | 若 `channel.rs` 直接调用 `Ledger::append` 或持有可写句柄 ⇒ 判不通过（观测面 `grep -n 'append' src/channel.rs` 命中 `Ledger` 路径） |
+| `IF-006-R03` | `bind()` **必须**拒绝在"对 group/other 可写"的目录里创建套接字（否则套接字可被替换，与法律/账本同理，`src/bus/mod.rs:171-173`） | 输入 在「对 group/other 可写」的目录里 `bind()`｜观测 返回值｜期望 拒绝创建套接字（否则套接字可被替换，与法律/账本同理） | 若在 0777 目录里成功建套接字 ⇒ 判不通过（观测面 返回 `Ok`；`TC-044` 同族） |
+| `IF-006-R04` | 通道**不得**持有 `Ledger` 的写句柄；任何写入**必须**经 `World::commit`（`WC-HLD-001` §「6.3 跨进程通道」的「**必须过咽喉**」条） | 输入 `src/bus/mod.rs` 的源码面｜观测 是否持有 `Ledger` 的写句柄｜期望 **不持有**；任何写入必须经 `World::commit` | 若 `channel.rs` 直接调用 `Ledger::append` 或持有可写句柄 ⇒ 判不通过（观测面 `grep -n 'append' src/bus/mod.rs` 命中 `Ledger` 路径） |
 | `IF-006-R05` | 请求自称**不一致**时：**先回一行 `{"ok":false,"error":…}`，再返回错误**；且**不得落笔** | 输入 自称不一致的通道请求｜观测 响应的**第一行**与账本行数｜期望 第一行是 `{"ok":false,"error":…}`，且账本**不落笔** | 若先落笔再报错、或响应不是 `ok:false` 形状 ⇒ 判不通过（观测面 账本行数 +1 或响应形状不符；`TC-044` 会红） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
-| `IF-006-R06` | 空行为 ⇒ `Channel.EmptyRequest`（`src/channel.rs:213-215`） | 输入 一个**空行**请求｜观测 错误码｜期望 `Channel.EmptyRequest`（机器可读、非自由文本） | 若空行得到 `ok:true` 或非类型化错误 ⇒ 判不通过（观测面 响应/错误码文本不含 `Channel.EmptyRequest`） |
+| `IF-006-R06` | 空行为 ⇒ `Channel.EmptyRequest`（`src/bus/mod.rs:213-215`） | 输入 一个**空行**请求｜观测 错误码｜期望 `Channel.EmptyRequest`（机器可读、非自由文本） | 若空行得到 `ok:true` 或非类型化错误 ⇒ 判不通过（观测面 响应/错误码文本不含 `Channel.EmptyRequest`） |
 
 #### 3.7.4 错误行为
 
@@ -852,11 +852,11 @@
 | `ext.world.Channel.AcceptFail` | 接受连接失败 | `:200` | 重试 |
 | `ext.world.Channel.EmptyRequest` | 收到空行 | `:214` | 调用方缺陷 |
 | `ext.world.Channel.Impersonation` | 请求自称 ≠ 内核身份 | `:226` | **安全事件**：拒绝且不落笔；调用方**不得**重试同一条 |
-| `ext.world.Channel.LineTooLong` | 单行请求/事件超过 `channel_limits.max_line_bytes` | `src/channel.rs`（`read_line_bounded`） | 缩短该行；**调大上限属配置变更** |
-| `ext.world.Channel.RateLimited` | 同一身份每秒消息数超过 `max_msgs_per_sec`（**按身份累计、跨连接**） | `src/channel.rs`（`Session`） | 降速重试 |
-| `ext.world.Channel.IdleTimeout` | 连接空闲超过 `idle_timeout_ms` 仍无完整一行 | `src/channel.rs`（`serve_stream`） | 重连；调用方超时须**大于**服务方上限（`IF-REQ-04`） |
-| `ext.world.Channel.TooManyConnections` | 同时受理的连接数超过 `max_connections`（v1 **恒为 1**） | `src/channel.rs`（`refuse_pending`） | 串行重试（**v1 顺序受理**） |
-| `ext.world.Channel.NoLimits` | 策略里**没有** `channel_limits` 块 | `src/channel.rs`（`Limits::from_policy`） | 补上四个数值；**未设界的通道拒绝受理**（**在 `bind` 之前**，不建套接字） |
+| `ext.world.Channel.LineTooLong` | 单行请求/事件超过 `channel_limits.max_line_bytes` | `src/bus/mod.rs`（`read_line_bounded`） | 缩短该行；**调大上限属配置变更** |
+| `ext.world.Channel.RateLimited` | 同一身份每秒消息数超过 `max_msgs_per_sec`（**按身份累计、跨连接**） | `src/bus/mod.rs`（`Session`） | 降速重试 |
+| `ext.world.Channel.IdleTimeout` | 连接空闲超过 `idle_timeout_ms` 仍无完整一行 | `src/bus/mod.rs`（`serve_stream`） | 重连；调用方超时须**大于**服务方上限（`IF-REQ-04`） |
+| `ext.world.Channel.TooManyConnections` | 同时受理的连接数超过 `max_connections`（v1 **恒为 1**） | `src/bus/mod.rs`（`refuse_pending`） | 串行重试（**v1 顺序受理**） |
+| `ext.world.Channel.NoLimits` | 策略里**没有** `channel_limits` 块 | `src/bus/mod.rs`（`Limits::from_policy`） | 补上四个数值；**未设界的通道拒绝受理**（**在 `bind` 之前**，不建套接字） |
 | `ext.world.Channel.BadLimits` | 四个数值缺项／非正整数 | 同上 | 修配置 |
 | `ext.world.Channel.BadConcurrency` | `max_connections` ≠ 1 | 同上 | v1 只能写 1（真并发属架构变更） |
 
@@ -864,7 +864,7 @@
 
 | 问题 | 本文件的回答 |
 |---|---|
-| **线上应答与账本事件是什么关系？** | **不是两份东西**：`ok=true` 时的 `event` 字段**就是**刚落笔的那条账本事件（`src/channel.rs:233` 把 `World::commit` 的返回值序列化进应答）。**应答不是独立事实来源**——它是"这次落笔的回执"。调停冲突时**以账本为准**。`ok=false` **不产生账本事件**（拒绝路径），唯一例外是 `IF-002` 的**门禁流水 `notice`**：它**会**落笔（`gate.rejected`/`gate.awaiting-approval`/`gate.write-rejected`）——**所以一次失败请求可能仍使账本长度 +1**，这一点调用方必须知道 |
+| **线上应答与账本事件是什么关系？** | **不是两份东西**：`ok=true` 时的 `event` 字段**就是**刚落笔的那条账本事件（`src/bus/mod.rs:233` 把 `World::commit` 的返回值序列化进应答）。**应答不是独立事实来源**——它是"这次落笔的回执"。调停冲突时**以账本为准**。`ok=false` **不产生账本事件**（拒绝路径），唯一例外是 `IF-002` 的**门禁流水 `notice`**：它**会**落笔（`gate.rejected`/`gate.awaiting-approval`/`gate.write-rejected`）——**所以一次失败请求可能仍使账本长度 +1**，这一点调用方必须知道 |
 | **配对字段是什么？** | **v1 没有线上配对字段**（协议是"一次一连接一行请求一行应答"，连接本身即配对）。**业务级去重字段是 `act` 信纸的 `request_id`**（`ontology.json:33` 列为 `act` 的**必填**信纸字段；`WC-IC-001` `IF-D-05` 口径："`commit`/`append` 天然不幂等，调用方须自行用 `request_id` 去重"）。⇒ **配对 = `request_id`（业务级），不是协议级**。协议级配对字段的引入**登记为 §十一 未决项 6**（`WC-R4-DISP-001` §「D 组」的「IF-006 契约节缺失（M09-D02/D03） 采纳」` 原文要求"**规定请求应答的配对字段**（`request_id`）"，本版**按现状如实写成"无协议级配对字段"**，不假装已规定） |
 
 #### 3.7.6 幂等性 / 版本兼容
@@ -877,7 +877,7 @@
 | **版本标识** | `channel.json` 的 `channel` 字段（现为 `1`）；另 `ontology.json` 的 `world` 决定事件信封版本 |
 | **兼容扩展** | 应答新增字段（消费方必须**忽略未知字段**）；配置新增可选段 |
 | **破坏性变更** | 改帧格式（不再是"一行 JSON"）、改字段名、把可选 `actor` 改成必填 ⇒ 走 R5，并通知 `agentd` |
-| **未做的版本协商** | `WC-HLD-001` §「6.3 跨进程通道」的「**版本与身份显式**」条要求"请求须携带 `actor` 与词表版本，**不做隐式协商**"——但**当前请求体没有词表版本字段**（`src/channel.rs:138-153` 只解析 `kind`/`body`/`actor`）。⚠ **【待验证/待确认】**：这是 HLD 要求与实现之间的一处**差异**，本文件如实登记，**不替设计方决定** |
+| **未做的版本协商** | `WC-HLD-001` §「6.3 跨进程通道」的「**版本与身份显式**」条要求"请求须携带 `actor` 与词表版本，**不做隐式协商**"——但**当前请求体没有词表版本字段**（`src/bus/mod.rs:138-153` 只解析 `kind`/`body`/`actor`）。⚠ **【待验证/待确认】**：这是 HLD 要求与实现之间的一处**差异**，本文件如实登记，**不替设计方决定** |
 
 #### 3.7.7 **资源边界：超时 / 限流 / 并发上限 / 单行上限**（`WC-R4-DISP-001` §「A 组」的「A-1 WC-IRS-001 接口需求规格说明（S1 交付）」` 与 `:48` 点名要求）
 
@@ -888,10 +888,10 @@
 
 | # | 边界 | 需求（应然） | **当前实现现状（已亲读源码）** | 状态 |
 |---|---|---|---|---|
-| 1 | **服务方处理上限 / 调用方超时** | 每个接口必须定义二者且**服务方上限 < 调用方超时**（`IF-REQ-04`） | **均无**。`serve_once` 阻塞在 `accept()`（`src/channel.rs:198`）与 `read_line()`（`:210`），**没有 `set_read_timeout`、没有 `set_nonblocking`、没有超时分支** | **【待验证】** 缺定义 |
-| 2 | **并发上限** | 必须声明可同时处理的连接数 | **v1 恒为 1**：`serve_once` 每次只处理**一个连接**就返回（`src/channel.rs:48-49` 自述"长驻服务与并发留待后续"）；**无并发上限概念** | **【待验证】** 缺定义 |
-| 3 | **限流阈值与超限行为** | 对外接口必须定义阈值与超限行为（`IF-REQ-09`） | **无**。`grep -n "限流\|rate\|throttle\|Retry-After" src/channel.rs` 零命中 | **【待验证】** 缺定义 |
-| 4 | **单行上限** | 必须定义可接受的最大请求行长度（防"读一行"被无限撑大） | **无**：`read_line`（`src/channel.rs:210`）对行长度**无上界**。⚠ **内存耗尽面**：对端可发超长行（无 `\n`）使服务端持续缓冲 | **【待验证】** 缺定义；本文件**不评估实际风险等级**（未实测） |
+| 1 | **服务方处理上限 / 调用方超时** | 每个接口必须定义二者且**服务方上限 < 调用方超时**（`IF-REQ-04`） | **均无**。`serve_once` 阻塞在 `accept()`（`src/bus/mod.rs:198`）与 `read_line()`（`:210`），**没有 `set_read_timeout`、没有 `set_nonblocking`、没有超时分支** | **【待验证】** 缺定义 |
+| 2 | **并发上限** | 必须声明可同时处理的连接数 | **v1 恒为 1**：`serve_once` 每次只处理**一个连接**就返回（`src/bus/mod.rs:48-49` 自述"长驻服务与并发留待后续"）；**无并发上限概念** | **【待验证】** 缺定义 |
+| 3 | **限流阈值与超限行为** | 对外接口必须定义阈值与超限行为（`IF-REQ-09`） | **无**。`grep -n "限流\|rate\|throttle\|Retry-After" src/bus/mod.rs` 零命中 | **【待验证】** 缺定义 |
+| 4 | **单行上限** | 必须定义可接受的最大请求行长度（防"读一行"被无限撑大） | **无**：`read_line`（`src/bus/mod.rs:210`）对行长度**无上界**。⚠ **内存耗尽面**：对端可发超长行（无 `\n`）使服务端持续缓冲 | **【待验证】** 缺定义；本文件**不评估实际风险等级**（未实测） |
 | 5 | **请求应答配对字段** | 见 3.7.5 | `request_id` 在 `act` 信纸里（**业务级**）；协议级无 | **【待确认】** |
 | 6 | **版本兼容策略** | 必须声明兼容级别 | `channel` 版本号存在且校验（≠1 拒启）；兼容**扩展/破坏**的划分**只有 `WC-IC-001` 的通用口径**，未落到通道字段级 | **【待确认】** |
 | 7 | **`agentd` 的 `actor` 规定** | 每个监听项的 actor 由谁填、格式是什么 | 配置里**显式**给出（`listeners[].actor`）；**格式无校验**（本项目内 `world://<scheme>/<name>` 是惯例，见 `ontology.json:17`） | **【待确认】**——`WC-CR-006` §「S-2【高】src/main.rs:265-26」的「1. 去掉默认值：append 必须显式给出主体，缺则 rc」` 提议加形状校验，**CR 未实施** |
@@ -907,7 +907,7 @@
 | 1 | 同 uid 连接 ⇒ 落笔成功，且事件 `actor` **取自映射而非请求** | `c14` 判据 1（`tests/contract.rs:606`） |
 | 2 | 请求自称 `world://user`（冒充最高权主体）⇒ 拒绝，且**账本长度不变**（不落笔） | `c14` 判据 2（`:642-649`） |
 | 3 | 请求**未声明** `actor` ⇒ 允许 | `c14` 判据 3（`:651-658`） |
-| 4 | `listeners` 为空 ⇒ 拒绝加载（"无门之门"） | `src/channel.rs::unit::empty_listeners_is_refused`（`:260`） |
+| 4 | `listeners` 为空 ⇒ 拒绝加载（"无门之门"） | `src/bus/mod.rs::unit::empty_listeners_is_refused`（`:260`） |
 | 5 | 跨 uid 的 socket 隔离确实生效 | 技术线 B 评审确认（`WC-R4-DISP-001` §「四、各评委确认"站得住"的部分（原样保留，不得为」的「技术线 B 跨 uid 的 socket 隔离确实生效；--」`）；**本文件未复现**【待验证】 |
 
 ---
@@ -927,7 +927,7 @@
 | **协议 / 数据格式** | OS 文件语义：文件与目录 + **mode 位** + 属主 + 符号链接类型 |
 | **支撑需求** | `REQ-N-004`、`REQ-F-015` |
 | **关联设计** | `WC-IC-001` `IF-D-04`；`WC-HLD-001` §7.3 |
-| **实现位置** | `src/guard.rs`（`:43`/`:105`/`:132`/`:156`）、`src/ledger.rs`、`src/checkpoint.rs`、`src/channel.rs` |
+| **实现位置** | `src/gate/guard.rs`（`:43`/`:105`/`:132`/`:156`）、`src/ledger/mod.rs`、`src/ontology_instance/checkpoint.rs`、`src/bus/mod.rs` |
 | **状态** | 已定义（`WC-IC-001` 注明"此前未登记，评审 C-17 指出"） |
 
 #### 3.8.2 接口需求
@@ -935,7 +935,7 @@
 | 编号 | 需求内容 | 验收判据（**输入 ｜ 观测 ｜ 期望**） | **「应当失败」的反例**（写不出观测面的一律标【待验证】并给验证命令） |
 |---|---|---|---|
 | `IF-007-R01` | 宿主的三个关键路径**必须**由调用方**显式给出**：本体、策略、账本。**库 API 不设隐藏默认值**（CLI 的默认值属**入口层**约定，见 `IF-008`） | 输入 库 API 与 CLI 的路径参数面｜观测 是否可从环境/隐式位置取默认｜期望 库 API **不设隐藏默认值**（三个关键路径必须显式给出）；CLI 的默认值**只在入口层**且已在 §3.9.2 登记 | 若库 API 从环境变量或当前目录静默取路径 ⇒ 判不通过（观测面 `src/lib.rs` 的 `World::open` 签名出现默认参数/环境读取） |
-|  `IF-007-R02`  |  文件系统访问**必须封装**在 `guard` 与 `ledger`，**不得**散布到投影层（`IF-D-04`）  |  输入 源码面｜观测 文件系统访问的分布｜期望 仅在 `guard` 与 `ledger`；**投影层零命中**  |  若 `src/project/**` 出现文件系统调用（`fs::`、`File::`、`std::fs`）⇒ 判不通过（观测面 `grep -rn 'std::fs\|File::' src/project/` 命中）  |
+|  `IF-007-R02`  |  文件系统访问**必须封装**在 `guard` 与 `ledger`，**不得**散布到投影层（`IF-D-04`）  |  输入 源码面｜观测 文件系统访问的分布｜期望 仅在 `guard` 与 `ledger`；**投影层零命中**  |  若 `src/gui_projection/**` 出现文件系统调用（`fs::`、`File::`、`std::fs`）⇒ 判不通过（观测面 `grep -rn 'std::fs\|File::' src/gui_projection/` 命中）  |
 | `IF-007-R03` | 平台要求：本项目**构建与运行都在 Linux VM 内**（`C-04`）；`guard` 的静态墙检查为 `cfg(unix)`，**非 Unix 平台跳过**——跳过是为可编译，**不构成对 Unix 行为的放宽** | 输入 构建与运行平台｜观测 `uname -sr` 与 `guard` 的 `cfg` 门｜期望 构建与运行**都在 Linux VM 内**；`cfg(unix)` 之外的跳过**只为可编译**、不构成对 Unix 行为的放宽 | 若在非 Unix 平台把「跳过检查」当成「检查通过」写进结论 ⇒ 判不通过（观测面 结论文本中出现以「跳过」为据的「通过」） |
 | `IF-007-R04` | **【本文件新增】** `IF-007` 是**唯一**的外部依赖，故**任何"不可绕过"的保证最终落在这个接口上**——它的失败形态必须 fail loud（见 3.8.3 的缺口） | 输入 §3.8.3 的失败形态清单｜观测 每条失败形态是否有**可判定观测面**｜期望 每条都 fail loud（点明路径与原因），且「不可绕过」的保证最终落回本接口 | 若存在「静默降级」式的失败形态（不报错、继续跑）⇒ 判不通过（观测面 该类路径的 rc=0） |
 
@@ -943,12 +943,12 @@
 
 | 项 | 现状 | 源码位置 |
 |---|---|---|
-| 文件/目录对 group/other 可写 | 拒绝启动（fail loud） | `src/guard.rs:59`、`:78` |
-| 路径是符号链接 | 拒绝启动 | `src/guard.rs:107` |
-| 无法判定是否为链接 | 返回 `Err`（fail loud） | `src/guard.rs:115` |
-| 属主不符（`--owner-uid` 时） | 返回 `Err` ⇒ `rc=2` | `src/guard.rs:140`；`src/main.rs:117` |
-| **无法读取目录 mode** | ⚠️ **静默通过（fail-open）**：`if let Ok(dmeta) = std::fs::metadata(dir)` **无 else** | `src/guard.rs:75` |
-| **空父目录路径** | ⚠️ **静默通过（fail-open）**：`.filter(\|d\| !d.as_os_str().is_empty())` 使"空串 ⇒ `.`"分支**永不可达** | `src/guard.rs:69` |
+| 文件/目录对 group/other 可写 | 拒绝启动（fail loud） | `src/gate/guard.rs:59`、`:78` |
+| 路径是符号链接 | 拒绝启动 | `src/gate/guard.rs:107` |
+| 无法判定是否为链接 | 返回 `Err`（fail loud） | `src/gate/guard.rs:115` |
+| 属主不符（`--owner-uid` 时） | 返回 `Err` ⇒ `rc=2` | `src/gate/guard.rs:140`；`src/main.rs:117` |
+| **无法读取目录 mode** | ⚠️ **静默通过（fail-open）**：`if let Ok(dmeta) = std::fs::metadata(dir)` **无 else** | `src/gate/guard.rs:75` |
+| **空父目录路径** | ⚠️ **静默通过（fail-open）**：`.filter(\|d\| !d.as_os_str().is_empty())` 使"空串 ⇒ `.`"分支**永不可达** | `src/gate/guard.rs:69` |
 
 > ⚠ 上表后两行是 **`IF-007` 的失败形态缺口**，由 `WC-CR-006` **S-1**（`WC-CR-006` §「S-1【高】」）登记为"本项目最不能接受的一条"。
 > **`WC-CR-006` 尚未实施**（其文首元信息表的"状态"格写"**仅拟稿，未实施**"）。
@@ -960,11 +960,11 @@
 
 | # | 判据 | 验证方式 |
 |---|---|---|
-| 1 | 法律/账本对 group/other 可写 ⇒ 拒启 | `TC-025`、`TC-026`、`TC-029`（`src/guard.rs::unit::*`） |
+| 1 | 法律/账本对 group/other 可写 ⇒ 拒启 | `TC-025`、`TC-026`、`TC-029`（`src/gate/guard.rs::unit::*`） |
 | 2 | 符号链接的法律 ⇒ 拒启；真实文件**不得**被拒（防假通过） | `c09`（`tests/contract.rs:363`） |
 | 3 | 属主断言能检出错误属主，且理由说清"属主永远能 chmod u+w" | `c10`（`:391`） |
 | 4 | 跨 uid 静态墙三项（文件/目录/拒绝启动） | `TC-013`（`tools/con01-no-bypass.sh`）、`WC-CON01-001` 15/15 |
-| 5 | **0777 工作目录 + 默认相对路径 ⇒ 必须 `rc=2`** | **❌ 当前会失败**（缺口见 3.8.3）；`WC-CR-006` §「S-1【高】src/guard.rs:69：默认」的「2. metadata(dir) 失败改为返回 Err（fa」` 提出此反例用例，**CR 未实施** |
+| 5 | **0777 工作目录 + 默认相对路径 ⇒ 必须 `rc=2`** | **❌ 当前会失败**（缺口见 3.8.3）；`WC-CR-006` §「S-1【高】src/gate/guard.rs:69：默认」的「2. metadata(dir) 失败改为返回 Err（fa」` 提出此反例用例，**CR 未实施** |
 
 ---
 
@@ -1103,27 +1103,27 @@
 | **接口编号** | `IF-009`（= `WC-IC-001` `IF-009`，`WC-IC-001` §「一、接口清单与需求归属」的「IF-009 状态折叠与重建（M03）」`） |
 | **接口名称** | 状态折叠与重建 |
 | **类型 / 方向** | 内部接口（同步）/ 双向（折叠出状态 + 从规范形式重建状态） |
-| **提供方** | `M03` 读模型（`src/readmodel.rs`；`WC-MODREG-001` §「二、模块登记表」的「M03 读模型（Read Model）」`） |
+| **提供方** | `M03` 读模型（`src/ontology_instance/readmodel.rs`；`WC-MODREG-001` §「二、模块登记表」的「M03 读模型（Read Model）」`） |
 | **消费方** | `M04`（`World::read_model`）、`M06`、`M07`（经 `&State` 渲染）、`M08`（`Checkpoint::capture` / `resume_unverified`）、CLI 的 `state`/`project` |
 | **触发条件** | ① 任何读状态的请求；② 检查点从缓存恢复；③ 检查点核验时按账本重算 |
 | **协议 / 数据格式** | 进程内调用；**规范形式**为键有序 JSON（可直接逐字节比对） |
 | **支撑需求** | `REQ-F-010`、`REQ-F-011`、`REQ-F-012`、`REQ-F-013` |
 | **关联设计** | `WC-IC-001` §2.3、§2.7（`IF-009` 节） |
-| **实现位置** | `src/readmodel.rs`：`State::new`、`fold`（`:202`）、`apply`、`from_json`（`:170`）、`to_json`（`:211`）、`digest`（`:234`）、`entries`、`get` |
+| **实现位置** | `src/ontology_instance/readmodel.rs`：`State::new`、`fold`（`:202`）、`apply`、`from_json`（`:170`）、`to_json`（`:211`）、`digest`（`:234`）、`entries`、`get` |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M03 读模型（Read Model）」` 记 M03 为「✅ 已实现（项目 Step 2）」） |
 
 #### 3.10.2 接口需求
 
 | 编号 | 需求内容 | 验收判据（**输入 ｜ 观测 ｜ 期望**） | **「应当失败」的反例**（写不出观测面的一律标【待验证】并给验证命令） |
 |---|---|---|---|
-| `IF-009-R01` | 状态**必须**只由 `fold`/`apply` 产生；**字段私有** ⇒ 外部**不得**直接构造或修改 `State` | 输入 源码面｜观测 `State` 的字段可见性与构造入口｜期望 字段**私有**（外部不得直接构造或修改） | 若 `State` 字段为 `pub` ⇒ 判不通过（观测面 `grep -n 'pub struct State' -A5 src/readmodel.rs` 出现 `pub` 字段） |
+| `IF-009-R01` | 状态**必须**只由 `fold`/`apply` 产生；**字段私有** ⇒ 外部**不得**直接构造或修改 `State` | 输入 源码面｜观测 `State` 的字段可见性与构造入口｜期望 字段**私有**（外部不得直接构造或修改） | 若 `State` 字段为 `pub` ⇒ 判不通过（观测面 `grep -n 'pub struct State' -A5 src/ontology_instance/readmodel.rs` 出现 `pub` 字段） |
 | `IF-009-R02` | **折叠报错而不猜**：序号不连续 / 旧值不符 / 未知家族 ⇒ **拒绝折叠**并指出原因与定位（**不得**跳过、**不得**猜测语义） | 输入 三类坏账本：序号不连续 / 旧值说谎 / 未知家族｜观测 `state` 的 rc 与 stderr｜期望 **三类都 rc=2**，且理由**指出原因与定位**（含 `seq` 或家族名） | 若任一类被跳过或猜测语义后继续折叠 ⇒ 判不通过（观测面 rc=0；`TC-004`/`TC-010`/`TC-011`/`TC-012` 四条断言 + `TC-056` CLI 级复核） |
 | `IF-009-R03` | **规范形式必须键有序** ⇒ 同样账本渲染同样字节；`to_json()` 的产物可直接逐字节比对 | 输入 同一账本、两次独立运行｜观测 `state --json` 的**全部字节**｜期望 逐字节相同（键有序 ⇒ 可直接比对） | 若两次输出不同（键序不定）⇒ 判不通过（观测面 `sha256` 不等；`TC-039` ① 已实测） |
 | `IF-009-R04` | **折叠不得写盘、不得改账本**：折叠前后账本文件字节**完全不变**（读模型是纯派生物） | 输入 账本 `sha256`｜观测 折叠（`state`/`project`）执行前后的 `sha256`｜期望 相等（读模型是纯派生物） | 若折叠改了账本一个字节 ⇒ 判不通过（观测面 `sha256` 不等；`TC-037` ⑤ / `TC-055` 已实测） |
 | `IF-009-R05` | `from_json` **必须校验**（不得信任输入）：缺 `last_seq`/`seen`/`acts`/`notices` 任一 ⇒ `ReadModel.BadState`；`objects` 不是对象 ⇒ 拒绝；`objects[subject]` 不是对象 ⇒ 拒绝 | 输入 手写的坏 `state` JSON（缺 `last_seq`/`seen`/`acts`/`notices` 任一；`objects` 非对象；`objects[s]` 非对象）｜观测 拒绝与否｜期望 **全部被拒**（不得信任输入） | 若任一坏输入被接受 ⇒ 判不通过（观测面 返回 `Ok`；**该断言的端到端观测面需要能喂入状态 JSON 的入口，v1 CLI 不提供** ⇒ 承载 = `TC-019` 同族的集成级用例，本条如实标注为**集成级验证面**） **【待验证：本条的观测面为集成级或需长驻进程，产品入口下无端到端观测面；承载用例见该条正文】** |
 | `IF-009-R06` | **增量折叠 ≡ 全量折叠**：逐条 `apply` 与一次 `fold` 的结果**逐字节相同**、指纹相同 | 输入 同一批事件｜观测 ① 逐条 `apply` 的结果 R1 与 ② 一次 `fold` 的结果 R2｜期望 **逐字节相同**、指纹相同（两个方向的键集合差都为空） | 若 R1 ≠ R2（尤其「只在增量里出现的键」未被发现）⇒ 判不通过（观测面 双向键集合差非空；`TC-036` 已实测） |
 | `IF-009-R07` | 指纹**必须**声明为**非加密**用途（FNV-1a，不引哈希库），**不得**用于安全判断 | 输入 指纹算法声明面｜观测 用途声明｜期望 明确声明为 **FNV-1a 非加密**、**不得用于安全判断**，且工程不引入哈希库（`Cargo.toml` 依赖面） | 若指纹被用于任何授权/信任判断 ⇒ 判不通过（观测面 `gate`/`guard` 的判定路径上出现指纹比较） |
-|  `IF-009-R08`  |  `IF-009` **不得**写 L1（本体/账本）——`WC-MODREG-001` §三 硬约束①  |  输入 源码面｜观测 `src/readmodel.rs` 对本体/账本的**写**访问｜期望 零写入（只读 L1）  |  若 `readmodel.rs` 出现对账本或本体文件的写调用 ⇒ 判不通过（观测面 `grep -nE 'fs::write\|OpenOptions\|append' src/readmodel.rs` 命中）  |
+|  `IF-009-R08`  |  `IF-009` **不得**写 L1（本体/账本）——`WC-MODREG-001` §三 硬约束①  |  输入 源码面｜观测 `src/ontology_instance/readmodel.rs` 对本体/账本的**写**访问｜期望 零写入（只读 L1）  |  若 `readmodel.rs` 出现对账本或本体文件的写调用 ⇒ 判不通过（观测面 `grep -nE 'fs::write\|OpenOptions\|append' src/ontology_instance/readmodel.rs` 命中）  |
 
 #### 3.10.3 输入 / 输出 / 错误行为
 
@@ -1169,13 +1169,13 @@
 | **接口编号** | `IF-010`（= `WC-IC-001` `IF-010`，`WC-IC-001` §「一、接口清单与需求归属」的「IF-010 检查点读写与核验（M08）」`） |
 | **接口名称** | 检查点读写与核验 |
 | **类型 / 方向** | 内部接口 + 文件接口（同步）/ 双向 |
-| **提供方** | `M08` 检查点（`src/checkpoint.rs`；`WC-MODREG-001` §「二、模块登记表」的「M08 检查点（Checkpoint）」`） |
+| **提供方** | `M08` 检查点（`src/ontology_instance/checkpoint.rs`；`WC-MODREG-001` §「二、模块登记表」的「M08 检查点（Checkpoint）」`） |
 | **消费方** | `M04`（续算路径）、`IF-009`（`State::from_json` 是唯一下游） |
 | **触发条件** | ① 截取快照；② 写快照到磁盘；③ 读回快照；④ 核验；⑤ 不核验续算 |
 | **协议 / 数据格式** | 进程内调用；持久形态为**纯文本 JSON**（`{"checkpoint":1,"base_seq":…,"digest":…,"state":…}`） |
 | **支撑需求** | `REQ-F-021` |
 | **关联设计** | `WC-IC-001` §2.7（`IF-010` 节）、§五 未决 |
-| **实现位置** | `src/checkpoint.rs`：`FORMAT`（`:47`）、`capture`（`:50`）、`base_seq`（`:59`）、`digest`（`:64`）、`write`（`:69`）、`load`（`:86`）、`verify`（`:122`）、`resume_unverified`（`:152`）、`read_model_with_checkpoint` |
+| **实现位置** | `src/ontology_instance/checkpoint.rs`：`FORMAT`（`:47`）、`capture`（`:50`）、`base_seq`（`:59`）、`digest`（`:64`）、`write`（`:69`）、`load`（`:86`）、`verify`（`:122`）、`resume_unverified`（`:152`）、`read_model_with_checkpoint` |
 | **状态** | 已实现（`WC-MODREG-001` §「二、模块登记表」的「M08 检查点（Checkpoint）」` 记 M08 为「✅ 已实现（项目 Step 3；缓存地位：可核验、删掉无后果）」） |
 
 #### 3.11.2 接口需求（**它的全部意义是"缓存不得变成第二真相"**）
@@ -1220,7 +1220,7 @@
 |---|---|---|
 | 1 | 续算 ≡ 全量（逐字节）；**删掉快照后重算仍相同**；必须带 `base_seq`；可被核验 | `c12`（`tests/contract.rs:466`） |
 | 2 | 三类坏快照被拒：篡改指纹 ⇒ `DigestMismatch` 且理由含"以账本为准"；`base_seq` 超长 ⇒ `Stale`；非法 JSON/缺 `base_seq` ⇒ `load` 失败 | `c13`（`:538`） |
-| 3 | 快照文件过静态墙 | 代码走查（`src/checkpoint.rs:81` 调 `guard::assert_after_create`）；**未见专门用例**【待验证】 |
+| 3 | 快照文件过静态墙 | 代码走查（`src/ontology_instance/checkpoint.rs:81` 调 `guard::assert_after_create`）；**未见专门用例**【待验证】 |
 | 4 | 快照版式与 `WC-LLD-001` §七 一致 | **【待验证】**：`WC-LLD-001` 与 `WC-CKFMT-001` 均**在本文件起草期间被并行创建/修改**，本文件**未核对**二者与本条的一致性 |
 
 ---
@@ -1274,8 +1274,8 @@
 > **里面没有"风险"**。两处对同一份清单的"怎么干"字段集**枚举不一致**（本文件多列了一项 `risk`）。
 > 按**实测**，`risk` 是**动作等级**的判定，有两个可核落点：① 载体侧自己读它——`src/carrier/capd.rs:93` 逐字
 > `        self.undo == Undo::BeforeEach && self.risk == Risk::High`（在 `pub fn needs_undo(&self) -> bool` 内，决定"要不要先留撤销点"）；
-> ② 闸侧在 `HEAD`（`1d32631`）**读不到它**（`git show HEAD:world-core/src/gate.rs` 搜 `risk` **零命中**，该版的能力结构体只有 `reversible` 一个布尔字段），
-> 而在**当前未提交的工作区**里闸已开始读它（`src/gate.rs:73` 逐字 `    pub risk: Option<CarrierRisk>,`；`:316` 逐字
+> ② 闸侧在 `HEAD`（`1d32631`）**读不到它**（`git show HEAD:world-core/src/gate/mod.rs` 搜 `risk` **零命中**，该版的能力结构体只有 `reversible` 一个布尔字段），
+> 而在**当前未提交的工作区**里闸已开始读它（`src/gate/mod.rs:73` 逐字 `    pub risk: Option<CarrierRisk>,`；`:316` 逐字
 > `            cap.risk = carrier.lookup(name).map(|m| m.risk);`）——**该改动无提交号、未评审、无用例**。
 >
 > **⇒ 本条补充的口径（三句，与 SRS 对齐）**：
@@ -1357,7 +1357,7 @@
 | 项 | 口径 |
 |---|---|
 | **判定的字段** | `world`、`vocab`、`last_seq`、`state`（**不含** `projection`，**不含**排版） |
-| **判定的实现** | `src/project/mod.rs::assert_same_source`（`:124`）：`world` 不同 ⇒ 报"世界版本不同"；`vocab` 不同 ⇒ 报"**词表不同**…必须停下来查清"；`last_seq` 或 `state` 不同 ⇒ 报"状态不同…有一方落后或读的不是同一本账" |
+| **判定的实现** | `src/gui_projection/mod.rs::assert_same_source`（`:124`）：`world` 不同 ⇒ 报"世界版本不同"；`vocab` 不同 ⇒ 报"**词表不同**…必须停下来查清"；`last_seq` 或 `state` 不同 ⇒ 报"状态不同…有一方落后或读的不是同一本账" |
 | **首行相等 ⇒ 蕴含什么** | 同 `world`、同 `vocab`（同一份法律）、同 `(last_seq, state 指纹)`（同一份状态） |
 | **首行相等 ⇒ 不蕴含什么** | **不含账本身份**（不证明两次读的是同一个文件）、**不含正文**（不比对字段值本身）、**不含渲染过程**（不证明渲染器未被改） |
 | **单进程路径下的性质** | 单进程 CLI 路径下该判定**不可能失败**（两份投影由同一次 `read_model()` 产生，`src/main.rs:303-310`）⇒ **它的价值在跨进程/跨时刻场景，不在单进程** |
@@ -1397,11 +1397,11 @@ ext.world.<域>.<原因>: <人话说明>
 ```
 
 - **冒号之前是机器读的，冒号之后是给人读的**；两个字段**只含 ASCII 字母/数字/下划线/点号**，
-  故**解析不依赖编码**（`src/error.rs:14-19`）；
-- 域的取值范围（`src/error.rs:21-22`）：`Ontology` / `Ledger` / `ReadModel` / `Gate` / `Guard` /
+  故**解析不依赖编码**（`src/common/error.rs:14-19`）；
+- 域的取值范围（`src/common/error.rs:21-22`）：`Ontology` / `Ledger` / `ReadModel` / `Gate` / `Guard` /
   `Channel` / `Checkpoint` / `Project` / `World`；
-- **人话部分不得被程序依赖**（`src/error.rs:33`）；
-- **前缀不是编译期保证**：靠 `code_of` 与 `c15` 来守（`src/error.rs:32` 自述）。
+- **人话部分不得被程序依赖**（`src/common/error.rs:33`）；
+- **前缀不是编译期保证**：靠 `code_of` 与 `c15` 来守（`src/common/error.rs:32` 自述）。
 
 ### 5.2 已实现错误码全表（**逐条注明来源文件 + 行号**）
 
@@ -1415,12 +1415,12 @@ ext.world.<域>.<原因>: <人话说明>
 >    （见 §3.4.4/§3.5.6）⇒ 该族**已登记但未实现**；
 > 2. **`World.VersionMismatch` 不在本表 6 域之内**：它的字面量是 `"ext.world.VersionMismatch: …"`
 >    ——只有**域 + 原因两段**，**缺 `<域>` 段**（`src/lib.rs:87`）。
->    按 `src/error.rs::code_of` 的口径（要求 `域.原因` 两段），该消息**实际取不出码**
+>    按 `src/common/error.rs::code_of` 的口径（要求 `域.原因` 两段），该消息**实际取不出码**
 >    ⇒ 它是**契约外的一处偏离**，单列于下表之后。
 
 | 域 | 原因码 | 触发条件（简） | 源码位置 |
 |---|---|---|---|
-| `Ontology` | `NotAnObject` | 事件不是 JSON 对象 | `src/ontology.rs:27` |
+| `Ontology` | `NotAnObject` | 事件不是 JSON 对象 | `src/ontology_definition/mod.rs:27` |
 | `Ontology` | `MissingField` | 缺必填字段（含 `at`/`field` 定位） | `:32` |
 | `Ontology` | `BadVersion` | 事件 `world` ≠ 本体 `world` | `:37` |
 | `Ontology` | `UnknownKind` | 未知事件家族 | `:40` |
@@ -1431,7 +1431,7 @@ ext.world.<域>.<原因>: <人话说明>
 | `Ontology` | `NoFamilies` | 缺 `families` / 家族列表为空 | `:97`、`:113` |
 | `Ontology` | `BadField` | 缺数组字段 / 含非字符串项 | `:209`、`:214` |
 | `World` | `VersionMismatch` | 事件构造器版本 ≠ 本体 `world` | `src/lib.rs:87` |
-| `Ledger` | `Locked` | 另一个世界核心持有锁 | `src/ledger.rs:139` |
+| `Ledger` | `Locked` | 另一个世界核心持有锁 | `src/ledger/mod.rs:139` |
 | `Ledger` | `LockFail` | 锁文件无法创建 / 反复出现 | `:149`、`:156` |
 | `Ledger` | `CreateFail` / `ReadFail` / `TruncateFail` | 创建/读/截断失败 | `:175`、`:196`、`:207` |
 | `Ledger` | `Corrupt` | 行不是合法 JSON | `:218`、`:409` |
@@ -1447,7 +1447,7 @@ ext.world.<域>.<原因>: <人话说明>
 | `Ledger` | `MixedChain` | 部分有链部分没有 | `:470` |
 | `Ledger` | `MissingChain` | 链上某条缺 `chain` | `:481` |
 | `Ledger` | `ChainMismatch` | `chain` 与重算不符 | `:484` |
-| `ReadModel` | `MissingSeq` | 事件缺 `seq` | `src/readmodel.rs:89` |
+| `ReadModel` | `MissingSeq` | 事件缺 `seq` | `src/ontology_instance/readmodel.rs:89` |
 | `ReadModel` | `SeqGap` | 序号不连续 | `:95` |
 | `ReadModel` | `UnknownKind` | 未知家族（**拒绝猜测**） | `:112` |
 | `ReadModel` | `BeforeMismatch` | 旧值不符 | `:147` |
@@ -1455,9 +1455,9 @@ ext.world.<域>.<原因>: <人话说明>
 | `Gate` | `Rejected` | 未声明能力 / 白名单外 | `src/lib.rs:145`、`:152` |
 | `Gate` | `AwaitingApproval` | 不可逆 + 主体不在白名单 | `:156`、`:164` |
 | `Gate` | `WriteRejected` | `change` 的目标主体未授权 | `:179`、`:187` |
-| `Channel` | `ReadFail` / `BadJson` / `NoVersion` / `BadVersion` / `NoListeners` / `BadListener` | 配置类 | `src/channel.rs:75`、`:77`、`:81`、`:83`、`:88`、`:91`、`:100`、`:104`、`:108` |
+| `Channel` | `ReadFail` / `BadJson` / `NoVersion` / `BadVersion` / `NoListeners` / `BadListener` | 配置类 | `src/bus/mod.rs:75`、`:77`、`:81`、`:83`、`:88`、`:91`、`:100`、`:104`、`:108` |
 | `Channel` | `BadRequest` / `BindFail` / `ChmodFail` / `ChownFail` / `AcceptFail` / `EmptyRequest` / `Impersonation` | 请求与套接字类 | `:140`、`:144`、`:177`、`:182`、`:185`、`:200`、`:214`、`:226` |
-| `Checkpoint` | `EncodeFail` / `WriteFail` / `ReadFail` / `BadJson` | 快照 I/O | `src/checkpoint.rs:77`、`:79`、`:88`、`:90` |
+| `Checkpoint` | `EncodeFail` / `WriteFail` / `ReadFail` / `BadJson` | 快照 I/O | `src/ontology_instance/checkpoint.rs:77`、`:79`、`:88`、`:90` |
 | `Checkpoint` | `NoFormat` / `BadFormat` / `MissingBaseSeq` / `MissingDigest` / `MissingState` | 快照格式 | `:92`、`:96`、`:101`、`:106`、`:111` |
 | `Checkpoint` | `Stale` / `DigestMismatch` | 快照比账本长 / 指纹不符（**以账本为准**） | `:130`、`:139` |
 
@@ -1478,7 +1478,7 @@ ext.world.<域>.<原因>: <人话说明>
 
 | 消息字面量 | 位置 | 问题 | 处置 |
 |---|---|---|---|
-| `ext.world.VersionMismatch: …` | `src/lib.rs:87` | **缺 `<域>` 段**（只有"域+原因"两段中的"域"位置被 `VersionMismatch` 占掉）⇒ `src/error.rs::code_of` 要求 `域.原因` 两段，**该消息实际取不出码** | 登记为 **§十一 未决项 4**；修复方式（改成 `ext.world.World.VersionMismatch`）属**代码变更**，须走 R5，**本文件不代改** |
+| `ext.world.VersionMismatch: …` | `src/lib.rs:87` | **缺 `<域>` 段**（只有"域+原因"两段中的"域"位置被 `VersionMismatch` 占掉）⇒ `src/common/error.rs::code_of` 要求 `域.原因` 两段，**该消息实际取不出码** | 登记为 **§十一 未决项 4**；修复方式（改成 `ext.world.World.VersionMismatch`）属**代码变更**，须走 R5，**本文件不代改** |
 
 ### 5.3 退出码 0/1/2 与错误码的关系
 
@@ -1509,10 +1509,10 @@ ext.world.<域>.<原因>: <人话说明>
 | 1 | **不担保接口已经过评审、已经基线** | 本文件是**提前起草**的草案（见开头横幅） | 已确认 |
 | 2 | ~~**不担保 `WC-SDP-001` 的三处落位已完成**~~ **→ 已复算确认完成**（2026-09-26 19:41）：`T-14`（`:265`）、§3.3（`:286`）、§3.4（`:322`）三处均有 IRS。**仍不担保**：§2.3.2 `D-07`（`:191`）的**交付时点列**已填 `S1`（该列仍为"必须（CT-04 已撤回）…"） | §八 全节 | **已核（三处逐一复算）+ 余 1 处** |
 | 3 | **不担保 `WC-SCMP-001` §4.2 已登记本文件** | `WC-R4-DISP-001` §「一、处置原则（先立规则，再逐条落）」的「7. 新增文件必须同时登记。凡新增文档（§二 A 组），必须」` 的处置要求"新增文件必须同时登记"；**本文件未改 SCMP**（硬性纪律：只写一个文件） | **待办**（属 SCMP 侧） |
-| 4 | **不担保接口的"已实现"状态等于"已验收"** | 承 `WC-SRS-001` §「五、需求 → 测试用例 映射（先有真实用例，再谈」的「TC-028 src/gate.rs::unit::（默认拒」-242` 的同一口径："'已实现'不等于'已验收'——验收属 S6，须人工签署" | 已确认 |
-| 5 | **不担保 `REQ-F-015`（门禁不可绕过）在当前部署形态下成立** | 静态墙目录检查存在 **fail-open** 路径（`src/guard.rs:69`、`:75`）；且 `--ledger` 默认是**相对路径** | 见 7.1 |
+| 4 | **不担保接口的"已实现"状态等于"已验收"** | 承 `WC-SRS-001` §「五、需求 → 测试用例 映射（先有真实用例，再谈」的「TC-028 src/gate/mod.rs::unit::（默认拒」-242` 的同一口径："'已实现'不等于'已验收'——验收属 S6，须人工签署" | 已确认 |
+| 5 | **不担保 `REQ-F-015`（门禁不可绕过）在当前部署形态下成立** | 静态墙目录检查存在 **fail-open** 路径（`src/gate/guard.rs:69`、`:75`）；且 `--ledger` 默认是**相对路径** | 见 7.1 |
 | 6 | **不担保 `IF-006` 的资源边界（超时/限流/并发/单行上限）已被定义** | 源码零实现 + 零文档（§3.7.7 全表【待验证】） | 见 7.3 |
-| 7 | **不担保 `IF-005` 的词表身份已被复算与评审** | 参数字面量已有载体（`WC-ONT-001-v0.1.md` §5.4，本文件已亲核与 `src/ontology.rs:240-250` 一致）；但该文件**未经评审**，其记录的 hash 值**本文件未复算** | 见 7.5 |
+| 7 | **不担保 `IF-005` 的词表身份已被复算与评审** | 参数字面量已有载体（`WC-ONT-001-v0.1.md` §5.4，本文件已亲核与 `src/ontology_definition/mod.rs:240-250` 一致）；但该文件**未经评审**，其记录的 hash 值**本文件未复算** | 见 7.5 |
 | 8 | **不担保所有错误都已带 `ext.world.*` 前缀** | `Policy.*` 与 `Guard.*` 两族**零命中**（§5.2 表口径） | 见 7.2 |
 | 9 | **不担保生产 `fsync` 真的会发生** | `WC-CR-006` §「S-3【高】生产 `fsync` 没有任何会红的检查」的变异记录：把 `FileSink::sync` 改成 `Ok(())` ⇒ **变红断言数 = 0**，`check.sh` 仍退 `0` | 【待验证】（引述，未复现） |
 | 10 | **不担保摘要链能防住全知攻击者** | `c18`（`tests/contract.rs:868`）**故意证明**：整文件重写连链重算 ⇒ 检不出 | 已确认（设计边界，非缺陷） |
@@ -1531,12 +1531,12 @@ ext.world.<域>.<原因>: <人话说明>
 
 | # | 事项 | 取证命令 | 期望（若缺口仍在） |
 |---|---|---|---|
-| 7.1 | 静态墙目录检查 fail-open | `sed -n '69,76p' src/guard.rs` | 看到 `.filter(\|d\| !d.as_os_str().is_empty())` 与**无 else** 的 `if let Ok(dmeta)` |
-| 7.1b | 该缺口的**行为后果** | 在 0777 目录下以默认参数跑 `world-core check`（见 `WC-CR-006` §「S-1【高】src/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」` 的场景） | 【待验证】`WC-CR-006` §「S-1【高】src/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」` 记 `rc=0`（应为 `rc=2`）；**本文件未复现** |
+| 7.1 | 静态墙目录检查 fail-open | `sed -n '69,76p' src/gate/guard.rs` | 看到 `.filter(\|d\| !d.as_os_str().is_empty())` 与**无 else** 的 `if let Ok(dmeta)` |
+| 7.1b | 该缺口的**行为后果** | 在 0777 目录下以默认参数跑 `world-core check`（见 `WC-CR-006` §「S-1【高】src/gate/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」` 的场景） | 【待验证】`WC-CR-006` §「S-1【高】src/gate/guard.rs:69：默认」的「后果（EV-11b，技术线 B 跨 uid 实测）」` 记 `rc=0`（应为 `rc=2`）；**本文件未复现** |
 | 7.2 | `Policy.*` / `Guard.*` 无码 | `grep -rn "ext\.world\.Policy\.\|ext\.world\.Guard\." src/` | **零命中**（仅 `docs/S0-立项/WC-CR-006-v0.1.md:72` 命中，且该 CR 未实施） |
-| 7.3 | 通道无超时/限流/上限 | `grep -n "set_read_timeout\|set_nonblocking\|throttle\|限流\|take(" src/channel.rs` | **零命中** |
-| 7.4 | 生产 `fsync` 无可失败的检查 | 把 `src/ledger.rs:67` 的 `self.file.sync_data()` 改成 `Ok(())`，跑 `cargo test --all-targets` 与 `bash check.sh` | 【待验证】`WC-CR-006` §「S-3【高】生产 fsync 没有任何会红的检查」的「m01: FileSink::sync 的 self.fil」-97` 记"变红断言数 = 0"、`check.sh` 退 `0`；**本文件未复现**（且**不得**为取证而改仓库——须在临时副本或提交后回退） |
-| 7.5 | 词表身份可否第三方复现 | `Select-String -Path src\ontology.rs -Pattern "pub fn vocab_hash_of\|const OFFSET\|const PRIME"`；再读 `docs\S2-设计\WC-ONT-001-v0.1.md` §五 | **已改善**：`src/ontology.rs:240-250` 有 `OFFSET`/`PRIME` 字面量；`WC-ONT-001-v0.1.md` §5.4/§5.5 + 附录 A 有口径与一例。**仍待验证**：① `WC-ONT-001-v0.1.md` 是否经评审；② 文档所记 `fnv1a64:6a96abfa9a969462` 能否复算 |
+| 7.3 | 通道无超时/限流/上限 | `grep -n "set_read_timeout\|set_nonblocking\|throttle\|限流\|take(" src/bus/mod.rs` | **零命中** |
+| 7.4 | 生产 `fsync` 无可失败的检查 | 把 `src/ledger/mod.rs:67` 的 `self.file.sync_data()` 改成 `Ok(())`，跑 `cargo test --all-targets` 与 `bash check.sh` | 【待验证】`WC-CR-006` §「S-3【高】生产 fsync 没有任何会红的检查」的「m01: FileSink::sync 的 self.fil」-97` 记"变红断言数 = 0"、`check.sh` 退 `0`；**本文件未复现**（且**不得**为取证而改仓库——须在临时副本或提交后回退） |
+| 7.5 | 词表身份可否第三方复现 | `Select-String -Path src\ontology.rs -Pattern "pub fn vocab_hash_of\|const OFFSET\|const PRIME"`；再读 `docs\S2-设计\WC-ONT-001-v0.1.md` §五 | **已改善**：`src/ontology_definition/mod.rs:240-250` 有 `OFFSET`/`PRIME` 字面量；`WC-ONT-001-v0.1.md` §5.4/§5.5 + 附录 A 有口径与一例。**仍待验证**：① `WC-ONT-001-v0.1.md` 是否经评审；② 文档所记 `fnv1a64:6a96abfa9a969462` 能否复算 |
 | 7.5b | **反面教训（本文件初稿实际犯过）** | 复用**几分钟前的目录清单**判定"载体不存在" | ⚠ 本仓库**有并发写作**：`WC-ONT-001-v0.1.md` 创建于 19:39:20，而起草开头的清单取于约 19:33 ⇒ 差 ~6 分钟。⇒ **"不存在"类判定必须当场实时复算并记录时刻**；本文件已复算：`glob **/WC-ONT-*.md` **能**返回该文件（故初稿的"glob 不匹配"这一自我更正**也是错的**，已再更正） |
 | 7.6 | `--version` 不存在 | `grep -n "version\|-V" src/main.rs` | 只有 `policy` 版本与 `world` 版本的处理，**无 `--version` 开关** |
 | 7.7 | 无敏感字段 | `grep -rni "password\|secret\|token" src/ ontology.json policy.json` | **零命中**（故 `IF-REQ-07` 的脱敏项**不适用**，不是"未做"） |
@@ -1636,16 +1636,16 @@ ext.world.<域>.<原因>: <人话说明>
 
 | `IF-xx` | 接口（名称） | SRS 需求号（已有） | `WC-IC-001` 章节 | 实现位置（源码） | 验证方式（用例） | RTM 接口编号列现状 |
 |---|---|---|---|---|---|---|
-| `IF-001` | 账本读写 | `REQ-F-001`、`REQ-F-003`、`REQ-F-004`、`REQ-F-005`、`REQ-F-014`、`REQ-F-022`、`REQ-N-001` | §一 清单行 + §2.1 | `src/ledger.rs`（`open:166`/`append:286`/`read_from:399`/`load_chain:372`） | `TC-001`、`TC-002`、`TC-005`、`TC-006`、`TC-020`、`TC-023`、`c07`、`c08`、`c16`–`c22` | `IF-001`（第 2/4/5/6/23/24 行） |
-| `IF-002` | 门禁裁决 | `REQ-F-015`、`REQ-F-016`、`REQ-F-017` | §一 清单行 + §2.2 | `src/gate.rs`（`load:97`）、`src/guard.rs`、`policy.json` | `TC-013`、`TC-014`、`TC-015`、`TC-025`–`TC-029`、`TC-031`、`TC-033`、`c01`、`c03`、`c09`–`c11` | `IF-002`（第 16/17/18 行） |
-| `IF-003` | 语言投影出口 | `REQ-F-018`、`REQ-F-020` | §一 清单行 + §2.5 | `src/project/language.rs`（`render:22`/`parse:42`） | `TC-016`、`TC-018`、`TC-030`、`TC-039` | `IF-003`（第 19/21 行） |
-| `IF-004` | 视觉投影出口 | `REQ-F-019`、`REQ-F-020` | §一 清单行 + §2.5 | `src/project/visual.rs`（`render:29`/`parse:62`） | `TC-017`、`TC-018`、`TC-030` | `IF-004`（第 20/21 行） |
-| `IF-005` | 词表身份 | `REQ-F-020` | §一 清单行 + §2.3 | `src/ontology.rs::vocab_hash` | `TC-018`、`TC-030` | `IF-005`（第 21 行） |
-| `IF-006` | 跨进程通道 | `REQ-F-016` | §一 清单行（+ §五 未决 3） | `src/channel.rs` | `c14`、`src/channel.rs::unit::empty_listeners_is_refused` | **已出现**（第 24/29/32 行） |
-| `IF-007` | 宿主文件系统 | `REQ-N-004`、`REQ-F-015` | §一 清单行 + §四 `IF-D-04` | `src/guard.rs`、`src/ledger.rs`、`src/checkpoint.rs`、`src/channel.rs` | `TC-013`、`TC-025`、`TC-026`、`TC-029`、`c09`、`c10` | **未出现** ⇒ **待回填** |
+| `IF-001` | 账本读写 | `REQ-F-001`、`REQ-F-003`、`REQ-F-004`、`REQ-F-005`、`REQ-F-014`、`REQ-F-022`、`REQ-N-001` | §一 清单行 + §2.1 | `src/ledger/mod.rs`（`open:166`/`append:286`/`read_from:399`/`load_chain:372`） | `TC-001`、`TC-002`、`TC-005`、`TC-006`、`TC-020`、`TC-023`、`c07`、`c08`、`c16`–`c22` | `IF-001`（第 2/4/5/6/23/24 行） |
+| `IF-002` | 门禁裁决 | `REQ-F-015`、`REQ-F-016`、`REQ-F-017` | §一 清单行 + §2.2 | `src/gate/mod.rs`（`load:97`）、`src/gate/guard.rs`、`policy.json` | `TC-013`、`TC-014`、`TC-015`、`TC-025`–`TC-029`、`TC-031`、`TC-033`、`c01`、`c03`、`c09`–`c11` | `IF-002`（第 16/17/18 行） |
+| `IF-003` | 语言投影出口 | `REQ-F-018`、`REQ-F-020` | §一 清单行 + §2.5 | `src/gui_projection/language.rs`（`render:22`/`parse:42`） | `TC-016`、`TC-018`、`TC-030`、`TC-039` | `IF-003`（第 19/21 行） |
+| `IF-004` | 视觉投影出口 | `REQ-F-019`、`REQ-F-020` | §一 清单行 + §2.5 | `src/gui_projection/visual.rs`（`render:29`/`parse:62`） | `TC-017`、`TC-018`、`TC-030` | `IF-004`（第 20/21 行） |
+| `IF-005` | 词表身份 | `REQ-F-020` | §一 清单行 + §2.3 | `src/ontology_definition/mod.rs::vocab_hash` | `TC-018`、`TC-030` | `IF-005`（第 21 行） |
+| `IF-006` | 跨进程通道 | `REQ-F-016` | §一 清单行（+ §五 未决 3） | `src/bus/mod.rs` | `c14`、`src/bus/mod.rs::unit::empty_listeners_is_refused` | **已出现**（第 24/29/32 行） |
+| `IF-007` | 宿主文件系统 | `REQ-N-004`、`REQ-F-015` | §一 清单行 + §四 `IF-D-04` | `src/gate/guard.rs`、`src/ledger/mod.rs`、`src/ontology_instance/checkpoint.rs`、`src/bus/mod.rs` | `TC-013`、`TC-025`、`TC-026`、`TC-029`、`c09`、`c10` | **未出现** ⇒ **待回填** |
 | `IF-008` | **运行时入口（CLI）** | `REQ-N-004`；`REQ-F-001/018/019/020`（子命令判据面） | `WC-IC-001` **§2.7**（`IF-008` 节，`:256`） | `src/main.rs` | `TC-022`、`TC-037`–`TC-040`、`cli01`–`cli06` | **已出现**（第 31 行） |
-| `IF-009` | **状态折叠与重建** | `REQ-F-010`、`REQ-F-011`、`REQ-F-012`、`REQ-F-013` | `WC-IC-001` §2.3 + `IF-009` 节 | `src/readmodel.rs`（`fold:202`/`from_json:170`/`to_json:211`/`digest:234`） | `TC-003`、`TC-004`、`TC-009`–`TC-012`、`TC-036`、`TC-039`、`c06` | **已出现**（第 34/37 行） |
-| `IF-010` | **检查点读写与核验** | `REQ-F-021` | `WC-IC-001` §2.7（`IF-010` 节） | `src/checkpoint.rs`（`write:69`/`load:86`/`verify:122`/`resume_unverified:152`） | `TC-019`（`c12`/`c13`） | **未出现** ⇒ **待回填** |
+| `IF-009` | **状态折叠与重建** | `REQ-F-010`、`REQ-F-011`、`REQ-F-012`、`REQ-F-013` | `WC-IC-001` §2.3 + `IF-009` 节 | `src/ontology_instance/readmodel.rs`（`fold:202`/`from_json:170`/`to_json:211`/`digest:234`） | `TC-003`、`TC-004`、`TC-009`–`TC-012`、`TC-036`、`TC-039`、`c06` | **已出现**（第 34/37 行） |
+| `IF-010` | **检查点读写与核验** | `REQ-F-021` | `WC-IC-001` §2.7（`IF-010` 节） | `src/ontology_instance/checkpoint.rs`（`write:69`/`load:86`/`verify:122`/`resume_unverified:152`） | `TC-019`（`c12`/`c13`） | **未出现** ⇒ **待回填** |
 | `IF-011` | **载体动作执行** | `REQ-N-007`、`REQ-F-006`、`REQ-F-015/016/017`、`REQ-F-023` | `WC-IC-001` §2（`IF-011` 行）+ `WC-IC-001` §5.10（`M10` 模块契约） | `src/carrier/`（`capd.rs`/`providers.rs`/`kernel.rs`/`recover.rs`/`run.rs`/`mod.rs`） | **`tools/carrier_acceptance.sh`（C-00…C-08，22 项）**、`cargo test --lib carrier`（26 项） | **未出现（新接口，RTM 待回填）** |
 
 ### 9.1 反向（需求 → 接口）：哪些 SRS 需求**没有**接口归属
@@ -1744,7 +1744,7 @@ ext.world.<域>.<原因>: <人话说明>
 | 2 | ~~**`WC-SDP-001` 三处落位**（§3.1 任务 / §3.3 S1 产出 / §3.4 里程碑）~~ **✅ 已关闭（2026-09-26 19:41 复算）**：新增 **`T-14`**（`:265`，责任人=项目负责人，AI 只起草）+ §3.3（`:286`）+ §3.4（`:322`）两处已补 IRS | 余项：§2.3.2 `D-07` 行的**交付时点列**仍为「必须（CT-04 已撤回）…」，**未填 `S1`**（`:191`）。修改 SDP 属变更控制，**本文件不代改** | **ZiFan**（依项目负责人 2026-09-26 授权填名） | **2026-10-02**（R1） | ✅ **已关闭（2026-09-27）**：`WC-SDP-001` §2.3.2 的 `D-07` 行**交付时点列已填 `S1`**（本轮落笔）；复算 = `Select-String -Path world-core\docs\S0-立项\WC-SDP-001-v0.1.md -Pattern 'D-07'` 第 2 命中行末列为 `**S1**` |
 | 3 | ~~`IF-REQ-08`（`trace_id` 贯穿）的地位~~ **✅ 已关闭（2026-09-27）** — 关闭依据：`WC-R0-DS-001` §三 **E-1** 已裁定"**`trace` 保留为需求**" | 原未决理由（"信封 `trace` 字段的地位待人裁定"）**已由 E-1 裁定消除**。⇒ 落点：正文字段面由 `WC-SRS-001` **`REQ-F-031`**（6 条可判定判据）承担；`IF-REQ-08` 的"贯穿调用链"面**仍不适用**（v1 无分布式调用链，且链长度与截断已定为 **v1 不担保项**，见 §六 6.2 第 15 项） | **ZiFan**（依项目负责人 2026-09-26 授权填名） | **2026-10-02**（R1） | ✅ **已关闭**（余：`IF-REQ-08` 行本身仍记"不适用"，理由已改） |
 | 4 | **`Policy.*` / `Guard.*` 错误码族缺失**；`Project.*` 域零命中；**`ext.world.VersionMismatch` 缺 `<域>` 段**（`src/lib.rs:87`，按 `code_of` 口径取不出码）；`ext.world.Cli.ActorRequired` 是否新增 | 源码实测：字面量两段式只有 **6 域 61 条**；`WC-CR-006` 提议 `Cli.ActorRequired` 但**未实施** | **ZiFan**（依项目负责人 2026-09-26 授权填名） | R2 前（**该阶段评审日；具体日期由主持人在 R1 签署时写实**） | ✅ **已关闭（2026-09-27）｜丙 显式裁剪**——**裁剪项**：「`Policy.*`／`Guard.*` 独立错误码族」；**理由**：两族属**实现层新增**错误码，非 S1 文档可闭合（源码两段式字面量实测只有 **6 域 61 条**）；**补偿措施**：本文件 §3.2 已**如实登记「源码中不存在」**并给出错误行为节，判据不依赖该族存在；**影响评估**：仅影响错误码族完整性表述，**不影响** `IF-004`/`IF-007` 任一判据成立性。**批准人 `ZiFan`／批准日期 2026-09-27**（**本轮授权**：项目负责人第三轮收口指令「IRS 8 项未关闭逐项处置」；`H-13` 不代签的例外仅限**已授权**的处置落笔） |
-| 5 | **`IF-005-R05` 的验收面**：算法与参数字面量已由 `WC-ONT-001-v0.1.md` §5.4 提供（`src/ontology.rs:240-250` 已亲核一致），但 ① 该文件**未经评审**（`git status` 为 `??`）；② 其记录的 `fnv1a64:6a96abfa9a969462` **本文件未复算** | `WC-R4-DISP-001` §二 A-5 判定"算法无参数字面量"**部分已被 `WC-ONT-001-v0.1` 补齐**；剩余缺口是**评审与复算**，不是"没有载体" | **ZiFan**（依项目负责人 2026-09-26 授权填名） | **2026-10-02**（R1）（评审）/ R2 前（复算） | ✅ **已关闭（2026-09-27）**：复算子项**已闭合**（真实二进制 `project language` 首行 `vocab=` 实测 = `fnv1a64:6a96abfa9a969462`，与 §5.4 记录逐字相同）；余项「该文件未经评审」＝ **丙 显式裁剪**——**裁剪项**：`WC-ONT-001-v0.1` 的**评审**；**理由**：该文件属 **S2 交付物**，不在 S1 交付物集内；**补偿措施**：算法与参数字面量已由 `src/ontology.rs:240-250` 与本文档 §3.6 **双向可核**，且 `TC-050` 已机器验证同源性；**影响评估**：`IF-005-R05` 的验收面**已有可核读数**。**批准人 `ZiFan`／批准日期 2026-09-27**（**本轮授权**：项目负责人第三轮收口指令「IRS 8 项未关闭逐项处置」；`H-13` 不代签的例外仅限**已授权**的处置落笔） |
+| 5 | **`IF-005-R05` 的验收面**：算法与参数字面量已由 `WC-ONT-001-v0.1.md` §5.4 提供（`src/ontology_definition/mod.rs:240-250` 已亲核一致），但 ① 该文件**未经评审**（`git status` 为 `??`）；② 其记录的 `fnv1a64:6a96abfa9a969462` **本文件未复算** | `WC-R4-DISP-001` §二 A-5 判定"算法无参数字面量"**部分已被 `WC-ONT-001-v0.1` 补齐**；剩余缺口是**评审与复算**，不是"没有载体" | **ZiFan**（依项目负责人 2026-09-26 授权填名） | **2026-10-02**（R1）（评审）/ R2 前（复算） | ✅ **已关闭（2026-09-27）**：复算子项**已闭合**（真实二进制 `project language` 首行 `vocab=` 实测 = `fnv1a64:6a96abfa9a969462`，与 §5.4 记录逐字相同）；余项「该文件未经评审」＝ **丙 显式裁剪**——**裁剪项**：`WC-ONT-001-v0.1` 的**评审**；**理由**：该文件属 **S2 交付物**，不在 S1 交付物集内；**补偿措施**：算法与参数字面量已由 `src/ontology_definition/mod.rs:240-250` 与本文档 §3.6 **双向可核**，且 `TC-050` 已机器验证同源性；**影响评估**：`IF-005-R05` 的验收面**已有可核读数**。**批准人 `ZiFan`／批准日期 2026-09-27**（**本轮授权**：项目负责人第三轮收口指令「IRS 8 项未关闭逐项处置」；`H-13` 不代签的例外仅限**已授权**的处置落笔） |
 | 6 | **`IF-006` 请求应答配对**：是否引入**协议级**配对字段 | v1 只有业务级 `request_id`；`WC-R4-DISP-001` §「D 组」的「IF-006 契约节缺失（M09-D02/D03） 采纳」` 要求"规定配对字段" | **ZiFan**（依项目负责人 2026-09-26 授权填名） | R2 前（**该阶段评审日；具体日期由主持人在 R1 签署时写实**） | ✅ **已关闭（2026-09-27）｜依 `CT-08` 显式裁剪**：四个资源边界的**具体数值属 S2 实现层**，本版不设值（AI 不得编造）；`WC-SRS-001` 的 `REQ-F-026` 已**如实登记为丙类裁剪**（`WC-SDP-001` §5.2 `CT-08`，批准人 `ZiFan`／2026-09-27） |
 | 7 | ~~**`REQ-F-021` / `M08` 无接口编号**~~ **✅ 已关闭**：`WC-IC-001` 补登 `IF-010`（`:58`）+ **本文件 §3.11 同号定义 `IF-010`**；`M03` 同理由 `IF-009`/本文件 `IF-009` 承接。<br>✅ **余项「`WC-MODREG-001` §二『提供接口』列尚未回填编号」亦已关闭（2026-09-27 复算）** — 关闭依据：该列**已回填** `IF-001`–`IF-010`（`WC-MODREG-001` §二 模块登记表九行的「提供接口」列，逐行标注"编号取自 `WC-IC-001` §一 与 `WC-IRS-001`"；其 §五 #5 并自记"**已在本轮回填**"） | `WC-R4-DISP-001` §「E 组」的「表只有 6 列（M08-D12） 采纳」` 的机制缺口由"两文档同号定义"关闭 | **ZiFan**（依项目负责人 2026-09-26 授权填名） | R2（**该阶段评审日；具体日期由主持人在 R1 签署时写实**） | ✅ **已关闭（2026-09-27）** |
 | 8 | **`Q-02`（错误码 100% 覆盖）无可满足的判据** | `c15` 只断言"≥6 个不同码"；要达 100% 需**逐码注入**用例，而 `Policy.*`/`Guard.*` 尚无码可注入 | **ZiFan**（依项目负责人 2026-09-26 授权填名） | S5（**该阶段评审日；具体日期由主持人在 R1 签署时写实**） | ✅ **已关闭（2026-09-27）｜丙 显式裁剪**——**裁剪项**：`Q-02` 的**原判据「错误码 100% 覆盖」**；**理由**：`c15` 只断言「≥6 个不同码」，而达 100% 须**逐码注入**，且 `Policy.*`／`Guard.*` **尚无码可注入**（与 `#4` 同源）；**补偿措施**：本版**保留为未达标项**并登记，判据以 `c15` 的实测阈值为准；**影响评估**：仅影响 `Q-02` 一项验证目标，不影响任一接口判据成立性。**批准人 `ZiFan`／批准日期 2026-09-27**（**本轮授权**：项目负责人第三轮收口指令「IRS 8 项未关闭逐项处置」；`H-13` 不代签的例外仅限**已授权**的处置落笔） |
@@ -1788,7 +1788,7 @@ ext.world.<域>.<原因>: <人话说明>
 | 7 | `REQ-F-021`／`M08` 无接口编号 | ✅ **已关闭（2026-09-27）** | `WC-IC-001` 补登 `IF-010`；本文件 §3.11 同号定义；`WC-MODREG-001` §二「提供接口」列已回填 | **ZiFan**（依项目负责人 2026-09-26 授权填名；**与 §十一 同源**） | 已关闭 | 台账状态格含**关闭日**；**附录 A** 的状态须与本节**同源**（本轮已订正为一致） |
 | 8 | `Q-02`（错误码 100% 覆盖）**无可满足的判据** | ✅ **丙（原判据显式裁剪，已批准）** | `c15` 只断言「**≥ 6 个不同码**」；要达 100% 须**逐码注入**用例，而 `Policy.*`／`Guard.*` **尚无码可注入**（与 `#4` 同源） | `<待人工>`（建议：质量负责人） | **2026-10-02（R1 前）** | `Q-02` 的目标值与 `tests/contract.rs` 的断言集**存在同时满足的阈值**（现测**不可能**） |
 | 9 | `IF-003a` 跨进程比对用例缺失 | ✅ **甲（用例已补建并实测）** | §四 步 1／2 无现成用例 | `<待人工>`（建议：测试代表） | **S5 前** | 存在**跨进程/跨时刻**两份投影的四要素比对用例（`WC-SRS-001` 的 `TC-050` **本轮已补建并实测**，可作起稿） |
-| 10 | `IF-004` 排版的两个验证面缺失（空态样本、字节级期望样本） | ✅ **本轮关闭（证据已落地）** | 新建 `world-core/tools/visual_layout_audit.py`——**独立于 `src/project/visual.rs::parse()` 的第二份解析器**，含 **3 份字节级期望样本**（普通值／含换行·控制字符的值／**空状态**）＋ **12 个变异自证**；`tools/s1_sys_probe.sh` 的 `TC-051` 实测 6 条断言全绿 | **ZiFan**（依项目负责人 2026-09-26 授权填名；**与 §十一 同源**） | ✅ **已关闭（2026-09-27）** | 存在独立于同模块 `parse()` 的排版用例 **∧** 含空态样本 **∧** 含字节级期望（**三项本轮全部满足**） |
+| 10 | `IF-004` 排版的两个验证面缺失（空态样本、字节级期望样本） | ✅ **本轮关闭（证据已落地）** | 新建 `world-core/tools/visual_layout_audit.py`——**独立于 `src/gui_projection/visual.rs::parse()` 的第二份解析器**，含 **3 份字节级期望样本**（普通值／含换行·控制字符的值／**空状态**）＋ **12 个变异自证**；`tools/s1_sys_probe.sh` 的 `TC-051` 实测 6 条断言全绿 | **ZiFan**（依项目负责人 2026-09-26 授权填名；**与 §十一 同源**） | ✅ **已关闭（2026-09-27）** | 存在独立于同模块 `parse()` 的排版用例 **∧** 含空态样本 **∧** 含字节级期望（**三项本轮全部满足**） |
 | 11 | `IF-007` 的属主/uid 断言粒度（静态墙只看 mode、不看属主） | ✅ **丙（显式裁剪，已批准）** | 落在 `IF-002-R09`／`IF-REQ-07` 判据上 | `<待人工>` | **2026-10-02（R1 前）** | 判据粒度与断言集一致（`mode` **∧** `uid`），**或**按七列裁剪登记且 `批准人`／`批准日期` 已填 |
 | 12 | 本文件的行号锚点**无提交号** | ✅ **本轮关闭** | 评审对象已可钉死：本文件工作区 blob `843a57ab3db1d1daa75954c002a94000dfc1d44b` 与第二十四次冻结提交 `2f6760ec61106c69ec2ffef40d6490b10553f964` 内的 blob **逐字节相同**（R1 席 S-04 独立复核） | **ZiFan**（依项目负责人 2026-09-26 授权填名；**与 §十一 同源**） | ✅ **已关闭（2026-09-27）** | 评审对象写为 `<path> @ <commit>` 形式（**本轮落笔**） |
 | 13 | `HLD`／`IC`／`IRS` 三份文档的接口清单不一致 | ✅ **已关闭（2026-09-27）** | 三处现已同源：`WC-HLD-001` §6.4 = 10 行；`WC-IC-001` §一 = 10 行；本文件 = 10 条 | **ZiFan**（依项目负责人 2026-09-26 授权填名；**与 §十一 同源**） | 已关闭 | 台账状态格含**关闭日** |

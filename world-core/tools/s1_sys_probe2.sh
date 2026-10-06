@@ -85,17 +85,17 @@ fi
 SB="$(mktemp -d)"
 trap 'rm -rf "$SB"' EXIT
 chmod 700 "$SB"
-cp ontology.json policy.json "$SB"/
-chmod 600 "$SB/ontology.json" "$SB/policy.json"
+cp src/ontology_definition/ontology.json src/gate/policy.json "$SB"/
+chmod 600 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 L="$SB/ledger.jsonl"
 E="$SB/empty.jsonl"
 : >"$E"; chmod 600 "$E"
 
-W() { "$BIN" --ontology "$SB/ontology.json" --ledger "$L" --policy "$SB/policy.json" "$@"; }
-WE() { "$BIN" --ontology "$SB/ontology.json" --ledger "$E" --policy "$SB/policy.json" "$@"; }
+W() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L" --policy "$SB/src/gate/policy.json" "$@"; }
+WE() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$E" --policy "$SB/src/gate/policy.json" "$@"; }
 WL() { # WL <ledger> <ontology> [args...]
   local led="$1" ont="$2"; shift 2
-  "$BIN" --ontology "$ont" --ledger "$led" --policy "$SB/policy.json" "$@"
+  "$BIN" --ontology "$ont" --ledger "$led" --policy "$SB/src/gate/policy.json" "$@"
 }
 A() { W append "$@" 2>&1; }
 ARC() { W append "$@" >/dev/null 2>&1; echo $?; }
@@ -129,7 +129,7 @@ PY
 }
 
 # 种子：写成**已声明**的格子（`world://notice/a` ＋ `muted`；书 §5.3「声明以外的东西不许落账」，
-# 执行者 `src/ontology.rs::check_concepts`）。原先的 `world://sys/a#p` 与 `#q` 两个名字都没声明过
+# 执行者 `src/ontology_definition/mod.rs::check_concepts`）。原先的 `world://sys/a#p` 与 `#q` 两个名字都没声明过
 # ⇒ 两条种子都被拒、账本 0 行，后面**整片**断言（链、缺号、半行、投影、回滚…）跟着一起红。
 #
 # ⚠ 第二行为什么改成"同一格再改一次"（而不是另一格 `q`）：出厂本体里每个实体只声明了**一格**
@@ -167,8 +167,8 @@ assert_eq "③ 逐行合法 JSON（无残缺行；坏行数 = 0）" "0" "$BADN"
 assert_eq "④ 文件以 0x0A 结尾" "0a" "$(tail -c1 "$L" | od -An -tx1 | tr -d ' \n')"
 assert_eq "⑤ 账本不含 NUL 字节" "0" "$(tr -dc '\000' <"$L" | wc -c | tr -d ' ')"
 chmod 600 "$SB/chainless.jsonl"; cp "$L" "$SB/chainless.jsonl"; strip_chain "$L" "$SB/chainless.jsonl"
-CO="$(WL "$SB/chainless.jsonl" "$SB/ontology.json" check 2>&1)"; assert_has "⑥ 无链账本必须打印警示（未校验要说出来）" "$CO" '无摘要链'
-WL "$SB/chainless.jsonl" "$SB/ontology.json" --require-chain check >/dev/null 2>&1
+CO="$(WL "$SB/chainless.jsonl" "$SB/src/ontology_definition/ontology.json" check 2>&1)"; assert_has "⑥ 无链账本必须打印警示（未校验要说出来）" "$CO" '无摘要链'
+WL "$SB/chainless.jsonl" "$SB/src/ontology_definition/ontology.json" --require-chain check >/dev/null 2>&1
 assert_rc "⑦ 无链 + --require-chain ⇒ rc=2" 2 "$?"
 assert_has "⑧ 有链账本自报「有摘要链」" "$(W check 2>&1)" '有摘要链'
 python3 - "$L" "$SB/tampered.jsonl" <<'PY'
@@ -179,7 +179,7 @@ evs[0]["body"]["after"] = 999
 open(sys.argv[2], "w", encoding="utf-8").write("\n".join(json.dumps(e, ensure_ascii=False, sort_keys=True) for e in evs) + "\n")
 PY
 chmod 600 "$SB/tampered.jsonl"
-TO="$(WL "$SB/tampered.jsonl" "$SB/ontology.json" check 2>&1)"; TRC=$?
+TO="$(WL "$SB/tampered.jsonl" "$SB/src/ontology_definition/ontology.json" check 2>&1)"; TRC=$?
 assert_rc "⑨ 篡改一行 ⇒ 拒启（rc=2）" 2 "$TRC"
 assert_has "⑩ 拒启理由含 ChainMismatch（点名"内容被改动"）" "$TO" 'ChainMismatch'
 
@@ -194,7 +194,7 @@ del evs[1]
 open(sys.argv[2], "w", encoding="utf-8").write("\n".join(json.dumps(e, ensure_ascii=False, sort_keys=True) for e in evs) + "\n")
 PY
 chmod 600 "$SB/gap.jsonl"
-GO="$(WL "$SB/gap.jsonl" "$SB/ontology.json" state 2>&1)"; GRC=$?
+GO="$(WL "$SB/gap.jsonl" "$SB/src/ontology_definition/ontology.json" state 2>&1)"; GRC=$?
 assert_rc "① 人为制造缺号 ⇒ 拒绝（rc=2）" 2 "$GRC"
 assert_has "② 拒绝理由**点名**缺号/顺序（SeqGap 或等价定位）" "$GO" '(SeqGap|seq|顺序|缺号)'
 assert_rc "③ 对照：连续账本 rc=0（防恒红）" 0 "$(W state >/dev/null 2>&1; echo $?)"
@@ -203,7 +203,7 @@ assert_rc "③ 对照：连续账本 rc=0（防恒红）" 0 "$(W state >/dev/nul
 echo; echo "── TC-055 · REQ-F-005 半行启动时丢弃、该号可复用 ──"
 cp "$L" "$SB/half.jsonl"; chmod 600 "$SB/half.jsonl"
 printf '{"world":1,"kind":"change","id":"e-half","seq":4,"at":1,"actor":"wor' >>"$SB/half.jsonl"
-HO="$(WL "$SB/half.jsonl" "$SB/ontology.json" state --json 2>&1)"; HRC=$?
+HO="$(WL "$SB/half.jsonl" "$SB/src/ontology_definition/ontology.json" state --json 2>&1)"; HRC=$?
 assert_rc "① 末尾半行 ⇒ 仍能启动（rc=0，半行被丢弃）" 0 "$HRC"
 assert_eq "② 折叠出的 last_seq = **完整事件数**（半行未计入）" "3" "$(printf '%s' "$HO" | python3 -c 'import json,sys; print(json.load(sys.stdin)["last_seq"])' 2>/dev/null || echo '?')"
 assert_has "③ 半行内容未进入读模型（world:// 计数不含半行的 seq=4 之后内容）" "$HO" '"last_seq":3'
@@ -263,7 +263,7 @@ echo; echo "── TC-060 · REQ-F-011 读模型可重算且逐字节一致 ─�
 S1="$(W state --json 2>/dev/null)"; S2="$(W state --json 2>/dev/null)"
 assert_eq "① 两次独立重算**逐字节相同**" "$S1" "$S2"
 head -2 "$L" >"$SB/prefix.jsonl"; chmod 600 "$SB/prefix.jsonl"
-PJ="$(WL "$SB/prefix.jsonl" "$SB/ontology.json" state --json 2>/dev/null)"
+PJ="$(WL "$SB/prefix.jsonl" "$SB/src/ontology_definition/ontology.json" state --json 2>/dev/null)"
 assert_ne "② **反假**：只折叠前缀 ⇒ 结果必须**不同**（常量状态会在此变红）" "$S1" "$PJ"
 assert_ne "③ 反假：前缀的状态指纹必须与全量不同" \
   "$(printf '%s' "$S1" | python3 -c 'import json,sys; print(json.load(sys.stdin)["last_seq"])')" \
@@ -280,7 +280,7 @@ assert_has "③ 入口自述 state 不缓存、不写盘" "$(W --help 2>&1)" '�
 # ══ TC-062 · REQ-F-013 读模型拒绝坏账本 ═══════════════════════════════
 echo; echo "── TC-062 · REQ-F-013 读模型拒绝坏账本（三类各给定位）──"
 mutate "$L" "$SB/bad_gap.jsonl" 'evs[0]["seq"] = 7'
-O="$(WL "$SB/bad_gap.jsonl" "$SB/ontology.json" state 2>&1)"; assert_rc "① 序号断裂 ⇒ rc=2" 2 "$?"
+O="$(WL "$SB/bad_gap.jsonl" "$SB/src/ontology_definition/ontology.json" state 2>&1)"; assert_rc "① 序号断裂 ⇒ rc=2" 2 "$?"
 assert_has "② 定位到 seq／第几行" "$O" '(seq|第 ?[0-9]+ ?行)'
 python3 - "$L" "$SB/bad_lie.jsonl" <<'PY'
 import json, sys
@@ -297,10 +297,10 @@ evs.append({"world": 1, "kind": "change", "id": "e-lie", "seq": evs[-1]["seq"] +
 open(sys.argv[2], "w", encoding="utf-8").write("\n".join(json.dumps(e, ensure_ascii=False, sort_keys=True) for e in evs) + "\n")
 PY
 chmod 600 "$SB/bad_lie.jsonl"
-O="$(WL "$SB/bad_lie.jsonl" "$SB/ontology.json" state 2>&1)"; assert_rc "③ 旧值说谎 ⇒ rc=2" 2 "$?"
+O="$(WL "$SB/bad_lie.jsonl" "$SB/src/ontology_definition/ontology.json" state 2>&1)"; assert_rc "③ 旧值说谎 ⇒ rc=2" 2 "$?"
 assert_has "④ 理由点出旧值不符（before／旧值）" "$O" '(before|旧值)'
 mutate "$L" "$SB/bad_fam.jsonl" 'evs[0]["kind"] = "ghost"'
-O="$(WL "$SB/bad_fam.jsonl" "$SB/ontology.json" state 2>&1)"; assert_rc "⑤ 未知家族 ⇒ rc=2" 2 "$?"
+O="$(WL "$SB/bad_fam.jsonl" "$SB/src/ontology_definition/ontology.json" state 2>&1)"; assert_rc "⑤ 未知家族 ⇒ rc=2" 2 "$?"
 assert_has "⑥ 点名未知家族 ghost" "$O" 'ghost'
 
 # ══ TC-063 · REQ-F-014 回滚＝追加补偿事件 ═════════════════════════════
@@ -356,7 +356,7 @@ import json,sys
 for ln in sys.stdin:
     if ln.strip(): json.loads(ln)
 print("OK")')"
-assert_eq "③ 解析回来与 state --json 逐项相等" "EQUAL" "$(python3 - "$L" "$SB/ontology.json" "$SB/policy.json" "$BIN" <<'PY'
+assert_eq "③ 解析回来与 state --json 逐项相等" "EQUAL" "$(python3 - "$L" "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json" "$BIN" <<'PY'
 import json, subprocess, sys
 led, ont, pol, binp = sys.argv[1:5]
 st = json.loads(subprocess.run([binp, "--ontology", ont, "--ledger", led, "--policy", pol, "state", "--json"], capture_output=True).stdout)
@@ -386,7 +386,7 @@ assert_has "④ 非空状态含主体行与字段行" "$(cat "$SB/v_nonempty.txt
 echo; echo "── TC-068 · REQ-F-020 两投影同源 ──"
 assert_rc "① project check rc=0" 0 "$(W project check >/dev/null 2>&1; echo $?)"
 assert_has "② 自报同源一致" "$(W project check 2>&1)" '同源.*(一致|通过)'
-python3 - "$SB/ontology.json" "$SB/ont-vocab.json" <<'PY'
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/ont-vocab.json" <<'PY'
 import json, sys, collections
 o = json.load(open(sys.argv[1], encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
 # ⚠ 两处**都**改：`concepts` 是**身份**（非 `_` 键，参与 vocab_hash）、
@@ -427,7 +427,7 @@ print("OK" if s==list(range(1,len(s)+1)) else "GAP %s"%s)')"
 
 # ══ TC-071 · REQ-N-001 语言无关（纯文本）═════════════════════════════
 echo; echo "── TC-071 · REQ-N-001 账本/词表/策略均为纯文本 ──"
-assert_rc "① plain_text_audit.py 对三份真实文件 rc=0" 0 "$(python3 tools/plain_text_audit.py "$SB/ontology.json" "$SB/policy.json" "$L" >/dev/null 2>&1; echo $?)"
+assert_rc "① plain_text_audit.py 对三份真实文件 rc=0" 0 "$(python3 tools/plain_text_audit.py "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json" "$L" >/dev/null 2>&1; echo $?)"
 assert_rc "② 审计器自带 --self-test（判定器会红）" 0 "$(python3 tools/plain_text_audit.py --self-test >/dev/null 2>&1; echo $?)"
 python3 - "$L" "$SB/with_nul.jsonl" <<'PY'
 import sys
@@ -473,7 +473,7 @@ assert_eq "④ 工作区 Cargo.toml 未被改动（反例只在副本上做）" 
 
 # ══ TC-073 · REQ-F-023 投递、应答与收件人 ═════════════════════════════
 echo; echo "── TC-073 · REQ-F-023 投递、应答与收件人 ──"
-TOK="$(python3 - "$SB/ontology.json" <<'PY'
+TOK="$(python3 - "$SB/src/ontology_definition/ontology.json" <<'PY'
 import json, sys
 o = json.load(open(sys.argv[1], encoding="utf-8"))
 opt = o["envelope"]["optional"]
@@ -486,7 +486,7 @@ PY
 assert_eq "① 本体 envelope.optional 含 to 与 trace，且 to 的语义**逐字**写明" \
   "TO=1 TRACE=1 DESC=1" "$TOK"
 mutate "$L" "$SB/with_to.jsonl" 'evs[0]["to"] = "world://agent/1"; evs[0]["trace"] = "no-such-id"'
-O="$(WL "$SB/with_to.jsonl" "$SB/ontology.json" state --json 2>&1)"; assert_rc "② 带 to/trace 的事件 ⇒ **被接受**（rc=0）" 0 "$?"
+O="$(WL "$SB/with_to.jsonl" "$SB/src/ontology_definition/ontology.json" state --json 2>&1)"; assert_rc "② 带 to/trace 的事件 ⇒ **被接受**（rc=0）" 0 "$?"
 assert_eq "③ 带 / 不带 to 的**结论无关性**：state 与基线逐字节相同" "$(W state --json 2>/dev/null)" "$O"
 assert_has "④ act 的 request_id（业务级配对字段）读回后**逐字保留**" "$(W read 2>/dev/null)" '"request_id": ?"r-'
 O="$(A act '{"capability":"notice.mute","verb":"do","params":{}}')"; assert_rc "⑤ **反例**：act 缺 request_id ⇒ rc=2" 2 "$?"
@@ -503,7 +503,7 @@ reg "⑦ 通道**线格式**（{\"ok\":true,\"event\":…} / {\"ok\":false,\"err
 
 # ══ TC-074 · REQ-F-025 主体身份可核 ═══════════════════════════════════
 echo; echo "── TC-074 · REQ-F-025 主体身份可核 ──"
-ALLOW="$(python3 - "$SB/policy.json" <<'PY'
+ALLOW="$(python3 - "$SB/src/gate/policy.json" <<'PY'
 import json, sys
 o = json.load(open(sys.argv[1], encoding="utf-8"))
 print("|".join(o["subjects"]["allow"]))
@@ -517,7 +517,7 @@ PY
 #    它测的是"出厂策略长什么样"（配置快照），而 TC-074 要验的是 "**主体身份可核**"（行为）。
 #    故改为：**非空** ＋ **与 `writes` 表自洽**（每个能写的主体都必须在册）＋ 保留了原有的行为断言②–⑥。
 assert_ne "① 白名单**非空**" "" "$ALLOW"
-CORE_IN_WRITES="$(python3 - "$SB/policy.json" <<'PY'
+CORE_IN_WRITES="$(python3 - "$SB/src/gate/policy.json" <<'PY'
 import json, sys
 o = json.load(open(sys.argv[1], encoding="utf-8"))
 allow = set(o["subjects"]["allow"])
@@ -675,7 +675,7 @@ assert_has "② --help 写明四个数值取自 --policy 的 channel_limits（�
 
 # ③ **四个数值在出厂配置里齐备**（旧的③打印「无任何资源边界数值」却**什么也没查**——
 #    它只检查了本体里没有 serve 这个词，属装饰型断言；现按它自己的话去查真东西）。
-python3 - "$SB/policy.json" "$SB/ontology.json" <<'PY'
+python3 - "$SB/src/gate/policy.json" "$SB/src/ontology_definition/ontology.json" <<'PY'
 import json, sys
 pol = json.load(open(sys.argv[1], encoding="utf-8"))
 ont = json.load(open(sys.argv[2], encoding="utf-8"))
@@ -699,20 +699,20 @@ ok "③ 出厂配置里四个数值齐备且非零（并发上限=1），本体�
 #    实测过一次"合起来 grep"的假绿——把 `serve_stream` 里的两句删掉之后，
 #    `refuse_pending` 里还有一句 `set_write_timeout`，于是 `set_read_timeout|set_write_timeout`
 #    照样命中 ⇒ **读超时没了而本条仍是绿的**。判据按"哪一侧"分开写，才不会互相顶替。
-if grep -qE 'set_read_timeout' src/channel.rs && grep -qE 'set_write_timeout' src/channel.rs; then
-  ok "④ 超时边界：src/channel.rs 里读/写两侧各有超时设置（删掉任一 ⇒ 本条必红）"
+if grep -qE 'set_read_timeout' src/bus/mod.rs && grep -qE 'set_write_timeout' src/bus/mod.rs; then
+  ok "④ 超时边界：src/bus/mod.rs 里读/写两侧各有超时设置（删掉任一 ⇒ 本条必红）"
 else
-  bad "④ **应当失败**：src/channel.rs 里读不到 set_read_timeout 或 set_write_timeout ⇒ 超时边界不成立"
+  bad "④ **应当失败**：src/bus/mod.rs 里读不到 set_read_timeout 或 set_write_timeout ⇒ 超时边界不成立"
 fi
-if grep -qE 'max_line_bytes' src/channel.rs && grep -qE 'fill_buf' src/channel.rs; then
-  ok "⑤ 单行边界：src/channel.rs 里有带上限的读法（max_line_bytes ＋ fill_buf）（删掉即变红）"
+if grep -qE 'max_line_bytes' src/bus/mod.rs && grep -qE 'fill_buf' src/bus/mod.rs; then
+  ok "⑤ 单行边界：src/bus/mod.rs 里有带上限的读法（max_line_bytes ＋ fill_buf）（删掉即变红）"
 else
-  bad "⑤ **应当失败**：src/channel.rs 里读不到单行上限的读法 ⇒ 单行边界没实现"
+  bad "⑤ **应当失败**：src/bus/mod.rs 里读不到单行上限的读法 ⇒ 单行边界没实现"
 fi
-if grep -qE 'max_msgs_per_sec|TooManyConnections' src/channel.rs; then
-  ok "⑥ 限流与并发边界：src/channel.rs 里有限流与并发上限的落点（删掉即变红）"
+if grep -qE 'max_msgs_per_sec|TooManyConnections' src/bus/mod.rs; then
+  ok "⑥ 限流与并发边界：src/bus/mod.rs 里有限流与并发上限的落点（删掉即变红）"
 else
-  bad "⑥ **应当失败**：src/channel.rs 里读不到限流／并发上限的落点"
+  bad "⑥ **应当失败**：src/bus/mod.rs 里读不到限流／并发上限的落点"
 fi
 
 # ── 端到端：真二进制、真账本；四个数值在**配置副本**上改（改小 ⇒ 行为随之变，
@@ -767,7 +767,7 @@ PY
 # g076_cfg <dst> <k=v>...：把出厂策略复制一份，改 channel_limits 的若干格
 g076_cfg() {
   local dst="$1"; shift
-  python3 - "$SB/policy.json" "$dst" "$@" <<'PY'
+  python3 - "$SB/src/gate/policy.json" "$dst" "$@" <<'PY'
 import json, sys
 src, dst = sys.argv[1], sys.argv[2]
 pol = json.load(open(src, encoding="utf-8"))
@@ -798,7 +798,7 @@ d["listeners"] = [{"socket": sock, "actor": "world://agent/tc076", "owner": "fix
 json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
   chmod 600 "$pol"
-  timeout 25 "$BIN" --ontology "$SB/ontology.json" --ledger "$L76" --policy "$pol" \
+  timeout 25 "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L76" --policy "$pol" \
     --channel "$SB/$tag.channel.json" channel serve "$SOCKDIR/$tag.sock" "$n" \
     >"$SB/$tag.srv.log" 2>&1 &
   G_PID=$!
@@ -855,7 +855,7 @@ g076_cfg "$SB/p_conc.json" max_connections=2
 rm -f "$SOCKDIR/conc.sock"
 printf '{"channel":1,"listeners":[{"socket":"%s","actor":"world://agent/tc076","uid":%s}]}\n' \
   "$SOCKDIR/conc.sock" "$(id -u)" >"$SB/conc.channel.json"
-OUT="$(timeout 20 "$BIN" --ontology "$SB/ontology.json" --ledger "$L76" --policy "$SB/p_conc.json" \
+OUT="$(timeout 20 "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L76" --policy "$SB/p_conc.json" \
   --channel "$SB/conc.channel.json" channel serve "$SOCKDIR/conc.sock" 1 2>&1)"; RC=$?
 assert_rc "⑩a max_connections=2 ⇒ 拒启（rc=2）" 2 "$RC"
 assert_has "⑩b 拒启理由点名 BadConcurrency 与当前值" "$OUT" 'BadConcurrency.*max_connections = 2'
@@ -867,7 +867,7 @@ fi
 
 # ⑪ 缺块 = 不许上电：删掉一项 ⇒ 点名那一项；**整块**删掉 ⇒ NoLimits
 g076_cfg "$SB/p_missing.json" max_msgs_per_sec=DROP
-OUT="$(timeout 20 "$BIN" --ontology "$SB/ontology.json" --ledger "$L76" --policy "$SB/p_missing.json" \
+OUT="$(timeout 20 "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L76" --policy "$SB/p_missing.json" \
   --channel "$SB/conc.channel.json" channel serve "$SOCKDIR/conc.sock" 1 2>&1)"; RC=$?
 assert_rc "⑪a 少一项 ⇒ 拒启（rc=2）" 2 "$RC"
 assert_has "⑪b 拒启理由点名缺的那一项" "$OUT" 'BadLimits.*max_msgs_per_sec'
@@ -878,7 +878,7 @@ pol.pop("channel_limits")
 json.dump(pol, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 PY
 chmod 600 "$SB/p_none.json"
-OUT="$(timeout 20 "$BIN" --ontology "$SB/ontology.json" --ledger "$L76" --policy "$SB/p_none.json" \
+OUT="$(timeout 20 "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L76" --policy "$SB/p_none.json" \
   --channel "$SB/conc.channel.json" channel serve "$SOCKDIR/conc.sock" 1 2>&1)"; RC=$?
 assert_rc "⑪c 整块缺失 ⇒ 拒启（rc=2；**代码里没有这四个数的缺省值**的端到端形态）" 2 "$RC"
 assert_has "⑪d 拒启理由点名 NoLimits" "$OUT" 'NoLimits'

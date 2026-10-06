@@ -119,7 +119,7 @@
 | 证据 | 落点 |
 |---|---|
 | 判据与反例的**真实二进制**端到端断言 | `world-core/tools/system_acceptance.sh`（`TC-037`–`TC-040`）、`world-core/tools/s1_sys_probe.sh`（`TC-042`/`046`–`052`）、`world-core/tools/s1_sys_probe2.sh`（`TC-053`–`TC-075`） |
-| 链状态与退出码语义 | `world-core/src/main.rs`（`cmd_check`）、`world-core/src/ledger.rs`（写入时记 `chain`；`locked` 与陈旧锁回收） |
+| 链状态与退出码语义 | `world-core/src/main.rs`（`cmd_check`）、`world-core/src/ledger/mod.rs`（写入时记 `chain`；`locked` 与陈旧锁回收） |
 | 读模型不写盘 | `world-core/src/main.rs` 的 `state` 帮助行逐字「从账本**重算**状态（读模型；**不缓存、不写盘**）」 |
-| 权限前提与静态墙 | `world-core/src/guard.rs`；实测 777 目录下相对路径 `rc=0`／绝对路径 `rc=2` |
+| 权限前提与静态墙 | `world-core/src/gate/guard.rs`；实测 777 目录下相对路径 `rc=0`／绝对路径 `rc=2` |
 | 本手册的受评版本 | `WC-UM-001-v0.1.md` blob `84966979514d3b0432068c8a2137e3de44d30b34`（3774 B／60 行，第二十五／二十六次冻结表登记值） |

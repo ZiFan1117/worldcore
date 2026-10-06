@@ -19,7 +19,7 @@
 | 适用版本 | 世界版本 `world=1`；账本格式 **v1** |
 | 责任人 / 基线 | 技术负责人；**框架基线**（`WC-SCMP-001` §4.2 C 表、§5.1）。⚠ 该清单此前把本编号登记为"**已入库**"而文件实际不存在（`WC-SCMP-001` §8.4 **G-21**）——本文件落盘后"**不存在**"这一半事实可核销，但 **G-21 的关闭须由人**，且 §4.2 与 §5.1 的复核、`WC-SDP-001` 三处落位**均未由本文件代做** |
 | 落盘路径 | `world-core/docs/S2-设计/WC-LFMT-001-v0.1.md`（依 `WC-SCMP-001` §4.2 C 表；与 §4.1 的"存放位置"表述不一，见 §十四 **待确认-01/02**） |
-| 依据（实现，逐条核到行） | `world-core/src/event.rs`、`ledger.rs`、`ontology.rs`、`error.rs`、`lib.rs`、`main.rs`、`readmodel.rs`；`world-core/ontology.json`；`world-core/Cargo.toml` / `Cargo.lock`；`world-core/tools/plain_text_audit.py` |
+| 依据（实现，逐条核到行） | `world-core/src/common/event.rs`、`ledger.rs`、`ontology.rs`、`error.rs`、`lib.rs`、`main.rs`、`readmodel.rs`；`world-core/src/ontology_definition/ontology.json`；`world-core/Cargo.toml` / `Cargo.lock`；`world-core/tools/plain_text_audit.py` |
 | 依据（文档） | `WC-SCMP-001` §4.2 C / §4.4.2 / §4.4.3 / §7.2 规则二；`WC-SQAP-001` §4.2 OD-10 与 **ST-11**；`WC-R4-DISP-001` **A-3** / **A-5** / §二 C 组；`WC-IC-001` §2.1 / §2.3 / §三；`WC-LLD-001` §二；`WC-SRS-001`（`REQ-F-*` / `REQ-N-001`）；`07/2-依据/14`、`07/2-依据/15`、`07/4-计划/04` §2.2；历史稿 `WC-OD-010-v0.1`（2026-09-27 按 G-20 撤出仓库，内容在 git 历史） |
 | 复算环境 | 2026-09-27，Windows + PowerShell。**本文件起草环境无 Rust 工具链**：`cargo` 不可用、仓库内无 `target/` ⇒ 凡标 **〔实测·本文件复算〕**者，指"按 §八/§九 写死的口径**独立重算 hash**，并与仓库内已记录的值**逐位比对一致**"；**运行期证据**（真二进制写出的账本字节与两个 hash）由**批次执行方在 Arch VM 实跑**取得，命令与原始输出逐字照录于 **§8.6**。仍标 **【待验证】**者，须在真实目标环境复核（每条附复核方法与**当前状态**，见 §14.1） |
 
@@ -53,20 +53,20 @@
 
 | 项 | 规定 | 依据 |
 |---|---|---|
-| 形态 | **JSON Lines**：一行一个 JSON **对象**，只追加，无 update / 无 delete | 〔源码〕`src/ledger.rs` L3–L6、L9–L11；〔登记〕`07/4-计划/04` §2.2 |
-| 编码 | **UTF-8**，无 BOM | 〔源码〕写入侧未写任何字节序标记（`src/ledger.rs` L314–316 只写 JSON 文本 + `\n`）；测试断言"账本必须是合法 UTF-8"（`tests/contract.rs` L1044）。**BOM 会被读侧判为坏 JSON**（`serde_json::from_slice`）⇒ **不得**加 BOM〔源码推断，未实测 ⇒ **待验证-04**〕 |
-| 行尾 | **`\n`（LF，单字节 0x0A）**，且**文件末尾必须是 `\n`** | 〔源码〕`src/ledger.rs` L316 `line.push('\n')`；`WC-IC-001` §2.1 不变量②；判据用例 `tests/contract.rs` **c22**（L1020–1058）逐次断言 `raw.last() == Some(b'\n')` |
-| 空文件 | **合法**（空账本 = 空世界）：`last_seq = 0`、`next_seq = 1` | 〔源码〕`src/ledger.rs` L178–186、L241、L259–261 |
+| 形态 | **JSON Lines**：一行一个 JSON **对象**，只追加，无 update / 无 delete | 〔源码〕`src/ledger/mod.rs` L3–L6、L9–L11；〔登记〕`07/4-计划/04` §2.2 |
+| 编码 | **UTF-8**，无 BOM | 〔源码〕写入侧未写任何字节序标记（`src/ledger/mod.rs` L314–316 只写 JSON 文本 + `\n`）；测试断言"账本必须是合法 UTF-8"（`tests/contract.rs` L1044）。**BOM 会被读侧判为坏 JSON**（`serde_json::from_slice`）⇒ **不得**加 BOM〔源码推断，未实测 ⇒ **待验证-04**〕 |
+| 行尾 | **`\n`（LF，单字节 0x0A）**，且**文件末尾必须是 `\n`** | 〔源码〕`src/ledger/mod.rs` L316 `line.push('\n')`；`WC-IC-001` §2.1 不变量②；判据用例 `tests/contract.rs` **c22**（L1020–1058）逐次断言 `raw.last() == Some(b'\n')` |
+| 空文件 | **合法**（空账本 = 空世界）：`last_seq = 0`、`next_seq = 1` | 〔源码〕`src/ledger/mod.rs` L178–186、L241、L259–261 |
 | 行间空行 | 读侧**容忍**：启动校验跳过**完全空**的行（L213–216）；`read_from` 跳过**只有空白**的行（L405–407）。写入侧**永不产生**空行 | 〔源码〕同上。⚠ 一个只含空格的行在启动校验里**不**被跳过，会以 `Ledger.Corrupt` 拒启〔源码推断，未实测 ⇒ **待验证-04**〕 |
-| 末尾行必须有 LF | 否则**该行整体被当作"半行"丢弃**——即使它本身是完整合法 JSON | 〔源码〕`src/ledger.rs` L198–209：保留到**最后一个 `\n`**，其后字节一律截掉 |
-| 权限 | 账本文件**与其所在目录**都不得对 group/other 可写（`mode & 0o022 == 0`），且不得是符号链接；否则**拒绝启动** | 〔源码〕`src/guard.rs` L21–L25、L43–L81、L105–L110；账本侧调用见 `src/ledger.rs` L177、L190 |
-| 单写者 | 同一时刻只允许**一个**写者；锁文件 = 账本路径**替换扩展名**为 `.lock`（`ledger.jsonl` → `ledger.lock`） | 〔源码〕`src/ledger.rs` L119–L159（`with_extension("lock")` 在 L120） |
+| 末尾行必须有 LF | 否则**该行整体被当作"半行"丢弃**——即使它本身是完整合法 JSON | 〔源码〕`src/ledger/mod.rs` L198–209：保留到**最后一个 `\n`**，其后字节一律截掉 |
+| 权限 | 账本文件**与其所在目录**都不得对 group/other 可写（`mode & 0o022 == 0`），且不得是符号链接；否则**拒绝启动** | 〔源码〕`src/gate/guard.rs` L21–L25、L43–L81、L105–L110；账本侧调用见 `src/ledger/mod.rs` L177、L190 |
+| 单写者 | 同一时刻只允许**一个**写者；锁文件 = 账本路径**替换扩展名**为 `.lock`（`ledger.jsonl` → `ledger.lock`） | 〔源码〕`src/ledger/mod.rs` L119–L159（`with_extension("lock")` 在 L120） |
 
 **分帧约定**（`WC-SQAP-001` **ST-11**，本文件承接并具体化）：
 
 > 每行一条完整事件；**内容里不得出现真实换行**；写入原子（整行 + flush）；启动时丢弃无法解析的最后一行。
 
-⚠ ST-11 的第三句与实现**不完全一致**，照实写明：实现的判据不是"**无法解析**就丢"，而是"**最后一个 `\n` 之后的一切**都丢"（`src/ledger.rs` L198–209）。
+⚠ ST-11 的第三句与实现**不完全一致**，照实写明：实现的判据不是"**无法解析**就丢"，而是"**最后一个 `\n` 之后的一切**都丢"（`src/ledger/mod.rs` L198–209）。
 一个**能解析但缺末尾 `\n`** 的完整行会被丢弃、其 `seq` 变成可复用号——这是实现口径，**比 ST-11 的字面更严**：为了保住"末尾永远是完整行"这个前提（`append` 的整套加固都建立在它上面），宁可丢掉一条能解析的完整行。
 代价是"**手工追加时忘了换行 = 该条静默消失**"（见 §十三 不担保-04）。
 
@@ -74,8 +74,8 @@
 
 | 问题 | 答案 | 依据 |
 |---|---|---|
-| 读的时候，键的顺序重要吗？ | **不重要**。JSON 对象是无序键值对；本体校验**只看键在不在**，不比较顺序 | 〔源码〕`src/ontology.rs` L157–202（`contains_key`） |
-| 写的时候，键以什么顺序落盘？ | **键的字节序升序**（`actor, at, body, chain, flags, id, kind, seq, world`）。`serde_json` 未启用 `preserve_order` ⇒ 内部 `Map` 是 `BTreeMap` | 〔源码〕`src/ledger.rs` L314–315；〔源码〕`Cargo.lock` L64–75：`serde_json` 的依赖只有 `itoa/memchr/serde/serde_core/zmij`，**没有 `indexmap`**（启用 `preserve_order` 会引入它） |
+| 读的时候，键的顺序重要吗？ | **不重要**。JSON 对象是无序键值对；本体校验**只看键在不在**，不比较顺序 | 〔源码〕`src/ontology_definition/mod.rs` L157–202（`contains_key`） |
+| 写的时候，键以什么顺序落盘？ | **键的字节序升序**（`actor, at, body, chain, flags, id, kind, seq, world`）。`serde_json` 未启用 `preserve_order` ⇒ 内部 `Map` 是 `BTreeMap` | 〔源码〕`src/ledger/mod.rs` L314–315；〔源码〕`Cargo.lock` L64–75：`serde_json` 的依赖只有 `itoa/memchr/serde/serde_core/zmij`，**没有 `indexmap`**（启用 `preserve_order` 会引入它） |
 | 重算 hash 时，键的顺序重要吗？ | **至关重要**。`chain` / `vocab_hash` / 状态指纹三者都建立在"**紧凑 + 键升序**"的规范化字节上 | 〔实测·本文件复算〕§八 §九（三例逐位一致） |
 | 结论 | **读者不得依赖键序；想逐字节复现或重算 hash 的实现必须按升序输出键** | 同上 |
 | 落盘原始字节 | **已核实（运行期，2026-09-27）**：真二进制写出的头一行就是**字典序 + 紧凑**（顶层 `actor,at,body,chain,flags,id,kind,seq,world`；`body` 内层 `after,before,path,subject`），且**该行自带的 `chain` 能被本节口径逐位复算出来** ⇒ 不再是推断。原始输出与命令见 **§8.6** | §8.6；复算方法 §8.2 |
@@ -87,7 +87,7 @@
 
 | 位置 | 语义 | 依据 |
 |---|---|---|
-| **词表**（`ontology.json`）的任意层级 | `_` 开头的键是**注释**（`_comment` / `_source` …）：① 不以它为家族（`families` 下 `_` 开头的项被跳过）；② 计算 `vocab_hash` 时**递归剔除**（含数组元素内的对象） | 〔源码〕`src/ontology.rs` L100–103、L221–237、L240–250；〔实测·本文件复算〕§9.4 的 hash 与本仓库记录逐位一致（该本体含顶层与嵌套多处的 `_` 键） |
+| **词表**（`ontology.json`）的任意层级 | `_` 开头的键是**注释**（`_comment` / `_source` …）：① 不以它为家族（`families` 下 `_` 开头的项被跳过）；② 计算 `vocab_hash` 时**递归剔除**（含数组元素内的对象） | 〔源码〕`src/ontology_definition/mod.rs` L100–103、L221–237、L240–250；〔实测·本文件复算〕§9.4 的 hash 与本仓库记录逐位一致（该本体含顶层与嵌套多处的 `_` 键） |
 | **账本行**（事件对象） | **没有任何特殊语义**：`_` 开头的键**不会被剥离**，也不参与任何判定；写入侧从不产生，读侧"多余的键一律忽略" | 〔源码〕全 `src/` 仅有 `ontology.rs`（词表）与 `gate.rs` L178（策略主体名）处理 `_` 前缀，**账本/读模型侧零处理**（grep 结果） |
 
 ⇒ **不得**把"`_` 前缀"当作账本行的注释机制：它既不注释、也不隐藏，还会计入 `chain`（因为它就在事件对象里）。
@@ -97,20 +97,20 @@
 ## 三、信封字段表
 
 本体定义：`ontology.json` L7–L23（`envelope.required` = 8 项、`envelope.optional` = `["to","trace"]`、`fields` 为人类可读说明）。
-构造点：`src/event.rs` L26–L37 `new_event(seq, kind, actor, body)`。
+构造点：`src/common/event.rs` L26–L37 `new_event(seq, kind, actor, body)`。
 
 ### 3.1 必填 8 项
 
 | 字段 | 类型（本体的写法） | 缺了会怎样 | 约束与判据（源码行） | 示例 |
 |---|---|---|---|---|
-| `world` | integer（词表版本） | `Ontology.MissingField` | 必须**等于本体声明的 `world`**，否则 `Violation::BadVersion`（`src/ontology.rs` L169–175）；构造函数写死 `WORLD_VERSION = 1`（`src/event.rs` L16），启动时另校"构造器版本 = 本体版本"否则拒启（`src/lib.rs` L85–92） | `1` |
-| `kind` | enum(change, act, notice) | `Ontology.MissingField` | 三家族之外一律 `Violation::UnknownKind`（`src/ontology.rs` L177–183）——**未知家族拒绝**（与"未知 `flags` 忽略"成对，见 §3.3） | `"change"` |
-| `id` | string（事件自身身份，去重） | `Ontology.MissingField` | 由 `new_id()` 生成：`e<Unix 纳秒>-<进程内计数器>`（`src/event.rs` L40–43）；**不是 UUID**，跨机不保证唯一 | `"e1790414728512368219-0"` |
-| `seq` | integer（账本中的位置） | `Ontology.MissingField`；读侧 `Ledger.MissingSeq` | 由**账本**分配；落笔时必须等于 `next_seq`，否则 `Ledger.SeqMismatch` 拒写（`src/ledger.rs` L295–304） | `1` |
-| `at` | integer（Unix 秒） | `Ontology.MissingField` | `unix_secs()`（失败取 0，`src/event.rs` L73–78）；**顺序由 `seq` 决定，`at` 只作辅助**；**不进读模型、不进状态指纹**（`src/readmodel.rs` L211–227） | `1790414728` |
+| `world` | integer（词表版本） | `Ontology.MissingField` | 必须**等于本体声明的 `world`**，否则 `Violation::BadVersion`（`src/ontology_definition/mod.rs` L169–175）；构造函数写死 `WORLD_VERSION = 1`（`src/common/event.rs` L16），启动时另校"构造器版本 = 本体版本"否则拒启（`src/lib.rs` L85–92） | `1` |
+| `kind` | enum(change, act, notice) | `Ontology.MissingField` | 三家族之外一律 `Violation::UnknownKind`（`src/ontology_definition/mod.rs` L177–183）——**未知家族拒绝**（与"未知 `flags` 忽略"成对，见 §3.3） | `"change"` |
+| `id` | string（事件自身身份，去重） | `Ontology.MissingField` | 由 `new_id()` 生成：`e<Unix 纳秒>-<进程内计数器>`（`src/common/event.rs` L40–43）；**不是 UUID**，跨机不保证唯一 | `"e1790414728512368219-0"` |
+| `seq` | integer（账本中的位置） | `Ontology.MissingField`；读侧 `Ledger.MissingSeq` | 由**账本**分配；落笔时必须等于 `next_seq`，否则 `Ledger.SeqMismatch` 拒写（`src/ledger/mod.rs` L295–304） | `1` |
+| `at` | integer（Unix 秒） | `Ontology.MissingField` | `unix_secs()`（失败取 0，`src/common/event.rs` L73–78）；**顺序由 `seq` 决定，`at` 只作辅助**；**不进读模型、不进状态指纹**（`src/ontology_instance/readmodel.rs` L211–227） | `1790414728` |
 | `actor` | string（世界内身份） | `Ontology.MissingField` | 形如 `world://user`、`world://core`、`world://agent/1`；**不是 pid/uid**（`07/2-依据/14` §2.2）；门禁按它裁决（`src/lib.rs` L133–192） | `"world://user"` |
-| `flags` | array（能力旗标） | `Ontology.MissingField` | 当前实现**可写非空旗标**（2026-09-28 起）：调用方经 `--flag <名>`（CLI `append`）或 `World::commit_envelope` 的信封 `flags` 传入，落笔前由 `event::with_flag` 追加；**不给 ⇒ 仍是空数组**（**示例列即出厂初值**）。**未知旗标必须忽略、永不因它改版本号**这条口径不变（`ontology.json:20`）。**`src/` 内已有读点**：`event::read_flags`（`src/event.rs`）／`Ontology::read_flags`（`src/ontology.rs`）——原文「`src/` 内**没有任何代码读 `flags`**」**已过期**；⚠ 本体**顶层**的 `flags` 那格**仍无人读**（本轮刻意如此，见 `WC-ONT-001` §八.4）。 | `[]` |
-| `body` | object（家族信纸） | `Ontology.MissingField` | 必须是**对象**（数组/字符串/数字都拒，`src/ontology.rs` L185–191），再按家族查必填（§四） | `{"subject":…}` |
+| `flags` | array（能力旗标） | `Ontology.MissingField` | 当前实现**可写非空旗标**（2026-09-28 起）：调用方经 `--flag <名>`（CLI `append`）或 `World::commit_envelope` 的信封 `flags` 传入，落笔前由 `event::with_flag` 追加；**不给 ⇒ 仍是空数组**（**示例列即出厂初值**）。**未知旗标必须忽略、永不因它改版本号**这条口径不变（`ontology.json:20`）。**`src/` 内已有读点**：`event::read_flags`（`src/common/event.rs`）／`Ontology::read_flags`（`src/ontology_definition/mod.rs`）——原文「`src/` 内**没有任何代码读 `flags`**」**已过期**；⚠ 本体**顶层**的 `flags` 那格**仍无人读**（本轮刻意如此，见 `WC-ONT-001` §八.4）。 | `[]` |
+| `body` | object（家族信纸） | `Ontology.MissingField` | 必须是**对象**（数组/字符串/数字都拒，`src/ontology_definition/mod.rs` L185–191），再按家族查必填（§四） | `{"subject":…}` |
 
 ### 3.2 可选字段
 
@@ -118,7 +118,7 @@
 |---|---|---|---|
 | `to` | string（目的地；空 = 广播） | **本体登记为可选，实现从不写入**（`src/` 内无写入点）〔源码〕 | `ontology.json` L10、L18 |
 | `trace` | string（因果：引发本条的那条事件的 `id`） | **本体登记为可选，实现从不写入**；其"降级"已登记为**上游差异**，地位由**人**裁定（`WC-R4-DISP-001` §二 C 组、§三 **E-1**） | `ontology.json` L10、L19；`WC-R4-DISP-001` L70、L83、L225 |
-| `chain` | string，形如 `fnv1a64:<16 位小写十六进制>` | **写入侧无条件插入**（每条落盘事件都带）；**它不在 `envelope.optional` 里**（仍是 `["to","trace"]`）——登记为 `WC-SCMP-001` §8.4 **G-18** | 〔源码〕`src/ledger.rs` L306–312；`ontology.json` L10；`WC-CR-003` L52 |
+| `chain` | string，形如 `fnv1a64:<16 位小写十六进制>` | **写入侧无条件插入**（每条落盘事件都带）；**它不在 `envelope.optional` 里**（仍是 `["to","trace"]`）——登记为 `WC-SCMP-001` §8.4 **G-18** | 〔源码〕`src/ledger/mod.rs` L306–312；`ontology.json` L10；`WC-CR-003` L52 |
 
 ⚠ **可选性 ≠ 无义务**：`chain` 虽不在本体里，但**每一条真实落盘的事件都带它**（§七）。读者不能假设"没有 `chain` 的行 = 新格式"：`chain` 缺失只说明这本账是 **v1 无链账本**或**被人手工造过**。
 
@@ -126,17 +126,17 @@
 
 | 实情 | 说明 | 依据 |
 |---|---|---|
-| 本体只查"必填键在不在" | 除 `world`（按无符号整数取）、`kind`（按字符串取）、`body`（按对象取）三处外，**不检查类型**。例如 `actor` 写成数字、`flags` 写成字符串，本体校验**都能过** | 〔源码〕`src/ontology.rs` L157–202 |
+| 本体只查"必填键在不在" | 除 `world`（按无符号整数取）、`kind`（按字符串取）、`body`（按对象取）三处外，**不检查类型**。例如 `actor` 写成数字、`flags` 写成字符串，本体校验**都能过** | 〔源码〕`src/ontology_definition/mod.rs` L157–202 |
 | **未知键被忽略**（宽进） | `validate` 不含白名单 ⇒ 多出来的键（含 `_xxx`、含未来新增字段）**不会**被拒；`chain` 就是这样进来的 | 〔源码〕同上；`WC-CR-003` L52 |
-| ⚠ 这一条的**证据边界** | 本条的判据**只有源码**（`validate` 只 `contains_key` 必填键，`src/ontology.rs` L157–202）。**不得**用 §8.6 的运行期账本行来证明它——`chain` 是在 `ontology.validate` **之后**才插入的，本体从未见过该键（详见 §8.6 末的边界段） | 〔源码〕`src/lib.rs` L133–136、L194；`src/ledger.rs` L306–312 |
-| **未知 `kind` 被拒**（严出） | 读模型遇到本体里没有的家族直接报错，**拒绝猜测语义** | 〔源码〕`src/readmodel.rs` L110–115；`WC-R4-DISP-001` L83（"未知 `kind` 拒绝 / 未知 `flags` 忽略"对偶） |
+| ⚠ 这一条的**证据边界** | 本条的判据**只有源码**（`validate` 只 `contains_key` 必填键，`src/ontology_definition/mod.rs` L157–202）。**不得**用 §8.6 的运行期账本行来证明它——`chain` 是在 `ontology.validate` **之后**才插入的，本体从未见过该键（详见 §8.6 末的边界段） | 〔源码〕`src/lib.rs` L133–136、L194；`src/ledger/mod.rs` L306–312 |
+| **未知 `kind` 被拒**（严出） | 读模型遇到本体里没有的家族直接报错，**拒绝猜测语义** | 〔源码〕`src/ontology_instance/readmodel.rs` L110–115；`WC-R4-DISP-001` L83（"未知 `kind` 拒绝 / 未知 `flags` 忽略"对偶） |
 | 类型判据的**唯一保证**在写入侧 | 门禁的 `authorize_write(actor, subject)` 要求 `body.subject` 是字符串，取不到就按空串处理（`src/lib.rs` L169–176）⇒ "主体身份可核"仍属**需求层待补**（`WC-R4-DISP-001` L48） | 〔源码〕同上 |
 
 ---
 
 ## 四、三家族各自的必填字段
 
-本体：`ontology.json` L25–L41；构造器：`src/event.rs` L47–L64；折叠侧语义：`src/readmodel.rs` L87–L164。
+本体：`ontology.json` L25–L41；构造器：`src/common/event.rs` L47–L64；折叠侧语义：`src/ontology_instance/readmodel.rs` L87–L164。
 
 | 家族 | `body` 必填 | `body` 可选 | 含义与语义约束 | 构造器 |
 |---|---|---|---|---|
@@ -152,20 +152,20 @@
 
 | 项 | 规定 | 依据 |
 |---|---|---|
-| 谁分配 | **账本**。唯一写入口 `World::commit` 先 `ledger.next_seq()` 取号，再造事件，再校验/门禁，最后落笔 | 〔源码〕`src/lib.rs` L133–135、L194；`src/event.rs` L8–L9、L23–L26 |
-| 启动怎么恢复 | 打开时**逐行解析**并校验 `seq` **从 1 起严格连续**（`seq == last + 1`），然后 `next_seq = last + 1` | 〔源码〕`src/ledger.rs` L211–231、L241 |
-| 空账本 | `next_seq = 1`，`last_seq = 0` | 〔源码〕`src/ledger.rs` L181、L241、L259–261 |
-| 单调性 | **严格 +1**：`seq` 因而是"**行号**"（忽略空行后）。缺号 ⇒ `Ledger.SeqGap`，**拒绝启动**（不猜测、不修补） | 〔源码〕`src/ledger.rs` L223–231；判据用例 `t4`（`tests/acceptance.rs` L140–148） |
-| 落笔时的守卫 | `append` 要求 `ev.seq == next_seq`，否则 `Ledger.SeqMismatch` 拒写——**防止"取号与落笔脱节"** | 〔源码〕`src/ledger.rs` L295–304 |
-| `next_seq` 何时前进 | **只在 `fsync` 成功之后**（`self.next_seq += 1`）。失败/回滚/污染时**一律不前进** ⇒ 号可复用、不会重号 | 〔源码〕`src/ledger.rs` L327–340；`U20`（L640–641）、`U21`（L696）、`U22`（L713）；半行丢弃后号可复用：`t3`（`tests/acceptance.rs` L133–137） |
+| 谁分配 | **账本**。唯一写入口 `World::commit` 先 `ledger.next_seq()` 取号，再造事件，再校验/门禁，最后落笔 | 〔源码〕`src/lib.rs` L133–135、L194；`src/common/event.rs` L8–L9、L23–L26 |
+| 启动怎么恢复 | 打开时**逐行解析**并校验 `seq` **从 1 起严格连续**（`seq == last + 1`），然后 `next_seq = last + 1` | 〔源码〕`src/ledger/mod.rs` L211–231、L241 |
+| 空账本 | `next_seq = 1`，`last_seq = 0` | 〔源码〕`src/ledger/mod.rs` L181、L241、L259–261 |
+| 单调性 | **严格 +1**：`seq` 因而是"**行号**"（忽略空行后）。缺号 ⇒ `Ledger.SeqGap`，**拒绝启动**（不猜测、不修补） | 〔源码〕`src/ledger/mod.rs` L223–231；判据用例 `t4`（`tests/acceptance.rs` L140–148） |
+| 落笔时的守卫 | `append` 要求 `ev.seq == next_seq`，否则 `Ledger.SeqMismatch` 拒写——**防止"取号与落笔脱节"** | 〔源码〕`src/ledger/mod.rs` L295–304 |
+| `next_seq` 何时前进 | **只在 `fsync` 成功之后**（`self.next_seq += 1`）。失败/回滚/污染时**一律不前进** ⇒ 号可复用、不会重号 | 〔源码〕`src/ledger/mod.rs` L327–340；`U20`（L640–641）、`U21`（L696）、`U22`（L713）；半行丢弃后号可复用：`t3`（`tests/acceptance.rs` L133–137） |
 | 号是否会被"消费掉" | **不会**：法律校验失败或门禁拒绝时事件不落笔，`next_seq` 不动；门禁拒绝会**另写一条 `notice`**，那条 notice 会占一个号 | 〔源码〕`src/lib.rs` L136–L192、L225–248 |
-| 谁**不许**决定 `seq` | 任何调用方。`Ledger::append` 是 `pub(crate)`，`World` 字段私有；写入者只能给"信纸"，不能给"位置" | 〔源码〕`src/ledger.rs` L13、L77–79、L268–273；`src/lib.rs` L37–56（含 `compile_fail` doctest） |
+| 谁**不许**决定 `seq` | 任何调用方。`Ledger::append` 是 `pub(crate)`，`World` 字段私有；写入者只能给"信纸"，不能给"位置" | 〔源码〕`src/ledger/mod.rs` L13、L77–79、L268–273；`src/lib.rs` L37–56（含 `compile_fail` doctest） |
 
 ---
 
 ## 六、原子写与崩溃语义
 
-三条第一版就要守的纪律（`07/4-计划/04` §2.2，〔源码〕`src/ledger.rs` L8–L11 复述）：
+三条第一版就要守的纪律（`07/4-计划/04` §2.2，〔源码〕`src/ledger/mod.rs` L8–L11 复述）：
 
 1. **`seq` 由世界分配**（启动读最大 `seq` + 1，之后内存递增）；
 2. **写入必须原子**（一次写一整行 + flush）——崩在最坏只会留下**半行**；
@@ -175,7 +175,7 @@
 
 | # | 动作 | 依据 |
 |---|---|---|
-| 1 | 若账本已**污染** ⇒ 直接 `Ledger.Poisoned` 拒写 | `src/ledger.rs` L287–293 |
+| 1 | 若账本已**污染** ⇒ 直接 `Ledger.Poisoned` 拒写 | `src/ledger/mod.rs` L287–293 |
 | 2 | 校验 `ev.seq == next_seq`，否则 `SeqMismatch` | L295–304 |
 | 3 | 算 `chain` 并**写进事件**（`prev + "\n" + 去掉 chain 的规范形式`） | L306–312（§七） |
 | 4 | 序列化整行：`serde_json::to_string(&ev)`，再 `push('\n')` | L314–316 |
@@ -186,7 +186,7 @@
 | 9 | `sync`：`File::sync_data()`（即 `fdatasync`）。失败 ⇒ 标记 `poisoned`，报 `Ledger.SyncFail` | L327–336、L66–68 |
 | 10 | 全部成功 ⇒ `next_seq += 1`、`last_chain = chain`，返回落笔后的事件 | L338–340 |
 
-**可见性边界**：`Ledger::append` 是 `pub(crate)`；`World` 的三个字段全私有；生产实现里**没有**替换落笔实现的 setter（故障注入替身 `FlakySink` 只在 `#[cfg(test)]` 内）〔源码〕`src/ledger.rs` L42–51、L515–519。
+**可见性边界**：`Ledger::append` 是 `pub(crate)`；`World` 的三个字段全私有；生产实现里**没有**替换落笔实现的 setter（故障注入替身 `FlakySink` 只在 `#[cfg(test)]` 内）〔源码〕`src/ledger/mod.rs` L42–51、L515–519。
 
 ### 6.2 半行怎么被丢弃（启动时的尾迹处理）
 
@@ -196,7 +196,7 @@
 keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail，拒绝启动）
 然后逐行解析、校验 seq 连续
 ```
-〔源码〕`src/ledger.rs` L192–231。
+〔源码〕`src/ledger/mod.rs` L192–231。
 
 | 判据 | 证据 |
 |---|---|
@@ -208,7 +208,7 @@ keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail�
 
 | 层次 | 事实 | 依据 |
 |---|---|---|
-| `flush` ≠ 落盘 | `flush` 只把数据交给内核；原实现的注释原文："`flush` 只把数据交给内核，**掉电仍可能丢已 ack 的事件**" | 〔源码〕`src/ledger.rs` L280 |
+| `flush` ≠ 落盘 | `flush` 只把数据交给内核；原实现的注释原文："`flush` 只把数据交给内核，**掉电仍可能丢已 ack 的事件**" | 〔源码〕`src/ledger/mod.rs` L280 |
 | 成功路径确有 `fsync` | 每条成功落笔都走 `sync_data()`（`fdatasync`），**且 `next_seq` 在它之后才前进** ⇒ "本进程认为已落笔"的下界是"已交给内核并要求刷盘" | 〔源码〕L66–68、L327–338 |
 | `fsync` 失败怎么办 | **既不回滚也不前进**：回滚可能让已可见的字节消失，前进可能掉电后缺号 ⇒ 标记**污染**、报 `Ledger.SyncFail`、拒绝一切后续写入（宁可停） | 〔源码〕L327–336；用例 `U22`（L699–725） |
 | ⚠ **目录项不在担保内** | 新建账本 / 锁文件**没有任何针对目录 fd 的 `fsync`**：全 `src/` 内只有 `File::sync_data`（L67、L561）与 `set_len`（L70、L206），**无 `sync_all`、无目录 fsync**〔源码 grep〕。其后果按 `WC-CR-006` **K-4** 登记为："**首次 ack 后掉电可能整本消失**"（该 CR 状态：**仅拟稿、未实施**） | 〔源码〕同上；〔登记〕`WC-CR-006` L148–154 |
@@ -219,7 +219,7 @@ keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail�
 ### 6.4 污染（poisoned）之后
 
 一旦污染，**拒绝一切后续写入**（`Ledger.Poisoned`），直到人工检查账本后重启；`seq` 不再前进。理由是"宁可停，也不带着不确定的历史继续走"。
-依据：〔源码〕`src/ledger.rs` L81–84、L287–293、L331、L357；用例 `U21`（L663–697，**如实断言半行残留在盘上**，不粉饰"已收拾干净"）、`U22`（L699–725）。
+依据：〔源码〕`src/ledger/mod.rs` L81–84、L287–293、L331、L357；用例 `U21`（L663–697，**如实断言半行残留在盘上**，不粉饰"已收拾干净"）、`U22`（L699–725）。
 
 ### 6.5 本节登记的已知缺口（**不担保，照实列出**）
 
@@ -227,11 +227,11 @@ keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail�
 
 | # | 事实 | 本文档核到的依据 | 登记处 |
 |---|---|---|---|
-| K-1 | `chain` 是**前向链**、锚点只有 `genesis` ⇒ **尾部整条删除不可检出**（删最后 k 条后，剩余链仍自洽）；`main.rs` 却打印"✅ 局部篡改可检出" | 〔源码〕`src/ledger.rs` L423–493（`verify_chain` 自 `CHAIN_GENESIS` 起算）、`src/main.rs` L143–144 | `WC-CR-006` L112–123 |
+| K-1 | `chain` 是**前向链**、锚点只有 `genesis` ⇒ **尾部整条删除不可检出**（删最后 k 条后，剩余链仍自洽）；`main.rs` 却打印"✅ 局部篡改可检出" | 〔源码〕`src/ledger/mod.rs` L423–493（`verify_chain` 自 `CHAIN_GENESIS` 起算）、`src/main.rs` L143–144 | `WC-CR-006` L112–123 |
 | K-3 | `append` **无条件**写 `chain`（L306–312），而 `chained` 只读不用、`load_chain()` 的返回值在 `lib.rs` L78 被丢弃 ⇒ 在**旧的无链账本**上做一次正常追加，会把世界推进"半链"态，下次打开撞 `Ledger.MixedChain` | 〔源码〕L306–312、L95、L382–396；`src/lib.rs` L78 | `WC-CR-006` L139–146 |
 | K-4 | 新建账本/锁文件**无目录 fsync**（同 §6.3） | 〔源码 grep〕无 `sync_all`/目录 fsync | `WC-CR-006` L148–154 |
-| K-5 | **回滚收尾吞掉 `fsync` 错误**却回报"已回滚到写入前的 N 字节"：`let _ = self.sink.sync();` | 〔源码〕`src/ledger.rs` L350 | `WC-CR-006` L156 起 |
-| K-2 | 陈旧锁回收是 **unlink 竞态**（判"持有者是否存活"依赖 `/proc/<pid>`）⇒ 真可能出现两个写者 | 〔源码〕`src/ledger.rs` L119–159（L131–137 的回收分支） | `WC-CR-006` L125–137 |
+| K-5 | **回滚收尾吞掉 `fsync` 错误**却回报"已回滚到写入前的 N 字节"：`let _ = self.sink.sync();` | 〔源码〕`src/ledger/mod.rs` L350 | `WC-CR-006` L156 起 |
+| K-2 | 陈旧锁回收是 **unlink 竞态**（判"持有者是否存活"依赖 `/proc/<pid>`）⇒ 真可能出现两个写者 | 〔源码〕`src/ledger/mod.rs` L119–159（L131–137 的回收分支） | `WC-CR-006` L125–137 |
 
 ---
 
@@ -239,13 +239,13 @@ keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail�
 
 | 项 | 规定 | 依据 |
 |---|---|---|
-| 形态 | 事件对象里的一个字符串字段，值形如 `fnv1a64:<16 位小写十六进制>` | 〔源码〕`src/ledger.rs` L312、L445 |
+| 形态 | 事件对象里的一个字符串字段，值形如 `fnv1a64:<16 位小写十六进制>` | 〔源码〕`src/ledger/mod.rs` L312、L445 |
 | 算法 | `chain(第 n 条) = FNV-1a64( chain(第 n−1 条) + "\n" + 规范化字节(本条去掉 chain) )`；首条以**固定种子 `genesis`** 起算 | 〔源码〕L423–446（`CHAIN_GENESIS = "genesis"` 在 L424） |
 | 插入时机 | 落笔**之前**、校验 `seq` **之后**；即链值参与落盘字节 | 〔源码〕L306–316 |
-| 校验时机 | **启动路径上**：`Ledger::open` → `World::open` 调 `load_chain()`，逐环重算比对 | 〔源码〕`src/ledger.rs` L372–391、`src/lib.rs` L76–78 |
+| 校验时机 | **启动路径上**：`Ledger::open` → `World::open` 调 `load_chain()`，逐环重算比对 | 〔源码〕`src/ledger/mod.rs` L372–391、`src/lib.rs` L76–78 |
 | 三类判定 | ① **全部有链** ⇒ 逐环核验，任一环断 ⇒ `ChainMismatch`（拒启）；② **全部无链** ⇒ `NoChain`（**允许**，v1 兼容；调用方**须打印警告**"局部篡改不可检出"）；③ **混用** ⇒ `MixedChain`（拒用——半链比无链更危险） | 〔源码〕L448–493；`src/main.rs` L143–153 |
-| 不参与什么 | 读模型**不认 `chain`**：它不进 `State`、不进状态指纹（因此"加链不改变世界"） | 〔登记〕`tests/contract.rs` L912（"链不影响状态"）；〔源码〕`src/readmodel.rs` L211–227 |
-| 边界 | **非加密**指纹，只回答"是不是同一份内容"，**不得**用于安全判断；**挡不住"整文件重写"**（能重算整条链的对手可让核验通过） | 〔源码〕`src/ledger.rs` L456–457；同类声明见 `src/ontology.rs` L142–143；`WC-CR-003` §三 |
+| 不参与什么 | 读模型**不认 `chain`**：它不进 `State`、不进状态指纹（因此"加链不改变世界"） | 〔登记〕`tests/contract.rs` L912（"链不影响状态"）；〔源码〕`src/ontology_instance/readmodel.rs` L211–227 |
+| 边界 | **非加密**指纹，只回答"是不是同一份内容"，**不得**用于安全判断；**挡不住"整文件重写"**（能重算整条链的对手可让核验通过） | 〔源码〕`src/ledger/mod.rs` L456–457；同类声明见 `src/ontology_definition/mod.rs` L142–143；`WC-CR-003` §三 |
 
 ⚠ 与 R4 `A-3` 的关系：`chain` 让"**规范化字节**"从"文档问题"变成"**判据问题**"——复算链的第三方必须严格照 §八 的字节口径，否则**同一条账本会被判成被篡改**。
 
@@ -263,9 +263,9 @@ keep != 文件长度 ⇒ set_len(keep) 截断（失败 ⇒ Ledger.TruncateFail�
 | 要素 | 规定 | 依据 |
 |---|---|---|
 | **键序** | 对象键按**字节序升序**递归排列（`BTreeMap` 顺序） | 〔源码〕`Cargo.lock` 无 `indexmap` ⇒ `serde_json::Map` 为 `BTreeMap`；〔实测·本文件复算〕§8.4 三例 |
-| **数字格式** | 整数按十进制最短形式（无前导零、无 `+`）；`world`/`seq`/`at` 均为无符号整数 | 〔源码〕`src/event.rs` L28–35（`json!` 写入 u64）；〔实测·本文件复算〕§8.4 例 2（`0`/`1` 的字面量） |
+| **数字格式** | 整数按十进制最短形式（无前导零、无 `+`）；`world`/`seq`/`at` 均为无符号整数 | 〔源码〕`src/common/event.rs` L28–35（`json!` 写入 u64）；〔实测·本文件复算〕§8.4 例 2（`0`/`1` 的字面量） |
 | **转义** | 只转义必需项：`"` → `\"`、`\` → `\\`、控制字符（U+0000–U+001F）走短转义；**非 ASCII 原样输出（不转成 `\uXXXX`）** | 〔源码 + 样本〕`WC-CON01-001` §二⑤ L95–98 的真实账本片段里，中文理由**以原字符出现**（未转义）〔登记〕；**运行期追加证据**（§8.6）：`/` 与 `:` **未转义**、ASCII 全部原样。⚠ **精确边界仍【待验证-03】**（U+007F / U+2028 / 控制字符 / 非 ASCII **本次探针未覆盖**） |
-| **编码** | UTF-8（无 BOM），逐字节求 hash | 〔源码〕`src/ontology.rs` L245–247、`src/ledger.rs` L441–444、`src/readmodel.rs` L238–241（均对 `as_bytes()` 逐字节迭代） |
+| **编码** | UTF-8（无 BOM），逐字节求 hash | 〔源码〕`src/ontology_definition/mod.rs` L245–247、`src/ledger/mod.rs` L441–444、`src/ontology_instance/readmodel.rs` L238–241（均对 `as_bytes()` 逐字节迭代） |
 | **结尾** | 落盘行 = 规范化字节 + `\n`；求 hash 的输入**不含**行尾换行（但 `chain` 的输入含分隔用的 `"\n"`） | 〔源码〕L314–316 vs L441（`prev.as_bytes().iter().chain(b"\n").chain(canon.as_bytes())`） |
 
 ### 8.2 复算步骤（任何语言照做；步骤 6 已于 2026-09-27 执行，见 §8.6）
@@ -315,7 +315,7 @@ fnv1a64:8befe15885c3a70c
 
 | # | 复算什么 | 输入 | 复算结果 | 仓库内已记录的值 | 出处 | 说明 |
 |---|---|---|---|---|---|---|
-| 1 | 出厂**词表 hash** | `world-core/ontology.json`（递归剔除 `_` 键后规范化） | `fnv1a64:6a96abfa9a969462` | `fnv1a64:6a96abfa9a969462` | `WC-CR-003` L52；`WC-SK-001` L45；`WC-OD-011` §一〔登记〕 | 见 §9.4；**同一值已由真二进制运行期给出**（§8.6） |
+| 1 | 出厂**词表 hash** | `world-core/src/ontology_definition/ontology.json`（递归剔除 `_` 键后规范化） | `fnv1a64:6a96abfa9a969462` | `fnv1a64:6a96abfa9a969462` | `WC-CR-003` L52；`WC-SK-001` L45；`WC-OD-011` §一〔登记〕 | 见 §9.4；**同一值已由真二进制运行期给出**（§8.6） |
 | 2 | **空状态指纹** | `{"acts":0,"last_seq":0,"notices":0,"objects":{},"seen":0}`（`State::to_json` 的规范形式） | `fnv1a64:bfe5a6d1cc805a56` | `fnv1a64:bfe5a6d1cc805a56` | `WC-OD-011` §一〔登记〕 | 证明 `Value` 的序列化确是**键升序 + 紧凑**（换插入顺序或加空格都得不到该值）；**同一值已由真二进制运行期给出**（§8.6） |
 | 3 | **示例行的 `chain`** | §8.3 的规范化字节 | `fnv1a64:8befe15885c3a70c` | `fnv1a64:8befe15885c3a70c` | `WC-OD-010` §一〔登记〕 | 证明链的**输入口径**（`genesis` + `\n` + 去 `chain` 的规范形式）；§8.6 用**运行期写出的另一行**把同一口径再证一遍 |
 | 4 | **运行期行的 `chain`**（第一次运行） | §8.6 的真实落盘首行（去掉 `chain` 后） | `fnv1a64:19632cb629ab2112` | `fnv1a64:19632cb629ab2112` | 本文件对 §8.6 原始输出的复算；`WC-ONT-001-v0.1` 起草方**独立复算同值**〔登记·交叉复核〕 | **这是最强的一例**：链值由**真二进制写出**，而口径复算**逐位命中** ⇒ §8.1 的键序/紧凑/编码/结尾四要素同时被证实 |
@@ -407,9 +407,9 @@ line-sha256 4c2057892b6f3f8c7848722f741b27d32b2e26c53f0ac17fa9226fbabce6c42b
 
 > ⚠ **这条运行期证据的边界（必须写明；由 `WC-ONT-001-v0.1` 起草方指出，批次执行方采纳并登记于 `WC-R4-DISP-001` §7.3 第 6 行）**：
 > `chain` 是 `Ledger::append` 在 **`ontology.validate` 之后**才插入的——`World::commit` 的调用序是"取号 → 造事件 → **本体校验**（`src/lib.rs` L133–136）→ 门禁 → **落笔**（L194）"，
-> 插入发生在 `src/ledger.rs` **L306–312**。**⇒ 本体从未见过 `chain` 这个键。**
+> 插入发生在 `src/ledger/mod.rs` **L306–312**。**⇒ 本体从未见过 `chain` 这个键。**
 > 因此这条运行期账本行**只能**证"**键序 + 紧凑 + 编码 + 结尾**"（以及链口径），
-> **不能**用来证"**本体忽略未知信封字段**"。后者在本文件里的**唯一**判据是源码 `src/ontology.rs` L157–202（只查必填、无白名单）——见 §3.3。
+> **不能**用来证"**本体忽略未知信封字段**"。后者在本文件里的**唯一**判据是源码 `src/ontology_definition/mod.rs` L157–202（只查必填、无白名单）——见 §3.3。
 
 **本次探针没有覆盖的（⇒ 仍按【待验证】处理，不得当成已核实）**：非 ASCII / CJK、控制字符、U+007F、U+2028、浮点与大整数、CRLF 或 BOM 账本的读取容忍性、`act`/`notice` 家族的落盘形状、`to`/`trace`（实现从不写）、崩溃尾迹（§六）、**以及"本体对未知信封字段的容忍行为"（见上一段的边界）**。
 
@@ -421,18 +421,18 @@ line-sha256 4c2057892b6f3f8c7848722f741b27d32b2e26c53f0ac17fa9226fbabce6c42b
 
 | 键 | 作用 | 依据 |
 |---|---|---|
-| `world` | 词表版本（必须与实现的 `WORLD_VERSION` 一致，否则**拒绝启动**：`ext.world.VersionMismatch`） | `ontology.json` L5；`src/ontology.rs` L83–86；`src/lib.rs` L85–92 |
-| `envelope.required` / `envelope.optional` / `envelope.fields` | 信封的必填、可选与**人类可读的字段说明**（`fields` 只给人看，**不参与校验**） | `ontology.json` L7–23；`src/ontology.rs` L88–92（只取 `required`/`optional`） |
-| `families.<kind>.required` / `.optional` | 各家族信纸的必填与可选 | `ontology.json` L25–41；`src/ontology.rs` L94–111 |
+| `world` | 词表版本（必须与实现的 `WORLD_VERSION` 一致，否则**拒绝启动**：`ext.world.VersionMismatch`） | `ontology.json` L5；`src/ontology_definition/mod.rs` L83–86；`src/lib.rs` L85–92 |
+| `envelope.required` / `envelope.optional` / `envelope.fields` | 信封的必填、可选与**人类可读的字段说明**（`fields` 只给人看，**不参与校验**） | `ontology.json` L7–23；`src/ontology_definition/mod.rs` L88–92（只取 `required`/`optional`） |
+| `families.<kind>.required` / `.optional` | 各家族信纸的必填与可选 | `ontology.json` L25–41；`src/ontology_definition/mod.rs` L94–111 |
 | `concepts` | 世界里有哪些实体、各有哪些字段（最小集；扩展走账本里的词表定义事件） | `ontology.json` L43–47；`07/2-依据/15` §二.3 |
-| `flags` | 能力旗标清单（当前为 `[]`） | `ontology.json` L49；`src/event.rs` L19 |
-| `_comment` / `_source` 等 | **注释**，见 §2.3 | `ontology.json` L2–3；`src/ontology.rs` L100–103、L221–237 |
+| `flags` | 能力旗标清单（当前为 `[]`） | `ontology.json` L49；`src/common/event.rs` L19 |
+| `_comment` / `_source` 等 | **注释**，见 §2.3 | `ontology.json` L2–3；`src/ontology_definition/mod.rs` L100–103、L221–237 |
 
-加载失败一律**拒绝启动**（`Ontology.ReadFail` / `BadJson` / `NoVersion` / `NoEnvelope` / `NoFamilies` / `BadField`），且加载后立刻过静态墙（本体文件与目录不得对 group/other 可写）〔源码〕`src/ontology.rs` L71–123。
+加载失败一律**拒绝启动**（`Ontology.ReadFail` / `BadJson` / `NoVersion` / `NoEnvelope` / `NoFamilies` / `BadField`），且加载后立刻过静态墙（本体文件与目录不得对 group/other 可写）〔源码〕`src/ontology_definition/mod.rs` L71–123。
 
 ### 9.2 `_` 前缀键：**改注释不换身份，改语义必换身份**
 
-* 递归剔除 `_` 开头的键（含嵌套对象与数组元素内的对象）〔源码〕`src/ontology.rs` L221–237；
+* 递归剔除 `_` 开头的键（含嵌套对象与数组元素内的对象）〔源码〕`src/ontology_definition/mod.rs` L221–237；
 * `families` 下 `_` 开头的键**不算家族**〔源码〕L100–103；
 * 单元测试守着这两条：改 `_comment` ⇒ hash 不变；改语义 ⇒ hash 变；同一对象经一次 JSON 往返 ⇒ hash 不变〔源码〕L257–287；〔实测·本文件复算〕§8.4 例 1。
 
@@ -446,14 +446,14 @@ FNV-1a 64：offset basis = 0xcbf29ce484222325
             每字节：h = (h XOR byte) * prime  （mod 2^64 环绕）
 输出：16 位小写十六进制、前导零补齐，前缀 "fnv1a64:"
 ```
-〔源码〕`src/ontology.rs` L240–250（常量字面量在 L241–242、输出格式在 L249）。
-**同一组常量在另外三处独立出现**（可交叉核对）：`src/ledger.rs` L438–439（链）、`src/readmodel.rs` L235–236（状态指纹）、`tests/acceptance.rs` L327–334（测试侧**独立重算**，注释明说"以免测试与实现共用同一个错误"）。
+〔源码〕`src/ontology_definition/mod.rs` L240–250（常量字面量在 L241–242、输出格式在 L249）。
+**同一组常量在另外三处独立出现**（可交叉核对）：`src/ledger/mod.rs` L438–439（链）、`src/ontology_instance/readmodel.rs` L235–236（状态指纹）、`tests/acceptance.rs` L327–334（测试侧**独立重算**，注释明说"以免测试与实现共用同一个错误"）。
 
-⚠ **非加密**：它只回答"是不是同一份词表"，**不得**用于安全判断（`src/ontology.rs` L142–143）。
+⚠ **非加密**：它只回答"是不是同一份词表"，**不得**用于安全判断（`src/ontology_definition/mod.rs` L142–143）。
 
 ### 9.4 复算步骤与结果〔实测·本文件复算〕
 
-1. 以 UTF-8 读 `world-core/ontology.json`，按 JSON 解析；
+1. 以 UTF-8 读 `world-core/src/ontology_definition/ontology.json`，按 JSON 解析；
 2. **递归删掉**所有以 `_` 开头的键（顶层 `_comment`/`_source`，以及 `envelope`/`families.*`/`concepts` 内的 `_comment`）；
 3. 以**紧凑 + 键升序**序列化（§8.1）；
 4. 按 §9.3 求 FNV-1a64；
@@ -553,7 +553,7 @@ for ev in read_ledger("ledger.jsonl"):
     if ev["kind"] == "change":
         print(ev["seq"], ev["actor"], b["subject"], b["path"], b["before"], "->", b["after"])
 ```
-〔登记〕写法参照历史稿 `WC-OD-010` §五 的读法（该稿已撤出仓库），并**按源码口径补上**"末尾半行截断 / 空行 / 缺号即停"三步（`src/ledger.rs` L198–231）。
+〔登记〕写法参照历史稿 `WC-OD-010` §五 的读法（该稿已撤出仓库），并**按源码口径补上**"末尾半行截断 / 空行 / 缺号即停"三步（`src/ledger/mod.rs` L198–231）。
 
 ### 11.3 若要**重算**（`chain` / 状态指纹 / `vocab_hash`）
 
@@ -577,9 +577,9 @@ for ev in read_ledger("ledger.jsonl"):
 
 ## 十二、拒启与错误码（读/写双方都需要知道）
 
-错误码契约：`ext.world.<域>.<原因>: <人话说明>`——**冒号之前是机器读的，之后是给人读的**；两段只含 ASCII 字母/数字/下划线/点号，故解析不依赖编码〔源码〕`src/error.rs` L10–22、L37–54。域取值：`Ontology` / `Ledger` / `ReadModel` / `Gate` / `Guard` / `Channel` / `Checkpoint` / `Project` / `World`（完整清单见 `WC-IC-001` §三）。
+错误码契约：`ext.world.<域>.<原因>: <人话说明>`——**冒号之前是机器读的，之后是给人读的**；两段只含 ASCII 字母/数字/下划线/点号，故解析不依赖编码〔源码〕`src/common/error.rs` L10–22、L37–54。域取值：`Ontology` / `Ledger` / `ReadModel` / `Gate` / `Guard` / `Channel` / `Checkpoint` / `Project` / `World`（完整清单见 `WC-IC-001` §三）。
 
-| 情形 | 错误码 | 结果 | 依据（除注明者外均为 `src/ledger.rs`） |
+| 情形 | 错误码 | 结果 | 依据（除注明者外均为 `src/ledger/mod.rs`） |
 |---|---|---|---|
 | 账本缺号 | `ext.world.Ledger.SeqGap` | **拒绝启动** | L223–229 |
 | 某行不是合法 JSON | `ext.world.Ledger.Corrupt`（含行号） | 拒绝启动 | L217–218 |
@@ -594,9 +594,9 @@ for ev in read_ledger("ledger.jsonl"):
 | `fsync` 失败 | `Ledger.SyncFail` ⇒ 污染 | 停止写入，人工检查 | L327–336 |
 | 已污染后继续写 | `Ledger.Poisoned` | 拒绝写入 | L287–293 |
 | 落笔事件的 `seq` 与账本期望不符 | `Ledger.SeqMismatch` | 拒绝写入 | L299–304 |
-| 本体侧：缺段/版本不符/未知家族/必填缺失 | `Ontology.*`（`ReadFail`/`BadJson`/`NoVersion`/`NoEnvelope`/`NoFamilies`/`BadField`/`BadVersion`/`UnknownKind`） | 拒绝启动或拒绝该事件 | `src/ontology.rs` L23–44、L71–123、L157–202 |
-| 读模型：序号不连续 / 旧值不符 / 未知家族 | `ReadModel.SeqGap` / `BeforeMismatch` / `UnknownKind` | **拒绝折叠**（报错而不猜） | `src/readmodel.rs` L94–115、L146–150 |
-| 静态墙未通过（文件或目录对 group/other 可写、路径是符号链接） | `Guard.*` 文案（无独立叶子码，`WC-IC-001` §三） | 拒绝启动 | `src/guard.rs` L43–110 |
+| 本体侧：缺段/版本不符/未知家族/必填缺失 | `Ontology.*`（`ReadFail`/`BadJson`/`NoVersion`/`NoEnvelope`/`NoFamilies`/`BadField`/`BadVersion`/`UnknownKind`） | 拒绝启动或拒绝该事件 | `src/ontology_definition/mod.rs` L23–44、L71–123、L157–202 |
+| 读模型：序号不连续 / 旧值不符 / 未知家族 | `ReadModel.SeqGap` / `BeforeMismatch` / `UnknownKind` | **拒绝折叠**（报错而不猜） | `src/ontology_instance/readmodel.rs` L94–115、L146–150 |
+| 静态墙未通过（文件或目录对 group/other 可写、路径是符号链接） | `Guard.*` 文案（无独立叶子码，`WC-IC-001` §三） | 拒绝启动 | `src/gate/guard.rs` L43–110 |
 
 **CLI 退出码**：`0` 成功 / `1` 用法错误 / `2` 法律、账本、门禁或读模型错误〔源码〕`src/main.rs` L5、L28。
 ⚠ 退出码是**入口层**约定（`WC-IC-001` `IF-D-03`），**不是账本格式的一部分**——直接读文件的第三方不适用。
@@ -609,14 +609,14 @@ for ev in read_ledger("ledger.jsonl"):
 |---|---|---|---|
 | 不担保-01 | **跨版本的字段兼容策略** | 本文件只描述 `world=1` 的**现状**；"旧行还能不能读""upcasting 落在哪"是**变更评审的必答问题**，尚无答案。`07/4-计划/04` §七 待定项 8（词表扩展/兼容）仍未定；格式变更走**框架变更**（R5 + `FC-` 编号 + MAJOR/MINOR） | `WC-SCMP-001` §4.4.3 L443–450、§7.2 **规则二** L619–621 |
 | 不担保-02 | **掉电场景** | `fsync` 成功只说明"已要求刷盘"；**目录项未 fsync** ⇒ 新建账本首次 ack 后掉电可能**整本消失**（K-4，CR-006 拟稿未实施）。"掉电不在 v1 担保范围"**尚未正式写入**（待人裁定 E-4） | §6.3；`WC-R4-DISP-001` L228、L156；`WC-CR-006` L148–154 |
-| 不担保-03 | **防能写账本目录的对手** | 静态墙只看 **mode 位**、不看属主；能写账本目录者可以整体换掉账本（`chain` 无密钥、可整条重算）。"防谁"的边界已要求写明："防事故与部分恢复；**不防**能写账本目录的对手" | 〔源码〕`src/guard.rs` L31、L125–126；`WC-R4-DISP-001` L240（F-2） |
-| 不担保-04 | **末尾缺 `\n` 的完整行会被保留** | 反过来：它**一定会被丢弃**（截到最后一个 `\n`）。手工追加/外部工具写入时必须自己保证末尾换行 | 〔源码〕`src/ledger.rs` L198–209 |
-| 不担保-05 | **尾部整条删除可被检出** | 前向链无独立头锚点（K-1）：删末尾 k 条后仍自洽；`main.rs` 的"✅ 局部篡改可检出"文案**大于**它能担保的范围 | 〔源码〕`src/ledger.rs` L423–493；`WC-CR-006` L112–123 |
+| 不担保-03 | **防能写账本目录的对手** | 静态墙只看 **mode 位**、不看属主；能写账本目录者可以整体换掉账本（`chain` 无密钥、可整条重算）。"防谁"的边界已要求写明："防事故与部分恢复；**不防**能写账本目录的对手" | 〔源码〕`src/gate/guard.rs` L31、L125–126；`WC-R4-DISP-001` L240（F-2） |
+| 不担保-04 | **末尾缺 `\n` 的完整行会被保留** | 反过来：它**一定会被丢弃**（截到最后一个 `\n`）。手工追加/外部工具写入时必须自己保证末尾换行 | 〔源码〕`src/ledger/mod.rs` L198–209 |
+| 不担保-05 | **尾部整条删除可被检出** | 前向链无独立头锚点（K-1）：删末尾 k 条后仍自洽；`main.rs` 的"✅ 局部篡改可检出"文案**大于**它能担保的范围 | 〔源码〕`src/ledger/mod.rs` L423–493；`WC-CR-006` L112–123 |
 | 不担保-06 | **升级路径自动安全** | 旧的无链账本上做一次正常追加就会进入"半链"态（K-3） | `WC-CR-006` L139–146 |
-| 不担保-07 | **并发写者被结构性排除** | 单写者是**锁文件 + 存活性启发式**（`/proc/<pid>`，非 Linux 平台恒判"不存活"）；陈旧锁回收存在 unlink 竞态（K-2） | 〔源码〕`src/ledger.rs` L98–110、L119–159；`WC-CR-006` L125–137 |
-| 不担保-08 | **读侧会做完整信封校验** | `Ledger::open` **只校验 `seq` 连续性**：一条只有 `{"world":1,"seq":1}` 的行**能通过启动**（`tests/acceptance.rs` L145 就是这么造缺号账本的）；信封/家族校验发生在**写入侧**（`World::commit`）与**折叠侧**（`ReadModel.*`） | 〔源码〕`src/ledger.rs` L211–231；`src/lib.rs` L133–136；`src/readmodel.rs` L87–121 |
+| 不担保-07 | **并发写者被结构性排除** | 单写者是**锁文件 + 存活性启发式**（`/proc/<pid>`，非 Linux 平台恒判"不存活"）；陈旧锁回收存在 unlink 竞态（K-2） | 〔源码〕`src/ledger/mod.rs` L98–110、L119–159；`WC-CR-006` L125–137 |
+| 不担保-08 | **读侧会做完整信封校验** | `Ledger::open` **只校验 `seq` 连续性**：一条只有 `{"world":1,"seq":1}` 的行**能通过启动**（`tests/acceptance.rs` L145 就是这么造缺号账本的）；信封/家族校验发生在**写入侧**（`World::commit`）与**折叠侧**（`ReadModel.*`） | 〔源码〕`src/ledger/mod.rs` L211–231；`src/lib.rs` L133–136；`src/ontology_instance/readmodel.rs` L87–121 |
 | 不担保-09 | **未知键被拒** | 本体"宽进"：多余键一律忽略 ⇒ **写错字段名不会被抓**（这是有意的向前兼容代价） | §3.3；`WC-CR-003` L52 |
-| 不担保-10 | **`flags` 的语义已被兑现** | 实现恒写 `[]`、无任何代码读它；"未知旗标必须忽略"目前是**纪律**而非被使用的机制 | 〔源码〕`src/event.rs` L19、L34（grep：`src/` 内无 `flags` 读取点） |
+| 不担保-10 | **`flags` 的语义已被兑现** | 实现恒写 `[]`、无任何代码读它；"未知旗标必须忽略"目前是**纪律**而非被使用的机制 | 〔源码〕`src/common/event.rs` L19、L34（grep：`src/` 内无 `flags` 读取点） |
 | 不担保-11 | **`to` / `trace` 已可用** | 本体登记为可选，**实现从不写**；`trace` 的降级登记为上游差异，地位**待人裁定** | §3.2；`WC-R4-DISP-001` L70、L83、L225 |
 | 不担保-12 | **浮点/转义/大整数的字节复现** | 未写死（**待验证-02 未核实 / 待验证-03 仅部分核实**）⇒ 含浮点、控制字符或非 ASCII 的 `body` 目前**不具备可复算的字节保证**（ASCII + 整数形状已由运行期证实，见 §8.6） | §8.5、§8.6 |
 | 不担保-13 | **已有账本不含二进制内容** | 只担保写入侧纪律 + `plain_text_audit.py` 覆盖到的文件类型 | §十 |

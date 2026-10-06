@@ -76,7 +76,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 - **WHEN** 账本最后一行是残缺的 JSON（或末尾换行缺失）
 - **THEN** 该行被截掉，其余事件正常读回
 - **证据**：`tests/acceptance.rs::t3_partial_line_is_discarded`
-      —— **⚠ 实测判据是"截到最后一个 `\n`"**（`world-core/src/ledger.rs:276-279`），
+      —— **⚠ 实测判据是"截到最后一个 `\n`"**（`world-core/src/ledger/mod.rs:276-279`），
       **不看该行能否解析** ⇒ "完整事件因末尾换行缺失被静默删除"这一形态 ⇒ 需补断言（列进 tasks）。
 
 #### Scenario: `seq` 有空洞时拒绝启动
@@ -84,7 +84,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 - **WHEN** 账本中存在 `seq` 不连续的事件
 - **THEN** 打开失败并报出 `SeqGap`
 - **证据**：`tests/acceptance.rs::t4_seq_gap_refuses_to_start`
-      —— **⚠ 本条在生产路径上由账本层更早拦截**：`world-core/src/ledger.rs:304` 逐字
+      —— **⚠ 本条在生产路径上由账本层更早拦截**：`world-core/src/ledger/mod.rs:304` 逐字
       `if seq != last + 1 {` ⇒ 本断言**不构成**端到端证明（防线冗余，非缺陷）。
 
 ### Requirement: 账本文件恒以行边界收尾
@@ -178,7 +178,7 @@ SHALL NOT 修改或删除已经写下的事件。
 
 - **WHEN** 对一份无链（v1）账本做一次合法 `append`，再重新打开该账本
 - **THEN** 打开成功，`last_seq` 为 2，且账本未变成"部分有链、部分没有"
-- **证据（★ 2026-09-28 订正：原写「本条尚无断言」——**那句与实物不符**）**：**案例在册、但被 `#[ignore]` 钉住**——`world-core/tests/contract.rs:1615` 的 `c29_k3_chainless_ledger_survives_one_legal_append`，其上一行逐字`#[ignore = "K-3 未修（src/ledger.rs:146 的 chained 只写不读）：无链账本 append 一条后被判 MixedChain、世界拒启；修复落地后去掉本 ignore 即应转绿"]` ⇒ **它今天不是"没有断言"，是"有一条钉住缺口的、去掉 ignore 就该红的断言"**。本条是 K-3 的**修复判据**，实现侧今天为 `world-core/src/ledger.rs`:506
+- **证据（★ 2026-09-28 订正：原写「本条尚无断言」——**那句与实物不符**）**：**案例在册、但被 `#[ignore]` 钉住**——`world-core/tests/contract.rs:1615` 的 `c29_k3_chainless_ledger_survives_one_legal_append`，其上一行逐字`#[ignore = "K-3 未修（src/ledger/mod.rs:146 的 chained 只写不读）：无链账本 append 一条后被判 MixedChain、世界拒启；修复落地后去掉本 ignore 即应转绿"]` ⇒ **它今天不是"没有断言"，是"有一条钉住缺口的、去掉 ignore 就该红的断言"**。本条是 K-3 的**修复判据**，实现侧今天为 `world-core/src/ledger/mod.rs`:506
       （chained 只读不用）与 `world-core/src/lib.rs`:105（load_chain()?; 丢弃返回值）。
       **⚠ 且修复本身不属本 change**：本 change 只交规格文本，`world-core/` 一行不改
       （`design.md` §排除清单第 2 条）；断言先写、先证红，与修复同批另立 change。
@@ -255,7 +255,7 @@ SHALL NOT 修改或删除已经写下的事件。
   | ② | 对什么做的 | 信纸 `body.subject`／`body.path` | **有位置**：同上，`t1` 逐条断言 |
   | ③ | 从什么变成什么 | 信纸 `body.before`／`body.after` | **有位置**：`t1` 断言 `after`；`before` 由 `change` 家族的信封形状钉住 |
   | ④ | 因为什么才发生 | 信封 `trace` | **有位置、但今天不校验**（与书 §2.9 自述一致）：`tests/trace_notice.rs::f61`–`f66`；其中 `f65` 按"**会失败的检查**"写——实现若开始拒绝悬空 `id`，该条即红 |
-  | ⑤ | 排在第几位 | 信封 `seq` | **有位置**（★ 2026-09-28 补：原写"由 `tests/contract.rs` 的账本域用例钉住"——**只给"域"、不点名**，与 ①–④⑥ 的写法不一致，调查员把它记为弱处）：`tests/acceptance.rs::t4_seq_gap_refuses_to_start`（缺号 ⇒ 拒启）；`tests/contract.rs` 的 `c15`（`:926` 逐字断言 `ext.world.Ledger.SeqGap`）；`c22_file_always_ends_on_a_line_boundary`（行边界）；`c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused`（末行半行被截 ＋ `seq` 复用）。**实现侧**：`src/ledger.rs` 的 `if seq != last + 1` |
+  | ⑤ | 排在第几位 | 信封 `seq` | **有位置**（★ 2026-09-28 补：原写"由 `tests/contract.rs` 的账本域用例钉住"——**只给"域"、不点名**，与 ①–④⑥ 的写法不一致，调查员把它记为弱处）：`tests/acceptance.rs::t4_seq_gap_refuses_to_start`（缺号 ⇒ 拒启）；`tests/contract.rs` 的 `c15`（`:926` 逐字断言 `ext.world.Ledger.SeqGap`）；`c22_file_always_ends_on_a_line_boundary`（行边界）；`c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused`（末行半行被截 ＋ `seq` 复用）。**实现侧**：`src/ledger/mod.rs` 的 `if seq != last + 1` |
   | ⑥ | 谁允许的 | 门禁裁决的流水（`gate.*` 旗标与通告） | **有位置、但今天不校验**（与书 §2.9 自述一致）：`tests/cli.rs::cli09` 断言不可逆动作**必带** `gate.friction:<等级>`；`tests/trace_notice.rs::f71` 断言被拒的通告**留流水** |
   | ⑦ | 什么单位 | **无字段** | **今天没有位置可填**（与书 §2.9 自述一致）——**如实标缺格，不许含糊成"已答"** |
 - **并且**（书 §2.9 `:363` 的边界，**照抄不并轨**）：这七个问题**另有一套"八问"的问法**，两套**名目不同、条数不同、合成不了一套**，**并轨这件事今天还没有结论** ⇒ 本要求 SHALL NOT 被读成"已经把两套并成一套"。

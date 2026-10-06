@@ -18,19 +18,19 @@
 //!
 //! | 用例 | 边界 | 改坏这里 ⇒ 本用例红 |
 //! |---|---|---|
-//! | `l01` | 单行上限 | `src/channel.rs::read_line_bounded` 的 `content > max - buf.len()` |
-//! | `l02` | 并发上限 | `src/channel.rs::serve_n_with` 里对 `refuse_pending` 的调用 |
-//! | `l03` | 空闲超时 | `src/channel.rs::serve_stream` 里的 `set_read_timeout` 一行 |
-//! | `l04` | 每秒消息数 | `src/channel.rs::Session::admit` 的 `win.1 > max_msgs_per_sec` |
-//! | `l05` | 四个数值的来源 | `src/channel.rs::Limits::from_policy` 的三个 fail-closed 分支 |
-//! | `l06` | 出厂配置 | `world-core/policy.json` 的 `channel_limits` 块 |
+//! | `l01` | 单行上限 | `src/bus/mod.rs::read_line_bounded` 的 `content > max - buf.len()` |
+//! | `l02` | 并发上限 | `src/bus/mod.rs::serve_n_with` 里对 `refuse_pending` 的调用 |
+//! | `l03` | 空闲超时 | `src/bus/mod.rs::serve_stream` 里的 `set_read_timeout` 一行 |
+//! | `l04` | 每秒消息数 | `src/bus/mod.rs::Session::admit` 的 `win.1 > max_msgs_per_sec` |
+//! | `l05` | 四个数值的来源 | `src/bus/mod.rs::Limits::from_policy` 的三个 fail-closed 分支 |
+//! | `l06` | 出厂配置 | `world-core/src/gate/policy.json` 的 `channel_limits` 块 |
 
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use world_core::channel::{self, Limits, Listener, RequestSink, Session};
+use world_core::bus::{self, Limits, Listener, RequestSink, Session};
 
 /// 记录落笔调用的**假收方**（不碰真账本）。
 ///
@@ -394,7 +394,7 @@ fn l05_the_four_numbers_come_only_from_the_config() {
 
 #[test]
 fn l06_the_factory_config_really_carries_the_four_numbers() {
-    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json");
+    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json");
     let lim = Limits::from_policy(&p)
         .expect("出厂配置必须给出通道的四个数值（policy.json 的 channel_limits 块）");
 
@@ -453,7 +453,7 @@ fn render_one(sock: &Path, actor: &str, uid: u32) -> Value {
 fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
     let d = tmpdir("l07");
     let sock = d.join("world.sock");
-    let law = d.join("policy.json");
+    let law = d.join("src/gate/policy.json");
     let render = d.join("channel.json");
 
     // ── 正控：渲染物与在册逐字对得上 ⇒ 必须过 ──
@@ -527,7 +527,7 @@ fn l08_the_factory_law_really_declares_every_rendered_identity() {
     // 出厂面：**法律里必须真的有在册表**，而且 `declared_listeners` 读得出来。
     // 只钉关系、不复述条数（条数的权威载体是 policy.json 本身）。
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let law = root.join("policy.json");
+    let law = root.join("src/gate/policy.json");
     let got = channel::declared_listeners(&law).expect("出厂法律必须有 listeners 段");
     assert!(
         got.iter().any(|d| d.actor == "world://core"),

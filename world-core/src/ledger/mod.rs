@@ -12,7 +12,7 @@
 //!
 //! **唯一写入口**：`file` 字段私有 ⇒ 全 crate 只有 [`Ledger::append`] 能改账本。
 
-use crate::guard;
+use crate::gate::guard;
 use serde_json::{json, Value};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -217,7 +217,7 @@ impl Ledger {
     /// 打开（必要时创建）账本；**丢弃末尾半行**；校验 seq 连续；恢复 `next_seq`。
     ///
     /// 并执行**静态防线检查**：账本文件与其所在目录不得对 group/other 可写。
-    /// 理由见 [`crate::guard`]：账本是唯一真相——**能被谁直写，真相就归谁**。
+    /// 理由见 [`crate::gate::guard`]：账本是唯一真相——**能被谁直写，真相就归谁**。
     ///
     /// ⚠️ 本函数是**可写**口径（会取锁、会截断末尾半行）。只读命令一律用
     /// [`Ledger::open_readonly`]，否则"只读"就会改字节（`P-01`）。

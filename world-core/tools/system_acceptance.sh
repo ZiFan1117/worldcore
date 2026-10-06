@@ -87,16 +87,16 @@ trap 'rm -rf "$SB"' EXIT
 # 若沙箱目录本身不可穿越，那条断言会因**目录权限**而通过（与套接字权限无关）——那是假绿。
 # 755 与 `check.sh` 的沙箱同口径，且组/其他人仍**不可写**（guard 的静态墙不受影响）。
 chmod 755 "$SB"
-cp ontology.json policy.json "$SB"/
-chmod 600 "$SB/ontology.json" "$SB/policy.json"
+cp src/ontology_definition/ontology.json src/gate/policy.json "$SB"/
+chmod 600 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 L="$SB/ledger.jsonl"
 
-W() { "$BIN" --ontology "$SB/ontology.json" --ledger "$L" --policy "$SB/policy.json" "$@"; }
+W() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L" --policy "$SB/src/gate/policy.json" "$@"; }
 # 带外部本体的调用（TC-040 用）
 WO() { # WO <ontology-path> [args...]
   local ont="$1"
   shift
-  "$BIN" --ontology "$ont" --ledger "$L" --policy "$SB/policy.json" "$@"
+  "$BIN" --ontology "$ont" --ledger "$L" --policy "$SB/src/gate/policy.json" "$@"
 }
 sha() { sha256sum "$1" | cut -d' ' -f1; }
 
@@ -110,7 +110,7 @@ echo
 echo "── TC-037 · REQ-F-001 语义事件是唯一真相（只追加 + 无第二条写路径）──"
 # ⚠ 本脚本以下所有 `append change` 的**主体与字段都取出厂本体里已声明的格子**
 #   （`ontology.json` 的 `concepts`：`notice.muted` ／ `job.status`）——
-#   书 §5.3「声明以外的东西不许落账」的执行者是 `src/ontology.rs::check_concepts`，
+#   书 §5.3「声明以外的东西不许落账」的执行者是 `src/ontology_definition/mod.rs::check_concepts`，
 #   原先的 `world://sys/*#p` 两个名字都没声明过 ⇒ 这些写入当场 rc=2、断言整片变红。
 #   换的是**落笔的格子**，不是判据：条数／seq／逐字节不变／指纹必变这些断言一字未动。
 W append change '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' >/dev/null 2>&1
@@ -186,7 +186,7 @@ assert_rc "① 坏 JSON 本体 → 拒绝启动（rc=2）" 2 "$?"
 OUT="$(WO "$SB/does-not-exist.json" check 2>&1)"
 assert_rc "② 本体文件缺失 → 拒绝启动（rc=2）" 2 "$?"
 
-python3 - "$SB/ontology.json" "$SB/version2.json" <<'PY'
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/version2.json" <<'PY'
 import json, sys
 src, dst = sys.argv[1], sys.argv[2]
 with open(src, encoding="utf-8") as f:
@@ -215,7 +215,7 @@ echo "── TC-041 · 事件身份唯一（W-01）／缺号拒启（W-02）／�
 WL() { # WL <ledger> [args...]
   local lg="$1"
   shift
-  "$BIN" --ontology "$SB/ontology.json" --ledger "$lg" --policy "$SB/policy.json" "$@"
+  "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$lg" --policy "$SB/src/gate/policy.json" "$@"
 }
 mk_torn() { # mk_torn <src> <dst>  —— 复制账本并追加一行**半行**（无换行结尾）
   cp "$1" "$2"
@@ -276,11 +276,11 @@ assert_rc "⑨ 对照：**可写**路径（append）仍会丢弃半行 ⇒ 走�
 cp "$L" "$SB/owned.jsonl"
 chmod 600 "$SB/owned.jsonl"
 if [ "$(id -u)" = "0" ]; then
-  OUT="$("$BIN" --ontology "$SB/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/policy.json" --owner-uid 0 check 2>&1)"
+  OUT="$("$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/src/gate/policy.json" --owner-uid 0 check 2>&1)"
   assert_rc "⑩ 属主断言相符（uid=0）⇒ 正常启动 rc=0（对照）" 0 "$?"
-  OUT="$("$BIN" --ontology "$SB/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/policy.json" --owner-uid 1000 check 2>&1)"
+  OUT="$("$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/src/gate/policy.json" --owner-uid 1000 check 2>&1)"
   assert_rc "⑪ 属主**不符**（断言 1000、实为 0）⇒ 拒启 rc=2（W-04 判据）" 2 "$?"
-  OUT="$("$BIN" --ontology "$SB/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/policy.json" --owner-uid abc check 2>&1)"
+  OUT="$("$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/owned.jsonl" --policy "$SB/src/gate/policy.json" --owner-uid abc check 2>&1)"
   assert_rc "⑫ --owner-uid 非法 ⇒ 拒启 rc=1（P-16：不得静默变成「不做断言」）" 1 "$?"
   assert_has "⑬ 拒绝理由点名 BadOwnerUid" "$OUT" 'BadOwnerUid'
 else
@@ -316,7 +316,7 @@ if [ -n "$SOCKDIR" ]; then
   chmod 600 "$SOCKDIR/channel.json"
   # ★ T1／AC-1：受理路径按**法律**（`--policy` 的 `listeners`）判在不在册 ⇒
   #   夹具必须把这条**临时口**写进**自己的法律**（判据的会红条件一字未动）。
-  python3 - "$SB/policy.json" "$SOCKDIR/ch.sock" <<'PY'
+  python3 - "$SB/src/gate/policy.json" "$SOCKDIR/ch.sock" <<'PY'
 import json, sys
 p, sock = sys.argv[1], sys.argv[2]
 d = json.load(open(p, encoding="utf-8"))
@@ -341,7 +341,7 @@ s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 s.connect(sys.argv[1])
 # 为什么通告的主体也换成已声明的：这是**检查用数据**，按同一条规矩（检查用的数据必须是已声明的）
 # 不该拿未声明的名字当主体。功能上无差别——`concepts` 只管 `change`（`notice.subject` 的语义是
-# "这条通告关于谁"，不是"改了哪一格"，见 `src/ontology.rs::check_concepts` 的文档），
+# "这条通告关于谁"，不是"改了哪一格"，见 `src/ontology_definition/mod.rs::check_concepts` 的文档），
 # 但探针数据里不留未声明的名字，读的人就不必去分辨"这个 `sys` 到底该不该在册"。
 s.sendall(b'{"kind":"notice","body":{"type":"tc041","subject":"world://notice/tc041","payload":{}}}\n')
 print(s.recv(65536).decode("utf-8", "replace").strip())

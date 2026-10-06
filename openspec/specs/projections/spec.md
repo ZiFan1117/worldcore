@@ -5,7 +5,7 @@
 同源核对必须接在出厂命令上、词表变更必须能被检出、投影只能省略不能添加。
 **同源核对只证"同源"，证不了"两份记录说的是同一件事"**——书第五章（合订本 `:659`）逐字：这一格的**当日结果**是"绿而无效"，
 而**按"能不能证明两份记录说的是同一件事"来判，这一格是红的**；书同时把"当日结果与结论色压在一列"**点名为缺陷**（合订本 `:1819` M-12）。
-书的**通过条件**是「**判定能看内容，且两份由不同一方生成**」（合订本 `:736`）；**今天只做到"头部四项一致"**（`world-core/src/project/mod.rs:124` 的 `assert_same_source`；书自己也写「第 124 行」），
+书的**通过条件**是「**判定能看内容，且两份由不同一方生成**」（合订本 `:736`）；**今天只做到"头部四项一致"**（`world-core/src/gui_projection/mod.rs:124` 的 `assert_same_source`；书自己也写「第 124 行」），
 即书判红的那一半。今天的实测边界见 `openspec/changes/archive/2026-09-28-cover-unimplemented-capabilities/` 与本 change 的 `audit.md` P1／P2 两条。
 这一能力服务 `显`。
 
@@ -92,7 +92,7 @@
 - **WHEN** 让两份投影在**内容**上不一致（例如一方少渲一半主体）、而头部四项相同
 - **THEN** `project check` **仍然报绿** —— 本断言证明的是**边界**而不是实现缺陷；
       它把该命令的覆盖限定为"同一份输入下的身份一致性核对"
-- **证据**：`world-core/tests/cli.rs` 的 **`cli13_project_check_criterion_reads_only_the_header`**（★ 2026-09-28 订正：本条原写「**本条尚无断言**（列进 tasks）」——**那句今天不成立**，该用例正是这条 Scenario 的断言，其头注逐字「这不是想要的行为，而是**当下边界**：本用例把它固定成会红的检查 —— 谁把正文也纳入判据，这里立刻红，且规格要同步改（不许偷偷放宽）」）——实现侧为 `world-core/src/project/mod.rs`:124-145；
+- **证据**：`world-core/tests/cli.rs` 的 **`cli13_project_check_criterion_reads_only_the_header`**（★ 2026-09-28 订正：本条原写「**本条尚无断言**（列进 tasks）」——**那句今天不成立**，该用例正是这条 Scenario 的断言，其头注逐字「这不是想要的行为，而是**当下边界**：本用例把它固定成会红的检查 —— 谁把正文也纳入判据，这里立刻红，且规格要同步改（不许偷偷放宽）」）——实现侧为 `world-core/src/gui_projection/mod.rs`:124-145；
       文档出处为 `world-core/docs/理论/语义世界-理论书-第一版-合订.md:736`。
 
 #### Scenario: 该命令的三个不等分支在命令路径上不可达（边界固定）
@@ -113,7 +113,7 @@
 - **WHEN** 把视觉投影解析为 `(主体, 路径, 值)` 三元组，与读模型 `entries()` 比对
 - **THEN** 两个集合完全相等
 - **证据**：`tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`
-      —— **⚠ 本断言的解析器与渲染器同模块**（`world-core/src/project/visual.rs::parse()`）；
+      —— **⚠ 本断言的解析器与渲染器同模块**（`world-core/src/gui_projection/visual.rs::parse()`）；
       独立于渲染实现的验证面由 `world-core/tools/visual_layout_audit.py` 承担。
 
 ### Requirement: 〔无号·待流程侧增补〕读法是叶子：几份读法之间不互相调用、不持有状态
@@ -126,5 +126,5 @@
 - **WHEN** 让其中一份读法**不可用**（或让它落后若干个事件）
 - **THEN** 另一份读法**不受影响**（不因对方缺席而失败、也不去问对方要数据）；两份读法各自的产出**只依赖账本**
 - **证据**：`world-core/tests/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs`（**拔掉视觉投影**：本用例**只**跑语言投影一次，断言同源头四项与独立折叠逐项相符、正文「1 头部 ＋ 3 主体」行数齐、三元组与**真正落账的那三条**逐项相符、账本目录跑前跑后件名与字节都不许变）、`world-core/tests/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs`（对称：**只**跑视觉投影，统计行必须与独立折叠一致、取值行按可审计排版）、`world-core/tests/projection_leaf.rs::p03_same_ledger_same_bytes_twice_and_no_state_kept_anywhere`（**同一账本 ⇒ 两次输出逐字节相同**，第二次另设工作目录）、`world-core/tests/projection_leaf.rs::p04_ledger_grows_so_does_each_reading`（**账本多一条 ⇒ 两份各自的 `last_seq` ＋1、状态指纹随之变**，且与独立折叠一致）、`world-core/tests/projection_leaf.rs::p05_a_lagging_reading_neither_breaks_nor_bleeds_into_the_other`（**让一份落后若干事件**：另一份照常给出完整正确产出，落后只在同源头上暴露）、`world-core/tests/projection_leaf.rs::p06_the_two_exits_do_not_carry_each_others_shapes`（两份出口互不夹带对方形态，每条「没有」都配正控）。
-  **「不互相调用」的结构面常驻守卫**：`world-core/tools/module_graph.py` 的判据②（`A-4`：`deps == import` 且无环）——`M06`／`M07` 之间一旦出现 `use` 边即判红；`world-core/docs/S2-设计/WC-MODREG-001-v0.1.md` §2 的依赖列逐字：`M06` 行「`M03`」、`M07` 行「`M03`」，与工具抽出的真实 import 边一致；同件 §2.2 层表 `L4 出口` 行逐字「读 L2 与 L1 的元信息；**彼此不交互**；**不得**写任何东西」。**该守卫实测会红**（私有副本上真做一次）：让 `src/project/language.rs` 去调 `src/project/visual.rs` ⇒ 判据② 报「`M06`：**代码里有但没声明**（`M07`）—— 声明集 {`M03`} vs 真实 import 集 {`M03`,`M07`}」、`通过 2 / 失败 1`；同一棵树上**行为面 6 条仍全绿**——这正是"几份读法互不调用"只能靠结构面常驻守卫、行为面看不出来的实证。
-  **变异证明**（五条，各自在 VM 的**私有副本**上真做一次：改坏 ⇒ 红 ⇒ 恢复 ⇒ 绿）：① `src/main.rs` 的语言投影那一支改成渲染**视觉投影** ⇒ 5 条红（`p02` 绿）；② `src/project/language.rs` 的正文少给一个主体 ⇒ 3 条红（`p01`／`p05`／`p06`）；③ `src/project/mod.rs` 的同源头 `last_seq` 写死 ⇒ 5 条红（`p06` 绿）；④ 语言投影顺手在账本旁写一份自己的状态 ⇒ `p01`／`p03` 的目录快照断言红；⑤ 语言投影去调视觉投影 ⇒ 判据② 红（同树行为面仍绿）。**恢复后复跑 6/6 绿**（同一条 `cargo test --locked --no-fail-fast`）。
+  **「不互相调用」的结构面常驻守卫**：`world-core/tools/module_graph.py` 的判据②（`A-4`：`deps == import` 且无环）——`M06`／`M07` 之间一旦出现 `use` 边即判红；`world-core/docs/S2-设计/WC-MODREG-001-v0.1.md` §2 的依赖列逐字：`M06` 行「`M03`」、`M07` 行「`M03`」，与工具抽出的真实 import 边一致；同件 §2.2 层表 `L4 出口` 行逐字「读 L2 与 L1 的元信息；**彼此不交互**；**不得**写任何东西」。**该守卫实测会红**（私有副本上真做一次）：让 `src/gui_projection/language.rs` 去调 `src/gui_projection/visual.rs` ⇒ 判据② 报「`M06`：**代码里有但没声明**（`M07`）—— 声明集 {`M03`} vs 真实 import 集 {`M03`,`M07`}」、`通过 2 / 失败 1`；同一棵树上**行为面 6 条仍全绿**——这正是"几份读法互不调用"只能靠结构面常驻守卫、行为面看不出来的实证。
+  **变异证明**（五条，各自在 VM 的**私有副本**上真做一次：改坏 ⇒ 红 ⇒ 恢复 ⇒ 绿）：① `src/main.rs` 的语言投影那一支改成渲染**视觉投影** ⇒ 5 条红（`p02` 绿）；② `src/gui_projection/language.rs` 的正文少给一个主体 ⇒ 3 条红（`p01`／`p05`／`p06`）；③ `src/gui_projection/mod.rs` 的同源头 `last_seq` 写死 ⇒ 5 条红（`p06` 绿）；④ 语言投影顺手在账本旁写一份自己的状态 ⇒ `p01`／`p03` 的目录快照断言红；⑤ 语言投影去调视觉投影 ⇒ 判据② 红（同树行为面仍绿）。**恢复后复跑 6/6 绿**（同一条 `cargo test --locked --no-fail-fast`）。

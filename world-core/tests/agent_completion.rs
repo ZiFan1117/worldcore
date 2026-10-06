@@ -47,11 +47,11 @@ fn tmpdir(tag: &str) -> PathBuf {
 }
 
 fn ontology() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json")
 }
 
 fn policy() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json")
 }
 
 /// `j01` —— **活儿结束 ⇒ 账本里读得到它的完工通告**。

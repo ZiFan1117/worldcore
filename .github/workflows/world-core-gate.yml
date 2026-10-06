@@ -50,7 +50,7 @@ name: world-core 门禁
 #   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `openspec/BOOK/冲突总账.md` §五 裁-1
 #      （作者指示「评审完结束后签我的名字」⇒ **评审通过后**才签，未过不签）。
 #   ② `module-graph` —— **2026-09-28 已转绿**（三条判据 `通过 3 / 失败 0`；真源码环 `M04↔M09` 已按
-#      「消回边、保留合法方向」改成 DAG：`src/channel.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）。
+#      「消回边、保留合法方向」改成 DAG：`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）。
 #      （该工具此前只在工作区；现已在版本控制内，并接进 `check.sh` 第 ⑨ 步与**本工作流**。）
 # 本项目的既有教训（见本文件 `RTM_STRICT` 那一段）：「**永远红的门禁等于没有门禁**」。
 # 故这里给的是**如实红**——处置权在人：要么补签／补齐，要么由作者裁定该件退出示踪。
@@ -111,7 +111,7 @@ jobs:
           # ── 新账本必须带摘要链（WC-SCMP-001 变更请求台账 · WC-CR-003）──
           # 此前只有 VM 侧的 check.sh 在盯这件事；CI 也盯上，它才真正是被强制的。
           # ⚠ 写进世界的东西**必须在出厂本体里声明过**（书 §5.3「声明以外的东西不许落账」；
-          #   执行者 `src/ontology.rs::check_concepts`）。本行原写 `world://ci/probe` ＋ `p`——
+          #   执行者 `src/ontology_definition/mod.rs::check_concepts`）。本行原写 `world://ci/probe` ＋ `p`——
           #   两个名字都没声明过 ⇒ append rc=2，紧接着的 `grep -q '有摘要链'` 必失败（**CI 的 smoke 作业曾因此常红**）。
           #   改成已声明的格子（`notice.muted` 是 `bool`，故 `after` 取 `true`）；
           #   这一步要的只是「写一条 → 断言账本带链 → `--require-chain` 过」，判据强度不变。
@@ -162,7 +162,7 @@ jobs:
           # ⚠️ 先自证：**没有反例的自测等于没测**（本项目的老教训）
           python tools/plain_text_audit.py --self-test
           # 再审真实产物：词表与策略（账本由 smoke 作业在沙箱里产生，不入库）
-          python tools/plain_text_audit.py ontology.json policy.json
+          python tools/plain_text_audit.py src/ontology_definition/ontology.json src/gate/policy.json
       - name: 门禁工具可用性（用示例数据自证工具链是通的）
         working-directory: world-core
         run: |

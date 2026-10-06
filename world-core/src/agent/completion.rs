@@ -29,7 +29,7 @@
 //! 本模块**只造事件与折叠**：它**不判断"该不该干这个活"**（那是门禁），
 //! **不执行命令**（那是 `crate::carrier::providers` 的 `Job` 执行器）。
 
-use crate::event::{new_event, notice_body};
+use crate::common::event::{new_event, notice_body};
 use serde_json::{json, Value};
 
 /// 通告的类型（写进 `notice.type`）。

@@ -69,14 +69,14 @@ echo "  沙箱   : $SB"
 echo
 
 # ── 准备：一次性世界（本体/策略/执行清单/通道配置）───────────────────────
-cp ontology.json policy.json "$SB/" 2>/dev/null || true
+cp src/ontology_definition/ontology.json src/gate/policy.json "$SB/" 2>/dev/null || true
 cp -r cap.d "$SB/cap.d"
 mkdir -p "$SB/run"
 # ★ AC-1：受理路径现在按**法律**（`--policy` 的 `listeners`）判"这个口在不在册"。
 #   夹具的口是**临时路径** ⇒ 夹具必须把它写进**自己的法律**里（否则世界**正确地**拒启）。
 #   ⚠ 这不是"把判据改松"：**判据的会红条件一字未动**；变的是**夹具的法律**，不是判据。
 #   依赖：python3（与仓内其余工具同口径）。
-python3 - "$SB/policy.json" "$SB/run/agent-1.sock" <<'PY'
+python3 - "$SB/src/gate/policy.json" "$SB/run/agent-1.sock" <<'PY'
 import json, sys
 p, sock = sys.argv[1], sys.argv[2]
 d = json.load(open(p, encoding="utf-8"))
@@ -88,7 +88,7 @@ cat > "$SB/channel.json" <<EOF
 {"channel":1,"listeners":[{"socket":"$SB/run/agent-1.sock","actor":"world://agent/1","uid":$(id -u)}]}
 EOF
 LEDGER="$SB/ledger.jsonl"
-RUN="$BIN --ontology $SB/ontology.json --ledger $LEDGER --policy $SB/policy.json"
+RUN="$BIN --ontology $SB/src/ontology_definition/ontology.json --ledger $LEDGER --policy $SB/src/gate/policy.json"
 CARRY="$BIN --cap-dir $SB/cap.d --ledger $LEDGER"
 
 # 起始：账本为空
@@ -259,7 +259,7 @@ else
     ok "$desc（rc=$rc；原因含 Permission denied；执行者 uid=${MUID}）"
   }
   denied "C-09 写侧直写账本（追加一行）被拒" "echo '{}' >> $LEDGER"
-  denied "C-09 写侧改规则（向 policy.json 追加）被拒" "echo '{}' >> $SB/policy.json"
+  denied "C-09 写侧改规则（向 policy.json 追加）被拒" "echo '{}' >> $SB/src/gate/policy.json"
 
   # ③ 反证：把账本放宽到 0666 ⇒ **同一动作必须成功**（否则上面两条是橡皮图章）
   chmod 666 "$LEDGER"

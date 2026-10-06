@@ -25,7 +25,7 @@
 //!
 //! 于是"同源"可以被机器判定（[`assert_same_source`]）：
 //! - `world` 与 `vocab` 相同 ⇒ 两份投影用的是**同一份词表**（内容寻址，见
-//!   [`crate::ontology::Ontology::vocab_hash`]）；
+//!   [`crate::ontology_definition::Ontology::vocab_hash`]）；
 //! - `last_seq` 与 `state` 相同 ⇒ 两份投影说的是**同一个状态**。
 //!
 //! 换了词表、或有一方落后了一个事件，`assert_same_source` 就会失败。
@@ -41,7 +41,7 @@ pub mod language;
 pub mod surface;
 pub mod visual;
 
-use crate::readmodel::State;
+use crate::ontology_instance::readmodel::State;
 use serde_json::Value;
 
 /// 把扁平的 `(主体, 路径, 值)` 归拢成 `(主体, [(路径, 值)])`。
@@ -150,8 +150,8 @@ pub fn assert_same_source(a: &str, b: &str) -> Result<(), String> {
 #[cfg(test)]
 mod unit {
     use super::*;
-    use crate::event;
-    use crate::readmodel::State;
+    use crate::common::event;
+    use crate::ontology_instance::readmodel::State;
     use serde_json::json;
 
     fn state_with_one_event() -> State {

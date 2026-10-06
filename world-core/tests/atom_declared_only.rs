@@ -12,7 +12,7 @@
 //!
 //! ## 每条断言的"会红"条件（改坏哪一行会打红哪一条）
 //!
-//! - `b01` / `b02` / `b05` ← `src/ontology.rs` 的 `Ontology::check_concepts`：
+//! - `b01` / `b02` / `b05` ← `src/ontology_definition/mod.rs` 的 `Ontology::check_concepts`：
 //!   把 `UndeclaredEntity` / `UndeclaredField` 两个 `Err` 分支删掉（或让函数恒 `Ok`）
 //!   ⇒ 三条一起变红（未声明的实体与字段又能落账）。
 //! - `b03` ← 后果相反的方向：把 `check_concepts` 改成"什么都拒"
@@ -47,11 +47,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 fn open_world(tag: &str) -> (PathBuf, PathBuf, World) {
@@ -201,9 +201,9 @@ fn b04_bare_subject_is_a_registered_gap_not_a_declared_entity() {
     let (_d, _lp, mut w) = open_world("b04");
 
     // 它不是实体引用（没有 `<实体>/<实例>` 这一段）⇒ 今天不受 concepts 约束
-    assert_eq!(world_core::ontology::Ontology::entity_of("world://s"), None);
+    assert_eq!(world_core::ontology_definition::Ontology::entity_of("world://s"), None);
     assert_eq!(
-        world_core::ontology::Ontology::entity_of("world://notice/n-1"),
+        world_core::ontology_definition::Ontology::entity_of("world://notice/n-1"),
         Some("notice")
     );
 

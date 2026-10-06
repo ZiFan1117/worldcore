@@ -195,7 +195,7 @@
 
   "_meta_layers": {
     "_comment": "★ 以下两节**挂不进五要素**，如实标注归属，不假装它们挂在某个要素下（评审甲 2026-09-28 判定）。写法上仍是 `_` 键下的独立节。**十二节的完整归属表见 `_section_map`**——那里是权威，本段只是人读的展开。",
-    "reading_and_verification_layer": "**元层**：读法定义／验法。『怎么摆』（投影首行四要素、规范化字节口径）与『怎么验』（各要素上的判据）不是对象、不是关系、不是能力、不是动作、不是函数——它们是**对**这些要素的读法与验法。逐条实现今天分布在 `src/project/**`、`src/readmodel.rs` 与 `check.sh` 各步。",
+    "reading_and_verification_layer": "**元层**：读法定义／验法。『怎么摆』（投影首行四要素、规范化字节口径）与『怎么验』（各要素上的判据）不是对象、不是关系、不是能力、不是动作、不是函数——它们是**对**这些要素的读法与验法。逐条实现今天分布在 `src/gui_projection/**`、`src/ontology_instance/readmodel.rs` 与 `check.sh` 各步。",
     "ingress_layer": "**接入层**：接入映射（哪个口＝哪个身份）。它今天在 `policy.json` 的 `listeners`（**不是**本体），依据书 §4.3『身份与允许分开』与协议 §8『口给出身份』。它不是五要素之一——它是『外部怎么进来』，与『世界内部有什么』不同层。本批**不动它**（那一段正是另一工区的在飞改动）。"
   },
 
@@ -266,14 +266,14 @@
         "attach": "half",
         "_why_half": "**半挂**：`notice` 家族的可选格 `payload` 的形状（订阅什么、回什么）由**动作**的产物决定，但形状本身不是动作的声明面（本体今天不声明它）。",
         "keys": [],
-        "_where": "今天**本体里没有独立分节**：形状活在 `WC-IRS-001` 的接口面与 `src/delivery.rs` 的投递语义里。"
+        "_where": "今天**本体里没有独立分节**：形状活在 `WC-IRS-001` 的接口面与 `src/common/delivery.rs` 的投递语义里。"
       },
       "错误码与结局": {
         "home": "动作（Action）",
         "attach": "half",
         "_why_half": "**半挂**：『这件事的结局如何、失败给什么码』是动作的收束面，但错误码的**清单**不属动作的声明（动作只声明它引用哪个能力）。",
         "keys": [],
-        "_where": "今天**本体里没有独立分节**：码族活在 `src/error.rs` 与 `WC-IC-001` §三 的错误码表里；本体侧只由各判据的 `Violation` 报出。"
+        "_where": "今天**本体里没有独立分节**：码族活在 `src/common/error.rs` 与 `WC-IC-001` §三 的错误码表里；本体侧只由各判据的 `Violation` 报出。"
       },
       "接入映射": {
         "home": "接入层（Ingress）",
@@ -287,21 +287,21 @@
         "attach": "out",
         "_why_out": "**挂不进五要素**：它是『**怎么摆**』——对要素的读法（投影首行四要素、规范化字节口径），不是第五个要素。",
         "keys": ["_meta_layers"],
-        "_where": "实现分布在 `src/project/**`、`src/readmodel.rs`；本体这一侧只在 `_meta_layers` 里登记。"
+        "_where": "实现分布在 `src/gui_projection/**`、`src/ontology_instance/readmodel.rs`；本体这一侧只在 `_meta_layers` 里登记。"
       },
       "旁道与收据与缓存": {
         "home": "元层（Meta）",
         "attach": "out",
         "_why_out": "**挂不进五要素**：旁道（大对象不走主干道）／收据／缓存说的是**字节怎么走、什么不是真相**，不是世界里的东西。",
         "keys": [],
-        "_where": "今天**本体里没有独立分节**：实现落在 `src/checkpoint.rs`（缓存＝快照，**非真相**）与 `src/delivery.rs`；书 §4.5 的货运道面**尚未实现**（已在 `_pending_tables` 之外如实登记）。"
+        "_where": "今天**本体里没有独立分节**：实现落在 `src/ontology_instance/checkpoint.rs`（缓存＝快照，**非真相**）与 `src/common/delivery.rs`；书 §4.5 的货运道面**尚未实现**（已在 `_pending_tables` 之外如实登记）。"
       },
       "验法": {
         "home": "元层（Meta）",
         "attach": "out",
         "_why_out": "**挂不进五要素**：它是『**怎么验**』——挂在各要素上的判据，本身不是要素。",
         "keys": ["_meta_layers"],
-        "_where": "各要素的判据落在 `src/ontology.rs` 的 `Violation` 族与 `tests/**`；本体这一侧只在 `_meta_layers` 里登记。"
+        "_where": "各要素的判据落在 `src/ontology_definition/mod.rs` 的 `Violation` 族与 `tests/**`；本体这一侧只在 `_meta_layers` 里登记。"
       }
     }
   }

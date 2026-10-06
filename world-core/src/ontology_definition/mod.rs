@@ -150,7 +150,7 @@ pub enum Violation {
     ///
     /// | 判据 | 在哪 | 判什么 | 射程 |
     /// |---|---|---|---|
-    /// | `ext.world.Gate.CapabilityWithoutAction` | `policy.json`／`src/gate.rs` | `config`／`invoke` 能力**必须有动作** | **不看许可**；`read` **豁免** |
+    /// | `ext.world.Gate.CapabilityWithoutAction` | `policy.json`／`src/gate/mod.rs` | `config`／`invoke` 能力**必须有动作** | **不看许可**；`read` **豁免** |
     /// | 本条 `DeadCapability` | `ontology.json`／本模块 | 能力**既无动作、又无许可授予** | **看两处**；**不看 `kind`** |
     ///
     /// ⇒ 两处**各判一半**：策略侧管"闸上有没有动作能走到它"，本体侧管"法律上有没有人能用它
@@ -440,7 +440,7 @@ pub struct LinkDecl {
     /// 基数：`one`（单值）／`many`（多值）／`one-to-many` 之类的自由记法今天**不解释**。
     ///
     /// 本批只把**声明**装进来（判据读得到它）；基数的运行时裁决落在读模型侧
-    /// （[`crate::readmodel::DeclaredCells`] 的实例上限），本批不扩。
+    /// （[`crate::ontology_instance::readmodel::DeclaredCells`] 的实例上限），本批不扩。
     pub card: String,
     /// 是否双向。
     pub bidirectional: bool,
@@ -945,7 +945,7 @@ impl Ontology {
         // 与门禁策略、账本一样必须放在被管者不可写之处。
         // ⚠️ 顺序：**先读成功、再查权限**——否则"文件不存在"会报成
         // "无法读取…的权限"，把简单故障说成权限问题（c04 实测抓到）。
-        crate::guard::assert_not_other_writable(path, "本体（法律·形状）")?;
+        crate::gate::guard::assert_not_other_writable(path, "本体（法律·形状）")?;
 
         // ── **第一批判据：五要素节存在性**（缺任一要素节 ⇒ 拒启）──────────────
         //
@@ -1346,11 +1346,11 @@ impl Ontology {
     /// **信封已声明的必填格**（`envelope.required`，出厂本体实测 8 项）。
     ///
     /// 用途：读模型侧的**缺格判据**（`REQ-F-032`）要按"本体已声明的格"来判，而读模型
-    /// **不许** `use crate::ontology::…`——`WC-MODREG-001` §2 给 `M03` 的依赖列逐字是
+    /// **不许** `use crate::ontology_definition::…`——`WC-MODREG-001` §2 给 `M03` 的依赖列逐字是
     /// 「**无**（生产代码零出边）」，机核层 `tools/module_graph.py` 判据② 逐边核对
     /// 「声明集 ≡ 真实 import 集」⇒ 读模型加一条生产边就红。故本方法只交**纯数据**
     /// （`Vec<String>`）出去，由**装配处**递给读模型：
-    /// `world_core::readmodel::DeclaredCells::new(ont.envelope_required(), ont.family_required())`；
+    /// `world_core::ontology_instance::readmodel::DeclaredCells::new(ont.envelope_required(), ont.family_required())`；
     /// 依赖方向留在装配处（`M04` 同时依赖 `M01` 与 `M03`），法律与读法仍读**同一份**本体。
     pub fn envelope_required(&self) -> Vec<String> {
         self.required.clone()
@@ -1451,7 +1451,7 @@ impl Ontology {
 
     /// **读一条事件的旗标**：认得的照常处理，**不认得的一律忽略**（`REQ-F-029`）。
     ///
-    /// 依据（逐字）：`world-core/ontology.json:20`
+    /// 依据（逐字）：`world-core/src/ontology_definition/ontology.json:20`
     /// `"flags": "array  # 能力旗标；未知旗标必须忽略"`。
     ///
     /// 为什么把它挂在**本体**上：这条纪律是**法律**的一部分（写在出厂本体的信封字段表里），
@@ -1459,12 +1459,12 @@ impl Ontology {
     ///
     /// ⚠️ 本方法**没有 `Result`**：出现不认得的旗标**不是**一种校验失败——
     /// 它是"读的人按他认得的那部分继续"。哪些算"认得"由调用方给：
-    /// 出厂读法用 [`crate::event::is_factory_flag`]，认得摩擦旗标的读法另给它自己的判据。
-    pub fn read_flags<'a, F>(&self, ev: &'a Value, knows: F) -> crate::event::Flags<'a>
+    /// 出厂读法用 [`crate::common::event::is_factory_flag`]，认得摩擦旗标的读法另给它自己的判据。
+    pub fn read_flags<'a, F>(&self, ev: &'a Value, knows: F) -> crate::common::event::Flags<'a>
     where
         F: Fn(&str) -> bool,
     {
-        crate::event::read_flags(ev, knows)
+        crate::common::event::read_flags(ev, knows)
     }
 
     /// 从 `subject` 取出**实体类型**：`world://<实体>/<实例…>` ⇒ `Some("<实体>")`。

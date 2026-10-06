@@ -654,7 +654,7 @@ pub fn execute(
             }
         }
         Err(e) => {
-            let code = crate::error::code_of(&e).unwrap_or("ext.world.Carrier.ProviderFailed");
+            let code = crate::common::error::code_of(&e).unwrap_or("ext.world.Carrier.ProviderFailed");
             if code.ends_with("UnknownVerb") || code.ends_with("BadParam") {
                 // 参数/动词层面的错属于"根本没动手"。
                 let mut o = Outcome::refused(json!({ "reason": e }));

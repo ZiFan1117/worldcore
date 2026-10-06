@@ -259,8 +259,8 @@ fn u03_no_undo_policy_means_zero_undo_calls() {
 fn u04_carrier_undo_is_not_world_rollback() {
     let d = tmpdir("u04");
     let lp = d.join("ledger.jsonl");
-    let onto = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json");
-    let pol = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json");
+    let onto = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json");
+    let pol = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json");
     let mut w = World::open(&onto, &lp, &pol).unwrap();
 
     // 先做一次**载体撤销点**（编排成功）

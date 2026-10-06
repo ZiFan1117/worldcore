@@ -21,7 +21,7 @@
 //! | `w07` | `src/carrier/boundary.rs` 删掉 `mode & 0o022` 那一判 ⇒ 0666 那条红；删掉属主那一判 ⇒ 改属主那条红 |
 //!
 //! ⚠️ 本文件的判据全部落在 **Unix 权限位与 Unix 套接字**上。本项目构建与运行都在
-//! Linux（`src/guard.rs:35` 逐字「本项目构建与运行都在 Linux VM 内」），CI 也是
+//! Linux（`src/gate/guard.rs:35` 逐字「本项目构建与运行都在 Linux VM 内」），CI 也是
 //! `ubuntu-latest`（`.github/workflows/world-core-gate.yml:136`）⇒ 本文件按 `cfg(unix)` 整文件门控。
 //! 这不是"静默跳过"：非 Unix 上这些能力**根本不存在**（`src/carrier/kernel.rs:166-175`
 //! 逐字「通道只在 Unix 上可用（v1 局限），**不假装可用**」），在那里判"通过"才是假证。
@@ -40,8 +40,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use world_core::carrier::kernel::KernelClient;
 use world_core::carrier::translate::{Declared, ExternalChange};
 use world_core::carrier::{boundary, recover, writeside};
-use world_core::error::code_of;
-use world_core::ontology::Ontology;
+use world_core::common::error::code_of;
+use world_core::ontology_definition::Ontology;
 
 // ────────────────────────── 夹具 ──────────────────────────
 
@@ -78,10 +78,10 @@ fn this_uid() -> u32 {
 /// 一次性世界：本体与策略**复制进沙箱**（不碰仓里的出厂件），账本路径一并给出。
 fn world_files(d: &Path) -> (PathBuf, PathBuf, PathBuf) {
     let ledger = d.join("ledger.jsonl");
-    let onto = d.join("ontology.json");
-    let pol = d.join("policy.json");
-    fs::copy(manifest().join("ontology.json"), &onto).unwrap();
-    fs::copy(manifest().join("policy.json"), &pol).unwrap();
+    let onto = d.join("src/ontology_definition/ontology.json");
+    let pol = d.join("src/gate/policy.json");
+    fs::copy(manifest().join("src/ontology_definition/ontology.json"), &onto).unwrap();
+    fs::copy(manifest().join("src/gate/policy.json"), &pol).unwrap();
     (ledger, onto, pol)
 }
 
@@ -94,7 +94,7 @@ struct Kernel {
 
 fn start_kernel(d: &Path, ledger: &Path, onto: &Path, pol: &Path, actor: &str, n: usize) -> Kernel {
     // 套接字放在**沙箱的子目录**里：`channel::bind` 会走 guard 的静态墙，
-    // 而那条墙会**连它所在目录的上一级一起判**（`src/guard.rs` 的 `assert_not_other_writable`）。
+    // 而那条墙会**连它所在目录的上一级一起判**（`src/gate/guard.rs` 的 `assert_not_other_writable`）。
     // /tmp 是 1777 ⇒ 套接字若直接放在沙箱根下，上一级就是 /tmp ⇒ 必被拒（那是**墙在正常工作**）。
     // 子目录 `run/`（0755，无 go-w）＋ 沙箱（0700，无 go-w）⇒ 两级都成立。
     let run = d.join("run");
@@ -240,7 +240,7 @@ impl Declared for Book {
                 .unwrap_or(false),
             // 裸主体（`world://<名字>`）：它不是"某个对象"，写侧判**翻不出来**
             // （书 §4.5 要的是"某个对象的某个字段"）。这与本体侧那条**已登记的缺口**
-            // （`src/ontology.rs` 的 `check_concepts`：裸主体今天仍可落账）不冲突——
+            // （`src/ontology_definition/mod.rs` 的 `check_concepts`：裸主体今天仍可落账）不冲突——
             // 写侧不据此放宽。
             None => false,
         }
@@ -248,7 +248,7 @@ impl Declared for Book {
 }
 
 fn book() -> Book {
-    Book(Ontology::load(&manifest().join("ontology.json")).unwrap())
+    Book(Ontology::load(&manifest().join("src/ontology_definition/ontology.json")).unwrap())
 }
 
 fn book_at(onto: &Path) -> Book {

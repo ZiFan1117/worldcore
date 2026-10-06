@@ -60,7 +60,7 @@ use std::fmt;
 /// **两处同批**逐字声明 `"retract_seq": "integer"`（依据与改动面见 `docs/证据/EV-009.md` 的
 /// 「第 10 轮增量 · 词表身份变更」一节）。读模型把名字**编译进来**，是因为
 /// `M03` 生产代码**零出边**（`WC-MODREG-001` §2；`tools/module_graph.py` 判据② 逐边核对
-/// 「声明集 ≡ 真实 import 集」）⇒ 读模型**不许** `use crate::ontology::…`。
+/// 「声明集 ≡ 真实 import 集」）⇒ 读模型**不许** `use crate::ontology_definition::…`。
 /// 这与"读模型认得的那三个家族"是**同一口径**：本体加了新东西，**读法要一起加**
 /// （`REQ-F-027`／`tests/family_readmodel.rs::h02` ③ 钉的就是这一条）。
 pub const RETRACT_PATH: &str = "retract_seq";
@@ -168,7 +168,7 @@ impl State {
     /// 而"声明为单实例的类型却折出多个实例"正是要判的那一格。
     ///
     /// 口径：类型 ＝ subject `world://<首段>/<实例…>` 的**首段**（与
-    /// [`crate::ontology::Ontology::entity_of`] 同一口径——**一个事实只有一个权威载体**）；
+    /// [`crate::ontology_definition::Ontology::entity_of`] 同一口径——**一个事实只有一个权威载体**）；
     /// 裸主体（`world://<名字>`，没有实例段）**不计入任何类型**（它不是某个类型的实例引用，
     /// 与 `entity_of` 的 `None` 同源）。只有**有字段写进去**的主体才出现（空主体不占位）。
     pub fn type_counts(&self) -> BTreeMap<String, u64> {
@@ -251,7 +251,7 @@ impl State {
     ///
     /// 被撤回的那一条**照样占着它那个 `seq`**。用 `continue` 跳过它 ⇒ `last_seq` 停在它前面
     /// ⇒ 下一条一来就报 `SeqGap`（**缺号即拒启**是世界的既有口径：
-    /// `src/ledger.rs` 启动时逐行校验 `seq` 从 1 起连续）。
+    /// `src/ledger/mod.rs` 启动时逐行校验 `seq` 从 1 起连续）。
     /// 所以"撤回"只能表现为**过户**，不能表现为"那一条不存在"。
     pub fn advance_only(&mut self, seq: u64) -> Result<(), String> {
         self.check_next(seq)?;
@@ -480,7 +480,7 @@ impl State {
     /// - **可选格**（`to`／`trace`／`params`／`payload`）不进 [`DeclaredCells`]：
     ///   本体说它们可选，"没写"是这份法律允许的形态，不是缺格；
     /// - **`concepts` 的字段**（`notice.muted`/`job.status`）归**写入侧**判
-    ///   （[`crate::ontology::Ontology::check_concepts`]），读模型侧不重复判；
+    ///   （[`crate::ontology_definition::Ontology::check_concepts`]），读模型侧不重复判；
     /// - 读模型**不渲染**信封的 `id`／`at`／`actor`／`world`／`flags`：它们现在**被读**
     ///   （缺了即拒），但**不进入状态**（`state --json` 里读不到它们）⇒ 书那句
     ///   「每个已声明的字段至少有一份读法可读」在**必填格**这一半成立，另一半仍待补。
@@ -651,7 +651,7 @@ impl State {
 /// ⇒ `ext.world.ReadModel.RetractMalformed`。**不许**降级成"那就当它不是撤回事实"：
 /// 一条打错字的撤回若被静默忽略，世界会**照旧折叠**、而那条被指的记录**照旧生效**——
 /// "没撤回"与"撤回了"在读数上一样、在结论上相反（本项目最贵的一类错）。
-/// `after = 0` 也算坏：账本的 `seq` **从 1 起**（`src/ledger.rs` 启动即逐行校验）。
+/// `after = 0` 也算坏：账本的 `seq` **从 1 起**（`src/ledger/mod.rs` 启动即逐行校验）。
 pub fn retract_target_of(ev: &Value) -> Result<Option<u64>, String> {
     if ev.get("kind").and_then(Value::as_str) != Some("change") {
         return Ok(None);
@@ -676,7 +676,7 @@ pub fn retract_target_of(ev: &Value) -> Result<Option<u64>, String> {
 
 /// **subject 的类型段**：`world://<类型>/<实例…>` ⇒ `Some("<类型>")`；裸主体 ⇒ `None`。
 ///
-/// 与 [`crate::ontology::Ontology::entity_of`] **同一口径**（本模块生产代码零出边 ⇒
+/// 与 [`crate::ontology_definition::Ontology::entity_of`] **同一口径**（本模块生产代码零出边 ⇒
 /// 不 `use` 那边；口径一致这件事由两侧各自的用例钉住，不由"共用一行代码"钉住）。
 pub fn type_of_subject(subject: &str) -> Option<&str> {
     let rest = subject.strip_prefix("world://")?;
@@ -698,7 +698,7 @@ pub fn type_of_subject(subject: &str) -> Option<&str> {
 /// | `world://a/b/c` | `Some("a")` | 三段**不是**内嵌形态；首段永远是类型（与 `entity_of` 同口径） |
 /// | `world://a//c`（空段） | `None` | 形状坏 ⇒ 本判据不抢（`apply` 那一族会报） |
 ///
-/// 与 [`crate::ontology::Ontology::entity_of`]／`instance_type` **同一口径**（本模块生产代码零出边
+/// 与 [`crate::ontology_definition::Ontology::entity_of`]／`instance_type` **同一口径**（本模块生产代码零出边
 /// ⇒ 不 `use` 那边；一致性由两侧各自的用例钉住）。
 fn instance_type_of<'a>(subject: &'a str, nested: &'a BTreeMap<String, String>) -> Option<&'a str> {
     let rest = subject.strip_prefix("world://")?;
@@ -724,11 +724,11 @@ fn instance_type_of<'a>(subject: &'a str, nested: &'a BTreeMap<String, String>) 
 ///
 /// ## 为什么它是**数据**，而不是一个"法律"类型（这一条是刻意的）
 ///
-/// 读模型**不许**在生产代码里 `use crate::ontology::…`：`WC-MODREG-001` §2 给 `M03` 的
+/// 读模型**不许**在生产代码里 `use crate::ontology_definition::…`：`WC-MODREG-001` §2 给 `M03` 的
 /// 依赖列逐字是「**无**（生产代码零出边）」，而机核层 `tools/module_graph.py` 判据②
 /// 逐边核对「声明集 ≡ 真实 import 集」——读模型加一条生产边就会让它变红。
 /// 故法律以**数据**递进来，依赖方向留在**装配处**（`M04` 同时依赖 `M01` 与 `M03`）：
-/// 谁递 = `World::read_model` 的调用点；数据从 [`crate::ontology::Ontology`] 取
+/// 谁递 = `World::read_model` 的调用点；数据从 [`crate::ontology_definition::Ontology`] 取
 /// （`envelope_required`／`family_required`），**同一份出厂本体** ⇒ 同源。
 ///
 /// ⚠️ 递进来的若是空表（[`DeclaredCells::is_empty`]），[`State::apply_declared`] **拒绝折叠**：
@@ -920,7 +920,7 @@ fn bad_cell_msg(seq: u64, what: &str, want: &str) -> String {
 #[cfg(test)]
 mod unit {
     use super::*;
-    use crate::event;
+    use crate::common::event;
 
     fn change(seq: u64, subject: &str, path: &str, before: Value, after: Value) -> Value {
         event::new_event(

@@ -17,7 +17,7 @@ PartOf=world-core.service
 #     ★由 `world-core.service` 的 `Sockets=` 一次把 n 个 fd 交给服务（见 `world-core.service`）。
 ListenStream=/run/world-core/world.sock
 # 一个连接一个身份 ⇒ **一个口一个系统身份**，套接字收紧到 0600（只有属主连得上）。
-# ★ 裁（2026-10-05）：三处口径统一为 **0600** —— 本单元 ＋ `src/channel.rs::bind()` 的
+# ★ 裁（2026-10-05）：三处口径统一为 **0600** —— 本单元 ＋ `src/bus/mod.rs::bind()` 的
 #   `set_permissions(0o600)` ＋ 盘上那个套接字。此前本单元写 0660（"属组表达谁能连"）、
 #   代码文档写 0600 ⇒ **同一个事实两个取值**，而生产路径走 socket activation（本单元持有
 #   套接字、`bind()` 不参与）⇒ 盘上是 0660，与代码文档说的 0600 不一致，且没有任何东西会红。

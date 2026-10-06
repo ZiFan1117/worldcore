@@ -21,7 +21,7 @@
 //! （那条请求到底做没做、做到哪一步），而不是由一个自动程序猜。
 //! 本模块给出的 `hint` 只说明"需要人工判断"，**不构成"可以安全重试"的结论**。
 
-use crate::pairing::is_result;
+use crate::common::pairing::is_result;
 use serde_json::Value;
 use std::path::Path;
 
@@ -88,12 +88,12 @@ impl Orphan {
     }
 }
 
-/// 事件信纸上的请求号——见 [`crate::pairing::request_id_of`]。
+/// 事件信纸上的请求号——见 [`crate::common::pairing::request_id_of`]。
 ///
 /// 与 [`is_result`] 同上：这两条"什么算一次请求的哪一半"的判据**全项目只有一份实现**
-/// （在 [`crate::pairing`] 里），本模块只把它们接到原有的调用点上。
+/// （在 [`crate::common::pairing`] 里），本模块只把它们接到原有的调用点上。
 fn request_id_of(ev: &Value) -> Option<&str> {
-    crate::pairing::request_id_of(ev)
+    crate::common::pairing::request_id_of(ev)
 }
 
 fn str_field(ev: &Value, name: &str) -> String {

@@ -91,20 +91,20 @@ fi
 SB="$(mktemp -d)"
 trap 'rm -rf "$SB"' EXIT
 chmod 700 "$SB"
-cp ontology.json policy.json "$SB"/
-chmod 600 "$SB/ontology.json" "$SB/policy.json"
+cp src/ontology_definition/ontology.json src/gate/policy.json "$SB"/
+chmod 600 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 L="$SB/ledger.jsonl"
 
-W() { "$BIN" --ontology "$SB/ontology.json" --ledger "$L" --policy "$SB/policy.json" "$@"; }
+W() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$L" --policy "$SB/src/gate/policy.json" "$@"; }
 WO() { # WO <ontology-path> [args...]
   local ont="$1"
   shift
-  "$BIN" --ontology "$ont" --ledger "$L" --policy "$SB/policy.json" "$@"
+  "$BIN" --ontology "$ont" --ledger "$L" --policy "$SB/src/gate/policy.json" "$@"
 }
 WO2() { # WO2 <ontology-path> <ledger-path> [args...]
   local ont="$1" led="$2"
   shift 2
-  "$BIN" --ontology "$ont" --ledger "$led" --policy "$SB/policy.json" "$@"
+  "$BIN" --ontology "$ont" --ledger "$led" --policy "$SB/src/gate/policy.json" "$@"
 }
 
 echo "== world-core S1 验证面补建（真实二进制 $BIN）=="
@@ -114,7 +114,7 @@ echo "  用例 : TC-042 / TC-046 / TC-047 / TC-048 / TC-049 / TC-050 / TC-051 / 
 
 # ══ 种子：本账 2 条 + 一条真实落盘行副本（供手写变异用）══════════════════
 # 为什么主体/字段换成 `world://notice/a` ＋ `muted`：这是**检查用数据**，而写进世界的东西
-# 必须在出厂本体里声明过（书 §5.3；执行者 `src/ontology.rs::check_concepts`）。
+# 必须在出厂本体里声明过（书 §5.3；执行者 `src/ontology_definition/mod.rs::check_concepts`）。
 # 原先的 `world://sys/a#p` 两个名字都没声明过 ⇒ 这一条当场 rc=2、账本 0 行，
 # 下面**所有**依赖"账本里有东西"的断言（P⊆S、同源、排版样本…）跟着一起红。
 # 换的只是落笔的格子，检查内容一字未改。
@@ -255,7 +255,7 @@ BASE_LANG="$(W project language | head -1)"
 BASE_VIS="$(W project visual | head -1)"
 
 # 「只加扩展」的本体：新增一个家族 + 一个概念（纯加法，不改任何既有字段含义）
-python3 - "$SB/ontology.json" "$SB/ontology-ext.json" <<'PY'
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/ontology-ext.json" <<'PY'
 import json, sys, collections
 src, dst = sys.argv[1], sys.argv[2]
 o = json.load(open(src, encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
@@ -282,7 +282,7 @@ assert_ne "⑤ 对照：本体确实变了（词表 hash **必须**变，否则�
   "$(WO "$SB/ontology-ext.json" project language | head -1 | sed -n 's/.*vocab=\([^ ]*\).*/\1/p')"
 
 # 反例⑥⑦：world 升版 ⇒ 必须拒启（承接 REQ-F-002 / REQ-F-027 判据①）
-python3 - "$SB/ontology.json" "$SB/ontology-v2.json" <<'PY'
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/ontology-v2.json" <<'PY'
 import json, sys, collections
 src, dst = sys.argv[1], sys.argv[2]
 o = json.load(open(src, encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
@@ -305,36 +305,36 @@ mk_bad "$SB/bad_body.jsonl" 'ev["body"] = "not-an-object"'
 mk_bad "$SB/bad_world.jsonl" 'ev["world"] = "1"'
 mk_bad "$SB/bad_missing_actor.jsonl" 'del ev["actor"]'
 
-O="$(WO2 "$SB/ontology.json" "$SB/bad_kind.jsonl" state 2>&1)"; R=$?
+O="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_kind.jsonl" state 2>&1)"; R=$?
 assert_rc "① 未知 kind ⇒ 拒绝（rc=2）" 2 "$R"
 assert_has "② ①的理由**点名**那个未知家族 bogus（UnknownKind 的 kind）" "$O" 'bogus'
 
-O="$(WO2 "$SB/ontology.json" "$SB/bad_seq.jsonl" state 2>&1)"; R=$?
+O="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_seq.jsonl" state 2>&1)"; R=$?
 assert_rc "③ seq 为字符串（应 integer）⇒ 拒绝（rc=2）" 2 "$R"
 assert_has "④ ③的理由是**类型化**错误码（ext.world.*，不是一句泛泛的"解析失败"）" "$O" 'ext\.world\.[A-Za-z]+\.'
 
-O="$(WO2 "$SB/ontology.json" "$SB/bad_body.jsonl" state 2>&1)"; R=$?
+O="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_body.jsonl" state 2>&1)"; R=$?
 assert_rc "⑤ body 为字符串（应 object）⇒ 拒绝（rc=2）" 2 "$R"
 
 # 反假⑥：未变异的真实账本必须通过（否则上面全部是恒红，等于没判）
-GOODOUT="$(WO2 "$SB/ontology.json" "$L" state --json 2>&1)"; RG=$?
+GOODOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$L" state --json 2>&1)"; RG=$?
 assert_rc "⑥ 反假：未变异的真实账本 ⇒ 必须通过（rc=0；证明上面不是恒红）" 0 "$RG"
 assert_eq "⑦ 反假：未变异账本的状态与基线逐字节相同" "$BASE_STATE" "$GOODOUT"
 
 # 登记⑧：类型口径**仍未落实**的一处（现状为红，如实登记，不掩盖也不假装是断言失败）
-O="$(WO2 "$SB/ontology.json" "$SB/bad_world.jsonl" state 2>&1)"; R=$?
+O="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_world.jsonl" state 2>&1)"; R=$?
 if [ "$R" -eq 2 ]; then
   ok "⑧ world 为字符串（应 integer）⇒ 被拒（rc=2）"
 else
   reg "⑧ world 为字符串（应 integer）竟**被接受**（rc=$R）：world 的**类型**断言在折叠层未落实 —— REQ-F-028 判据② 对本字段**不成立**（缺格判据只判「这一格在不在」，不判类型）"
 fi
 # ⑨ 缺格即报错（REQ-F-032）：**2026-09-28 由登记项改为断言**。
-# 为什么能改：读模型侧的缺格判据落地（`src/readmodel.rs` 的 `DeclaredCells`／`State::fold_declared`），
+# 为什么能改：读模型侧的缺格判据落地（`src/ontology_instance/readmodel.rs` 的 `DeclaredCells`／`State::fold_declared`），
 # 且装配处（`src/lib.rs::read_model`）把"已声明格"以纯数据递进读模型 ⇒ **命令这一级**也拒。
 # 该登记项此前逐字写着「缺必填信封字段 actor 竟**被接受**（rc=$R）：必填字段校验只在写入路径
 # （本体校验）上，折叠层不校验」——它兑现了：合上它的那次改动先把断言打红，再转绿
 # （§ 交付回执里有"改前红／改后绿"两条原始输出）。
-O="$(WO2 "$SB/ontology.json" "$SB/bad_missing_actor.jsonl" state 2>&1)"; R=$?
+O="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_missing_actor.jsonl" state 2>&1)"; R=$?
 assert_rc "⑨ 缺必填信封字段 actor ⇒ 被拒（rc=2；REQ-F-032 缺格即报错）" 2 "$R"
 assert_has "⑨a 拒绝理由**点名**缺的那一格 actor" "$O" 'actor'
 assert_has "⑨b 拒绝理由是读模型侧的缺格码（不是写入侧那条）" "$O" 'ext\.world\.ReadModel\.MissingCell'
@@ -344,21 +344,21 @@ echo
 echo "── TC-048 · REQ-F-029 未知旗标必须忽略 ＋ 对偶：未知 kind 必须被拒 ──"
 
 mk_bad "$SB/flag_unknown.jsonl" 'ev["flags"] = ["future.flag", "another.flag"]'
-FOUT="$(WO2 "$SB/ontology.json" "$SB/flag_unknown.jsonl" state --json 2>&1)"; FR=$?
+FOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/flag_unknown.jsonl" state --json 2>&1)"; FR=$?
 assert_rc "① 含**未知旗标**的合法事件 ⇒ **必须被接受**（rc=0；注意方向与其它条相反）" 0 "$FR"
 assert_eq "② ①的折叠结果与不带旗标时**逐字节相同**（旗标对结论无影响）" "$BASE_STATE" "$FOUT"
 
 mk_bad "$SB/flag_empty.jsonl" 'ev["flags"] = []'
-EOUT="$(WO2 "$SB/ontology.json" "$SB/flag_empty.jsonl" state --json 2>&1)"; ER=$?
+EOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/flag_empty.jsonl" state --json 2>&1)"; ER=$?
 assert_rc "③ 对照：空旗标数组 ⇒ 同样接受（rc=0）" 0 "$ER"
 assert_eq "④ ③的结果与基线逐字节相同" "$BASE_STATE" "$EOUT"
 
-EOUT2="$(WO2 "$SB/ontology.json" "$SB/bad_kind.jsonl" state 2>&1)"; ER2=$?
+EOUT2="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/bad_kind.jsonl" state 2>&1)"; ER2=$?
 assert_rc "⑤ 对偶：未知 kind ⇒ **必须被拒绝**（rc=2）" 2 "$ER2"
 assert_has "⑥ 对偶一半与 TC-047 的 ① 同源（两处必须一致，不得一处松一处紧）" "$EOUT2" 'bogus'
 
 # 登记⑦：判据①的**可构造性**边界（出厂本体 flags 为空数组）
-FLAGS_LEN="$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1],encoding="utf-8")).get("flags",[])))' "$SB/ontology.json")"
+FLAGS_LEN="$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1],encoding="utf-8")).get("flags",[])))' "$SB/src/ontology_definition/ontology.json")"
 if [ "$FLAGS_LEN" = "0" ]; then
   reg "⑦ 出厂本体 flags = **空数组**（实测长度 $FLAGS_LEN）⇒ 「未知旗标」在**本体内没有任何已定义旗标可比对**（本体侧没有对照面，故『已定义/未定义』这条界线今天只能由读者一侧给）。该边界如实登记，不读作「已完备」"
 else
@@ -372,7 +372,7 @@ assert_has "⑨ ⑧ 的槽位确实是那个已声明的实体（世界里的东
 # ⑩⑪ **对偶的写入侧**（TC-047 的 ① 与 ⑤ 走的是折叠侧）：同一个入口，方向相反
 #   旗标那半：接受并落笔；家族那半：拒绝且**不落笔**。两条各自成判，不许互相冒充。
 DUAL_LED="$SB/dual.jsonl"
-DOUT="$(WO2 "$SB/ontology.json" "$DUAL_LED" append bogus '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' 2>&1)"; DRC=$?
+DOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$DUAL_LED" append bogus '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' 2>&1)"; DRC=$?
 assert_rc "⑩ 对偶·写入侧：未知 kind 经 append 子命令 ⇒ **必须被拒绝**（rc=2）" 2 "$DRC"
 assert_has "⑪ ⑩ 的理由是**类型化**的未知家族（不是一句泛泛的解析失败）" "$DOUT" 'UnknownKind'
 DUAL_LINES=0
@@ -381,7 +381,7 @@ assert_eq "⑫ ⑩ **不落笔**（被拒的事件一行都没进账本）" "0" 
 
 # ⑬ 反假：同一个入口、同一条信纸，只把 kind 换成已知家族 ⇒ 必须照常落笔
 #    （否则 ⑩⑫ 可能只是"这个入口本来就写不进去"）
-DOUT2="$(WO2 "$SB/ontology.json" "$DUAL_LED" append change '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' 2>&1)"; DRC2=$?
+DOUT2="$(WO2 "$SB/src/ontology_definition/ontology.json" "$DUAL_LED" append change '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' 2>&1)"; DRC2=$?
 assert_rc "⑬ 反假：同一条信纸换成已知家族 ⇒ 照常落笔（rc=0）" 0 "$DRC2"
 DUAL_LINES2="$(wc -l <"$DUAL_LED" | tr -d ' ')"
 assert_eq "⑭ ⑬ 确实落了一行（证明 ⑩⑫ 的『不落笔』不是入口失效）" "1" "$DUAL_LINES2"
@@ -391,11 +391,11 @@ assert_eq "⑭ ⑬ 确实落了一行（证明 ⑩⑫ 的『不落笔』不是�
 # 在这之前，带任意未知旗标的事件**只能由手写账本行构造**（① 走的正是那条路）——
 # 本轮之前它是一条登记项，入口一落地就按登记时的处置改成断言（登记项不是用来长期挂着的）。
 FLAG_LED="$SB/flag_entry.jsonl"
-WO2 "$SB/ontology.json" "$FLAG_LED" append change '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' world://user --flag future.flag >/dev/null 2>&1
+WO2 "$SB/src/ontology_definition/ontology.json" "$FLAG_LED" append change '{"subject":"world://notice/a","path":"muted","before":null,"after":true}' world://user --flag future.flag >/dev/null 2>&1
 assert_rc "⑮ 经**公开写入入口**（append … --flag）落一条带未知旗标的事件 ⇒ **被接受**（rc=0）" 0 "$?"
 FLAG_LINE="$(cat "$FLAG_LED" 2>/dev/null)"
 assert_has "⑯ ⑮ 落笔的那一行**原样带着**那个旗标（不是被丢掉、也不是被改写）" "$FLAG_LINE" '"flags":\["future.flag"\]'
-WO2 "$SB/ontology.json" "$FLAG_LED" state --json >/dev/null 2>&1
+WO2 "$SB/src/ontology_definition/ontology.json" "$FLAG_LED" state --json >/dev/null 2>&1
 assert_rc "⑰ ⑮ 那条事件**照常被折叠**（rc=0：旗标不碍事）" 0 "$?"
 
 
@@ -403,7 +403,7 @@ assert_rc "⑰ ⑮ 那条事件**照常被折叠**（rc=0：旗标不碍事）" 
 echo
 echo "── TC-049 · REQ-F-030 极小核心 + 命名空间扩展 ──"
 
-CORE="$(python3 - "$SB/ontology.json" <<'PY'
+CORE="$(python3 - "$SB/src/ontology_definition/ontology.json" <<'PY'
 import json, sys
 o = json.load(open(sys.argv[1], encoding="utf-8"))
 env, fams = o["envelope"], o["families"]
@@ -425,8 +425,8 @@ assert_eq "⑥ 判据③「只加扩展 ⇒ 同一账本折叠结果不变」（
   "$BASE_STATE" "$(WO "$SB/ontology-ext.json" state --json)"
 
 # ⑦ 判据②「扩展项不得与核心字段重名」——**已落地（2026-09-28）**：
-# 本体加载器在装载期查重名（`src/ontology.rs::check_extension_names`），撞上即拒启。
-python3 - "$SB/ontology.json" "$SB/ontology-collide.json" <<'PY'
+# 本体加载器在装载期查重名（`src/ontology_definition/mod.rs::check_extension_names`），撞上即拒启。
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/ontology-collide.json" <<'PY'
 import json, sys, collections
 src, dst = sys.argv[1], sys.argv[2]
 o = json.load(open(src, encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
@@ -457,7 +457,7 @@ assert_eq "② 跨进程：语言与视觉两投影的 (world, vocab, last_seq, 
 assert_has "③ 同源头含**全部四要素**（world / vocab / last_seq / state）" "$P1" 'world=[0-9]+ vocab=\S+ last_seq=[0-9]+ state=\S+'
 assert_has "④ project check 自报同源通过" "$(W project check)" '同源.*(一致|通过)'
 
-python3 - "$SB/ontology.json" "$SB/ontology-vocab.json" <<'PY'
+python3 - "$SB/src/ontology_definition/ontology.json" "$SB/ontology-vocab.json" <<'PY'
 import json, sys, collections
 src, dst = sys.argv[1], sys.argv[2]
 o = json.load(open(src, encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
@@ -506,7 +506,7 @@ else
   W project visual >"$SB/sample_newline.txt" 2>/dev/null
   : >"$SB/empty.jsonl"
   chmod 600 "$SB/empty.jsonl"
-  WO2 "$SB/ontology.json" "$SB/empty.jsonl" project visual >"$SB/sample_empty.txt" 2>/dev/null
+  WO2 "$SB/src/ontology_definition/ontology.json" "$SB/empty.jsonl" project visual >"$SB/sample_empty.txt" 2>/dev/null
   assert_eq "② 三样本齐备（普通值 / 含换行·控制字符的值 / 空状态）" "3" "$(ls "$SB"/sample_*.txt | wc -l | tr -d ' ')"
 
   for S in normal newline empty; do
@@ -536,22 +536,22 @@ mk_bad "$SB/trace_none.jsonl" 'ev.pop("trace", None)'
 BASE_STATE="$(W state --json)"
 BASE_LANG="$(W project language | head -1)"
 
-TOUT="$(WO2 "$SB/ontology.json" "$SB/trace_ghost.jsonl" state --json 2>&1)"; TR=$?
+TOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_ghost.jsonl" state --json 2>&1)"; TR=$?
 assert_rc "(4a)① trace 指向**不存在的 id** ⇒ **必须被接受**（v1 不做引用完整性校验，rc=0）" 0 "$TR"
 assert_eq "(4a)② 折叠结果与基线**逐字节相同**" "$BASE_STATE" "$TOUT"
 
-NOUT="$(WO2 "$SB/ontology.json" "$SB/trace_none.jsonl" state --json 2>&1)"; NR=$?
+NOUT="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_none.jsonl" state --json 2>&1)"; NR=$?
 assert_rc "(4a)③ 不带 trace ⇒ 同样必须被接受（rc=0）" 0 "$NR"
 assert_eq "(4b)④ 带 / 不带 trace 两本账的 state **逐字节相同**" "$TOUT" "$NOUT"
 
-TL="$(WO2 "$SB/ontology.json" "$SB/trace_ghost.jsonl" project language | head -1)"
-NL="$(WO2 "$SB/ontology.json" "$SB/trace_none.jsonl" project language | head -1)"
-TV="$(WO2 "$SB/ontology.json" "$SB/trace_ghost.jsonl" project visual | head -1)"
+TL="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_ghost.jsonl" project language | head -1)"
+NL="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_none.jsonl" project language | head -1)"
+TV="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_ghost.jsonl" project visual | head -1)"
 assert_eq "(4b)⑤ 带 / 不带 trace ⇒ 语言投影同源头**逐字节相同**" "$TL" "$NL"
 assert_eq "(4b)⑥ 带 trace ⇒ 视觉投影的四要素与语言投影**逐字节相同**（结论无关性；投影种类标记本就不同）" \
   "$(hdr4 "$TL")" "$(hdr4 "$TV")"
 
-RD="$(WO2 "$SB/ontology.json" "$SB/trace_ghost.jsonl" read 2>&1)"; RR=$?
+RD="$(WO2 "$SB/src/ontology_definition/ontology.json" "$SB/trace_ghost.jsonl" read 2>&1)"; RR=$?
 assert_rc "(4a)⑦ read 读回带 trace 的事件 ⇒ 必须成功（rc=0）" 0 "$RR"
 assert_has "(4a)⑧ read 读回的 trace 值**逐字**保留（未被改写/丢弃）" "$RD" '"trace": ?"no-such-event-id"'
 

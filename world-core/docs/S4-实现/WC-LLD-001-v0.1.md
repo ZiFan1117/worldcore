@@ -36,15 +36,15 @@
 
 | 原子（真实路径） | intent（一句话） | 四件同夹（契约／实现／测试各在哪） | deps == import | 生成物（重跑命令／无） | 机核读数 |
 |---|---|---|---|---|---|
-| `src/ontology.rs`（`M01`） | 世界的**法律**：事件形状、合法变更的判据。 | 契约：`WC-IC-001` §5.1＋§3.5 的 `IF-005`；实现：本文件；测试：`tests/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`、`tests/acceptance.rs::t6_bad_ontology_refuses_to_start` | 声明 `M05`＝真实 import `M05`（**逐边相等**） | 无 | 判据② 该模块 `deps_judged=True`、`deps_declared_unverified=∅`、`deps_undeclared=∅` |
-| `src/ledger.rs`（`M02`） | 世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。 | 契约：`WC-IC-001` §5.2＋§3.1 的 `IF-001`；实现：本文件；测试：`tests/contract.rs::c22_file_always_ends_on_a_line_boundary`、`tests/acceptance.rs::t2_events_survive_restart` | 声明 `M05`＝真实 `M05` | 无 | 同上（该模块） |
-| `src/readmodel.rs`（`M03`） | **状态 = fold(账本)**：纯派生物，可随时删掉重算。 | 契约：`WC-IC-001` §5.3＋§3.9 的 `IF-009`；实现：本文件；测试：`tests/contract.rs::c06_incremental_apply_equals_full_fold`、`tests/acceptance.rs::t8_read_model_refuses_broken_ledger` | 声明 **无**＝真实**无**（生产代码零出边） | 无 | 同上（该模块） |
+| `src/ontology_definition/mod.rs`（`M01`） | 世界的**法律**：事件形状、合法变更的判据。 | 契约：`WC-IC-001` §5.1＋§3.5 的 `IF-005`；实现：本文件；测试：`tests/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`、`tests/acceptance.rs::t6_bad_ontology_refuses_to_start` | 声明 `M05`＝真实 import `M05`（**逐边相等**） | 无 | 判据② 该模块 `deps_judged=True`、`deps_declared_unverified=∅`、`deps_undeclared=∅` |
+| `src/ledger/mod.rs`（`M02`） | 世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。 | 契约：`WC-IC-001` §5.2＋§3.1 的 `IF-001`；实现：本文件；测试：`tests/contract.rs::c22_file_always_ends_on_a_line_boundary`、`tests/acceptance.rs::t2_events_survive_restart` | 声明 `M05`＝真实 `M05` | 无 | 同上（该模块） |
+| `src/ontology_instance/readmodel.rs`（`M03`） | **状态 = fold(账本)**：纯派生物，可随时删掉重算。 | 契约：`WC-IC-001` §5.3＋§3.9 的 `IF-009`；实现：本文件；测试：`tests/contract.rs::c06_incremental_apply_equals_full_fold`、`tests/acceptance.rs::t8_read_model_refuses_broken_ledger` | 声明 **无**＝真实**无**（生产代码零出边） | 无 | 同上（该模块） |
 | `src/lib.rs`、`src/main.rs`（`M04`） | 装配启动，持有**唯一写入口** `World::commit`。 | 契约：`WC-IC-001` §5.4＋§3.8 的 `IF-008`；实现：本两文件；测试：`tests/contract.rs::c15_errors_carry_machine_readable_codes`、`tests/atom_declared_only.rs::b05_cli_append_of_an_undeclared_entity_is_refused` | 声明 `M01,M02,M03,M05,M06,M07,M08,M09,M10`（9 边）＝真实 9 边 | 无 | 同上（该模块） |
-| `src/gate.rs`、`src/guard.rs`（`M05`） | 一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。 | 契约：`WC-IC-001` §5.5＋§3.2 的 `IF-002`；实现：本两文件；测试：`tests/contract.rs::c11_irreversible_is_owner_only_and_the_refusal_does_not_lie`、`tests/atom_reversibility.rs::a06_risk_sets_friction_weight_but_not_the_verdict` | 声明 `M10`＝真实 `M10` | 无 | 同上（该模块） |
-| `src/project/language.rs`（`M06`） | 结构化出口：逐行 JSON，给程序读。 | 契约：`WC-IC-001` §5.6＋§3.3 的 `IF-003`；实现：本文件；测试：`tests/acceptance.rs::t14_language_projection_matches_read_model`、`tests/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs` | 声明 `M03`＝真实 `M03` | 无 | 同上（该模块） |
-| `src/project/visual.rs`（`M07`） | 渲染出口：终端可读，**排版仍可被审计**。 | 契约：`WC-IC-001` §5.7＋§3.4 的 `IF-004`；实现：本文件；测试：`tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`、`tests/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs` | 声明 `M03`＝真实 `M03` | 无 | 同上（该模块） |
-| `src/checkpoint.rs`（`M08`） | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。 | 契约：`WC-IC-001` §5.8＋§3.10 的 `IF-010`；实现：本文件；测试：`tests/cli.rs::cli15_usage_lists_three_checkpoint_subcommands`、`tests/cli.rs::cli17_checkpoint_resume_falls_back_to_post_hoc_comparison` | 声明 `M03,M05`＝真实 `M03,M05` | 无 | 同上（该模块） |
-| `src/channel.rs`（`M09`） | 跨进程入口：**一个套接字一个身份**，权限即身份。 | 契约：`WC-IC-001` §5.9＋§3.6 的 `IF-006`；实现：本文件；测试：`tests/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`、`tests/channel_bounds.rs::l02_the_second_simultaneous_connection_is_refused` | 声明 `M05`＝真实 `M05` | 无 | 同上（该模块） |
+| `src/gate/mod.rs`、`src/gate/guard.rs`（`M05`） | 一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。 | 契约：`WC-IC-001` §5.5＋§3.2 的 `IF-002`；实现：本两文件；测试：`tests/contract.rs::c11_irreversible_is_owner_only_and_the_refusal_does_not_lie`、`tests/atom_reversibility.rs::a06_risk_sets_friction_weight_but_not_the_verdict` | 声明 `M10`＝真实 `M10` | 无 | 同上（该模块） |
+| `src/gui_projection/language.rs`（`M06`） | 结构化出口：逐行 JSON，给程序读。 | 契约：`WC-IC-001` §5.6＋§3.3 的 `IF-003`；实现：本文件；测试：`tests/acceptance.rs::t14_language_projection_matches_read_model`、`tests/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs` | 声明 `M03`＝真实 `M03` | 无 | 同上（该模块） |
+| `src/gui_projection/visual.rs`（`M07`） | 渲染出口：终端可读，**排版仍可被审计**。 | 契约：`WC-IC-001` §5.7＋§3.4 的 `IF-004`；实现：本文件；测试：`tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`、`tests/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs` | 声明 `M03`＝真实 `M03` | 无 | 同上（该模块） |
+| `src/ontology_instance/checkpoint.rs`（`M08`） | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。 | 契约：`WC-IC-001` §5.8＋§3.10 的 `IF-010`；实现：本文件；测试：`tests/cli.rs::cli15_usage_lists_three_checkpoint_subcommands`、`tests/cli.rs::cli17_checkpoint_resume_falls_back_to_post_hoc_comparison` | 声明 `M03,M05`＝真实 `M03,M05` | 无 | 同上（该模块） |
+| `src/bus/mod.rs`（`M09`） | 跨进程入口：**一个套接字一个身份**，权限即身份。 | 契约：`WC-IC-001` §5.9＋§3.6 的 `IF-006`；实现：本文件；测试：`tests/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`、`tests/channel_bounds.rs::l02_the_second_simultaneous_connection_is_refused` | 声明 `M05`＝真实 `M05` | 无 | 同上（该模块） |
 | `src/carrier/`（`M10`，**目录型**：10 个 `.rs`） | **载体侧的手**：按清单调载体，只执行不裁决。 | 契约：`WC-IC-001` §5.10 的 `IF-011`；实现：该目录下 10 个文件；测试：`tests/atom_reversibility.rs::a07_carrier_undo_is_neither_cross_checked_nor_a_proof_of_world_reversibility` | 声明 **无**＝真实**无** | 无 | 同上（该模块；目录型也**逐边核对**，不整条跳过） |
 
 **A-1…A-6 在本文件里各落在哪一栏（逐条给落点，不写"本文件遵循原子化"）**：
@@ -64,13 +64,13 @@
 
 ---
 
-## 一、`M01` 本体（法律·形状）—— `src/ontology.rs` / `ontology.json`
+## 一、`M01` 本体（法律·形状）—— `src/ontology_definition/mod.rs` / `ontology.json`
 
 | 项 | 细节 |
 |---|---|
 | 关键结构 | `Ontology { world: u64, required: Vec<String>, optional: Vec<String>, families: BTreeMap<String, Family>, vocab_hash: String }`；`Violation` 为**类型化**枚举：`NotAnObject` / `MissingField{at,field}` / `BadVersion{expected,got}` / `UnknownKind{kind}` |
-| 加载算法 | 读文件（`ReadFail`）→ 解析 JSON（`BadJson`）→ **静态墙 `guard::assert_not_other_writable`**（`src/ontology.rs:81`）→ 取 `world`（`NoVersion`）→ 取 `envelope.{required,optional}`（`NoEnvelope` / `BadField`）→ 取 `families`（`NoFamilies`）→ 逐家族取 `required/optional`（**跳过 `_` 开头的键**）→ 家族列表为空即 `NoFamilies`（`:113`）→ 算 `vocab_hash`。⚠ **订正**：原设计把静态墙画在"家族为空检查**之后**"，实测位置是**解析成功之后、取 `world` 之前**（`:72-86`）。"在读取成功之后"这个顺序是刻意的——先读成功、再查权限，否则"文件不存在"会被报成权限问题（`c04` 实测抓到，`src/ontology.rs:77-80` 注释） |
-| 静态墙的**三道检查**（依 `WC-R4-DISP-001` §二 F 组第 5 行与 `guard.rs` 对齐） | `assert_not_other_writable` 内部**依次**做三道：① **`assert_not_symlink`**——用 `symlink_metadata`（lstat 语义）拒绝**符号链接**（`src/guard.rs:53`、实现 `:105`）；② **文件本身** `mode & 0o022 == 0`（`:58`）；③ **所在目录** `mode & 0o022 == 0`（`:77`）。⚠ **原设计只写"静态墙"一词，漏了第 ① 道**——而它正是"检查的是 A、用的是 B"这条绕过路径的封堵（`WC-RV-R2-001` FIND-04 / S-05）。三道中任一失败即 `Err` ⇒ **拒绝启动**。另：**属主断言 `assert_owned_by` 不在本路径内**——它只由部署方 `--owner-uid` 显式触发，且只在 `check` 子命令的 `World::open` **之后**执行（`src/main.rs:111-122`，`DEBT-02`） |
+| 加载算法 | 读文件（`ReadFail`）→ 解析 JSON（`BadJson`）→ **静态墙 `guard::assert_not_other_writable`**（`src/ontology_definition/mod.rs:81`）→ 取 `world`（`NoVersion`）→ 取 `envelope.{required,optional}`（`NoEnvelope` / `BadField`）→ 取 `families`（`NoFamilies`）→ 逐家族取 `required/optional`（**跳过 `_` 开头的键**）→ 家族列表为空即 `NoFamilies`（`:113`）→ 算 `vocab_hash`。⚠ **订正**：原设计把静态墙画在"家族为空检查**之后**"，实测位置是**解析成功之后、取 `world` 之前**（`:72-86`）。"在读取成功之后"这个顺序是刻意的——先读成功、再查权限，否则"文件不存在"会被报成权限问题（`c04` 实测抓到，`src/ontology_definition/mod.rs:77-80` 注释） |
+| 静态墙的**三道检查**（依 `WC-R4-DISP-001` §二 F 组第 5 行与 `guard.rs` 对齐） | `assert_not_other_writable` 内部**依次**做三道：① **`assert_not_symlink`**——用 `symlink_metadata`（lstat 语义）拒绝**符号链接**（`src/gate/guard.rs:53`、实现 `:105`）；② **文件本身** `mode & 0o022 == 0`（`:58`）；③ **所在目录** `mode & 0o022 == 0`（`:77`）。⚠ **原设计只写"静态墙"一词，漏了第 ① 道**——而它正是"检查的是 A、用的是 B"这条绕过路径的封堵（`WC-RV-R2-001` FIND-04 / S-05）。三道中任一失败即 `Err` ⇒ **拒绝启动**。另：**属主断言 `assert_owned_by` 不在本路径内**——它只由部署方 `--owner-uid` 显式触发，且只在 `check` 子命令的 `World::open` **之后**执行（`src/main.rs:111-122`，`DEBT-02`） |
 | `vocab_hash` | 对**规范化 JSON**（紧凑序列化、键有序）**剔除 `_` 键**后求 FNV-1a ⇒ 改注释不换 hash、改语义必换 hash |
 | 校验算法 | 对象性 → 逐信封必填字段 → `world` 版本 → 家族存在性 → 逐家族信纸必填字段 |
 | 错误路径 | 6 类加载错误 + 4 类 `Violation`（见 `WC-IC-001` §三） |
@@ -78,7 +78,7 @@
 | 测试 | `c02`（8 字段逐字段）、`c04`（缺文件/空家族）、`ontology::unit::*`（hash 口径）、`t6`（坏本体拒启） |
 | 技术债 | 无 |
 
-## 二、`M02` 账本（事实）—— `src/ledger.rs`
+## 二、`M02` 账本（事实）—— `src/ledger/mod.rs`
 
 | 项 | 细节 |
 |---|---|
@@ -87,13 +87,13 @@
 | **I/O 缝** | `Sink`（`pub(crate)`，4 个原语：`byte_len` / `put`（写+flush）/ `sync`（fsync）/ `truncate`）。生产实现**只有** `FileSink`；测试替身 `FlakySink` 在 `#[cfg(test)]` 内，**不进发布产物**。缝里**只有 I/O 原语**——不含取号、摘要链、本体校验、门禁裁决，故注入故障只改 I/O 结果、**不改 `append` 的决策路径**；`sink` 为私有字段且生产代码无 setter ⇒ **不构成新的绕过路径**（2026-09-27 加） |
 | 追加算法 | 若 `poisoned` 拒写 → 校验 `seq == next_seq` → 算链并写入 `chain` → 序列化整行 → 记 `pre_len`（`sink.byte_len`）→ `sink.put` → 失败则**回滚到 `pre_len`**（`sink.truncate`；回滚再失败 ⇒ 标记污染）→ `sink.sync` → `next_seq += 1`、`last_chain = chain` |
 | 单写者锁 | `OpenOptions::create_new(true)` 建 `*.lock`；已存在则读 pid，看 `/proc/<pid>` 是否存活；**陈旧锁回收**；`Drop` 删锁 |
-| 错误路径 | 前缀一律 `ext.world.Ledger.`，**共 19 个叶子码**（2026-09-27 从源码逐条读出；判据与处置见 `WC-IC-001` §3.1）：`CreateFail`(`src/ledger.rs:175`) / `OpenFail`(`:237`) / `ReadFail`(`:196`/`:401`/`:404`) / `TruncateFail`(`:207`) / `StatFail`(`:321`) / `SeqGap`(`:225`) / `Corrupt`(`:218`/`:409`) / `MissingSeq`(`:222`/`:298`) / `SeqMismatch`(`:301`) / `EncodeFail`(`:315`/`:437`/`:497`) / `WriteFail`（含回滚结果，`:352`/`:359`/`:629`/`:677`）/ `SyncFail`(`:333`/`:710`) / `Poisoned`(`:289`/`:693`/`:722`) / `Locked`(`:139`) / `LockFail`(`:149`/`:156`) / `NoChain`(`:465`) / `MixedChain`(`:470`) / `MissingChain`(`:481`) / `ChainMismatch`(`:484`) |
-| 落笔能力字段（依 `WC-R4-DISP-001` §二 F 组第 2 行） | 字段名**现为 `sink`**（`src/ledger.rs:79`），且**私有**、**无 setter** ⇒ "一个写入口"是**类型级**保证。⚠ `Ledger.file` 是**过期措辞**，仍存在于两处**不在本文件内**的地方：`WC-HLD-001:66`（该行由 F 组第 2 行负责回灌）与 `src/ledger.rs:13` 的**文档注释**（"`file` 字段私有 ⇒ 全 crate 只有 `Ledger::append` 能改账本"）。**本文件 §二 早已写作 `sink`，无需改动**，此处仅登记另两处以免再被引用 |
+| 错误路径 | 前缀一律 `ext.world.Ledger.`，**共 19 个叶子码**（2026-09-27 从源码逐条读出；判据与处置见 `WC-IC-001` §3.1）：`CreateFail`(`src/ledger/mod.rs:175`) / `OpenFail`(`:237`) / `ReadFail`(`:196`/`:401`/`:404`) / `TruncateFail`(`:207`) / `StatFail`(`:321`) / `SeqGap`(`:225`) / `Corrupt`(`:218`/`:409`) / `MissingSeq`(`:222`/`:298`) / `SeqMismatch`(`:301`) / `EncodeFail`(`:315`/`:437`/`:497`) / `WriteFail`（含回滚结果，`:352`/`:359`/`:629`/`:677`）/ `SyncFail`(`:333`/`:710`) / `Poisoned`(`:289`/`:693`/`:722`) / `Locked`(`:139`) / `LockFail`(`:149`/`:156`) / `NoChain`(`:465`) / `MixedChain`(`:470`) / `MissingChain`(`:481`) / `ChainMismatch`(`:484`) |
+| 落笔能力字段（依 `WC-R4-DISP-001` §二 F 组第 2 行） | 字段名**现为 `sink`**（`src/ledger/mod.rs:79`），且**私有**、**无 setter** ⇒ "一个写入口"是**类型级**保证。⚠ `Ledger.file` 是**过期措辞**，仍存在于两处**不在本文件内**的地方：`WC-HLD-001:66`（该行由 F 组第 2 行负责回灌）与 `src/ledger/mod.rs:13` 的**文档注释**（"`file` 字段私有 ⇒ 全 crate 只有 `Ledger::append` 能改账本"）。**本文件 §二 早已写作 `sink`，无需改动**，此处仅登记另两处以免再被引用 |
 | 不变量 | 只追加；文件**必须以 `\n` 结尾**；`fsync` 成功后才推进 `next_seq`；污染后**拒绝再写** |
 | 测试 | `t1`/`t2`/`t3`/`t4`、`c07`（第二个写者被拒）、`c08`（陈旧锁回收）、`c16`–`c22`（摘要链）、**`U20`–`U22`（故障注入：写失败→回滚 / 回滚失败→污染 / `fsync` 失败→污染）** |
 | 技术债 | `DEBT-05`（无摘要链 ⇒ 能写账本者能伪造自洽历史） |
 
-## 三、`M03` 读模型（状态）—— `src/readmodel.rs`
+## 三、`M03` 读模型（状态）—— `src/ontology_instance/readmodel.rs`
 
 | 项 | 细节 |
 |---|---|
@@ -101,7 +101,7 @@
 | 折叠算法 | `apply`：`seq == last_seq + 1` 否则 `Err`；按 `kind` 分派：`change` → 核对 `before` 与当前值一致后写入 `after`；`act`/`notice` → 计数；未知家族 → `Err` |
 | 关键设计 | `change` **首次出现某 path 时不核 `before`**（此前无当前值可比）——这是**自洽检查**而非防篡改，见 `DEBT-05` |
 | 规范形式 | `to_json()` 键有序 ⇒ 同样账本渲染同样字节；`digest()` = 规范形式串的 FNV-1a（**非加密**） |
-| `from_json` | 从规范形式重建 `State`；因字段私有，**只有本模块**能构造 ⇒ "从快照恢复"也必须经过这里。⚠ **它同时是构造 `State` 的第二条路径**（第一条是 `fold`/`apply`）——`WC-IC-001 §2.3 不变量①` 原文"只能由 `fold`/`apply` 产生"**与实现不符**，已按 `WC-R4-DISP-001` §二 F 组第 8 行订正为"三条路径：`fold`/`apply`/`from_json`"。它**必须**校验三条，缺一即 `ext.world.ReadModel.BadState`：① `last_seq`/`seen`/`acts`/`notices` 存在且为非负整数（`src/readmodel.rs:171-175`）；② `objects` **若存在**必须是对象（`:177-180`；⚠ 整个缺失时**不报错**、按空对象处理——这是实现事实，不是允许省略）；③ `objects[主体]` 必须是对象（`:182-184`）。**它不校验**"该状态是某个账本前缀的折叠结果"——那只能由 `Checkpoint::verify` 的指纹比对给出（§七） |
+| `from_json` | 从规范形式重建 `State`；因字段私有，**只有本模块**能构造 ⇒ "从快照恢复"也必须经过这里。⚠ **它同时是构造 `State` 的第二条路径**（第一条是 `fold`/`apply`）——`WC-IC-001 §2.3 不变量①` 原文"只能由 `fold`/`apply` 产生"**与实现不符**，已按 `WC-R4-DISP-001` §二 F 组第 8 行订正为"三条路径：`fold`/`apply`/`from_json`"。它**必须**校验三条，缺一即 `ext.world.ReadModel.BadState`：① `last_seq`/`seen`/`acts`/`notices` 存在且为非负整数（`src/ontology_instance/readmodel.rs:171-175`）；② `objects` **若存在**必须是对象（`:177-180`；⚠ 整个缺失时**不报错**、按空对象处理——这是实现事实，不是允许省略）；③ `objects[主体]` 必须是对象（`:182-184`）。**它不校验**"该状态是某个账本前缀的折叠结果"——那只能由 `Checkpoint::verify` 的指纹比对给出（§七） |
 | 测试 | `t7`（★ 可删掉重算）、`t8`（三类坏账本）、`c06`（增量 == 全量）、`readmodel::unit::*` |
 | 技术债 | `DEBT-05` |
 
@@ -118,12 +118,12 @@
 | 测试 | `t5`（违法不落笔）、`c01`（`change` 过闸）、doctest、`check.sh` |
 | 技术债 | `DEBT-01`（错误为中文散文，机器需匹配子串） |
 
-## 五、`M05` 门禁（治理）—— `src/gate.rs` + `src/guard.rs` + `policy.json`
+## 五、`M05` 门禁（治理）—— `src/gate/mod.rs` + `src/gate/guard.rs` + `policy.json`
 
 | 项 | 细节 |
 |---|---|
 | `gate.rs` 结构 | `Policy { version, caps: BTreeMap<String, Capability>, allow: Vec<String>, writes: BTreeMap<String, Vec<String>>, irreversible_actors: Vec<String>, path }` |
-| `decide`（`act`） | 缺 `capability` → `Reject`；主体不在 `subjects.allow` 白名单 → `Reject`；能力未声明 → `Reject`（**默认拒绝**）；`!reversible` 且主体**在 `irreversible_actors` 内** → **`Allow`**；`!reversible` 且主体**不在 `irreversible_actors` 内** → `AwaitApproval`（理由明说 **v1 无审批通道**）；`reversible` → `Allow`。⚠⚠ **关键订正（依 `WC-R4-DISP-001` §二 F 组第 1 行）**：原文写"`!reversible` 且主体**在白名单** → 放行"，**指代不明**——照它实现会得到"**任何白名单主体都可执行不可逆动作**"。实现事实（`src/gate.rs:292-309`）判的是 **`irreversible_actors`**，而它与 `subjects.allow` 是**两个不同的清单**：出厂 `policy.json` 的 `subjects.allow = ["world://user","world://core","world://agent/*","world://presence/*"]`、`irreversible_actors = ["world://user"]` ⇒ `world://agent/1` **在白名单内、但不在不可逆白名单内**，对它**必须** `AwaitApproval`（`t10`/`c11` 断言的就是这个行为） |
+| `decide`（`act`） | 缺 `capability` → `Reject`；主体不在 `subjects.allow` 白名单 → `Reject`；能力未声明 → `Reject`（**默认拒绝**）；`!reversible` 且主体**在 `irreversible_actors` 内** → **`Allow`**；`!reversible` 且主体**不在 `irreversible_actors` 内** → `AwaitApproval`（理由明说 **v1 无审批通道**）；`reversible` → `Allow`。⚠⚠ **关键订正（依 `WC-R4-DISP-001` §二 F 组第 1 行）**：原文写"`!reversible` 且主体**在白名单** → 放行"，**指代不明**——照它实现会得到"**任何白名单主体都可执行不可逆动作**"。实现事实（`src/gate/mod.rs:292-309`）判的是 **`irreversible_actors`**，而它与 `subjects.allow` 是**两个不同的清单**：出厂 `policy.json` 的 `subjects.allow = ["world://user","world://core","world://agent/*","world://presence/*"]`、`irreversible_actors = ["world://user"]` ⇒ `world://agent/1` **在白名单内、但不在不可逆白名单内**，对它**必须** `AwaitApproval`（`t10`/`c11` 断言的就是这个行为） |
 | `requires_approval` 的角色（**R0 已裁定：删字段**；`WC-R4-DISP-001` §三 **E-5**） | ✅ **字段已删除，且已执行**（提交 `1217c8f`，2026-09-27）：`policy.json` 三处键、`gate.rs` 的字段 / 加载期自检 / `summary()` 序列化键、`main.rs` 的打印分支、`tests/contract.rs` 的"可逆 + 需批准 ⇒ 拒载"用例**一并移除**。**删除不影响裁判**——它本**不参与裁决**（`decide` 只读 `reversible`）⇒ 属"承诺与实现不符"的消除（`DEBT-07`：v1 无审批通道，不可逆只允许 `irreversible_actors` 白名单主体）。**兼容性**：`gate.rs` 用 `serde_json::Value` 手工取值、无 `deny_unknown_fields` ⇒ **多余/未知键一律忽略**，旧策略文件带该键**仍可加载**（`tests/contract.rs` 的「对照②」即为该回归） |
 | `authorize_write`（`change`） | 主体白名单 → `writes` 里有该主体 → 其模式匹配 `subject` 才放行；否则拒。**默认拒绝** |
 | 模式匹配 | 结尾 `*` = 前缀匹配，否则全等（`pattern_matches`，两处共用同一实现） |
@@ -132,7 +132,7 @@
 | 测试 | `t9`–`t13`、`c01`、`c03`（6 类拒启）、`c09`（软链）、`c10`（属主）、`c11`（不可逆）、`con01-no-bypass.sh`（跨 uid 14 项） |
 | 技术债 | `DEBT-02`（属主断言是工具、非自动）、`DEBT-04`（流水可伪造） |
 
-## 六、`M06` / `M07` 两个投影（出口）—— `src/project/*`
+## 六、`M06` / `M07` 两个投影（出口）—— `src/gui_projection/*`
 
 | 项 | 细节 |
 |---|---|
@@ -143,12 +143,12 @@
 | 不变量 | 渲染函数只接受 `(&State, world, vocab)`、返回 `String`——**不持状态、不互相调用** |
 | 测试 | `t14`/`t15`（各自与读模型逐项相等）、`t16`（同源 + 换词表可检出 + 落后可检出） |
 | **期望渲染样本（字节级基准）**（依 `WC-R4-DISP-001` §二 F 组第 7 行补） | 三个样本全部由**源码字面量**决定；⚠ 凡出现指纹值的地方都是**运行产生**的，写进用例时**必须**以实跑输出为准（下方标【待验证】） |
-| 样本 ① 「**空账本**」（`seen == 0`） | 视觉投影**共 4 行、无空行**（`src/project/visual.rs:31-39`）：<br>L1 `#world-core projection=visual world=1 vocab=<V> last_seq=0 state=<S>`<br>L2 `世界状态（视觉投影）`<br>L3 **44 个 `─`（U+2500）**<br>L4 `  （账本为空：这个世界还没有发生过任何事）`<br>——**到此结束**：**无**统计行、**无**第二个分隔线。语言投影同为空账本时**只有 1 行**（首行同源头，`src/project/language.rs:22-25`） |
+| 样本 ① 「**空账本**」（`seen == 0`） | 视觉投影**共 4 行、无空行**（`src/gui_projection/visual.rs:31-39`）：<br>L1 `#world-core projection=visual world=1 vocab=<V> last_seq=0 state=<S>`<br>L2 `世界状态（视觉投影）`<br>L3 **44 个 `─`（U+2500）**<br>L4 `  （账本为空：这个世界还没有发生过任何事）`<br>——**到此结束**：**无**统计行、**无**第二个分隔线。语言投影同为空账本时**只有 1 行**（首行同源头，`src/gui_projection/language.rs:22-25`） |
 | 样本 ② 「**普通值**」 | 账本 = 一条 `change(world://s, p, null → 1)`：视觉投影 L1–L3 同上，L4 `  已折叠 1 条事件（最近序号 1）｜动作 0 条｜通告 0 条`，L5 44 个 `─`，L6 `  world://s`（**2 空格**），L7 `      p = 1`（**6 空格** + `路径 = 值`；值是**紧凑 JSON**，`1` 前后无空格）。同一状态下语言投影 L2 为 `{"fields":{"p":1},"subject":"world://s"}`——⚠ **键序**为 `fields` 在 `subject` 之前：依据 `Cargo.toml:13` 的 `serde_json = "1"`（**未启用 `preserve_order`**）⇒ `serde_json::Map` 默认为 `BTreeMap` ⇒ **字典序**。【待验证：本机无 `cargo`，未实跑】 |
-| 样本 ③ 「**含换行/控制字符的值**」 | 取值行的值是 `serde_json::Value` 的 `Display`（`src/project/visual.rs:53`），字符串会被**转义** ⇒ 值里的 `\n` 渲染为**字面反斜杠 + n**，**不产生真实换行**，故渲染输出**仍是单行**、与账本"内容不得出现真实换行"的行分隔约定一致（`src/ledger.rs:4`）。【待验证：本条是对 `serde_json` 转义行为的推断，**未实跑**；验证方法：造一条 `after` 含 `\n` 的 `change`，跑 `world-core project visual`，再用 `od -c` 核对取值行**不含 0x0A**】 |
+| 样本 ③ 「**含换行/控制字符的值**」 | 取值行的值是 `serde_json::Value` 的 `Display`（`src/gui_projection/visual.rs:53`），字符串会被**转义** ⇒ 值里的 `\n` 渲染为**字面反斜杠 + n**，**不产生真实换行**，故渲染输出**仍是单行**、与账本"内容不得出现真实换行"的行分隔约定一致（`src/ledger/mod.rs:4`）。【待验证：本条是对 `serde_json` 转义行为的推断，**未实跑**；验证方法：造一条 `after` 含 `\n` 的 `change`，跑 `world-core project visual`，再用 `od -c` 核对取值行**不含 0x0A**】 |
 | **渲染样本的验证面缺口（如实登记）** | 上述样本**目前还没有独立于本模块 `parse()` 的用例**——`WC-R4-DISP-001` §二 G 组第 2 行要求"增**独立于同模块 `parse()`** 的排版用例（字节级期望样本，最好放 L3）"，并"在 `WC-UT-001 §三` 显式登记'排版契约无验证面'"。**本轮不在本文件范围内**，不得声称已完成 |
 
-## 七、`M08` 检查点（缓存）—— `src/checkpoint.rs`
+## 七、`M08` 检查点（缓存）—— `src/ontology_instance/checkpoint.rs`
 
 | 项 | 细节 |
 |---|---|
@@ -158,13 +158,13 @@
 | `resume_unverified` | 从 `state` 重建 → 折叠 `base_seq` 之后的事件。**名字里带 `unverified` 是刻意的** |
 | `read_model_with_checkpoint` | 无快照 → 全量折叠；有快照 → 续算。**两者结果必须逐字节相同** |
 | 测试 | `c12`（删掉无后果）、`c13`（篡改/陈旧/坏 JSON 三类必须被拒） |
-| **不变量**（依 `WC-R4-DISP-001` §二 F 组第 3 行补） | ① `capture` 时 `base_seq == state.last_seq()`（`src/checkpoint.rs:52`）；② **`base_seq = 0` 合法**：`verify` 取 `seq <= 0` 的前缀得**空集**，`0 == 0` 通过，再与"空状态指纹"比对 ⇒ `base_seq=0` 的快照**只能**承载空状态；③ `base_seq` **不得**大于账本已有条数（否则 `verify` 报 `Stale`，`resume_unverified` 则可能在 `apply` 处报 `SeqGap`）；④ 落盘形态**不携带** `world` / `vocab_hash`——`write` 只写 `checkpoint`/`base_seq`/`digest`/`state` 四个键（`src/checkpoint.rs:70-75`）⇒ **同一账本在不同词表下截的快照无法被区分**，`verify` 也发现不了（指纹只覆盖 `state`）。⚠ 这是**已核实的新缺口**（处置待定，见 §十一 #8）；⑤ `load` **不检查** `base_seq == state["last_seq"]`（`:100-117`）——两者不等时：若有 `base_seq` 之后的事件，续算会在 `apply` 处报错；**若没有**后续事件，则**静默**返回一个 `last_seq != base_seq` 的状态 |
+| **不变量**（依 `WC-R4-DISP-001` §二 F 组第 3 行补） | ① `capture` 时 `base_seq == state.last_seq()`（`src/ontology_instance/checkpoint.rs:52`）；② **`base_seq = 0` 合法**：`verify` 取 `seq <= 0` 的前缀得**空集**，`0 == 0` 通过，再与"空状态指纹"比对 ⇒ `base_seq=0` 的快照**只能**承载空状态；③ `base_seq` **不得**大于账本已有条数（否则 `verify` 报 `Stale`，`resume_unverified` 则可能在 `apply` 处报 `SeqGap`）；④ 落盘形态**不携带** `world` / `vocab_hash`——`write` 只写 `checkpoint`/`base_seq`/`digest`/`state` 四个键（`src/ontology_instance/checkpoint.rs:70-75`）⇒ **同一账本在不同词表下截的快照无法被区分**，`verify` 也发现不了（指纹只覆盖 `state`）。⚠ 这是**已核实的新缺口**（处置待定，见 §十一 #8）；⑤ `load` **不检查** `base_seq == state["last_seq"]`（`:100-117`）——两者不等时：若有 `base_seq` 之后的事件，续算会在 `apply` 处报错；**若没有**后续事件，则**静默**返回一个 `last_seq != base_seq` 的状态 |
 | **失败形态与处置**（同上补） | `write`：`Checkpoint.EncodeFail`／`Checkpoint.WriteFail`／静态墙**散文**（无码；过不了墙即 `Err`，**不降级为警告**）。`load`：`ReadFail`／`BadJson`／`NoFormat`／`BadFormat`／`MissingBaseSeq`／`MissingDigest`／`MissingState`。`verify`：`Stale`（账本比快照短）⇒ **拒绝使用**、宁可全量重算；`DigestMismatch` ⇒ **以账本为准**、快照作废并重新生成。`resume_unverified`：`ReadModel.BadState`（`state` 非规范形式）／`MissingSeq`／`SeqGap`／`BeforeMismatch`／`UnknownKind`（续算折叠失败）。**总处置口径**：快照的**任何**失败都不得堵死"从账本全量重算"这条路——`read_model_with_checkpoint(events, None)` 永远可用 |
 | **单元测试设计对应表**（模板 `IN-5`，依 F 组第 4 行补） | 见 §七 之后的独立小表 |
 
 **§七 的「单元测试设计对应表」（模板 `IN-5`）**
 
-> ⚠ **口径先说清**：本模块在 `src/checkpoint.rs` 内**没有任何 `#[test]`**（2026-09-27 实测：`#[test]` 计数 = **0**）。它的行为全部由**契约级用例**在 crate 外驱动（`tests/contract.rs`）——因为要覆盖的核心是"快照与账本矛盾时以谁为准"，那需要真实文件与真实账本。**这不是"没有测试设计"，而是"测试设计落在契约层"**；按 F 组第 4 行给出的第二个选项（"显式声明本模块无单元测试设计 + 理由"）如实登记。
+> ⚠ **口径先说清**：本模块在 `src/ontology_instance/checkpoint.rs` 内**没有任何 `#[test]`**（2026-09-27 实测：`#[test]` 计数 = **0**）。它的行为全部由**契约级用例**在 crate 外驱动（`tests/contract.rs`）——因为要覆盖的核心是"快照与账本矛盾时以谁为准"，那需要真实文件与真实账本。**这不是"没有测试设计"，而是"测试设计落在契约层"**；按 F 组第 4 行给出的第二个选项（"显式声明本模块无单元测试设计 + 理由"）如实登记。
 
 | 用例编号 | 测试对象 | 覆盖功能 | 对应需求 | 输入/条件 | 期望结果 | 路径类型 | 状态 |
 |---|---|---|---|---|---|---|---|
@@ -175,7 +175,7 @@
 
 **覆盖率口径**：模板 `IN-5` 要求"行覆盖率 ≥ 80%、核心分支 ≥ 90%"。而覆盖率度量（`cargo-llvm-cov` / `tarpaulin`）**尚未接入**（§十一 #5，`WC-SQAP-001` TBD-08）⇒ 本模块覆盖率**无实测值**，本设计**不填数字**。
 
-## 八、`M09` 通道（跨进程入口）—— `src/channel.rs`
+## 八、`M09` 通道（跨进程入口）—— `src/bus/mod.rs`
 
 | 项 | 细节 |
 |---|---|
@@ -239,5 +239,5 @@
 | 上游 | `WC-HLD-001-v0.1`、`WC-IC-001-v0.1`、`WC-MODREG-001-v0.1`（**§二 是模块号唯一出处，9 个 `M01`–`M09`**）、`WC-SRS-001-v0.1`、`WC-CR-002`（⛔ **D1 已被否决**，见头部份数口径行） |
 | 上游（**格式与需求载体**，本文件**不定义**它们，只引用） | `WC-CKFMT-001`（检查点格式）`docs/S2-设计/WC-CKFMT-001.md`、`WC-PFMT-001-v0.1`（协议/格式）`docs/S2-设计/WC-PFMT-001-v0.1.md`、`WC-LFMT-001-v0.1`（账本格式）`docs/S2-设计/WC-LFMT-001-v0.1.md`、`WC-ONT-001-v0.1`（本体说明/词表身份）`docs/S2-设计/WC-ONT-001-v0.1.md`、`WC-IRS-001-v0.1`（接口**需求**规格说明）`docs/S1-需求/WC-IRS-001-v0.1.md`——**5 份文件 2026-09-27 实测全部实存**（本文件起草期间由并行任务落位）；登记与同号核验见 `WC-IC-001` §七。⚠ 是否已在 `WC-SCMP-001 §4.2` 登记 + `WC-SDP-001` 三处落位，**本文件未核** ⇒ 仍**不声称"格式已受控"** |
 | 下游 | `WC-UT-001`（单元测试记录）、`WC-RV-R4-*`（逐模块准出）、`WC-TS-001`（测试用例）、`WC-TR-001`（系统测试报告） |
-| 代码 | `world-core/src/**`（**实测 14 个文件**：`lib.rs`/`main.rs`/`ledger.rs`/`gate.rs`/`guard.rs`/`ontology.rs`/`readmodel.rs`/`checkpoint.rs`/`channel.rs`/`event.rs`/`error.rs` + `src/project/{mod,language,visual}.rs`）、`world-core/tests/**`（`acceptance.rs`/`contract.rs`/`cli.rs`/`perf.rs`）、`world-core/check.sh` |
+| 代码 | `world-core/src/**`（**实测 14 个文件**：`lib.rs`/`main.rs`/`ledger.rs`/`gate.rs`/`guard.rs`/`ontology.rs`/`readmodel.rs`/`checkpoint.rs`/`channel.rs`/`event.rs`/`error.rs` + `src/gui_projection/{mod,language,visual}.rs`）、`world-core/tests/**`（`acceptance.rs`/`contract.rs`/`cli.rs`/`perf.rs`）、`world-core/check.sh` |
 

@@ -16,20 +16,15 @@
 //! 4. **状态是算出来的**（不保存状态 ⇒ 不存在"状态与账本不一致"）；
 //! 5. **门禁不可绕过**（决策在唯一咽喉 + 规则与真相不受被管者写入）。
 
+pub mod common;
+pub mod ontology_instance;
 pub mod agent;
 pub mod carrier;
-pub mod channel;
-pub mod checkpoint;
-pub mod delivery;
-pub mod error;
-pub mod event;
+pub mod bus;
 pub mod gate;
-pub mod guard;
 pub mod ledger;
-pub mod ontology;
-pub mod pairing;
-pub mod project;
-pub mod readmodel;
+pub mod ontology_definition;
+pub mod gui_projection;
 
 use gate::{Decision, Policy};
 use ledger::Ledger;
@@ -51,9 +46,9 @@ const RESERVED_FLAG_PREFIX: &str = "gate.";
 /// ## 为什么是一个结构体，而不是继续给 [`World::commit`] 堆位置参数（形态裁定，理由三条）
 ///
 /// 1. **不破公开签名**：`World::commit` 在 HEAD 上 `tests/**` 有 **60 处**调用点、
-///    [`World::commit_requested`] 另有 `tests/delivery.rs` **19 处**与 `src/channel.rs` 的
+///    [`World::commit_requested`] 另有 `tests/delivery.rs` **19 处**与 `src/bus/mod.rs` 的
 ///    `RequestSink` **1 处调用 ＋ 1 处 trait 声明**。
-///    口径说明：`tests/delivery.rs` 的调用点是 **19 处**；`src/channel.rs` 是 **1 处调用 ＋ 1 处 trait 声明**
+///    口径说明：`tests/delivery.rs` 的调用点是 **19 处**；`src/bus/mod.rs` 是 **1 处调用 ＋ 1 处 trait 声明**
 ///    （两者口径不同，不是同一个数）。给它们加参数要逐字改**每一个**调用点，而其中
 ///    `tests/ontology_ext.rs` 正由并行工区在写——那是**别人的文件**，跨过去就是事故。
 /// 2. **可选信封字段是一个概念**：`trace`／`to`／`flags` 都是"信封上可选的格子"。
@@ -920,7 +915,7 @@ impl World {
     ///
     /// 读模型侧的缺格判据要按"本体**已声明**的必填格"来判（书第五章 5.6 表 5.2 行逐字
     /// 「每个已声明的字段至少有一份读法可读，缺格就报错」），而读模型**不许**
-    /// `use crate::ontology::…`——`WC-MODREG-001` §2 给 `M03` 的口径是「**无**（生产代码零出边）」，
+    /// `use crate::ontology_definition::…`——`WC-MODREG-001` §2 给 `M03` 的口径是「**无**（生产代码零出边）」，
     /// 机核层 `tools/module_graph.py` 判据② 逐边核对「声明集 ≡ 真实 import 集」。
     /// ⇒ 依赖方向留在**装配处**：本处（`M04`，依赖列本就含 `M01` 与 `M03`）把法律以**纯数据**
     /// 递进去（[`Ontology::envelope_required`]／[`Ontology::family_required`]），
@@ -958,7 +953,7 @@ impl World {
 
 /// `M09`（通道）对内核提出的窄接口：**纯转发**到 [`World::commit_requested`]。
 ///
-/// 为什么要在这里写这个 `impl`（而不是让 `src/channel.rs` 直接 `use crate::World`）：
+/// 为什么要在这里写这个 `impl`（而不是让 `src/bus/mod.rs` 直接 `use crate::World`）：
 /// `WC-ATOM-001` §二 A-4 要求模块号依赖**单向 DAG**，而通道与运行时互相 `use` 会成环。
 /// 依赖的真实方向只有一个——**运行时驱动通道**（`src/main.rs:622`）；通道需要的是
 /// "谁能收下这条请求"，不是"世界长什么样"。把这条事实写成窄接口后：
@@ -966,7 +961,7 @@ impl World {
 ///
 /// ⚠️ 这里**不许**出现第二条写路径：转发目标就是 [`World::commit_requested`] 本身，
 /// "取号 → 造事件 → 法律 → 门禁 → 落笔"仍然只有那一条（`M04` 的唯一写入口不变）。
-impl crate::channel::RequestSink for World {
+impl crate::bus::RequestSink for World {
     fn commit_requested(
         &mut self,
         kind: &str,
@@ -983,7 +978,7 @@ impl crate::channel::RequestSink for World {
 ///
 /// 写侧（`M10`）只需要知道**一件事**：某个 (主体, 字段) 在出厂声明里吗。
 /// 这一层知识属于**这部法律**，所以由 [`Ontology`] 来答——装配点在这里（`M04`），
-/// 与上面那条 [`crate::channel::RequestSink`] 同理：**接口窄到只回答一个问题**，
+/// 与上面那条 [`crate::bus::RequestSink`] 同理：**接口窄到只回答一个问题**，
 /// 装配关系只出现在 `M04` 这一处，`M10` 自己不反向依赖 `M01`／`M03`（那会成环，A-4 不许）。
 impl crate::carrier::translate::Declared for Ontology {
     fn is_declared(&self, subject: &str, path: &str) -> bool {

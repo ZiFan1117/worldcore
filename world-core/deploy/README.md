@@ -69,11 +69,11 @@ After=world-core.socket
 Type=notify
 NotifyAccess=main
 # 就绪门槛：**先自检再对外可用**。四条件不齐 ⇒ 不发 READY ⇒ 载体不认为它起来了
-ExecStart=/usr/bin/world-core --ontology /etc/world-core/ontology.json \
+ExecStart=/usr/bin/world-core --ontology /etc/world-core/src/ontology_definition/ontology.json \
                               --ledger /var/lib/world-core/ledger.jsonl \
-                              --policy /etc/world-core/policy.json \
+                              --policy /etc/world-core/src/gate/policy.json \
                               --channel /etc/world-core/channel.json \
-                              --cap-dir /etc/world-core/cap.d \
+                              --cap-dir /etc/world-core/src/carrier/cap.d \
                               --owner-uid world-core \
                               serve
 # 常驻接受者由套接字激活提供描述符；本单元只负责"活着且就绪"
@@ -154,9 +154,9 @@ After=world-core.service
 
 [Service]
 Type=exec
-ExecStart=/usr/bin/world-core --ontology /etc/world-core/ontology.json \
+ExecStart=/usr/bin/world-core --ontology /etc/world-core/src/ontology_definition/ontology.json \
                               --ledger /var/lib/world-core/ledger.jsonl \
-                              --policy /etc/world-core/policy.json \
+                              --policy /etc/world-core/src/gate/policy.json \
                               project serve
 Restart=on-failure
 RestartSec=2s
@@ -197,7 +197,7 @@ After=world-core.service
 [Service]
 Type=exec
 # 它是一个**客户端**：从标准输入逐行读请求、先问内核、再执行、再回写结果
-ExecStart=/usr/bin/world-core --cap-dir /etc/world-core/cap.d \
+ExecStart=/usr/bin/world-core --cap-dir /etc/world-core/src/carrier/cap.d \
                               --ledger /var/lib/world-core/ledger.jsonl \
                               --socket /run/world-core/world.sock \
                               carrier serve

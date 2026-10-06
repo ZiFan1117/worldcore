@@ -30,7 +30,7 @@
 //! 合起来才是"另一份缺席而这一份照常工作"。
 //!
 //! ⚠️ 边界（如实写）：`Ledger::open_mode` 在**账本文件不存在**时，连只读口径也会**创建**它
-//! （`src/ledger.rs:237-245`）⇒ 本文件的夹具一律**先 `append` 把账本建出来**；
+//! （`src/ledger/mod.rs:237-245`）⇒ 本文件的夹具一律**先 `append` 把账本建出来**；
 //! 这里断言的是「不写**已有**账本、不产**新**文件」，不是"任何情况下都不碰文件系统"。
 
 use std::fs;
@@ -39,8 +39,8 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::{json, Value};
-use world_core::project::{assert_same_source, language, parse_header, visual};
-use world_core::readmodel::State;
+use world_core::gui_projection::{assert_same_source, language, parse_header, visual};
+use world_core::ontology_instance::readmodel::State;
 use world_core::World;
 
 /// 一条 `(主体, 字段路径, 值)`。
@@ -102,9 +102,9 @@ fn run_in(dir: Option<&Path>, args: &[&str]) -> Out {
 fn args_for(lp: &Path, tail: &[&str]) -> Vec<String> {
     let mut v = vec![
         "--ontology".to_string(),
-        manifest().join("ontology.json").display().to_string(),
+        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
         "--policy".to_string(),
-        manifest().join("policy.json").display().to_string(),
+        manifest().join("src/gate/policy.json").display().to_string(),
         "--ledger".to_string(),
         lp.display().to_string(),
     ];
@@ -199,9 +199,9 @@ fn seed_ledger(lp: &Path) -> Vec<Triple> {
 /// 这是"产出只依赖账本"的对照面：读法的头部四项与正文必须与它逐项相符。
 fn fold_state(lp: &Path) -> (u64, String, State) {
     let w = World::open_readonly(
-        &manifest().join("ontology.json"),
+        &manifest().join("src/ontology_definition/ontology.json"),
         lp,
-        &manifest().join("policy.json"),
+        &manifest().join("src/gate/policy.json"),
     )
     .expect("库路径：只读打开世界");
     let world = w.ontology().world();

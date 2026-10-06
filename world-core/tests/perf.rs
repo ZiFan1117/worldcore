@@ -55,11 +55,11 @@ fn env_usize(key: &str, default: usize) -> usize {
 }
 
 fn ontology() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json")
 }
 
 fn policy() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json")
 }
 
 /// 一次性沙箱目录（0700：账本的静态防线要求所在目录不得对 group/other 可写）。
@@ -85,8 +85,8 @@ fn sandbox(tag: &str) -> PathBuf {
 /// ⚠️ 这里的主体/字段名**故意不改成出厂本体里声明过的那两个**（`notice.muted` / `job.status`），
 /// 理由两条，都是可核的：
 /// 1. 本函数**不经过写入路径**——它直接把 JSON Lines 写进文件，是"夹具"而不是"世界的写入"；
-///    按 `concepts` 校验实体与字段的那道闸在写入侧（`src/ontology.rs::check_concepts`），
-///    折叠侧只查 seq 连续／家族存在／`before` 自洽（`src/readmodel.rs:92-149`），故本夹具过得去；
+///    按 `concepts` 校验实体与字段的那道闸在写入侧（`src/ontology_definition/mod.rs::check_concepts`），
+///    折叠侧只查 seq 连续／家族存在／`before` 自洽（`src/ontology_instance/readmodel.rs:92-149`），故本夹具过得去；
 /// 2. 要保住的是"**同一主体下 8 个不同字段**、每个字段每 1000 条复现一次"这个构造——
 ///    出厂本体只声明了 2 格字段，改成声明过的名字就得把 8 个字段压成 2 个，
 ///    测的就不再是"多字段、多主体的重放"了。**改它=把度量对象改小**，故不改。
@@ -306,7 +306,7 @@ fn qg01_append_10k_without_loss_or_duplication() {
         let occ = i / 500;
         // 主体必须是**出厂本体里已声明的实体**：本用例走的是真实写入路径（`World::commit`），
         // 而写入侧现在按 `ontology.json` 的 `concepts` 校验实体与字段（书 §5.3「声明以外的东西
-        // 不许落账」，执行者 `src/ontology.rs::check_concepts`）。原先写 `world://obj/{i}`——
+        // 不许落账」，执行者 `src/ontology_definition/mod.rs::check_concepts`）。原先写 `world://obj/{i}`——
         // `obj` 没声明过 ⇒ 第 0 条就被拒、`unwrap_or_else` 当场 panic（rc=101）。
         // 字段 `muted` 本来就是 `notice` 声明过的那一格（`concepts.notice.fields`），
         // 故**只换实体名**：`world://obj/…` → `world://notice/…`（其余构造一字未动）。

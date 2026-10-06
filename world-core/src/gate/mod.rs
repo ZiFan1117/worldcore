@@ -25,12 +25,13 @@
 //!
 //! 本模块只负责**决策**。让决策无法被绕过的，是
 //! ① [`crate::World::commit`] 这一处**唯一咽喉**（进程内无第二条写路径），
-//! ② [`crate::guard`] 对策略文件与账本的**权限静态检查**（被管者改不动规则）。
+//! ② [`crate::gate::guard`] 对策略文件与账本的**权限静态检查**（被管者改不动规则）。
 //!
 //! 三者缺一，"不可绕过"就不成立——所以它们是**一组**，不能只看其中一处。
 
+pub mod guard;
 use crate::carrier::capd::{Manifest as CarrierManifest, Risk as CarrierRisk};
-use crate::guard;
+use crate::gate::guard;
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -751,7 +752,7 @@ impl Policy {
             .filter(|a| !a.reversible)
             .map(|a| Friction {
                 risk: self.caps.get(&a.capability).and_then(|c| c.risk),
-                mark: crate::event::FLAG_FRICTION,
+                mark: crate::common::event::FLAG_FRICTION,
             });
         Verdict { decision, friction }
     }
@@ -857,7 +858,7 @@ mod unit {
             irreversible_actors: vec!["world://user".to_string()],
             carrier: CarrierManifest::default(),
             carrier_dir: None,
-            path: PathBuf::from("policy.json"),
+            path: PathBuf::from("src/gate/policy.json"),
         }
     }
 

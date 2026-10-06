@@ -128,11 +128,12 @@ ALWAYS_ALLOWED: Sequence[str] = (
 #   tools/         门禁工具
 #   .github/workflows/ 门禁自身
 SENSITIVE_PATHS: Sequence[str] = (
-    "ontology.json",
+    "src/ontology_definition/ontology.json",
+    "src/gate/policy.json",
     "src/lib.rs",
-    "src/event.rs",
-    "src/ontology.rs",
-    "src/ledger.rs",
+    "src/common/event.rs",
+    "src/ontology_definition/mod.rs",
+    "src/ledger/mod.rs",
     "tests/",
     "tools/",
     ".github/workflows/",

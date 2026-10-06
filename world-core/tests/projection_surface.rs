@@ -6,13 +6,13 @@
 //! * **s03 三份投影同源**：`language`／`visual`／`surface` 两两互验 —— 这是评审要的
 //!   **"两条独立腿"**（只比 language↔visual 时两者共用同一份折叠 ⇒ 断言近乎恒真）。
 //!
-//! ★ 本件是 `M12` 的**测试件**（四件同夹的第三件）；实现＝`src/project/surface.rs`，
+//! ★ 本件是 `M12` 的**测试件**（四件同夹的第三件）；实现＝`src/gui_projection/surface.rs`，
 //! 契约＝`WC-IC-001` §5.12，登记＝`WC-MODREG-001` 的 `M12` 行。
 
 use serde_json::{json, Value};
-use world_core::event;
-use world_core::project::{assert_same_source, language, surface, visual};
-use world_core::readmodel::State;
+use world_core::common::event;
+use world_core::gui_projection::{assert_same_source, language, surface, visual};
+use world_core::ontology_instance::readmodel::State;
 
 fn chg(seq: u64, subj: &str, path: &str, after: Value) -> Value {
     event::new_event(

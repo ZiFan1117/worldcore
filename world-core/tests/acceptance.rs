@@ -31,12 +31,12 @@ fn tmpdir(tag: &str) -> PathBuf {
 }
 
 fn ontology() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json")
 }
 
 /// 出厂门禁策略（法律之权限）。
 fn policy() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json")
 }
 
 /// 验收测试 1：**追加 → 读回**（账本本身对不对）
@@ -394,7 +394,7 @@ fn t7_read_model_is_disposable_and_reproducible() {
 
     // 判据 3：反假测试——只折叠前缀必须给出**不同**结果
     let all = w2.ledger().read_all().unwrap();
-    let prefix = world_core::readmodel::State::fold(&all[..1]).unwrap();
+    let prefix = world_core::ontology_instance::readmodel::State::fold(&all[..1]).unwrap();
     assert_ne!(
         prefix.to_json().to_string(),
         j1,
@@ -409,7 +409,7 @@ fn t7_read_model_is_disposable_and_reproducible() {
 /// 反面情形同样重要：一个"什么都接受"的读模型会让上面那条 t7 变成空话。
 #[test]
 fn t8_read_model_refuses_broken_ledger() {
-    use world_core::readmodel::State;
+    use world_core::ontology_instance::readmodel::State;
 
     // ① 序号断裂：seq 从 2 开始
     let gap = vec![event::new_event(
@@ -570,7 +570,7 @@ fn t11_world_refuses_to_start_when_law_is_writable_by_others() {
 
     let d = tmpdir("t11");
     let lp = d.join("ledger.jsonl");
-    let pol = d.join("policy.json");
+    let pol = d.join("src/gate/policy.json");
     fs::copy(policy(), &pol).unwrap();
     fs::set_permissions(&d, fs::Permissions::from_mode(0o700)).unwrap();
 
@@ -628,7 +628,7 @@ fn t12_world_refuses_start_when_ledger_is_writable_by_others() {
 fn t13_running_world_does_not_reread_policy() {
     let d = tmpdir("t13");
     let lp = d.join("ledger.jsonl");
-    let pol = d.join("policy.json");
+    let pol = d.join("src/gate/policy.json");
     fs::copy(policy(), &pol).unwrap();
 
     let mut w = World::open(&ontology(), &lp, &pol).unwrap();
@@ -711,7 +711,7 @@ fn t17_rollback_is_an_appended_compensating_event() {
     assert_eq!(s.seen(), 2);
 
     // 判据 3：重算一致（读模型对回滚无需任何特殊分支）
-    let recomputed = world_core::readmodel::State::fold(&w.ledger().read_all().unwrap()).unwrap();
+    let recomputed = world_core::ontology_instance::readmodel::State::fold(&w.ledger().read_all().unwrap()).unwrap();
     assert_eq!(recomputed.to_json().to_string(), s.to_json().to_string());
 }
 
@@ -740,13 +740,13 @@ fn seed_world(d: &std::path::Path) -> (PathBuf, PathBuf) {
         )
         .unwrap();
     }
-    (lp, d.join("policy.json"))
+    (lp, d.join("src/gate/policy.json"))
 }
 
 /// **语言投影（`M06`）**：结构化出口必须与读模型**逐项一致**，且可被程序解析回来。
 #[test]
 fn t14_language_projection_matches_read_model() {
-    use world_core::project::language;
+    use world_core::gui_projection::language;
 
     let d = tmpdir("t14");
     let (lp, _) = seed_world(&d);
@@ -779,7 +779,7 @@ fn t14_language_projection_matches_read_model() {
 /// **视觉投影（`M07`）**：给人看的，但**也必须能被机器核对**——否则"同源"无法证明。
 #[test]
 fn t15_visual_projection_is_human_readable_yet_auditable() {
-    use world_core::project::visual;
+    use world_core::gui_projection::visual;
 
     let d = tmpdir("t15");
     let (lp, _) = seed_world(&d);
@@ -811,7 +811,7 @@ fn t15_visual_projection_is_human_readable_yet_auditable() {
 /// 4. 一方落后一个事件 ⇒ 同源判定**失败**（状态不同）。
 #[test]
 fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
-    use world_core::project::{self, language, visual};
+    use world_core::gui_projection::{self, language, visual};
 
     let d = tmpdir("t16");
     let (lp, pol_copy) = seed_world(&d);
@@ -844,7 +844,7 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
 
     // 判据 4：一方落后 ⇒ 必须检出
     let evs = w.ledger().read_all().unwrap();
-    let behind = world_core::readmodel::State::fold(&evs[..2]).unwrap();
+    let behind = world_core::ontology_instance::readmodel::State::fold(&evs[..2]).unwrap();
     let vis_behind = visual::render(&behind, world, vocab);
     let e = project::assert_same_source(&lang, &vis_behind).unwrap_err();
     assert!(e.contains("状态不同"), "落后一方必须被检出，实得: {e}");
@@ -867,7 +867,7 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
     raw["concepts"]["job"]["fields"]["status"] = json!("enum(todo,doing,done,cancelled)");
     raw["_objects"]["job"]["fields"]["status"] = json!("enum(todo,doing,done,cancelled)");
     fs::write(&alt, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
-    let alt_ont = world_core::ontology::Ontology::load(&alt).unwrap();
+    let alt_ont = world_core::ontology_definition::Ontology::load(&alt).unwrap();
     assert_ne!(
         alt_ont.vocab_hash(),
         vocab,
@@ -880,7 +880,7 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
         serde_json::from_str(&fs::read_to_string(ontology()).unwrap()).unwrap();
     raw2["_comment"] = json!("换了一段说明文字，语义没动");
     fs::write(&comment_only, serde_json::to_string_pretty(&raw2).unwrap()).unwrap();
-    let c_ont = world_core::ontology::Ontology::load(&comment_only).unwrap();
+    let c_ont = world_core::ontology_definition::Ontology::load(&comment_only).unwrap();
     assert_eq!(
         c_ont.vocab_hash(),
         vocab,

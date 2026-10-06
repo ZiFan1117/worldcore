@@ -30,7 +30,7 @@
 //!
 //! ## 配对与 `trace` **不是一回事**（口径对齐，不重复造）
 //!
-//! 配对键是 `act` 信纸**必填**的 `request_id`（`src/pairing.rs` 头注：`trace` 是"因为哪一条"
+//! 配对键是 `act` 信纸**必填**的 `request_id`（`src/common/pairing.rs` 头注：`trace` 是"因为哪一条"
 //! 的引用，`pairing` 是"请求号配对"）。本文件只断言"两件事没有混成一件"，
 //! 配对本身的各种形态由 `tests/delivery.rs::d05/d06` 负责。
 
@@ -63,9 +63,9 @@ fn manifest() -> PathBuf {
 fn run(d: &Path, args: &[&str]) -> (i32, String, String) {
     let mut argv: Vec<String> = vec![
         "--ontology".into(),
-        manifest().join("ontology.json").display().to_string(),
+        manifest().join("src/ontology_definition/ontology.json").display().to_string(),
         "--policy".into(),
-        manifest().join("policy.json").display().to_string(),
+        manifest().join("src/gate/policy.json").display().to_string(),
         "--ledger".into(),
         d.join("ledger.jsonl").display().to_string(),
     ];
@@ -235,10 +235,10 @@ fn f62_append_without_trace_writes_no_trace_key_and_still_lands() {
 
 /// **f63**：`--trace ""`（给了空串）按**未给**处理 ⇒ 不写该键。
 ///
-/// 口径出处：`src/event.rs::with_trace` 逐字「空串视为未给（否则会写出一个指不到
+/// 口径出处：`src/common/event.rs::with_trace` 逐字「空串视为未给（否则会写出一个指不到
 /// 任何事件的 `trace`）」。
 ///
-/// 变异：把 `src/event.rs::with_trace` 里的 `if !t.is_empty()` 去掉（有值就写）
+/// 变异：把 `src/common/event.rs::with_trace` 里的 `if !t.is_empty()` 去掉（有值就写）
 /// ⇒ 本条红而 `f61`／`f62` 仍绿——这正是"空串"这一格**只有本用例在守**的证据。
 #[test]
 fn f63_empty_trace_is_treated_as_absent() {
@@ -271,7 +271,7 @@ fn f63_empty_trace_is_treated_as_absent() {
 /// **f64**（任务 6.2 的"可追"面）：带 `trace` 的结果**从账本能追回**它指的那条意图。
 ///
 /// 断言三处（书 §4.6 的两处对齐）：
-/// ① 配对键 = 同一个 `request_id`（`src/pairing.rs`，本文件不重复造配对判据）；
+/// ① 配对键 = 同一个 `request_id`（`src/common/pairing.rs`，本文件不重复造配对判据）；
 /// ② 结果的 `trace` **逐字等于**意图的 `id`；
 /// ③ `pairs()` 里**只有一个**请求号——`trace` 没有自己造出第二个配对键（"不是一回事"）。
 ///
@@ -312,8 +312,8 @@ fn f64_a_traced_result_can_be_traced_back_from_the_ledger() {
     // ③ 事后核对：只用账本
     let evs = events(&d);
     assert_eq!(evs.len(), 2, "两半都要在账本上：{evs:?}");
-    let pair = match world_core::pairing::find_pair(&evs, "r-f64") {
-        world_core::pairing::Outcome::Complete(p) => p,
+    let pair = match world_core::common::pairing::find_pair(&evs, "r-f64") {
+        world_core::common::pairing::Outcome::Complete(p) => p,
         other => panic!("两半都在账本上，应当成对，实得 {other:?}"),
     };
     assert_eq!(pair.intents[0]["id"], json!(intent_id.clone()));
@@ -329,7 +329,7 @@ fn f64_a_traced_result_can_be_traced_back_from_the_ledger() {
     );
 
     // ④ `trace` 不是配对键：账本里的配对登记只有一个请求号
-    let ids: Vec<String> = world_core::pairing::pairs(&evs)
+    let ids: Vec<String> = world_core::common::pairing::pairs(&evs)
         .iter()
         .map(|p| p.request_id.clone())
         .collect();
@@ -486,7 +486,7 @@ fn f67_flags_land_through_the_write_entry_and_unknown_ones_are_kept() {
     // 反假：这两个旗标**不在**出厂本体的声明里（`ontology.json` 的 `flags` 是空数组）——
     // 否则本用例验的不是"未知旗标"。
     let ont: Value =
-        serde_json::from_str(&fs::read_to_string(manifest().join("ontology.json")).unwrap())
+        serde_json::from_str(&fs::read_to_string(manifest().join("src/ontology_definition/ontology.json")).unwrap())
             .unwrap();
     assert_eq!(
         ont["flags"].as_array().map(Vec::len),
@@ -622,9 +622,9 @@ fn f69_commit_envelope_carries_flags_and_default_equals_commit() {
         let lp = d.join("ledger.jsonl");
         (
             World::open(
-                &manifest().join("ontology.json"),
+                &manifest().join("src/ontology_definition/ontology.json"),
                 &lp,
-                &manifest().join("policy.json"),
+                &manifest().join("src/gate/policy.json"),
             )
             .expect("出厂本体与策略应当能打开"),
             d,

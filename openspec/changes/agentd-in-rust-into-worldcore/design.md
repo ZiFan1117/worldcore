@@ -124,14 +124,14 @@
 |---|---|---|---|---|---|
 | `world-core/src/agent/audit.rs` | 把一次意图或动作留成一条字段固定的结构化记录 | 契约：delta 的「结构化审计记录」条 ＋ 本文件头注；实现：本文件；测试：`world-core/tests/agent_audit.rs` `g01`–`g04` | 声明 `use serde_json::Value`、`std::collections::BTreeMap`、`std::io::Write`、`std::path`、`std::sync::Mutex` —— **无 crate 内兄弟模块依赖**（∅） | 无 | `module_graph.py`（**本件不声称它覆盖 YAML，只覆盖 `src/**/*.rs`**）；VM 上 `cargo test --locked --test agent_audit` |
 | `world-core/src/agent/protocol.rs` | 用一行 JSON 一问一答地暴露一次调用 | 契约：delta 的「行分隔的结构化请求与应答」条；实现：本文件；测试：`world-core/tests/agent_protocol.rs` `p01`–`p03` | 声明 `serde_json` 与 `std::io` —— ∅ | 无 | 同上，`--test agent_protocol` |
-| `world-core/src/agent/completion.rs` | 把"活儿干完了"写成一条可读回的通告（**不另立登记簿**） | 契约：delta 的「完工发通告，但不另立登记簿」条；实现：本文件；测试：`world-core/tests/agent_completion.rs` `j01`–`j04` | 声明 `use crate::event`（既有模块）＋ `serde_json` —— **仅 1 条出边，无环** | 无 | 同上，`--test agent_completion` |
+| `world-core/src/agent/completion.rs` | 把"活儿干完了"写成一条可读回的通告（**不另立登记簿**） | 契约：delta 的「完工发通告，但不另立登记簿」条；实现：本文件；测试：`world-core/tests/agent_completion.rs` `j01`–`j04` | 声明 `use crate::common::event`（既有模块）＋ `serde_json` —— **仅 1 条出边，无环** | 无 | 同上，`--test agent_completion` |
 | `world-core/src/agent/mod.rs` | 声明 Agent 运行时的模块面与它与 `carrier` 的分工 | 契约：本文件头注（含"登记簿不许带回来"那条裁定）；实现：三行 `pub mod`；测试：由上面三个 target 覆盖 | 声明 `pub mod audit/protocol/completion` —— 出边 3 条，**无回边**（被 `lib.rs` 单向引用） | 无 | 同上 |
 | `world-core/tests/agent_undo.rs` | 钉住"撤销点在确认之后、失败即不执行、且不是世界回滚" | 契约：delta 的「动手前的载体撤销点」条；实现：**行为已在** `src/carrier/providers.rs::execute`（本件不改它）；测试：本文件 `u01`–`u04` | 声明 `use world_core::carrier::{capd, providers}` —— 仅测试侧出边 | 无 | 同上，`--test agent_undo` |
 | `openspec/tools/gen_bridge_md.py`（加一节） | 让在办 change 的新能力进编号桥的在册面 | 契约：本文件头注 ＋ `BRIDGE.md` 该节的自述；实现：本文件新增的发现逻辑；测试：**双向反向验证**（挪走 change ⇒ 输出逐字节不变；放回 ⇒ 出现该节） | 纯 Python 脚本，无 crate 内依赖 | **有生成物**：`openspec/BRIDGE.md`；重跑 `python openspec/tools/gen_specmap.py` → `python openspec/tools/gen_bridge_md.py` | `spec_bridge.py` 判据④ 与 ⑪ |
 
 > **A-2 说明（本仓形态）**：本仓 `tests/` 与 `src/` **不同夹**，按"可指认"判——
 > 上表每行的测试栏都给了**真实路径 ＋ 用例名**。
-> **A-4 说明**：`agent/completion.rs → crate::event` 是唯一一条 crate 内出边；
+> **A-4 说明**：`agent/completion.rs → crate::common::event` 是唯一一条 crate 内出边；
 > `event.rs` 不 import `agent` ⇒ **无环**。上表**不声称**已跑过 `module_graph.py`——
 > 那个读数在 VM 上取，见 `tasks.md` 第 3 组；**读数未取之前，本栏不写成"已无环"**。
 > **A-6**：UTF-8 无 BOM、LF，由 `plain_text_audit.py` 判。
@@ -165,7 +165,7 @@
 - **[4 件实现里有的只能在本机写、不能在 VM 上编]** → 缓解：本机无 cargo ⇒
   **所有编译与测试读数一律上 VM**；本机只落文本。**若 VM 不可达，则本件的实现部分标"未做"**，
   **不许**用"本机看起来对"当读数。
-- **[`agent/completion.rs` 的 `use crate::event` 可能引入环]** → 缓解：先跑
+- **[`agent/completion.rs` 的 `use crate::common::event` 可能引入环]** → 缓解：先跑
   `python world-core/tools/module_graph.py` 取读数；**有环即停**，不许先合入再修。
 - **[28 处口径改写会牵动生成链]** → 缓解：改完**必重跑** `gen_specmap.py` → `gen_bridge_md.py`
   （否则判据⑪ 红）；每笔改动后跑三条门禁。

@@ -54,24 +54,24 @@ echo "=============================================================="
 
 id agent >/dev/null 2>&1 || useradd -M -s /usr/bin/nologin agent
 rm -rf "$SANDBOX" "$RUNBOX"; mkdir -p "$SANDBOX" "$RUNBOX"
-cp "$SRC/ontology.json" "$SRC/policy.json" "$SANDBOX/"
+cp "$SRC/src/ontology_definition/ontology.json" "$SRC/src/gate/policy.json" "$SANDBOX/"
 chown -R root:root "$SANDBOX"; chmod 755 "$SANDBOX"
-chmod 644 "$SANDBOX/ontology.json" "$SANDBOX/policy.json"
-( cd "$SANDBOX" && "$CORE" --ledger "$SANDBOX/ledger.jsonl" --ontology "$SANDBOX/ontology.json" \
-    --policy "$SANDBOX/policy.json" check ) | tail -1
+chmod 644 "$SANDBOX/src/ontology_definition/ontology.json" "$SANDBOX/src/gate/policy.json"
+( cd "$SANDBOX" && "$CORE" --ledger "$SANDBOX/ledger.jsonl" --ontology "$SANDBOX/src/ontology_definition/ontology.json" \
+    --policy "$SANDBOX/src/gate/policy.json" check ) | tail -1
 chmod 600 "$SANDBOX/ledger.jsonl"
 echo "沙箱：$(ls -ld "$SANDBOX" | awk '{print $1, $3, $4}')  agent uid=$(id -u agent)"
 echo
 
 echo "── ① 被管者改配置 ──────────────────────────────────────────"
-expect_denied "agent 向 policy.json 追加内容" "echo '{}' >> $SANDBOX/policy.json"
-expect_denied "agent 就地改写 policy.json"   "printf 'x' > $SANDBOX/policy.json"
-expect_denied "agent 用 sed 改 policy.json"  "sed -i 's/false/true/' $SANDBOX/policy.json"
+expect_denied "agent 向 policy.json 追加内容" "echo '{}' >> $SANDBOX/src/gate/policy.json"
+expect_denied "agent 就地改写 policy.json"   "printf 'x' > $SANDBOX/src/gate/policy.json"
+expect_denied "agent 用 sed 改 policy.json"  "sed -i 's/false/true/' $SANDBOX/src/gate/policy.json"
 
 echo
 echo "── ② 被管者替换配置（文件权限挡不住的那条路径）────────────"
-expect_denied "agent 删除 policy.json"   "rm -f $SANDBOX/policy.json"
-expect_denied "agent 重命名 policy.json" "mv $SANDBOX/policy.json $SANDBOX/policy.bak"
+expect_denied "agent 删除 policy.json"   "rm -f $SANDBOX/src/gate/policy.json"
+expect_denied "agent 重命名 policy.json" "mv $SANDBOX/src/gate/policy.json $SANDBOX/policy.bak"
 expect_denied "agent 在沙箱里新建文件"   "touch $SANDBOX/evil.json"
 
 echo
@@ -83,25 +83,25 @@ expect_denied "agent 删除账本"       "rm -f $SANDBOX/ledger.jsonl"
 
 echo
 echo "── ④ 侥幸绕过静态墙时：世界核心必须拒绝启动（第二道闸）────"
-chmod 666 "$SANDBOX/policy.json"
-expect_refuse "policy.json 0666 时启动被拒" "$CORE --ontology $SANDBOX/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/policy.json check"
-chmod 644 "$SANDBOX/policy.json"
+chmod 666 "$SANDBOX/src/gate/policy.json"
+expect_refuse "policy.json 0666 时启动被拒" "$CORE --ontology $SANDBOX/src/ontology_definition/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/src/gate/policy.json check"
+chmod 644 "$SANDBOX/src/gate/policy.json"
 chmod 777 "$SANDBOX"
-expect_refuse "沙箱目录 0777 时启动被拒" "$CORE --ontology $SANDBOX/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/policy.json check"
+expect_refuse "沙箱目录 0777 时启动被拒" "$CORE --ontology $SANDBOX/src/ontology_definition/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/src/gate/policy.json check"
 chmod 755 "$SANDBOX"
 chmod 666 "$SANDBOX/ledger.jsonl"
-expect_refuse "账本 0666 时启动被拒" "$CORE --ontology $SANDBOX/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/policy.json check"
+expect_refuse "账本 0666 时启动被拒" "$CORE --ontology $SANDBOX/src/ontology_definition/ontology.json --ledger $SANDBOX/ledger.jsonl --policy $SANDBOX/src/gate/policy.json check"
 chmod 600 "$SANDBOX/ledger.jsonl"
 
 echo
 echo "── ⑤ ★ 真正该测的一格：agent 能到达二进制时，仍进不去 ────"
 echo "   做法：把二进制与法律复制到 agent 可读可执行的运行盒（0755），"
 echo "         账本目录由 root 拥有（0755）、账本 0600 —— 让 agent 跑到门禁跟前。"
-cp "$CORE" "$RUNBOX/world-core"; cp "$SRC/ontology.json" "$SRC/policy.json" "$RUNBOX/"
+cp "$CORE" "$RUNBOX/world-core"; cp "$SRC/src/ontology_definition/ontology.json" "$SRC/src/gate/policy.json" "$RUNBOX/"
 chmod 755 "$RUNBOX/world-core"; chmod 755 "$RUNBOX"
 mkdir -p "$RUNBOX/lib" && chown root:root "$RUNBOX/lib" && chmod 755 "$RUNBOX/lib"
-runuser -u agent -- "$RUNBOX/world-core" --ontology "$SANDBOX/ontology.json" \
-  --ledger "$SANDBOX/ledger.jsonl" --policy "$SANDBOX/policy.json" check >/dev/null 2>&1
+runuser -u agent -- "$RUNBOX/world-core" --ontology "$SANDBOX/src/ontology_definition/ontology.json" \
+  --ledger "$SANDBOX/ledger.jsonl" --policy "$SANDBOX/src/gate/policy.json" check >/dev/null 2>&1
 if [ $? -ne 0 ]; then ok "agent 能执行二进制，但打不开账本（静态墙生效，rc≠0）"; else bad "agent 竟成功打开了世界"; fi
 
 # ⑤b：agent 在自己的目录里造一份**它自己的法律**（对它的 mode 检查是合法的），
@@ -113,11 +113,11 @@ AGENTDIR=/tmp/con01-agent
 rm -rf "$AGENTDIR"; mkdir -p "$AGENTDIR"; chown agent "$AGENTDIR"; chmod 700 "$AGENTDIR"
 # 由 root 把法律副本放进 agent 的目录（agent 读不到 /root，见 ⑥ 的观察项），
 # 再 chown 给它 —— 这模拟"被管者拿到了自己那份法律的副本"这一真实情形。
-cp "$SRC/policy.json" "$AGENTDIR/my-policy.json"; cp "$SRC/ontology.json" "$AGENTDIR/"
-chown agent "$AGENTDIR/my-policy.json" "$AGENTDIR/ontology.json"
-chmod 644 "$AGENTDIR/my-policy.json" "$AGENTDIR/ontology.json"
+cp "$SRC/src/gate/policy.json" "$AGENTDIR/my-policy.json"; cp "$SRC/src/ontology_definition/ontology.json" "$AGENTDIR/"
+chown agent "$AGENTDIR/my-policy.json" "$AGENTDIR/src/ontology_definition/ontology.json"
+chmod 644 "$AGENTDIR/my-policy.json" "$AGENTDIR/src/ontology_definition/ontology.json"
 if [ ! -f "$AGENTDIR/my-policy.json" ]; then bad "⑤b 前提不成立：agent 无法准备自己的策略副本"; else
-  OUT=$(runuser -u agent -- "$RUNBOX/world-core" --ontology "$AGENTDIR/ontology.json" \
+  OUT=$(runuser -u agent -- "$RUNBOX/world-core" --ontology "$AGENTDIR/src/ontology_definition/ontology.json" \
         --ledger "$SANDBOX/ledger.jsonl" --policy "$AGENTDIR/my-policy.json" check 2>&1); RC=$?
   if [ $RC -eq 0 ]; then bad "agent 竟能用自备策略打开我们的账本"
   elif echo "$OUT" | grep -qE '账本|Ledger'; then ok "agent 用自备策略仍被挡在账本边界（rc=$RC；原因指向 Ledger 子系统：锁文件或账本本身）"

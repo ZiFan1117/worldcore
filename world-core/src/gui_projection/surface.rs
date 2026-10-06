@@ -25,7 +25,7 @@
 //! ## 它与另外两份投影的关系
 //!
 //! 三份投影读的是**同一个** `State`、**同一份**词表，谁也不读谁的输出、谁也不持状态。
-//! 首行是同源头 ⇒ **它们能互相验"同源"**（[`crate::project::assert_same_source`]）——
+//! 首行是同源头 ⇒ **它们能互相验"同源"**（[`crate::gui_projection::assert_same_source`]）——
 //! 这就是"两条独立腿"：同一条结论由两条各自独立的路走出来，再比对。
 //!
 //! ## 输出形状（**契约**，改动需走 `R5`）
@@ -45,8 +45,8 @@
 //!
 //! 首行的 `projection=surface` 与另两份**只有这一个字段不同**（`header_line` 保证）。
 
-use crate::project::{group_by_subject, header_line};
-use crate::readmodel::State;
+use crate::gui_projection::{group_by_subject, header_line};
+use crate::ontology_instance::readmodel::State;
 use serde_json::{json, Map, Value};
 
 /// 本投影倒哪两类主体。别的一律不进 —— "只给屏幕那一面"是一个**可判**的边界。
@@ -172,8 +172,8 @@ pub fn render(state: &State, world: u64, vocab: &str) -> String {
 #[cfg(test)]
 mod unit {
     use super::*;
-    use crate::event;
-    use crate::project::assert_same_source;
+    use crate::common::event;
+    use crate::gui_projection::assert_same_source;
     use serde_json::json;
 
     fn st(evs: Vec<Value>) -> State {
@@ -261,7 +261,7 @@ mod unit {
         let out = render(&s, 1, "fnv1a64:aaaa");
         assert!(out.contains("账本为空"), "空账本要明说：{out}");
         // 空账本也要能同源比对（首行必须在）
-        let v = crate::project::visual::render(&s, 1, "fnv1a64:aaaa");
+        let v = crate::gui_projection::visual::render(&s, 1, "fnv1a64:aaaa");
         assert!(assert_same_source(&out, &v).is_ok());
     }
 
@@ -270,8 +270,8 @@ mod unit {
         // ★★ "两条独立腿"：同一条结论由两条各自独立的路走出来，再比对
         let s = world_with_one_surface_and_cell();
         let (a, b, c) = (
-            crate::project::language::render(&s, 1, "fnv1a64:aaaa"),
-            crate::project::visual::render(&s, 1, "fnv1a64:aaaa"),
+            crate::gui_projection::language::render(&s, 1, "fnv1a64:aaaa"),
+            crate::gui_projection::visual::render(&s, 1, "fnv1a64:aaaa"),
             render(&s, 1, "fnv1a64:aaaa"),
         );
         assert!(assert_same_source(&a, &b).is_ok());
@@ -303,7 +303,7 @@ mod unit {
             json!("新"),
         ));
         let s2 = st(evs);
-        let a = crate::project::visual::render(&s1, 1, "fnv1a64:aaaa");
+        let a = crate::gui_projection::visual::render(&s1, 1, "fnv1a64:aaaa");
         let c = render(&s2, 1, "fnv1a64:aaaa");
         assert!(assert_same_source(&a, &c).is_err(), "落后必须被抓到");
     }

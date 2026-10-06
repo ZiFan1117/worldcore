@@ -4,7 +4,7 @@
   "_status": "【候选·v0.1】能力清单为 AI 起草的候选值，不是需求方给定的；正式能力表由 S2 的 WC-CAP-001 冻结（框架基线），冻结后变更走 R5",
   "_invariants": [
     "本文件是『法律』：改它等于改契约，走 R5 框架变更评审",
-    "本文件与账本所在处不得对 group/other 可写，否则世界核心拒绝启动（src/guard.rs）",
+    "本文件与账本所在处不得对 group/other 可写，否则世界核心拒绝启动（src/gate/guard.rs）",
     "策略在启动时一次读入内存，运行中不重读：磁盘上改了要重启才生效（消除『运行中改规则』的窗口）",
     "capabilities 里没有的能力一律**不放行**（默认拒绝，不是默认允许）"
   ],
@@ -12,13 +12,13 @@
   "policy": 1,
 
   "channel_limits": {
-    "_comment": "通道（M09 / IF-006）四个资源边界的**出厂初值**（REQ-F-026）：并发连接数 / 单条消息字节 / 每秒消息数 / 空闲超时。四个数**只**长在这里：代码里没有它们的任何缺省值（缺块或缺一项即拒启，见 src/channel.rs::Limits::from_policy）。",
+    "_comment": "通道（M09 / IF-006）四个资源边界的**出厂初值**（REQ-F-026）：并发连接数 / 单条消息字节 / 每秒消息数 / 空闲超时。四个数**只**长在这里：代码里没有它们的任何缺省值（缺块或缺一项即拒启，见 src/bus/mod.rs::Limits::from_policy）。",
     "_why_here": "为什么不新立一份出厂 channel.json：该文件本仓不存在，且「是否补一份出厂 channel.json」在 WC-SCMP-001 §8.4 **G-28** 记着**待人裁定**（AI 不代选）；ontology.json 受词表身份约束（动一个非 `_` 键就换掉 fnv1a64 身份）。放本文件则四个数仍是**受控配置项**里的一格，且 tools/ 下的系统脚本本来就是复制本文件进沙箱。",
     "_source": "**四个数不是书给的**：书（合订本 §4.5:599 / §4.6:621）只**定性**说「大对象不进主干道……主干道上只留一个内容指纹……主干道上的每一条记录都短」，全书**没有任何**数值（对『字节/每秒/并发/超时』逐词检索，命中处全是别的事）；WC-SRS-001 的 REQ-F-026 与 WC-IRS-001 §3.7.7 两处都明写「四个数值为【候选】」「AI 不得编造指标」。故本块是**本项目定的初值**（依 CT-08「四个资源边界的**具体数值属 S2 实现层**」，批准人 ZiFan / 2026-09-27），**不是书要求的数**；它是**可配置的出厂初值**——改本块即改数值，不必改代码。",
     "_per_value": [
-      "max_connections = 1：**架构事实**，不是调优值——v1 顺序受理（src/channel.rs 的 serve_n 一次一条；WC-MODREG-001 §二 M09「v1 一次一连接」；WC-IRS-001 §3.7.7 第 2 行「v1 恒为 1」）⇒ 只能写 1；写大于 1 的值即拒启 ext.world.Channel.BadConcurrency（真正的并发受理需要多线程服务端 + 单写者串行化，本轮未做，不许假装）。",
+      "max_connections = 1：**架构事实**，不是调优值——v1 顺序受理（src/bus/mod.rs 的 serve_n 一次一条；WC-MODREG-001 §二 M09「v1 一次一连接」；WC-IRS-001 §3.7.7 第 2 行「v1 恒为 1」）⇒ 只能写 1；写大于 1 的值即拒启 ext.world.Channel.BadConcurrency（真正的并发受理需要多线程服务端 + 单写者串行化，本轮未做，不许假装）。",
       "max_line_bytes = 4096：出处 WC-SRS-001 的 REQ-F-026 描述列的**边界④**「一行请求与一条事件的字节数上限，超限即拒收，而不是无限缓冲」+ 书 §4.5:599 的定性口径「主干道上的每一条记录都短」。数从实测来：出厂本体下三类**最小合法请求行**实测 66（notice）/ 81（act）/ 97（change）字节 ⇒ 4096 约为最大者的 42 倍，够正文与参数；同时 4096 是 BufReader 默认缓冲（8 KiB）的一半 ⇒ 一条消息不会跨两次缓冲读。",
-      "max_msgs_per_sec = 8：出处 WC-IRS-001 §3.7.7 第 3 行「对外接口必须定义阈值与超限行为（IF-REQ-09）」。一次跨进程往返天然是**两个连接**（src/channel.rs 的 serve_n 自述：先交意图、后交结果）⇒ 8 条/秒折合约 4 次往返/秒，是本机 agent 的正常节奏。⚠ **这不是调优结果**：书 §5.6 自己判「接入与对齐成本……数值已采集，阈值已写｜**未采集，判红**」⇒ 本项目没有性能实测基线，此值只是「够用且能挡住洪泛」的低值初值。",
+      "max_msgs_per_sec = 8：出处 WC-IRS-001 §3.7.7 第 3 行「对外接口必须定义阈值与超限行为（IF-REQ-09）」。一次跨进程往返天然是**两个连接**（src/bus/mod.rs 的 serve_n 自述：先交意图、后交结果）⇒ 8 条/秒折合约 4 次往返/秒，是本机 agent 的正常节奏。⚠ **这不是调优结果**：书 §5.6 自己判「接入与对齐成本……数值已采集，阈值已写｜**未采集，判红**」⇒ 本项目没有性能实测基线，此值只是「够用且能挡住洪泛」的低值初值。",
       "idle_timeout_ms = 5000：出处 WC-IRS-001 §3.7.7 第 1 行「每个接口必须定义二者且**服务方上限 < 调用方超时**（IF-REQ-04）」。5 000 ms 是本项目给定的**服务方**上限；仓内自有的调用方 tools/carrier_acceptance.sh 用 `timeout 20`（20 000 ms）⇒ 实测满足 5 000 < 20 000。调用方超时由调用方自定，但**必须大于本值**。"
     ],
     "_behavior": "超限即拒，且拒绝**点名**错误码与上限的当前值：单行上限 ⇒ ext.world.Channel.LineTooLong；每秒消息数 ⇒ ext.world.Channel.RateLimited；空闲超时 ⇒ ext.world.Channel.IdleTimeout；并发上限 ⇒ ext.world.Channel.TooManyConnections。四者都**不落笔**（世界状态不变），并回一行 {\"ok\":false,\"error\":…} 给对端（对端读得到，不靠猜）。",
@@ -87,5 +87,5 @@
     { "socket": "/run/world-core/dsh.sock", "actor": "world://agent/dsh", "owner": "dsh" },
     { "socket": "/run/world-core/omarchy.sock", "actor": "world://presence/omarchy", "owner": "omarchy" }
   ],
-  "_listeners_note": "**身份映射入法**：哪个口＝哪个身份。依据书 §4.3「身份与允许分开」与协议 §8「口给出身份」——这条绑定关系必须在法律里；总线上**不得**凭另一份配置文件（如 channel.json）自行定义映射，否则总线上会凭空多出一条法律里没有的映射。**生成关系**：渲染件 channel.json 是本表的**渲染物**，不是第二权威；它的主人是仓内生成器 `world-core/tools/render_channel.py`（读本表 ＋ 部署面 uid 映射 `deploy/listener_uids.json` ⇒ 渲出 `channel.json`；多一条法律里没有的映射即非零退出）。**① 生成关系 与 ② 受理关系两条执行体**：①＝`tools/render_channel.py --check`（含反例自测）；②＝`src/channel.rs` 的 `ChannelConfig::load_checked`（受理期逐条对回本表，账外口**拒启** `ext.world.Channel.UndeclaredListener`）。本表读不出／为空 ⇒ 拒启（`Channel.NoDeclaredListeners`）：「没有对账基准」不许被读成「没有账外口」。**本表三格没有 `uid`**：`owner` 是**名字**，换成数字 uid 是**部署面**的事（那台机器上谁是这个世界用户），落 `deploy/listener_uids.json`，**不进法律**（法律不许带载体专有信息）。**在册未上线是合法状态**：本表登记了、今天没起的口**单独报**，**不红**（法律的本分是「先声明、后使用」）。"
+  "_listeners_note": "**身份映射入法**：哪个口＝哪个身份。依据书 §4.3「身份与允许分开」与协议 §8「口给出身份」——这条绑定关系必须在法律里；总线上**不得**凭另一份配置文件（如 channel.json）自行定义映射，否则总线上会凭空多出一条法律里没有的映射。**生成关系**：渲染件 channel.json 是本表的**渲染物**，不是第二权威；它的主人是仓内生成器 `world-core/tools/render_channel.py`（读本表 ＋ 部署面 uid 映射 `deploy/listener_uids.json` ⇒ 渲出 `channel.json`；多一条法律里没有的映射即非零退出）。**① 生成关系 与 ② 受理关系两条执行体**：①＝`tools/render_channel.py --check`（含反例自测）；②＝`src/bus/mod.rs` 的 `ChannelConfig::load_checked`（受理期逐条对回本表，账外口**拒启** `ext.world.Channel.UndeclaredListener`）。本表读不出／为空 ⇒ 拒启（`Channel.NoDeclaredListeners`）：「没有对账基准」不许被读成「没有账外口」。**本表三格没有 `uid`**：`owner` 是**名字**，换成数字 uid 是**部署面**的事（那台机器上谁是这个世界用户），落 `deploy/listener_uids.json`，**不进法律**（法律不许带载体专有信息）。**在册未上线是合法状态**：本表登记了、今天没起的口**单独报**，**不红**（法律的本分是「先声明、后使用」）。"
 }

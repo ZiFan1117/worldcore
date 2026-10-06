@@ -11,7 +11,7 @@
 //!
 //! | 组 | 判据 | 落点 |
 //! |---|---|---|
-//! | ①a | 本体里（**参与身份**的那一半）不许出现载体专有串 ⇒ 拒启 | **生产代码**：`src/ontology.rs::check_carrier_independence`（用例见 `tests/ontology_elements.rs::m15`） |
+//! | ①a | 本体里（**参与身份**的那一半）不许出现载体专有串 ⇒ 拒启 | **生产代码**：`src/ontology_definition/mod.rs::check_carrier_independence`（用例见 `tests/ontology_elements.rs::m15`） |
 //! | ①b | **换掉载体，说法不变**：世界的行为**不取决于 unit 的内容** | 本文件（静态：`src/**` 不引用载体件；动态：换一份诱饵 `deploy/` ⇒ 输出逐字节不变） |
 //! | ②a | `deploy/*.service`／`*.socket` 的依赖**不许指向具体应用**（只许自身／内核侧／基础 target） | 本文件（含**反例**：合成一份指向应用的 unit ⇒ 必被点名） |
 //! | ②b | **正控**：把所有**应用**都停掉，世界照常 `check` 与折叠 | 本文件（等价形态：**没有任何载体件在场**时，`check` rc=0 且 `state --json` 逐字节相同） |
@@ -257,8 +257,8 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
     let lp = d.join("ledger.jsonl");
     // 先落一条真事件（用出厂配置）
     {
-        let ont = manifest_dir().join("ontology.json");
-        let pol = manifest_dir().join("policy.json");
+        let ont = manifest_dir().join("src/ontology_definition/ontology.json");
+        let pol = manifest_dir().join("src/gate/policy.json");
         let (rc, out) = run_cli(&[
             "--ontology",
             ont.to_str().unwrap(),
@@ -273,8 +273,8 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
         assert_eq!(rc, 0, "落一条真事件必须成功：{out}");
     }
 
-    let ont = manifest_dir().join("ontology.json");
-    let pol = manifest_dir().join("policy.json");
+    let ont = manifest_dir().join("src/ontology_definition/ontology.json");
+    let pol = manifest_dir().join("src/gate/policy.json");
     let args_base: Vec<String> = vec![
         "--ontology".into(),
         ont.display().to_string(),
@@ -389,7 +389,7 @@ fn c03_world_sources_never_read_the_carrier_units() {
 
     let src = manifest_dir().join("src");
 
-    // ★ **唯一的一处豁免**：`src/ontology.rs` 里那张**载体专有串表**（`const TOKENS`）——
+    // ★ **唯一的一处豁免**：`src/ontology_definition/mod.rs` 里那张**载体专有串表**（`const TOKENS`）——
     //   判据要**禁**这些词，就得先**知道**这些词。豁免**只**覆盖那一张表的行区间
     //   （**现算区间**，不写死行号、不写死命中数）；表外再出现一处 ⇒ 必红。
     let guard_file = src.join("ontology.rs");

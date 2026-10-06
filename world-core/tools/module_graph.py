@@ -1009,6 +1009,14 @@ def module_tokens(rows, body):
         for sp in row["src_all"]:
             if sp.endswith("/"):
                 names.add(sp.rstrip("/").split("/")[-1])
+            elif os.path.basename(sp) == "mod.rs":
+                # ★ `src/X/mod.rs` ⇒ 标识符取**目录名** `X`。
+                # 取文件名会得到 `mod`（Rust 关键字，认不出任何用例）⇒ 该模块的测试锚点**塌掉而判据仍绿**。
+                # 实测（2026-10-07，仓外副本）：`src/ledger.rs` → `src/ledger/mod.rs` 后
+                # `anchors_total` 303→195、`M02` 锚点 111→3，而判据③ 仍报 4/0。
+                parent = os.path.dirname(sp).rstrip("/").split("/")[-1]
+                if parent:
+                    names.add(parent)
             else:
                 names.add(os.path.basename(sp)[: -len(".rs")])
         # 模块名里的关键段（`src/project/language.rs` ⇒ `language` 已在上列；`src/lib.rs` ⇒ `lib`）

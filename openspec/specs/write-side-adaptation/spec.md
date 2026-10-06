@@ -9,8 +9,8 @@
 |---|---|
 | `:585` 只写不裁决（准不准问 4.2 那道闸） | **覆盖**（第一条 Requirement；`act` 那一半的既有落点见 `WC-IRS-001` §3.12 的 `IF-011-R01`／`R08`） |
 | `:595`／`:597` 前值必须带上；翻不出来就报错、不许猜 | **覆盖**（第二条 Requirement；这一格此前**零落点**） |
-| `:601` 以被管者身份运行，对账本与规则都没有写权限 | **覆盖**（第三条 Requirement；静态墙的既有落点在 `world-core/src/guard.rs`，跨 uid 实测在 `world-core/tools/con01-no-bypass.sh`） |
-| `:599` 大对象不进主干道，主干道上只留一个内容指纹 | **不覆盖**：**货运道与内容指纹**今天**零落点**（既没有那条并行通道，也没有"以内容引用当字段值"的实现与断言）。⚠️ 同句的前半「主干道上的每一条记录都短」**另有落点**（`policy.json` 的 `channel_limits.max_line_bytes`，见 `world-core/src/channel.rs` 的 `Limits::from_policy`）——那是通道的单行上限，不是货运道，两者不得互相冒充 |
+| `:601` 以被管者身份运行，对账本与规则都没有写权限 | **覆盖**（第三条 Requirement；静态墙的既有落点在 `world-core/src/gate/guard.rs`，跨 uid 实测在 `world-core/tools/con01-no-bypass.sh`） |
+| `:599` 大对象不进主干道，主干道上只留一个内容指纹 | **不覆盖**：**货运道与内容指纹**今天**零落点**（既没有那条并行通道，也没有"以内容引用当字段值"的实现与断言）。⚠️ 同句的前半「主干道上的每一条记录都短」**另有落点**（`policy.json` 的 `channel_limits.max_line_bytes`，见 `world-core/src/bus/mod.rs` 的 `Limits::from_policy`）——那是通道的单行上限，不是货运道，两者不得互相冒充 |
 
 ## Requirements
 
@@ -71,10 +71,10 @@
 
 本条的两半各有归属，SHALL NOT 互相冒充：
 
-- **"对这些路径写不写得到"（文件系统上的事实）**：`world-core/src/carrier/boundary.rs::assert_managed_cannot_write` —— 四条判据：不是符号链接、属主不是被管者、文件对 group/other 不可写、**所在目录**对 group/other 不可写且其属主不是被管者。它与 `world-core/src/guard.rs` 的静态墙**同一纪律、方向相反**（guard 的 `assert_owned_by` 要求属主**是**核心 uid——那一条要部署方显式传 `--owner-uid` 才运行；本处要求属主**不是**被管者），且刻意**不复用** `guard`：`M05 → M10` 已有一条真实 import 边，反向再连即**成环**（`WC-ATOM-001` §二 A-4）。
-- **"本进程现在到底是谁"**：由部署保证（`world-core/src/channel.rs` 的 `bind` 一类的"权限即身份"、`runuser`／systemd `User=`），并由**跨 uid 实测**核；本模块不靠自称来证明身份。
+- **"对这些路径写不写得到"（文件系统上的事实）**：`world-core/src/carrier/boundary.rs::assert_managed_cannot_write` —— 四条判据：不是符号链接、属主不是被管者、文件对 group/other 不可写、**所在目录**对 group/other 不可写且其属主不是被管者。它与 `world-core/src/gate/guard.rs` 的静态墙**同一纪律、方向相反**（guard 的 `assert_owned_by` 要求属主**是**核心 uid——那一条要部署方显式传 `--owner-uid` 才运行；本处要求属主**不是**被管者），且刻意**不复用** `guard`：`M05 → M10` 已有一条真实 import 边，反向再连即**成环**（`WC-ATOM-001` §二 A-4）。
+- **"本进程现在到底是谁"**：由部署保证（`world-core/src/bus/mod.rs` 的 `bind` 一类的"权限即身份"、`runuser`／systemd `User=`），并由**跨 uid 实测**核；本模块不靠自称来证明身份。
 
-⚠️ **本条今天证明到哪一步（如实声明）**：静态墙（`world-core/src/guard.rs`）与跨 uid 实拒**早已存在**（`world-core/tools/con01-no-bypass.sh`：以 `agent` 身份改配置／替换配置／直写账本三组全被拒，且断言 uid 自证与拒绝原因）；**新补的是写侧自己的那一半**——"对这个被管者 uid，账本与规则写不写得到"的可判函数 ＋ 会红的断言，以及**以被管者身份跑载体自己**的那条系统级实测（C-09）。
+⚠️ **本条今天证明到哪一步（如实声明）**：静态墙（`world-core/src/gate/guard.rs`）与跨 uid 实拒**早已存在**（`world-core/tools/con01-no-bypass.sh`：以 `agent` 身份改配置／替换配置／直写账本三组全被拒，且断言 uid 自证与拒绝原因）；**新补的是写侧自己的那一半**——"对这个被管者 uid，账本与规则写不写得到"的可判函数 ＋ 会红的断言，以及**以被管者身份跑载体自己**的那条系统级实测（C-09）。
 
 #### Scenario: 写侧手里的权限不足以绕过闸
 
