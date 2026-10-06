@@ -827,7 +827,7 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
 
     // 判据 1：同源
     assert!(
-        project::assert_same_source(&lang, &vis).is_ok(),
+        gui_projection::assert_same_source(&lang, &vis).is_ok(),
         "同一读模型 + 同一词表必须判为同源"
     );
 
@@ -841,14 +841,14 @@ fn t16_two_projections_are_same_source_and_vocab_change_is_detected() {
     // 判据 3：换词表 ⇒ 必须检出
     let other_vocab = "fnv1a64:0000000000000000";
     let lang_other = language::render(&state, world, other_vocab);
-    let e = project::assert_same_source(&lang_other, &vis).unwrap_err();
+    let e = gui_projection::assert_same_source(&lang_other, &vis).unwrap_err();
     assert!(e.contains("词表不同"), "换词表必须被检出，实得: {e}");
 
     // 判据 4：一方落后 ⇒ 必须检出
     let evs = w.ledger().read_all().unwrap();
     let behind = world_core::ontology_instance::readmodel::State::fold(&evs[..2]).unwrap();
     let vis_behind = visual::render(&behind, world, vocab);
-    let e = project::assert_same_source(&lang, &vis_behind).unwrap_err();
+    let e = gui_projection::assert_same_source(&lang, &vis_behind).unwrap_err();
     assert!(e.contains("状态不同"), "落后一方必须被检出，实得: {e}");
 
     // 判据 3 的真实版本：真的换一份本体文件 → 词表 hash 必须变

@@ -63,7 +63,7 @@ fn tmpdir(tag: &str) -> PathBuf {
     d
 }
 
-/// 建一个**测试用**监听者：刻意用 `UnixListener::bind` 而不是 `channel::bind`
+/// 建一个**测试用**监听者：刻意用 `UnixListener::bind` 而不是 `bus::bind`
 /// （后者还要看目录 mode 与 uid——那是 `c14` 与 `tools/system_acceptance.sh` 的面）。
 fn bind_in(d: &Path, name: &str) -> (PathBuf, UnixListener) {
     let p = d.join(name);
@@ -141,7 +141,7 @@ fn l01_a_line_over_the_limit_is_refused_and_nothing_is_committed() {
         let expect = expect_for(&p1);
         let mut rec = Recorder::default();
         let mut sess = Session::new(lim);
-        let r = channel::serve_once_with(&mut rec, &l1, &expect, &mut sess);
+        let r = bus::serve_once_with(&mut rec, &l1, &expect, &mut sess);
         (rec, r)
     });
     let mut c1 = client(&p1c);
@@ -160,7 +160,7 @@ fn l01_a_line_over_the_limit_is_refused_and_nothing_is_committed() {
         let expect = expect_for(&p2);
         let mut rec = Recorder::default();
         let mut sess = Session::new(lim);
-        let r = channel::serve_once_with(&mut rec, &l2, &expect, &mut sess);
+        let r = bus::serve_once_with(&mut rec, &l2, &expect, &mut sess);
         (rec, r)
     });
     let mut c2 = client(&p2c);
@@ -192,7 +192,7 @@ fn l02_the_second_simultaneous_connection_is_refused() {
         let expect = expect_for(&p);
         let mut rec = Recorder::default();
         let mut sess = Session::new(limits(4096, 100, 5_000));
-        let n = channel::serve_n_with(&mut rec, &l, &expect, &mut sess, 1).unwrap();
+        let n = bus::serve_n_with(&mut rec, &l, &expect, &mut sess, 1).unwrap();
         (rec, n)
     });
 
@@ -235,7 +235,7 @@ fn l03_a_silent_connection_is_cut_at_the_idle_timeout() {
         let expect = expect_for(&p);
         let mut rec = Recorder::default();
         let mut sess = Session::new(limits(4096, 100, 300));
-        let r = channel::serve_once_with(&mut rec, &l, &expect, &mut sess);
+        let r = bus::serve_once_with(&mut rec, &l, &expect, &mut sess);
         (rec, r)
     });
 
@@ -281,7 +281,7 @@ fn l04_messages_over_the_per_second_limit_are_refused_across_connections() {
         let mut sess = Session::new(limits(4096, 2, 5_000));
         let mut rs = Vec::new();
         for _ in 0..3 {
-            rs.push(channel::serve_once_with(&mut rec, &l, &expect, &mut sess));
+            rs.push(bus::serve_once_with(&mut rec, &l, &expect, &mut sess));
         }
         (rec, rs)
     });
@@ -459,7 +459,7 @@ fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
     // ── 正控：渲染物与在册逐字对得上 ⇒ 必须过 ──
     write_json(&law, &law_one(&sock, "world://core"));
     write_json(&render, &render_one(&sock, "world://core", 965));
-    let conf = channel::ChannelConfig::load_checked(&render, &law)
+    let conf = bus::ChannelConfig::load_checked(&render, &law)
         .expect("正控：渲染物的每一条都在在册里 ⇒ 必须放行");
     assert!(
         conf.listener_for(&sock).is_some(),
@@ -478,7 +478,7 @@ fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
             ]
         }),
     );
-    let e = channel::ChannelConfig::load_checked(&render, &law).unwrap_err();
+    let e = bus::ChannelConfig::load_checked(&render, &law).unwrap_err();
     assert!(
         e.contains("ext.world.Channel.UndeclaredListener"),
         "反例 A：账外口必须点名 `UndeclaredListener`；实得：{e}"
@@ -497,7 +497,7 @@ fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
             "listeners": [ { "socket": sock.to_str().unwrap(), "actor": "world://not-core", "uid": 965 } ]
         }),
     );
-    let e = channel::ChannelConfig::load_checked(&render, &law).unwrap_err();
+    let e = bus::ChannelConfig::load_checked(&render, &law).unwrap_err();
     assert!(
         e.contains("ext.world.Channel.UndeclaredListener"),
         "反例 B：同一个口换个身份也是账外口；实得：{e}"
@@ -506,7 +506,7 @@ fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
     // ── 反例 C：**基准缺失** ⇒ 必须红（不许把"没有在册表"读成"没有账外口"）──
     write_json(&law, &json!({ "policy": 1 }));
     write_json(&render, &render_one(&sock, "world://core", 965));
-    let e = channel::ChannelConfig::load_checked(&render, &law).unwrap_err();
+    let e = bus::ChannelConfig::load_checked(&render, &law).unwrap_err();
     assert!(
         e.contains("ext.world.Channel.NoDeclaredListeners"),
         "反例 C：法律里没有 `listeners` ⇒ 必须点名 `NoDeclaredListeners`；实得：{e}"
@@ -515,7 +515,7 @@ fn l07_the_render_is_checked_against_the_law_before_it_is_used() {
     // ── 正控二：修回去 ⇒ 必须回绿（证明上面几条红**不是因为环境坏了**）──
     write_json(&law, &law_one(&sock, "world://core"));
     assert!(
-        channel::ChannelConfig::load_checked(&render, &law).is_ok(),
+        bus::ChannelConfig::load_checked(&render, &law).is_ok(),
         "正控二：把法律修回去之后必须重新放行"
     );
 
@@ -528,7 +528,7 @@ fn l08_the_factory_law_really_declares_every_rendered_identity() {
     // 只钉关系、不复述条数（条数的权威载体是 policy.json 本身）。
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let law = root.join("src/gate/policy.json");
-    let got = channel::declared_listeners(&law).expect("出厂法律必须有 listeners 段");
+    let got = bus::declared_listeners(&law).expect("出厂法律必须有 listeners 段");
     assert!(
         got.iter().any(|d| d.actor == "world://core"),
         "出厂法律里必须有一条绑定到 world://core（内核自己的口）"

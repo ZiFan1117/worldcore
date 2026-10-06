@@ -396,7 +396,10 @@ impl World {
         //    会把唯一的修法也一并堵死（实测反例：`r01`／`r04` 的夹具当场红）。
         //    「是不是撤回事实」取自**读模型自己的**认定函数（`retract_target_of`），
         //    **不另立第二套**口径。
-        let refusal_is_retraction = matches!(ontology_instance::readmodel::retract_target_of(&ev), Ok(Some(_)));
+        let refusal_is_retraction = matches!(
+            ontology_instance::readmodel::retract_target_of(&ev),
+            Ok(Some(_))
+        );
         if kind == "change" && !refusal_is_retraction {
             if let (Some(s), Some(p), Some(b)) = (
                 act_body.get("subject").and_then(Value::as_str),

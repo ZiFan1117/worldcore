@@ -477,7 +477,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
             return ExitCode::from(2);
         }
     };
-    let limits = match channel::Limits::from_policy(p) {
+    let limits = match bus::Limits::from_policy(p) {
         Ok(x) => x,
         Err(e) => {
             eprintln!("[FAIL] {e}");
@@ -488,14 +488,14 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
     let watchdog = serve::watchdog_interval_from_env();
     // ④⑤ **先报到、后受理**（顺序由 `serve_activated_with` 的结构保证，有单元用例钉着）。
     let r = serve::serve_activated_with(notify.as_deref(), watchdog, "READY=1", || {
-        let mut sess = channel::Session::new(limits);
+        let mut sess = bus::Session::new(limits);
         // 受理循环：**每个口都要受理**（`usize::MAX` 次 = 直到进程被载体停掉）。
         // ★ 仍然是**同一个写者**（不许 fork、不许起第二个服务）；★ 仍然是**一次一条**
         //   （`max_connections` 只能为 1 那条**架构事实没动**，`BadConcurrency` 一个字没改）：
         //   多口只是把"口 B 上的连接要等口 A 让出循环"这件事**消掉**（轮询），**不是并发受理**。
         // ★ 复用通道那条**已受测**的路径（含四条资源边界与"身份不可自称"）。
         let (lsts, expects): (Vec<_>, Vec<_>) = bound.into_iter().unzip();
-        channel::serve_all_with(&mut w, &lsts, &expects, &mut sess, usize::MAX).map(|_| ())
+        bus::serve_all_with(&mut w, &lsts, &expects, &mut sess, usize::MAX).map(|_| ())
     });
     match r {
         Ok(()) => ExitCode::SUCCESS,
@@ -1106,7 +1106,7 @@ fn cmd_project(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
             let a = language::render(&state, world, vocab);
             let b = visual::render(&state, world, vocab);
             let c = surface::render(&state, world, vocab);
-            match project::assert_same_source(&a, &b) {
+            match gui_projection::assert_same_source(&a, &b) {
                 Ok(()) => {
                     // ★ **两条独立腿**：只比 language↔visual 时，两者共用同一份折叠 ⇒ 该断言近乎恒真。
                     //   把屏面投影也拉进来两两互验，才让"同源"有牙（评判逐字：「恒真、抓不到东西」）。
@@ -1114,7 +1114,7 @@ fn cmd_project(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
                         ("语言投影与屏面投影", &a, &c),
                         ("视觉投影与屏面投影", &b, &c),
                     ] {
-                        if let Err(e) = project::assert_same_source(x, y) {
+                        if let Err(e) = gui_projection::assert_same_source(x, y) {
                             eprintln!("[FAIL] {what} 不同源：{e}");
                             return ExitCode::from(2);
                         }
@@ -1430,7 +1430,7 @@ fn cmd_checkpoint(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
 
 /// `channel` —— **M09 接线的生产调用点**（`W-03` / `P-10`）。
 ///
-/// 为什么要有它：`src/bus/mod.rs` 此前**整册生产零调用点**，`channel::bind` 连测试都零调用
+/// 为什么要有它：`src/bus/mod.rs` 此前**整册生产零调用点**，`bus::bind` 连测试都零调用
 /// ⇒「权限即身份」（`0600` + `chown` + 通道目录静态墙）**从未被执行过**；
 /// 原有测试用 `UnixListener::bind` 自己建套接字，**绕过了** `bind()`，
 /// 于是只验了"自称被拒"，**没验"别人连不上"**。
@@ -1488,7 +1488,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
         }
     }
     match sub {
-        "bind" => match channel::bind(&expect) {
+        "bind" => match bus::bind(&expect) {
             Ok(_lst) => {
                 println!("== world-core channel bind ==");
                 println!(
@@ -1522,7 +1522,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
             // **四个资源边界先取数**（`REQ-F-026`）：四条边界的数值**只**来自出厂配置，
             // 代码里没有缺省值 ⇒ 取不到就**拒启**（不许拿"没配"当"不设界"）。
             // 放在 `bind` 之前：连套接字都不该建——一个没有边界的通道不该上电。
-            let limits = match channel::Limits::from_policy(p) {
+            let limits = match bus::Limits::from_policy(p) {
                 Ok(x) => x,
                 Err(e) => {
                     eprintln!("[FAIL] {e}");
@@ -1536,8 +1536,8 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                 eprintln!("[FAIL] {e}");
                 return ExitCode::from(2);
             }
-            let mut sess = channel::Session::new(limits);
-            let lst = match channel::bind(&expect) {
+            let mut sess = bus::Session::new(limits);
+            let lst = match bus::bind(&expect) {
                 Ok(x) => x,
                 Err(e) => {
                     eprintln!("[FAIL] {e}");
@@ -1552,7 +1552,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                 }
             };
             if sub == "accept" {
-                return match channel::serve_once_with(&mut w, &lst, &expect, &mut sess) {
+                return match bus::serve_once_with(&mut w, &lst, &expect, &mut sess) {
                     Ok(ev) => {
                         println!("{}", serde_json::to_string(&ev).unwrap_or_default());
                         ExitCode::SUCCESS
@@ -1563,7 +1563,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                     }
                 };
             }
-            match channel::serve_n_with(&mut w, &lst, &expect, &mut sess, n) {
+            match bus::serve_n_with(&mut w, &lst, &expect, &mut sess, n) {
                 Ok(ok) => {
                     println!("== world-core channel serve ==");
                     println!(

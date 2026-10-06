@@ -97,7 +97,7 @@ struct Kernel {
 }
 
 fn start_kernel(d: &Path, ledger: &Path, onto: &Path, pol: &Path, actor: &str, n: usize) -> Kernel {
-    // 套接字放在**沙箱的子目录**里：`channel::bind` 会走 guard 的静态墙，
+    // 套接字放在**沙箱的子目录**里：`bus::bind` 会走 guard 的静态墙，
     // 而那条墙会**连它所在目录的上一级一起判**（`src/gate/guard.rs` 的 `assert_not_other_writable`）。
     // /tmp 是 1777 ⇒ 套接字若直接放在沙箱根下，上一级就是 /tmp ⇒ 必被拒（那是**墙在正常工作**）。
     // 子目录 `run/`（0755，无 go-w）＋ 沙箱（0700，无 go-w）⇒ 两级都成立。
@@ -147,7 +147,7 @@ fn start_kernel(d: &Path, ledger: &Path, onto: &Path, pol: &Path, actor: &str, n
         .spawn()
         .expect("起不了真内核进程");
 
-    // 就绪判据两条都要：① 套接字出现（`channel::bind` 在 `World::open` **之前**）；
+    // 就绪判据两条都要：① 套接字出现（`bus::bind` 在 `World::open` **之前**）；
     // ② 账本出现（`World::open` 在 `serve_n` 之前 ⇒ 账本在了才谈得上"会话已开、可以落笔"）。
     // 少了 ②，后面"账本 0 行"的断言会撞上"文件还没建"的竞态（那是夹具的错，不是被测对象的错）。
     let deadline = Instant::now() + Duration::from_secs(20);

@@ -528,7 +528,7 @@ const LEGAL_CHANGE: &str =
 
 /// **cli-13**（`5.1`）：`project check` 的判据**只剩头部四项**。
 ///
-/// 判据函数 `project::assert_same_source`（`src/gui_projection/mod.rs:124-145`；`cmd_project`
+/// 判据函数 `gui_projection::assert_same_source`（`src/gui_projection/mod.rs:124-145`；`cmd_project`
 /// 在 `src/main.rs:442` 调它）只比 `world` / `vocab` / `last_seq` / `state`，**不比正文**
 /// ⇒「一方少渲一半主体、头部四项相同」这个形状**在判据下仍然通过**。
 /// 这不是想要的行为，而是**当下边界**：本用例把它固定成会红的检查 ——
