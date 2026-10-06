@@ -453,7 +453,7 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
     );
 
     // ── ② 摩擦旗标：等级**取自载体清单**，不是写死在这里 ──
-    let cap_manifest = manifest().join("cap.d/ledger.compact.json");
+    let cap_manifest = manifest().join("src/carrier/cap.d/ledger.compact.json");
     let cap: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(&cap_manifest).unwrap()).unwrap();
     let level = cap["risk"]

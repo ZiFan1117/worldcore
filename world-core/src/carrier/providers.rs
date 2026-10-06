@@ -915,7 +915,7 @@ mod unit {
     /// ★ 第二句是必需的**正控**：空清单会让第一句**恒真**——那就成了装饰。
     #[test]
     fn the_factory_manifest_and_the_factory_registry_agree() {
-        let m = Manifest::load_dir(Path::new("cap.d")).unwrap();
+        let m = Manifest::load_dir(Path::new("src/carrier/cap.d")).unwrap();
         let reg = Registry::builtin();
         assert!(
             cross_check(&m, &reg).is_ok(),

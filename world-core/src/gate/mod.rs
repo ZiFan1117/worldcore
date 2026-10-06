@@ -246,12 +246,20 @@ pub(crate) fn pattern_matches(pattern: &str, value: &str) -> bool {
 fn load_carrier_manifests(
     policy_path: &Path,
 ) -> Result<(CarrierManifest, Option<PathBuf>), String> {
-    let dir = policy_path
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .join(CARRIER_DIR);
+    // ★ 2026-10-07 结构迁移：`policy.json` 与 `cap.d/` **各归其原子**（前者在 `src/gate/`、
+    //   后者在 `src/carrier/`），"策略同级"这条老约定随之失效。仍按**候选顺序**解析：
+    //   ① 策略同级 `<policy 目录>/cap.d`——**兼容既有布局**（测试夹具与部署方自备的样例就这么摆）；
+    //   ② 迁移后的新布局 `<policy 目录>/../carrier/cap.d`（＝仓内 `src/carrier/cap.d`）。
+    //   两条都没有 ⇒ **不是错误**（载体侧什么都没声明），返回 `None`，由调用方按"未校验"说出来。
+    let base = policy_path.parent().unwrap_or_else(|| Path::new("."));
+    let mut dir = base.join(CARRIER_DIR);
     if !dir.is_dir() {
-        return Ok((CarrierManifest::default(), None));
+        let alt = base.join("..").join("carrier").join(CARRIER_DIR);
+        if alt.is_dir() {
+            dir = alt;
+        } else {
+            return Ok((CarrierManifest::default(), None));
+        }
     }
     guard::assert_not_other_writable(&dir, "执行清单目录（载体侧 cap.d）")?;
     let manifest = CarrierManifest::load_dir(&dir)?;

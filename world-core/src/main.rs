@@ -616,7 +616,7 @@ fn cmd_check(
                     w.policy().carrier_manifest().names().len()
                 ),
                 None => println!(
-                    "  互校 : ⚠️ 策略同级没有 `cap.d/` ⇒ **无从互校**（未校验要说出来）：\
+                    "  互校 : ⚠️ 找不到载体清单（`src/carrier/cap.d/` 或策略同级 `cap.d/`）⇒ **无从互校**（未校验要说出来）：\
                      那些能力的风险等级读不到，闸只知道可逆性布尔值"
                 ),
             }
@@ -705,7 +705,7 @@ fn cmd_policy(p: &Path) -> ExitCode {
                     pol.carrier_manifest().names().len()
                 ),
                 None => println!(
-                    "  互校 : ⚠️ 策略同级没有 `cap.d/`（载体侧什么都没声明）⇒ 这些能力的\
+                    "  互校 : ⚠️ 找不到载体清单（`src/carrier/cap.d/` 或策略同级 `cap.d/`）⇒ 这些能力的\
                      **风险等级读不到**（risk=未声明），不得当成低危"
                 ),
             }
