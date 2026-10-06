@@ -16,8 +16,8 @@ offline() { printf '离线'; exit 0; }
 
 # ① 世界进程活着吗？判据是**世界自己的账本锁**（不是 systemd 状态、不是套接字是否在）：
 #    写入总线由 socket 单元持有，服务停了套接字仍可能在 ⇒ 套接字存在**不能**证明世界活着。
-[ -r "$CONF/ontology.json" ] || offline
-[ -r "$CONF/policy.json" ]   || offline
+[ -r "$CONF/src/ontology_definition/ontology.json" ] || offline
+[ -r "$CONF/src/gate/policy.json" ]   || offline
 [ -r "$LEDGER" ]             || offline
 [ -f "$LOCK" ]               || offline
 pid=$(cat "$LOCK" 2>/dev/null)
@@ -26,7 +26,7 @@ case "${pid:-x}" in *[!0-9]*) offline ;; esac
 [ "$(cat "/proc/$pid/comm" 2>/dev/null)" = "world-core" ] || offline
 
 # ② 读世界自己的投影出口；失败即离线（不猜、不降级）
-out=$("$CLI" --ontology "$CONF/ontology.json" --ledger "$LEDGER" --policy "$CONF/policy.json" project visual 2>/dev/null) || offline
+out=$("$CLI" --ontology "$CONF/src/ontology_definition/ontology.json" --ledger "$LEDGER" --policy "$CONF/src/gate/policy.json" project visual 2>/dev/null) || offline
 
 # ③ 守卫：首行必须是同源头，且带得出 last_seq
 head1=$(printf '%s\n' "$out" | head -1)

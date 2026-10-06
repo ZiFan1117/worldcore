@@ -94,7 +94,7 @@ if should_run "smoke"; then
   echo "$out" | grep -q READY; rc_grep=$?
   echo "  smoke rc=$rc_run / READY 命中 rc=$rc_grep"
   # ── 与 gate.yml 对齐：新账本必须带摘要链（此前本预演漏了这两条，属预演/工作流漂移）──
-  # ⚠ 写进世界的东西必须在出厂本体里声明过（书 §5.3；执行者 `src/ontology.rs::check_concepts`）。
+  # ⚠ 写进世界的东西必须在出厂本体里声明过（书 §5.3；执行者 `src/ontology_definition/mod.rs::check_concepts`）。
   #   本行原写 `world://ci/probe` ＋ `p`——两个名字都没声明过 ⇒ append rc=2，
   #   下面那条 `grep -q '有摘要链'` 必失败。改成已声明的格子；判据强度不变。
   cargo run --quiet -- --ledger ci-smoke.jsonl append change \

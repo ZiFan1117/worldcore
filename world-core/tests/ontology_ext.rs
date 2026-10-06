@@ -15,7 +15,7 @@
 //!
 //! | 出处 | 逐字 |
 //! |---|---|
-//! | `world-core/ontology.json:20` | `"flags": "array  # 能力旗标；未知旗标必须忽略"` |
+//! | `world-core/src/ontology_definition/ontology.json:20` | `"flags": "array  # 能力旗标；未知旗标必须忽略"` |
 //! | 书 §2.7（合订本 `:305`） | 「领域里的概念，诸如订单、曲目、告警、工序，都不属于这一层，各自在自己的命名空间里往上长」 |
 //! | 书 §2.7（合订本 `:313`） | 「核心之外由命名空间扩展，各方在自己的空间里定义自己的概念；核心之内不取交集，也不做删减」 |
 //! | `WC-FMT-001` §「未知家族 / 未知字段 / 未知旗标」 | 「**不认识的语义拒绝，不认识的附加信息忽略**」 |
@@ -24,12 +24,12 @@
 //!
 //! | 断言 | 改坏哪一行 ⇒ 变红 |
 //! |---|---|
-//! | `e01` | `src/event.rs::read_flags` 的 `Some(f) => out.ignored.push(f)` 改成 `out.known.push(f)` ⇒ `e01` 红（正控与本题同时红） |
-//! | `e02` | `src/ontology.rs::Ontology::validate` 改成"旗标不认识就拒"（把**对偶**弄反）⇒ `e02`/`e04` 红，而 `e03` 仍绿 |
-//! | `e03` | `src/ontology.rs::validate` 的家族查表放宽（回退到任一已知家族）⇒ `e03` 红，而 `e01`/`e02` 仍绿 |
-//! | `e04` | `src/event.rs::with_flag` 改成空实现（旗标不落账）⇒ `e04` 红 |
-//! | `x01` | `src/ontology.rs::load` 里 `check_extension_names(&concepts, &core_fields)?;` 改成 `let _ = …;` ⇒ `x01` 红（且 `s1_sys_probe.sh` 的 `TC-049` ⑦ 退回红） |
-//! | `x02` | `src/ontology.rs::core_field_names` 把**家族信纸字段**也算进核心 ⇒ 纯加法的本体被拒 ⇒ `x02` 红（且 `TC-046`/`TC-049` ⑥ 一起红） |
+//! | `e01` | `src/common/event.rs::read_flags` 的 `Some(f) => out.ignored.push(f)` 改成 `out.known.push(f)` ⇒ `e01` 红（正控与本题同时红） |
+//! | `e02` | `src/ontology_definition/mod.rs::Ontology::validate` 改成"旗标不认识就拒"（把**对偶**弄反）⇒ `e02`/`e04` 红，而 `e03` 仍绿 |
+//! | `e03` | `src/ontology_definition/mod.rs::validate` 的家族查表放宽（回退到任一已知家族）⇒ `e03` 红，而 `e01`/`e02` 仍绿 |
+//! | `e04` | `src/common/event.rs::with_flag` 改成空实现（旗标不落账）⇒ `e04` 红 |
+//! | `x01` | `src/ontology_definition/mod.rs::load` 里 `check_extension_names(&concepts, &core_fields)?;` 改成 `let _ = …;` ⇒ `x01` 红（且 `s1_sys_probe.sh` 的 `TC-049` ⑦ 退回红） |
+//! | `x02` | `src/ontology_definition/mod.rs::core_field_names` 把**家族信纸字段**也算进核心 ⇒ 纯加法的本体被拒 ⇒ `x02` 红（且 `TC-046`/`TC-049` ⑥ 一起红） |
 //!
 //! ## 诚实边界（不许读成"已完备"）
 //!
@@ -48,9 +48,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::ontology::Ontology;
-use world_core::readmodel::State;
-use world_core::{event, World};
+use world_core::ontology_definition::Ontology;
+use world_core::ontology_instance::readmodel::State;
+use world_core::{common::event, World};
 
 // ────────────────────────── 夹具 ──────────────────────────
 
@@ -83,11 +83,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 /// 造一份临时本体：读出厂本体 → 按 `edit` 改 → 落盘（`0600`，静态墙要求）。
@@ -337,7 +337,7 @@ fn e03_unknown_family_is_refused_on_both_sides_of_the_dual() {
 /// **e04**：一个**出厂读法不认得**的旗标，经**公开写入入口**落笔，且不改折叠结论。
 ///
 /// 这是今天唯一能从公开入口落账的旗标：内核给不可逆动作加的摩擦标记
-/// `gate.friction:high`（`src/lib.rs` 的 `event::with_flag` ＋ `src/gate.rs` 的 `Friction::flag`）。
+/// `gate.friction:high`（`src/lib.rs` 的 `event::with_flag` ＋ `src/gate/mod.rs` 的 `Friction::flag`）。
 /// 它**不在**出厂本体声明的旗标里（`flags: []`）⇒ 对出厂读法而言它就是"未知旗标"——
 /// 「旧读法读到它不会坏」这句话因此**可执行**，而不只是注释。
 #[test]
@@ -404,7 +404,7 @@ fn e04_a_flag_the_factory_reader_does_not_know_still_lands_and_folds() {
 ///
 /// ## 仍然在册的边界（不许被读成"合上了"）
 ///
-/// 出厂本体顶层 `flags` 仍是**空数组**（`world-core/ontology.json:49`）⇒「未知旗标」在本体侧
+/// 出厂本体顶层 `flags` 仍是**空数组**（`world-core/src/ontology_definition/ontology.json:49`）⇒「未知旗标」在本体侧
 /// 仍**没有已定义旗标可比对**（`tools/s1_sys_probe.sh` 的 `TC-048` ⑦；`WC-SCMP-001` §8.4 的 `G-83`）。
 #[test]
 fn e05_the_public_write_entry_lands_an_unknown_flag_end_to_end() {

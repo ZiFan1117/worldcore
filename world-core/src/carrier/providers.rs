@@ -654,7 +654,8 @@ pub fn execute(
             }
         }
         Err(e) => {
-            let code = crate::error::code_of(&e).unwrap_or("ext.world.Carrier.ProviderFailed");
+            let code =
+                crate::common::error::code_of(&e).unwrap_or("ext.world.Carrier.ProviderFailed");
             if code.ends_with("UnknownVerb") || code.ends_with("BadParam") {
                 // 参数/动词层面的错属于"根本没动手"。
                 let mut o = Outcome::refused(json!({ "reason": e }));
@@ -914,7 +915,7 @@ mod unit {
     /// ★ 第二句是必需的**正控**：空清单会让第一句**恒真**——那就成了装饰。
     #[test]
     fn the_factory_manifest_and_the_factory_registry_agree() {
-        let m = Manifest::load_dir(Path::new("cap.d")).unwrap();
+        let m = Manifest::load_dir(Path::new("src/carrier/cap.d")).unwrap();
         let reg = Registry::builtin();
         assert!(
             cross_check(&m, &reg).is_ok(),

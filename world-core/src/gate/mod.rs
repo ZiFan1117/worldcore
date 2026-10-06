@@ -25,12 +25,12 @@
 //!
 //! 本模块只负责**决策**。让决策无法被绕过的，是
 //! ① [`crate::World::commit`] 这一处**唯一咽喉**（进程内无第二条写路径），
-//! ② [`crate::guard`] 对策略文件与账本的**权限静态检查**（被管者改不动规则）。
+//! ② [`crate::gate::guard`] 对策略文件与账本的**权限静态检查**（被管者改不动规则）。
 //!
 //! 三者缺一，"不可绕过"就不成立——所以它们是**一组**，不能只看其中一处。
 
+pub mod guard;
 use crate::carrier::capd::{Manifest as CarrierManifest, Risk as CarrierRisk};
-use crate::guard;
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -246,12 +246,20 @@ pub(crate) fn pattern_matches(pattern: &str, value: &str) -> bool {
 fn load_carrier_manifests(
     policy_path: &Path,
 ) -> Result<(CarrierManifest, Option<PathBuf>), String> {
-    let dir = policy_path
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .join(CARRIER_DIR);
+    // ★ 2026-10-07 结构迁移：`policy.json` 与 `cap.d/` **各归其原子**（前者在 `src/gate/`、
+    //   后者在 `src/carrier/`），"策略同级"这条老约定随之失效。仍按**候选顺序**解析：
+    //   ① 策略同级 `<policy 目录>/cap.d`——**兼容既有布局**（测试夹具与部署方自备的样例就这么摆）；
+    //   ② 迁移后的新布局 `<policy 目录>/../carrier/cap.d`（＝仓内 `src/carrier/cap.d`）。
+    //   两条都没有 ⇒ **不是错误**（载体侧什么都没声明），返回 `None`，由调用方按"未校验"说出来。
+    let base = policy_path.parent().unwrap_or_else(|| Path::new("."));
+    let mut dir = base.join(CARRIER_DIR);
     if !dir.is_dir() {
-        return Ok((CarrierManifest::default(), None));
+        let alt = base.join("..").join("carrier").join(CARRIER_DIR);
+        if alt.is_dir() {
+            dir = alt;
+        } else {
+            return Ok((CarrierManifest::default(), None));
+        }
     }
     guard::assert_not_other_writable(&dir, "执行清单目录（载体侧 cap.d）")?;
     let manifest = CarrierManifest::load_dir(&dir)?;
@@ -751,7 +759,7 @@ impl Policy {
             .filter(|a| !a.reversible)
             .map(|a| Friction {
                 risk: self.caps.get(&a.capability).and_then(|c| c.risk),
-                mark: crate::event::FLAG_FRICTION,
+                mark: crate::common::event::FLAG_FRICTION,
             });
         Verdict { decision, friction }
     }
@@ -857,7 +865,7 @@ mod unit {
             irreversible_actors: vec!["world://user".to_string()],
             carrier: CarrierManifest::default(),
             carrier_dir: None,
-            path: PathBuf::from("policy.json"),
+            path: PathBuf::from("src/gate/policy.json"),
         }
     }
 

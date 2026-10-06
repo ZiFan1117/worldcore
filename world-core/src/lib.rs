@@ -17,24 +17,20 @@
 //! 5. **门禁不可绕过**（决策在唯一咽喉 + 规则与真相不受被管者写入）。
 
 pub mod agent;
+
+pub mod bus;
 pub mod carrier;
-pub mod channel;
-pub mod checkpoint;
-pub mod delivery;
-pub mod error;
-pub mod event;
+pub mod common;
 pub mod gate;
-pub mod guard;
+pub mod gui_projection;
 pub mod ledger;
-pub mod ontology;
-pub mod pairing;
-pub mod project;
-pub mod readmodel;
+pub mod ontology_definition;
+pub mod ontology_instance;
 
 use gate::{Decision, Policy};
 use ledger::Ledger;
-use ontology::Ontology;
-use readmodel::State;
+use ontology_definition::Ontology;
+use ontology_instance::readmodel::State;
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -51,9 +47,9 @@ const RESERVED_FLAG_PREFIX: &str = "gate.";
 /// ## 为什么是一个结构体，而不是继续给 [`World::commit`] 堆位置参数（形态裁定，理由三条）
 ///
 /// 1. **不破公开签名**：`World::commit` 在 HEAD 上 `tests/**` 有 **60 处**调用点、
-///    [`World::commit_requested`] 另有 `tests/delivery.rs` **19 处**与 `src/channel.rs` 的
+///    [`World::commit_requested`] 另有 `tests/delivery.rs` **19 处**与 `src/bus/mod.rs` 的
 ///    `RequestSink` **1 处调用 ＋ 1 处 trait 声明**。
-///    口径说明：`tests/delivery.rs` 的调用点是 **19 处**；`src/channel.rs` 是 **1 处调用 ＋ 1 处 trait 声明**
+///    口径说明：`tests/delivery.rs` 的调用点是 **19 处**；`src/bus/mod.rs` 是 **1 处调用 ＋ 1 处 trait 声明**
 ///    （两者口径不同，不是同一个数）。给它们加参数要逐字改**每一个**调用点，而其中
 ///    `tests/ontology_ext.rs` 正由并行工区在写——那是**别人的文件**，跨过去就是事故。
 /// 2. **可选信封字段是一个概念**：`trace`／`to`／`flags` 都是"信封上可选的格子"。
@@ -65,7 +61,7 @@ const RESERVED_FLAG_PREFIX: &str = "gate.";
 /// ## 字段口径
 ///
 /// - `trace`／`to`：`None` 或空串 ⇒ **不写该键**（不写 `null`）。"没有因果"与"因果指向空"是两件事。
-/// - `flags`：按给出顺序追加，重复的**只留一个**（`event::with_flag` 的口径）。
+/// - `flags`：按给出顺序追加，重复的**只留一个**（`common::event::with_flag` 的口径）。
 ///   ⚠️ `gate.` 开头的旗标**不许由调用方给**（见 [`World::commit_verbatim`] 的第二段）。
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Envelope {
@@ -229,15 +225,15 @@ impl World {
         }
 
         // 词表版本一致性（2026-09-26 补，见 WC-RV-R2-001 S-17）：
-        // 信封里的 `world` 由 `event::WORLD_VERSION` 写死，而本体自带 `world` 字段。
+        // 信封里的 `world` 由 `common::event::WORLD_VERSION` 写死，而本体自带 `world` 字段。
         // 两者不一致时，构造出的事件**恒被判 BadVersion**——那是自伤性故障：
         // 世界能启动、却一条事件都写不进去，而报错看起来像"事件格式错"。
         // 故在启动时刻就拒绝，把问题暴露在这里而不是每条写入上。
-        if event::WORLD_VERSION != ontology.world() {
+        if common::event::WORLD_VERSION != ontology.world() {
             return Err(format!(
                 "ext.world.World.VersionMismatch: 事件构造器版本 {} 与本体声明的 world={} 不一致；\
                  拒绝启动（否则每条事件都会被判 BadVersion）",
-                event::WORLD_VERSION,
+                common::event::WORLD_VERSION,
                 ontology.world()
             ));
         }
@@ -328,9 +324,9 @@ impl World {
     ///
     /// ## 旗标的口径（`REQ-F-029`「未知旗标必须忽略」）
     ///
-    /// - 调用方给的旗标**按序追加、重复只留一个**（`event::with_flag` 的口径）；
+    /// - 调用方给的旗标**按序追加、重复只留一个**（`common::event::with_flag` 的口径）；
     /// - **不认得的旗标必须放行**：本入口不比对任何"已知旗标表"——出厂本体
-    ///   `ontology.json` 的 `flags` 是**空数组**，"认不认得"是**读法**的事（`event::read_flags`），
+    ///   `ontology.json` 的 `flags` 是**空数组**，"认不认得"是**读法**的事（`common::event::read_flags`），
     ///   不是写入入口的事。写入侧只做一件事：**不许替世界署名**（下一条）；
     /// - **内核保留前缀 `gate.` 不许由调用方给**：拒，且留流水。
     ///   这不是"不让你带旗标"，是"不许替世界说话"——闸的摩擦标记
@@ -362,12 +358,12 @@ impl World {
         flags: &[String],
     ) -> Result<Value, String> {
         let seq = self.ledger.next_seq();
-        let mut ev = event::new_event(seq, kind, actor, body);
-        event::with_trace(&mut ev, trace);
-        event::with_to(&mut ev, to);
+        let mut ev = common::event::new_event(seq, kind, actor, body);
+        common::event::with_trace(&mut ev, trace);
+        common::event::with_to(&mut ev, to);
         // 调用方给的旗标：**在过法律之前**就位——法律要看到的东西，就是将要落笔的东西。
         for f in flags {
-            event::with_flag(&mut ev, f);
+            common::event::with_flag(&mut ev, f);
         }
 
         // 校验与裁决的顺序（2026-09-27 订正为两段式）：
@@ -399,7 +395,10 @@ impl World {
         //    会把唯一的修法也一并堵死（实测反例：`r01`／`r04` 的夹具当场红）。
         //    「是不是撤回事实」取自**读模型自己的**认定函数（`retract_target_of`），
         //    **不另立第二套**口径。
-        let refusal_is_retraction = matches!(readmodel::retract_target_of(&ev), Ok(Some(_)));
+        let refusal_is_retraction = matches!(
+            ontology_instance::readmodel::retract_target_of(&ev),
+            Ok(Some(_))
+        );
         if kind == "change" && !refusal_is_retraction {
             if let (Some(s), Some(p), Some(b)) = (
                 act_body.get("subject").and_then(Value::as_str),
@@ -461,7 +460,7 @@ impl World {
         // ⚠️ 加旗标发生在法律校验**之后**，所以加完必须**再过一遍法律**——
         // "法律在前、落笔在后"不许因为"我在法律之后又改了事件"而破。
         if let Some(f) = &friction {
-            event::with_flag(&mut ev, &f.flag());
+            common::event::with_flag(&mut ev, &f.flag());
             if let Err(e) = self.ontology.validate(&ev) {
                 return Err(e.to_string());
             }
@@ -629,7 +628,7 @@ impl World {
                 .get("body")
                 .and_then(|b| b.get("path"))
                 .and_then(Value::as_str)
-                == Some(readmodel::RETRACT_PATH);
+                == Some(ontology_instance::readmodel::RETRACT_PATH);
         if is_retraction || self.folded.is_none() {
             self.folded = None;
             return;
@@ -868,11 +867,11 @@ impl World {
             "refused": refused,
             "reason": reason,
         });
-        let ev = event::new_event(
+        let ev = common::event::new_event(
             seq,
             "notice",
             actor,
-            event::notice_body(notice_type, actor, payload),
+            common::event::notice_body(notice_type, actor, payload),
         );
         self.ontology.validate(&ev).map_err(|e| e.to_string())?;
         self.ledger.append(ev)?;
@@ -920,7 +919,7 @@ impl World {
     ///
     /// 读模型侧的缺格判据要按"本体**已声明**的必填格"来判（书第五章 5.6 表 5.2 行逐字
     /// 「每个已声明的字段至少有一份读法可读，缺格就报错」），而读模型**不许**
-    /// `use crate::ontology::…`——`WC-MODREG-001` §2 给 `M03` 的口径是「**无**（生产代码零出边）」，
+    /// `use crate::ontology_definition::…`——`WC-MODREG-001` §2 给 `M03` 的口径是「**无**（生产代码零出边）」，
     /// 机核层 `tools/module_graph.py` 判据② 逐边核对「声明集 ≡ 真实 import 集」。
     /// ⇒ 依赖方向留在**装配处**：本处（`M04`，依赖列本就含 `M01` 与 `M03`）把法律以**纯数据**
     /// 递进去（[`Ontology::envelope_required`]／[`Ontology::family_required`]），
@@ -931,7 +930,7 @@ impl World {
     /// `tools/s1_sys_probe.sh` 的 `TC-047` ⑨ 登记的就是这一格（逐字：「缺必填信封字段 `actor`
     /// 竟**被接受**…折叠层不校验」），它**同日改为断言**。
     pub fn read_model(&self) -> Result<State, String> {
-        let cells = readmodel::DeclaredCells::new(
+        let cells = ontology_instance::readmodel::DeclaredCells::new(
             self.ontology.envelope_required(),
             self.ontology.family_required(),
         )
@@ -958,7 +957,7 @@ impl World {
 
 /// `M09`（通道）对内核提出的窄接口：**纯转发**到 [`World::commit_requested`]。
 ///
-/// 为什么要在这里写这个 `impl`（而不是让 `src/channel.rs` 直接 `use crate::World`）：
+/// 为什么要在这里写这个 `impl`（而不是让 `src/bus/mod.rs` 直接 `use crate::World`）：
 /// `WC-ATOM-001` §二 A-4 要求模块号依赖**单向 DAG**，而通道与运行时互相 `use` 会成环。
 /// 依赖的真实方向只有一个——**运行时驱动通道**（`src/main.rs:622`）；通道需要的是
 /// "谁能收下这条请求"，不是"世界长什么样"。把这条事实写成窄接口后：
@@ -966,7 +965,7 @@ impl World {
 ///
 /// ⚠️ 这里**不许**出现第二条写路径：转发目标就是 [`World::commit_requested`] 本身，
 /// "取号 → 造事件 → 法律 → 门禁 → 落笔"仍然只有那一条（`M04` 的唯一写入口不变）。
-impl crate::channel::RequestSink for World {
+impl crate::bus::RequestSink for World {
     fn commit_requested(
         &mut self,
         kind: &str,
@@ -983,7 +982,7 @@ impl crate::channel::RequestSink for World {
 ///
 /// 写侧（`M10`）只需要知道**一件事**：某个 (主体, 字段) 在出厂声明里吗。
 /// 这一层知识属于**这部法律**，所以由 [`Ontology`] 来答——装配点在这里（`M04`），
-/// 与上面那条 [`crate::channel::RequestSink`] 同理：**接口窄到只回答一个问题**，
+/// 与上面那条 [`crate::bus::RequestSink`] 同理：**接口窄到只回答一个问题**，
 /// 装配关系只出现在 `M04` 这一处，`M10` 自己不反向依赖 `M01`／`M03`（那会成环，A-4 不许）。
 impl crate::carrier::translate::Declared for Ontology {
     fn is_declared(&self, subject: &str, path: &str) -> bool {

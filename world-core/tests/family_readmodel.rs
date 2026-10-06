@@ -54,7 +54,7 @@
 //!   读模型仍**零生产出边**（`WC-MODREG-001` §2 给 `M03` 的口径）。
 //! - 读模型**不渲染**信封的 `id`／`at`／`actor`／`world`／`flags`：书那句"每个已声明的字段
 //!   至少有一份读法可读"在**必填格**这一半成立（缺了即拒），另一半（每格都**读得出来**）**仍未成立**。
-//! - 读模型认得的家族仍是**编译进去的三家族**（`M03` 不许 `use crate::ontology::…`，
+//! - 读模型认得的家族仍是**编译进去的三家族**（`M03` 不许 `use crate::ontology_definition::…`，
 //!   见 `WC-MODREG-001` §2 给 `M03` 的口径「无（生产代码零出边）」）⇒「新家族怎么加」
 //!   在读法侧的回答是"**要连读法一起加**"：只加本体的家族，读模型**拒**（`h02` ③ 即此）。
 
@@ -64,9 +64,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::ontology::Ontology;
-use world_core::readmodel::{DeclaredCells, State, RETRACT_PATH};
-use world_core::{event, World};
+use world_core::ontology_definition::Ontology;
+use world_core::ontology_instance::readmodel::{DeclaredCells, State, RETRACT_PATH};
+use world_core::{common::event, World};
 
 // ────────────────────────── 夹具 ──────────────────────────
 
@@ -99,11 +99,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 /// 造一份临时本体：读出厂本体 → 按 `edit` 改 → 落盘（`0600`，静态墙要求）。
@@ -131,7 +131,7 @@ fn add_pure_extension(v: &mut Value) {
 
 /// 出厂法律的"已声明必填格"清单——读模型侧要的那份**纯数据**（`REQ-F-032`）。
 ///
-/// 这里刻意**不**把 `Ontology` 递给读模型（`readmodel` 不许 `use crate::ontology::…`）：
+/// 这里刻意**不**把 `Ontology` 递给读模型（`readmodel` 不许 `use crate::ontology_definition::…`）：
 /// 装配处取数据、读模型吃数据，依赖方向留在装配处。
 fn declared_cells(ont: &Ontology) -> DeclaredCells {
     DeclaredCells::new(ont.envelope_required(), ont.family_required())
@@ -177,6 +177,9 @@ fn write_ledger(p: &Path, lines: &[Value]) {
         .map(|e| serde_json::to_string(e).unwrap())
         .collect::<Vec<_>>()
         .join("\n");
+    if let Some(d) = p.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(p, format!("{text}\n")).unwrap();
     chmod600(p);
 }
@@ -931,6 +934,9 @@ fn append_raw_with_chain(lp: &Path, mut ev: Value) {
     }
     text.push_str(&serde_json::to_string(&ev).unwrap());
     text.push('\n');
+    if let Some(d) = lp.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(lp, text).unwrap();
 }
 

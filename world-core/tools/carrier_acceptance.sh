@@ -69,14 +69,17 @@ echo "  沙箱   : $SB"
 echo
 
 # ── 准备：一次性世界（本体/策略/执行清单/通道配置）───────────────────────
-cp ontology.json policy.json "$SB/" 2>/dev/null || true
-cp -r cap.d "$SB/cap.d"
+# ★ 沙盒必须**保持与仓内同样的相对布局**（法律搬进 `src/` 后不再平铺）：
+mkdir -p "$SB/src/ontology_definition" "$SB/src/gate" "$SB/src/carrier"
+cp src/ontology_definition/ontology.json "$SB/src/ontology_definition/ontology.json" 2>/dev/null || true
+cp src/gate/policy.json "$SB/src/gate/policy.json" 2>/dev/null || true
+cp -r src/carrier/cap.d "$SB/src/carrier/cap.d"
 mkdir -p "$SB/run"
 # ★ AC-1：受理路径现在按**法律**（`--policy` 的 `listeners`）判"这个口在不在册"。
 #   夹具的口是**临时路径** ⇒ 夹具必须把它写进**自己的法律**里（否则世界**正确地**拒启）。
 #   ⚠ 这不是"把判据改松"：**判据的会红条件一字未动**；变的是**夹具的法律**，不是判据。
 #   依赖：python3（与仓内其余工具同口径）。
-python3 - "$SB/policy.json" "$SB/run/agent-1.sock" <<'PY'
+python3 - "$SB/src/gate/policy.json" "$SB/run/agent-1.sock" <<'PY'
 import json, sys
 p, sock = sys.argv[1], sys.argv[2]
 d = json.load(open(p, encoding="utf-8"))
@@ -88,8 +91,8 @@ cat > "$SB/channel.json" <<EOF
 {"channel":1,"listeners":[{"socket":"$SB/run/agent-1.sock","actor":"world://agent/1","uid":$(id -u)}]}
 EOF
 LEDGER="$SB/ledger.jsonl"
-RUN="$BIN --ontology $SB/ontology.json --ledger $LEDGER --policy $SB/policy.json"
-CARRY="$BIN --cap-dir $SB/cap.d --ledger $LEDGER"
+RUN="$BIN --ontology $SB/src/ontology_definition/ontology.json --ledger $LEDGER --policy $SB/src/gate/policy.json"
+CARRY="$BIN --cap-dir $SB/src/carrier/cap.d --ledger $LEDGER"
 
 # 起始：账本为空
 $RUN check >/dev/null 2>&1
@@ -179,14 +182,14 @@ check "C-06 账本行数未变（没有任何副作用）" "$AFTER6" "$BEFORE6"
 cat > "$SB/orphan.jsonl" <<'EOF'
 {"world":1,"kind":"act","id":"e-o1","seq":1,"at":100,"actor":"world://agent/1","flags":[],"chain":"fnv1a64:0000000000000000","body":{"capability":"job.start","verb":"start","request_id":"r-orphan","params":{"command":"/bin/true"}}}
 EOF
-ORPH=$($BIN --cap-dir "$SB/cap.d" --ledger "$SB/orphan.jsonl" carrier orphans 2>&1)
+ORPH=$($BIN --cap-dir "$SB/src/carrier/cap.d" --ledger "$SB/orphan.jsonl" carrier orphans 2>&1)
 case "$ORPH" in *'有意图、无结果'*) ok "C-07 孤儿被查出来";; *) bad "C-07 孤儿没查出来";; esac
 case "$ORPH" in *'不得自动重试'*) ok "C-07 只报告、不重试（给了明确口径）";; *) bad "C-07 未给不重试口径";; esac
 # 反例：补上结果后，就不再是孤儿
 cat >> "$SB/orphan.jsonl" <<'EOF'
 {"world":1,"kind":"act","id":"e-o2","seq":2,"at":101,"actor":"world://agent/1","flags":[],"chain":"fnv1a64:1111111111111111","trace":"e-o1","body":{"capability":"job.start","verb":"start","request_id":"r-orphan","params":{"result":"ok","exit_code":0,"detail":{}}}}
 EOF
-ORPH2=$($BIN --cap-dir "$SB/cap.d" --ledger "$SB/orphan.jsonl" carrier orphans 2>&1)
+ORPH2=$($BIN --cap-dir "$SB/src/carrier/cap.d" --ledger "$SB/orphan.jsonl" carrier orphans 2>&1)
 case "$ORPH2" in *'没有『有意图、无结果』的请求'*) ok "C-07b 补上结果后不再报孤儿（判据会变）";; *) bad "C-07b 补上结果后仍报孤儿";; esac
 
 # ── C-08 撤销不进主干 ─────────────────────────────────────────────────
@@ -232,7 +235,7 @@ else
   check "C-09 前提：账本属主≠被管者（否则 mode 再严也没用）" \
         "$([ "$(stat -c '%u' "$LEDGER")" != "${MUID:-x}" ] && echo yes || echo no)" "yes"
   # 让被管者**进得来**：否则拒绝会落在目录层（con01 v1 的 F4 教训：那证明的不是文件位）
-  chmod 755 "$SB" "$SB/run" "$SB/cap.d" 2>/dev/null
+  chmod 755 "$SB" "$SB/run" "$SB/src/carrier/cap.d" 2>/dev/null
   chmod 644 "$LEDGER" 2>/dev/null
   RUNBOX="$SB/runbox"
   mkdir -p "$RUNBOX"
@@ -240,7 +243,7 @@ else
   chmod 755 "$RUNBOX" "$RUNBOX/world-core"
 
   # ① 以被管者身份跑**载体自己**：只读消费账本必须走得通
-  if runuser -u "$MANAGED" -- "$RUNBOX/world-core" --cap-dir "$SB/cap.d" --ledger "$LEDGER" \
+  if runuser -u "$MANAGED" -- "$RUNBOX/world-core" --cap-dir "$SB/src/carrier/cap.d" --ledger "$LEDGER" \
        carrier orphans >/dev/null 2>&1; then
     ok "C-09 以被管者身份跑**载体自己**（carrier orphans）读得到账本（只读消费面成立）"
   else
@@ -259,7 +262,7 @@ else
     ok "$desc（rc=$rc；原因含 Permission denied；执行者 uid=${MUID}）"
   }
   denied "C-09 写侧直写账本（追加一行）被拒" "echo '{}' >> $LEDGER"
-  denied "C-09 写侧改规则（向 policy.json 追加）被拒" "echo '{}' >> $SB/policy.json"
+  denied "C-09 写侧改规则（向 policy.json 追加）被拒" "echo '{}' >> $SB/src/gate/policy.json"
 
   # ③ 反证：把账本放宽到 0666 ⇒ **同一动作必须成功**（否则上面两条是橡皮图章）
   chmod 666 "$LEDGER"

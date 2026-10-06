@@ -10,7 +10,7 @@
 # （该口在 `policy.json.listeners` 里绑 `world://presence/omarchy`）
 # ⇒ 账本里这条 `act` 的作者**就是界面自己**，不再叫 `world://core`。
 # ★ 不许经 `/run/world-core/world.sock`：那个口的作者是 `world://core`，"谁点的"从此查不出来。
-# ★ 请求体里**不许自称** actor（`src/channel.rs` 逐字"身份由内核给出，不由请求自称"）。
+# ★ 请求体里**不许自称** actor（`src/bus/mod.rs` 逐字"身份由内核给出，不由请求自称"）。
 #
 # ## 为什么发 `act`（不是 `change`）
 # `change` 是另一条路：只走 `authorize_write`，**不过能力层与动作层、不产生 request/trace/回执**。
@@ -56,8 +56,8 @@ case "$cur" in
 esac
 
 # ② "有哪些可点项"**问世界**：这个能力在不在册 ∩ 已授
-desc=$("$CLI" --ontology "$CONF/ontology.json" --ledger /var/lib/world-core/ledger.jsonl \
-        --policy "$CONF/policy.json" describe 2>/dev/null) || {
+desc=$("$CLI" --ontology "$CONF/src/ontology_definition/ontology.json" --ledger /var/lib/world-core/ledger.jsonl \
+        --policy "$CONF/src/gate/policy.json" describe 2>/dev/null) || {
     say "读不到世界的 describe —— 拒绝发事件（问不到世界，就不动）"; exit 3; }
 case "$desc" in
     *"$CAP"*) : ;;

@@ -182,7 +182,7 @@
 | 1 | `WC-SRS-001-v0.1.md` 里 `REQ-[FN]-NNN` 的出现次数 | **393** | `[regex]::Matches((Get-Content -Raw <file>),'REQ-[FN]-\d{3}').Count` |
 | 2 | 同上，**唯一**需求号个数 | **41** | 同上去重 |
 | 3 | `WC-RTM-001.csv` 里同模式出现次数 | **72** | 同上换文件 |
-| 4 | `world-core/docs/` 下 `.md`＋`.csv` 文件数 | **51** | `Get-ChildItem -Recurse -File world-core/docs` 按扩展名过滤 |
+| 4 | `world-core/docs/` 下 `.md`＋`.csv` 文件数 | **72** | `Get-ChildItem -Recurse -File world-core/docs` 按扩展名过滤 |
 | 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **12** | 逐文件 `read_text().lower()` 检索 |
 | 6 | 规格审计查出的差错条数（`audit.md`） | **46** | 见 `fc-2026-001` 的 `audit.md` |
 | 7 | 规格树下的 Requirement 条数 | **49** | 逐文件计 `^### Requirement` |

@@ -53,7 +53,7 @@ HAS_PWD = pwd is not None
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)                      # world-core/
 DEPLOY = os.path.join(ROOT, 'deploy')
-POLICY = os.path.join(ROOT, 'policy.json')
+POLICY = os.path.join(ROOT, 'src', 'gate', 'policy.json')
 README = os.path.join(DEPLOY, 'README.md')
 CHANNEL = '/etc/world-core/channel.json'          # 现役载体上的渲染物（可用 --channel 覆盖）
 STATE_DIR = '/var/lib/world-core'
@@ -522,8 +522,12 @@ def self_test():
             ('①b', 'world-core.socket', 'ListenStream=/run/world-core/world.sock',
              'ListenStream=/run/other/x.sock', 'sub'),
             ('②', 'world-core.socket', 'SocketUser=world-core', 'SocketUser=someone-else', 'sub'),
-            ('③', 'world-core.service', 'RuntimeDirectory=world-core',
-             'RuntimeDirectory=elsewhere', 'sub'),
+            # ★ 2026-10-07 修：锚点必须**带上换行**，因为 `RuntimeDirectory=world-core`
+            #   在件里第一次出现是**注释**里那句（`# \`RuntimeDirectory=world-core\` 的递归 chown…`），
+            #   `replace(old,new,1)` 会改到注释 ⇒ 真指令没动 ⇒ 判据③**不会红**、
+            #   而自测只报"★没红"（＝判据面是装饰）。带换行后锚点唯一命中真指令那一行。
+            ('③', 'world-core.service', '\nRuntimeDirectory=world-core\n',
+             '\nRuntimeDirectory=elsewhere\n', 'sub'),
             ('④a', 'world-core.service', 'ReadWritePaths=/var/lib/world-core /run/world-core',
              'ReadWritePaths=/run/world-core', 'sub'),
             ('④b', 'world-core-projectd.service', 'ReadOnlyPaths=/var/lib/world-core',

@@ -19,7 +19,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -32,18 +32,18 @@ fn tmpdir(tag: &str) -> PathBuf {
 }
 
 fn ontology() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json")
 }
 
 fn policy() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json")
 }
 
 /// 写一份**合法**的临时策略（含 `writes` 段——默认拒绝要求它必须存在）。
 ///
 /// ⚠️ **本批起是两层**（能力层 ＋ 动作层）：`capabilities.<名字>.kind` 与
 /// `actions.<动作>.capability`。夹具按两层写，与出厂 `policy.json` 同形
-/// （判据见 `src/gate.rs::Policy::load`）。
+/// （判据见 `src/gate/mod.rs::Policy::load`）。
 fn write_policy(dir: &Path, name: &str, body: &Value) -> PathBuf {
     let p = dir.join(name);
     fs::write(&p, serde_json::to_string_pretty(body).unwrap()).unwrap();
@@ -135,7 +135,7 @@ fn named_field_in(msg: &str) -> &str {
 /// 现在改成**定位那个 token**：反引号之间必须逐字等于被删的字段名。
 #[test]
 fn c02_every_required_envelope_field_is_enforced() {
-    let ont = world_core::ontology::Ontology::load(&ontology()).unwrap();
+    let ont = world_core::ontology_definition::Ontology::load(&ontology()).unwrap();
     let required = ["world", "kind", "id", "seq", "at", "actor", "flags", "body"];
 
     for field in required {
@@ -283,7 +283,7 @@ fn c03_policy_load_rejects_every_malformed_shape() {
     //
     // 为何是"应能加载"而不是"应被拒载"（E-5 裁定①"删字段"）：
     // `Policy::load` 用 `serde_json::Value` **手工取值**——`let root: Value =
-    // serde_json::from_str(..)` 之后逐键 `spec.get("kind")`（`src/gate.rs`
+    // serde_json::from_str(..)` 之后逐键 `spec.get("kind")`（`src/gate/mod.rs`
     // 「`capabilities` 解析」段）；`gate.rs` 里**没有任何 `#[derive(Deserialize)]`
     // 结构**，也就无从施加 `deny_unknown_fields`（`grep -rn "Deserialize" world-core/src/` = 0 命中）
     // ⇒ 未知键既不导致拒载、也不参与裁决。本用例同时是"旧策略文件带着
@@ -300,7 +300,7 @@ fn c03_policy_load_rejects_every_malformed_shape() {
     let p = write_policy(&d, "extra-keys-ignored.json", &v);
     let pol = Policy::load(&p).expect("多余键应被忽略，而不是拒载");
     // 裁决只看**动作**的 `reversible` + `irreversible_actors`：多余键不得改变结论
-    // （`verb` 可省，`decide` 取不到时按 `-` 处理，见 `src/gate.rs`）。
+    // （`verb` 可省，`decide` 取不到时按 `-` 处理，见 `src/gate/mod.rs`）。
     let act = json!({ "capability": "weird", "verb": "do" });
     assert_eq!(
         pol.decide("world://user", &act),
@@ -321,7 +321,7 @@ fn c03_policy_load_rejects_every_malformed_shape() {
 /// 两条都**不改**本用例要验的那件事：家族列表为空 ⇒ `NoFamilies`。
 #[test]
 fn c04_ontology_load_rejects_missing_file_and_empty_families() {
-    use world_core::ontology::Ontology;
+    use world_core::ontology_definition::Ontology;
     let d = tmpdir("c04");
 
     // ① 文件不存在
@@ -406,7 +406,7 @@ fn c05_event_ids_are_unique_within_a_process() {
 /// 于是"增量 == 全量"成为**可失败**的断言。
 #[test]
 fn c06_incremental_apply_equals_full_fold() {
-    use world_core::readmodel::State;
+    use world_core::ontology_instance::readmodel::State;
 
     let d = tmpdir("c06");
     let lp = d.join("ledger.jsonl");
@@ -531,7 +531,8 @@ fn c09_symlinked_law_is_refused() {
     // 真本体放在别处，policy.json 用软链指向它
     let real = d.join("real-policy.json");
     fs::copy(policy(), &real).unwrap();
-    let link = d.join("policy.json");
+    let link = d.join("src/gate/policy.json");
+    fs::create_dir_all(link.parent().unwrap()).unwrap();
     symlink(&real, &link).unwrap();
 
     let err = World::open(&ontology(), &lp, &link).expect_err("指向别处的策略软链必须被拒绝");
@@ -577,7 +578,7 @@ fn c09_symlinked_law_is_refused() {
 #[test]
 fn c10_owner_assertion_detects_wrong_owner() {
     use std::os::unix::fs::MetadataExt;
-    use world_core::guard;
+    use world_core::gate::guard;
 
     let d = tmpdir("c10");
     let f = d.join("law.json");
@@ -651,7 +652,7 @@ fn c11_irreversible_is_owner_only_and_the_refusal_does_not_lie() {
 /// 4. **可被核验**：`verify` 拿账本重算，指纹一致才通过。
 #[test]
 fn c12_checkpoint_is_a_cache_and_disposable() {
-    use world_core::checkpoint::{read_model_with_checkpoint, Checkpoint};
+    use world_core::ontology_instance::checkpoint::{read_model_with_checkpoint, Checkpoint};
 
     let d = tmpdir("c12");
     let lp = d.join("ledger.jsonl");
@@ -683,7 +684,7 @@ fn c12_checkpoint_is_a_cache_and_disposable() {
     let full = read_model_with_checkpoint(&all, None).unwrap();
 
     // 在第 2 条处截一张快照
-    let prefix = world_core::readmodel::State::fold(&all[..2]).unwrap();
+    let prefix = world_core::ontology_instance::readmodel::State::fold(&all[..2]).unwrap();
     let cp = Checkpoint::capture(&prefix);
     assert_eq!(cp.base_seq(), 2, "快照必须声明它折叠到哪一条");
 
@@ -723,7 +724,7 @@ fn c12_checkpoint_is_a_cache_and_disposable() {
 /// ③ 文件不是合法 JSON。
 #[test]
 fn c13_bad_checkpoints_are_refused() {
-    use world_core::checkpoint::Checkpoint;
+    use world_core::ontology_instance::checkpoint::Checkpoint;
 
     let d = tmpdir("c13");
     let lp = d.join("ledger.jsonl");
@@ -745,7 +746,7 @@ fn c13_bad_checkpoints_are_refused() {
             "checkpoint": 1,
             "base_seq": 1,
             "digest": "fnv1a64:0000000000000000",
-            "state": world_core::readmodel::State::fold(&all).unwrap().to_json(),
+            "state": world_core::ontology_instance::readmodel::State::fold(&all).unwrap().to_json(),
         }))
         .unwrap(),
     )
@@ -797,7 +798,7 @@ fn c13_bad_checkpoints_are_refused() {
 fn c14_channel_takes_identity_from_kernel_not_from_request() {
     use std::io::{BufRead, BufReader, Write};
     use std::os::unix::net::{UnixListener, UnixStream};
-    use world_core::channel::{serve_once, Listener};
+    use world_core::bus::{serve_once, Listener};
 
     let d = tmpdir("c14");
     let lp = d.join("ledger.jsonl");
@@ -908,7 +909,7 @@ fn libc_uid() -> u32 {
 /// 前七条覆盖本体、门禁三条、法律、通道、读模型，**账本路径原先一条都没有**。
 #[test]
 fn c15_errors_carry_machine_readable_codes() {
-    use world_core::error::{code_of, has_code};
+    use world_core::common::error::{code_of, has_code};
 
     let d = tmpdir("c15");
     let lp = d.join("ledger.jsonl");
@@ -961,7 +962,7 @@ fn c15_errors_carry_machine_readable_codes() {
     );
 
     // ⑥ 通道：坏请求
-    codes.push(world_core::channel::parse_request("不是 JSON").unwrap_err());
+    codes.push(world_core::bus::parse_request("不是 JSON").unwrap_err());
 
     // ⑦ 读模型：坏账本
     let gap = vec![event::new_event(
@@ -970,7 +971,7 @@ fn c15_errors_carry_machine_readable_codes() {
         "world://user",
         event::change_body("world://s", "p", json!(null), json!(1)),
     )];
-    codes.push(world_core::readmodel::State::fold(&gap).unwrap_err());
+    codes.push(world_core::ontology_instance::readmodel::State::fold(&gap).unwrap_err());
 
     // ⑧ 账本路径：**缺号账本**（seq 从 1 跳到 3）⇒ 拒绝启动，且码属账本域。
     //    2.7：原七条来源里**没有一条**走账本路径——"账本也会拒启"这件事
@@ -1540,8 +1541,8 @@ fn c23_gate_notice_says_what_it_refused() {
 #[test]
 fn c24_known_codeless_outlets_carry_no_ext_world_prefix() {
     use std::os::unix::fs::{symlink, MetadataExt, PermissionsExt};
-    use world_core::error::has_code;
-    use world_core::guard;
+    use world_core::common::error::has_code;
+    use world_core::gate::guard;
 
     let d = tmpdir("c24");
     fs::set_permissions(&d, fs::Permissions::from_mode(0o700)).unwrap();
@@ -1643,6 +1644,9 @@ fn write_v1_ledger(path: &Path, n: u64) {
         text.push_str(&serde_json::to_string(&ev).unwrap());
         text.push('\n');
     }
+    if let Some(d) = path.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(path, text).unwrap();
 }
 
@@ -1655,6 +1659,9 @@ fn write_raw_jsonl(path: &Path, events: &[Value]) {
     for ev in events {
         text.push_str(&serde_json::to_string(ev).unwrap());
         text.push('\n');
+    }
+    if let Some(d) = path.parent() {
+        std::fs::create_dir_all(d).unwrap();
     }
     fs::write(path, text).unwrap();
 }
@@ -1686,13 +1693,13 @@ fn legal_change(w: &mut World) -> Result<Value, String> {
 ///
 /// ## 会红的根因（实测，非推测）
 ///
-/// `Ledger::append` 给**每一条**新事件加 `chain`（`src/ledger.rs:430-434`），
-/// 而它读的 `last_chain` 在无链账本上仍是创世种子；`chained`（`src/ledger.rs:146`）
-/// **只被 `load_chain` 写、从不被 `append` 读**（`4.1` 出处 `src/ledger.rs:506` 同族）
+/// `Ledger::append` 给**每一条**新事件加 `chain`（`src/ledger/mod.rs:430-434`），
+/// 而它读的 `last_chain` 在无链账本上仍是创世种子；`chained`（`src/ledger/mod.rs:146`）
+/// **只被 `load_chain` 写、从不被 `append` 读**（`4.1` 出处 `src/ledger/mod.rs:506` 同族）
 /// ⇒ v1 账本追加一条后变成「前半无链、后半有链」，下次打开 `verify_chain` 报 `MixedChain`、
 /// `load_chain` 视之为 `Err` ⇒ **世界拒启**。这就是 `K-3`。
 #[test]
-#[ignore = "K-3 未修（src/ledger.rs:146 的 chained 只写不读）：无链账本 append 一条后被判 MixedChain、世界拒启；修复落地后去掉本 ignore 即应转绿"]
+#[ignore = "K-3 未修（src/ledger/mod.rs:146 的 chained 只写不读）：无链账本 append 一条后被判 MixedChain、世界拒启；修复落地后去掉本 ignore 即应转绿"]
 fn c29_k3_chainless_ledger_survives_one_legal_append() {
     let d = tmpdir("c29-k3");
     let lp = d.join("legacy.jsonl");
@@ -1802,8 +1809,8 @@ fn c31_chainless_ledger_opens_readonly_and_refuses_writes() {
 ///
 /// ## 为什么这条边界必须写成断言
 ///
-/// 启动口径是「**截到最后一个 `\n`**」（`src/ledger.rs:276-289`），而 `append` 的整套加固
-/// 都建立在「末尾永远是完整行」这个前提上（`src/ledger.rs:385` 的自述）。
+/// 启动口径是「**截到最后一个 `\n`**」（`src/ledger/mod.rs:276-289`），而 `append` 的整套加固
+/// 都建立在「末尾永远是完整行」这个前提上（`src/ledger/mod.rs:385` 的自述）。
 /// 代价是：一条**内容完全合法**、只是**没来得及写末尾换行**的事件会被当成「半行」**删掉**，
 /// 它的 `seq` 会被下一条复用。这不是要辩解的事，而是要**固定成断言**的当下边界：
 /// 谁将来把 `keep` 改成「整文件」，本用例立刻变红（见变异证明）。
@@ -1900,7 +1907,7 @@ fn c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused() {
 ///
 /// ## 这条固定的是「锁的失效方向」，不是「锁有效」
 ///
-/// `acquire_lock` 判「陈锁」只看 `/proc/<pid>` 存不存在（`src/ledger.rs:182-184`）。
+/// `acquire_lock` 判「陈锁」只看 `/proc/<pid>` 存不存在（`src/ledger/mod.rs:182-184`）。
 /// 于是有**反向**的一格：原来的写者早已结束，但它的 **pid 号被另一个无关进程复用**
 /// ⇒ 锁文件被判为「仍被持有」⇒ **世界永远起不来**，而账本本身是好的。
 /// 这一格今天的处置只有人工（`Locked` 的理由串里就写着「确认它已崩溃则删除锁文件」），
@@ -2081,11 +2088,11 @@ fn c35_the_ledger_alone_reproduces_the_same_state_elsewhere() {
             .map(|l| serde_json::from_str::<Value>(l).expect("账本行必须是 JSON"))
             .collect()
     };
-    let state_a = world_core::readmodel::State::fold(&read_lines(&lp_a))
+    let state_a = world_core::ontology_instance::readmodel::State::fold(&read_lines(&lp_a))
         .expect("甲地复算")
         .to_json()
         .to_string();
-    let state_b = world_core::readmodel::State::fold(&read_lines(&lp_b))
+    let state_b = world_core::ontology_instance::readmodel::State::fold(&read_lines(&lp_b))
         .expect("乙地复算（只带账本）")
         .to_json()
         .to_string();
@@ -2232,7 +2239,7 @@ fn c35_the_ledger_alone_reproduces_the_same_state_elsewhere() {
     // （★ 第一次我改的是 `at`，而状态 JSON 里根本没有 `at` ⇒ 反假当场红，是**我自己选的字段选错了**；
     //  教训：反假要动"被追踪的量"，不是随便动一个字节。）
     tampered[0]["body"]["after"] = json!(false);
-    let state_t = world_core::readmodel::State::fold(&tampered)
+    let state_t = world_core::ontology_instance::readmodel::State::fold(&tampered)
         .expect("改一个字段后仍应能折叠")
         .to_json()
         .to_string();
@@ -2249,7 +2256,7 @@ fn c35_the_ledger_alone_reproduces_the_same_state_elsewhere() {
 // **每一格都有一份读法读得到**（书那句「每个已声明的字段至少有一份读法可读」）。
 //
 // 逐格的**可读面**（现取事实，不是推测）：
-// · `world` ⇒ **投影头部**（`project language` 的首行含 `world=`；见 `src/project/mod.rs::header_line`）；
+// · `world` ⇒ **投影头部**（`project language` 的首行含 `world=`；见 `src/gui_projection/mod.rs::header_line`）；
 // · `id`／`at`／`actor`／`flags` ⇒ **逐条读事件**（CLI `read` 把账本行原样打印成 JSON Lines）。
 //
 // **同时钉住"取舍"那一面**：这几格**不进** `state --json`（读模型是**折叠产物**，
@@ -2295,7 +2302,7 @@ fn c36_every_declared_envelope_cell_is_readable_from_some_read_view() {
     //    判据是**值**不是字样：把 `read` 的每一行**解析成 JSON**，与**账本那一行**逐键比。
     //    （评审席的对抗探针正是这一条的证据：让 `read` 打印 `"actor":null`（键在、值毁）时，
     //      "找字样"的写法仍然全绿——那是 skill §五「搜字样 ≠ 认结构」。）
-    let ont_obj = world_core::ontology::Ontology::load(&on).expect("加载本体");
+    let ont_obj = world_core::ontology_definition::Ontology::load(&on).expect("加载本体");
     let mut declared = ont_obj.envelope_required();
     for f in ont_obj.envelope_optional() {
         if !declared.contains(&f) {

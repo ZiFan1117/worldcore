@@ -227,8 +227,10 @@ echo "  ✅ 构建通过"
 # ── ② 骨架冒烟（一次性沙箱）─────────────────────────────────────────
 SB="$(mktemp -d)"
 trap 'rm -rf "$SB"' EXIT
-cp ontology.json policy.json "$SB"/
-chmod 755 "$SB"; chmod 644 "$SB/ontology.json" "$SB/policy.json"
+mkdir -p "$SB/src/ontology_definition" "$SB/src/gate"
+cp src/ontology_definition/ontology.json "$SB/src/ontology_definition/ontology.json"
+cp src/gate/policy.json "$SB/src/gate/policy.json"
+chmod 755 "$SB"; chmod 644 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 
 echo
 echo
@@ -245,7 +247,7 @@ step "①c 静态检查（clippy，警告即失败，与 CI 同一条命令）"
 #     命令逐字 `cargo clippy --all-targets -- -D warnings`；
 #   · 本地预演 `tools/ci_rehearsal.sh:87`：逐字同一条命令；
 #   · 而出厂门禁 `check.sh` 此前**从不跑** ⇒ 本地全绿、**CI 每次 push 都红**
-#     （本步落地前的真实读数：唯一 error `src/channel.rs:653:21 unused_mut`，rc=101）。
+#     （本步落地前的真实读数：唯一 error `src/bus/mod.rs:653:21 unused_mut`，rc=101）。
 #   ⇒ 本步存在的唯一理由是"**本地能提前撞到 CI 撞到的那面墙**"，故命令**逐字对齐 CI 那一行**
 #     （上引 `world-core-gate.yml:100`）：`cargo clippy --all-targets -- -D warnings`。
 #   ★ 本步**不加** `--locked`：CI 那一行没有它（`ci_rehearsal.sh:87` 也没有）——
@@ -256,17 +258,17 @@ step "①c 静态检查（clippy，警告即失败，与 CI 同一条命令）"
 run_tail 6 "静态检查（clippy，警告即失败，与 CI 同一条命令）" cargo clippy --all-targets -- -D warnings
 
 step "② 骨架冒烟（沙箱账本：$SB）"
-OUT="$("$BIN" --ontology "$SB/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/policy.json" check)"
+OUT="$("$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/src/gate/policy.json" check)"
 echo "$OUT" | sed 's/^/  /'
 echo "$OUT" | grep -q READY || { echo "  ❌ 未打印 READY"; exit 1; }
 echo "  ✅ READY（本体/门禁/账本三项都开得起来）"
 # 新账本必须带摘要链（WC-SCMP-001《软件配置管理计划》变更请求台账 · 记录 WC-CR-003）：
 #   写一条再断言"有链"且 --require-chain 通过。
 # 若写入侧哪天不再产链，这一步会当场红——把"默认受保护"变成入口断言。
-W0() { "$BIN" --ontology "$SB/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/policy.json" "$@"; }
+W0() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/src/gate/policy.json" "$@"; }
 # 为什么写 `world://notice/probe` ＋ `muted`：这一步要的只是"写一条，再断言账本带链"，
 # 而**写进世界的东西必须在出厂本体里声明过**（书 §5.3「声明以外的东西不许落账」；
-# 执行者 `src/ontology.rs::check_concepts`）。原先写 `world://check/probe#p`——`check` 与 `p`
+# 执行者 `src/ontology_definition/mod.rs::check_concepts`）。原先写 `world://check/probe#p`——`check` 与 `p`
 # 都没声明过 ⇒ 这一行把第②步打成 rc=2。改的只是落笔的**格子**（换成 `concepts` 里真有的
 # 那一格，值 true 是 `muted: bool` 该有的形状），判据强度不变：仍然"写一条 → 有链 → --require-chain 过"。
 W0 append change '{"subject":"world://notice/probe","path":"muted","before":null,"after":true}' >/dev/null
@@ -298,7 +300,7 @@ step "③c 其余测试二进制（**全量，不写死清单**——任何新�
 cargo test --locked 2>&1 | grep -E 'running [0-9]+ tests|test result:' | sed 's/^/  /'   # 与 ③／③b 同形：每个 target 的结果都进日志
 
 step "④ 投影与同源核对（REQ-F-018/019/020）"
-W() { "$BIN" --ontology "$SB/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/policy.json" "$@"; }
+W() { "$BIN" --ontology "$SB/src/ontology_definition/ontology.json" --ledger "$SB/ledger.jsonl" --policy "$SB/src/gate/policy.json" "$@"; }
 W append change '{"subject":"world://notice/n-1","path":"muted","before":null,"after":true}' >/dev/null
 W append act '{"capability":"notice.mute","verb":"do","request_id":"r-check","params":{}}' >/dev/null
 # ⚠️ 这两行**不是展示行**：其退出码已参与判定——`set -euo pipefail` 下，赋值语句里的管道失败
@@ -313,7 +315,7 @@ W project check | sed 's/^/  /'
 echo
 echo
 step "⑤ 纯文本审计（REQ-N-001 / AC-07）"
-run_tail 2 "纯文本审计" python3 tools/plain_text_audit.py ontology.json policy.json "$SB/ledger.jsonl"
+run_tail 2 "纯文本审计" python3 tools/plain_text_audit.py src/ontology_definition/ontology.json src/gate/policy.json "$SB/ledger.jsonl"
 echo "  ✅ 账本/词表/策略均为纯文本（UTF-8、无 NUL、无可疑控制字符、逐行可解析）"
 
 echo
@@ -465,7 +467,7 @@ step "⑦f 值形状判据（落进账本的每一个值，必须有【已声明
 # 为什么放在这里：与 ⑦c／⑦d／⑦e 同族——都判"**纸上写的与程序里做的**一不一致"；
 #   ⑦f 判的是"**值**落在哪儿"：它必须落在 `_objects.<类型>.fields` 声明过的那一格上。
 # 它盯的那件事（逐字）：`ontology.json` 的 `_objects.notice` 只说「`payload` 的形状**本体今天不声明它**」；
-#   而 `src/readmodel.rs` 对通告是 `"notice" => self.notices += 1,` ⇒ **只计数、不折叠**；
+#   而 `src/ontology_instance/readmodel.rs` 对通告是 `"notice" => self.notices += 1,` ⇒ **只计数、不折叠**；
 #   同件文档另写「**可选格**（`to`/`trace`/`params`/`payload`）**不进** `DeclaredCells`」⇒ **借它连"格"都不算**。
 #   ⇒ **谁都能塞、没人判形状** ⇒ 那是"**套壳最容易回来的地方**"。
 # 判据（`tools/value_shape_guard.py`，四条，可自证）：J1-01 类型已声明／J1-02 字段已声明／
@@ -476,7 +478,7 @@ step "⑦f 值形状判据（落进账本的每一个值，必须有【已声明
 # ★ 退出码约定（工具自述）：`0` 绿／SKIP（**SKIP 会显式打印 `STATUS=SKIP`，不算绿**）；`1` 有红；`2` **输入缺失＝不是通过**
 #   ⇒ ★ `run_registered` 只对 **rc=1** 折算为登记；**rc=2 仍然阻断**。
 run_tail 1 "值形状判据自证（五个反例必红、两个正控必绿、不适用必 SKIP）" python3 tools/value_shape_guard.py --self-test
-run_registered 20 "值形状判据（值必须有已声明的形状载体；通告不许当口袋）" python3 tools/value_shape_guard.py --ontology ontology.json --ledger "$SB/ledger.jsonl"
+run_registered 20 "值形状判据（值必须有已声明的形状载体；通告不许当口袋）" python3 tools/value_shape_guard.py --ontology src/ontology_definition/ontology.json --ledger "$SB/ledger.jsonl"
 
 echo
 step "⑦g 口属主判据（盘上那个口的属主 ↔ 法律里那条的 uid）"

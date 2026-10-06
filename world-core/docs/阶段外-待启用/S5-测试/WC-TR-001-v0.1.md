@@ -248,7 +248,7 @@ cargo test --release --test perf -- --ignored --nocapture qg02
 
 ### 2.9 L3-⑤ 故障注入（`append` 的三条加固分支，提交 `483889b`）
 
-L1 单元用例 `U20`–`U22`（`src/ledger.rs`，`Sink` 缝 + `FlakySink` 替身）：
+L1 单元用例 `U20`–`U22`（`src/ledger/mod.rs`，`Sink` 缝 + `FlakySink` 替身）：
 
 | 用例 | 注入的故障形状 | 期望（已实测通过） |
 |---|---|---|

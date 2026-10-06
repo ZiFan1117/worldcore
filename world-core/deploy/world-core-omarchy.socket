@@ -24,7 +24,7 @@ Service=world-core.service
 
 # 谁能连：**本口归它自己的系统身份**。0600 ＝ 只有属主连得上——
 # 内核在 `connect()` 时就挡住别人，比"连上来再问你是谁"更早、更硬。
-# ★ 三处口径**同批统一为 0600**：本单元 ＋ `src/channel.rs::bind()` 的 `set_permissions(0o600)`
+# ★ 三处口径**同批统一为 0600**：本单元 ＋ `src/bus/mod.rs::bind()` 的 `set_permissions(0o600)`
 #   ＋ 盘上那个套接字。此前 `world-core.socket` 写 0660（属组表达"谁能连"），
 #   而代码文档写 0600 ⇒ 同一个事实两个取值、都不红。
 SocketMode=0600

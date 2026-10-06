@@ -85,7 +85,7 @@ use std::time::{Duration, Instant};
 ///
 /// 为什么要有这一层（而不是直接 `use crate::World`）：`M09`（通道）与 `M04`（运行时）
 /// 若互相 `use`，模块号图上就是一条**双向边**，而 `WC-ATOM-001` §二 A-4 要求依赖**单向 DAG**。
-/// 事实本来也是单向的——**运行时驱动通道**（`src/main.rs:622 use world_core::channel::…`），
+/// 事实本来也是单向的——**运行时驱动通道**（`src/main.rs:622 use world_core::bus::…`），
 /// 通道只在"这条请求交给谁"上需要一个**受方**。用一个窄接口把这件事写进类型：
 /// 通道**不认识 `World`**，只认识"能收下这条请求的东西"。
 ///
@@ -304,7 +304,7 @@ pub struct Limits {
 }
 
 impl Limits {
-    /// 从**出厂策略**文件读四个数值（本仓的落点是 `world-core/policy.json` 的
+    /// 从**出厂策略**文件读四个数值（本仓的落点是 `world-core/src/gate/policy.json` 的
     /// `channel_limits` 块）。
     ///
     /// 为什么落在这里而不是新立一份出厂 `channel.json`：该文件本仓不存在，
@@ -498,7 +498,7 @@ pub fn bind(expect: &Listener) -> Result<std::os::unix::net::UnixListener, Strin
     use std::os::unix::fs::PermissionsExt;
 
     if let Some(dir) = expect.socket.parent() {
-        crate::guard::assert_not_other_writable(dir, "通道目录")?;
+        crate::gate::guard::assert_not_other_writable(dir, "通道目录")?;
     }
     let _ = std::fs::remove_file(&expect.socket);
     let listener = std::os::unix::net::UnixListener::bind(&expect.socket).map_err(|e| {

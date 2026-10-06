@@ -165,11 +165,11 @@
 ### 3.1 排版契约：`layout01`–`layout03`（**独立于同模块 `parse()`**，建议放 L3）
 
 **为什么需要它**：`t15`（`TC-017`）用 `visual::parse()` 把视觉投影解析回来再比对——
-**解析器与被验对象同属 `src/project/visual.rs`**。若 `render` 与 `parse` 一起改错（例如缩进从 6 空格改成
+**解析器与被验对象同属 `src/gui_projection/visual.rs`**。若 `render` 与 `parse` 一起改错（例如缩进从 6 空格改成
 4 空格、分隔线从 44 个 `─` 改成 40 个），`t15` 仍然全绿。**对"排版契约"而言，那是自证。**
 本组用例改用一个**与被测模块零共享代码**的判定器：只按字节读，按 `vt100` 之外的纯文本规则判。
 
-**被验契约**（出处：`src/project/visual.rs` 头部文档注释，**逐字**）：
+**被验契约**（出处：`src/gui_projection/visual.rs` 头部文档注释，**逐字**）：
 
 | 序 | 行 | 字节级要求 |
 |---|---|---|
@@ -248,7 +248,7 @@
 **实测命令（三条向量都是这么取的）**：
 ```bash
 cd /tmp && D=$(mktemp -d) && chmod 700 "$D"
-cp /root/world/world-core/ontology.json /root/world/world-core/policy.json "$D"/
+cp /root/world/world-core/src/ontology_definition/ontology.json /root/world/world-core/src/gate/policy.json "$D"/
 cd "$D"
 B=/root/world/world-core/target/debug/world-core
 $B --ledger "$D/l.jsonl" append change '{"subject":"world://notice/n-1","path":"muted","before":false,"after":true}'
@@ -258,7 +258,7 @@ $B --ledger "$D/l.jsonl" project visual > g2.txt && sha256sum g2.txt
 ```
 
 > **用例编号（2026-09-26 更新）**：`WC-SRS-001` §五 本轮已登记 **`TC-051`**：
-> 「排版**字节级期望样本**（**独立于** `src/project/visual.rs::parse()` 的审计脚本；样本含：普通值 / **含换行或控制字符的值** / **空状态**）」
+> 「排版**字节级期望样本**（**独立于** `src/gui_projection/visual.rs::parse()` 的审计脚本；样本含：普通值 / **含换行或控制字符的值** / **空状态**）」
 > ——**与本节 G1/G2/G3 三个 golden 向量逐项对应**，故 `layout01`–`layout03` **即 `TC-051` 的实例化**。
 > `layout01`–`layout03` 保留为**本文件的用例级编号**（一个 TC 拆三条可执行用例）；**两套编号尚未合并**，
 > 且 `trace_matrix.py` 会校验"用例必须在 SRS §五 登记覆盖哪条需求" ⇒ **合并前 `TC-051` 不得写入 `WC-RTM-001`**（现也未写入）。
@@ -267,7 +267,7 @@ $B --ledger "$D/l.jsonl" project visual > g2.txt && sha256sum g2.txt
 ### 3.2 跨进程/跨时刻同源比对规程（`IF-003a`）
 
 **为什么需要它**：`project check`（`cli05`）在原子里比对两份字符串——
-`render` 读的是**同一个** `State`、**同一份** `vocab`（`src/project/mod.rs::assert_same_source`）。
+`render` 读的是**同一个** `State`、**同一份** `vocab`（`src/gui_projection/mod.rs::assert_same_source`）。
 也就是说，**在单进程路径下这个判定不可能失败**——它证明的是"函数接线正确"，不是"两个进程看到的世界一致"。
 `WC-R4-DISP-001` §二 G 组第 5 行（M06-D05/D06）指出的正是这个缺口。
 
@@ -315,7 +315,7 @@ $B --ledger "$D/l.jsonl" project visual > g2.txt && sha256sum g2.txt
 | 3 | ~~**性能**~~ **部分闭合（2026-09-27）** | 已建 §二 L3 的三条度量用例并取得实测值（`WC-TR-001` §二 2.6–2.8）。**残余**：`QG-02` 未做 `kill -9` 与 100 次样本；`QG-06`（部署）无度量；**目标值仍【候选】⇒ 不得声称达标** |
 | 4 | **跨 uid 通道** | `c14` 只覆盖"同 uid 可连、冒充被拒"；"别的 uid 连不上"由 `bind()` 权限与 `WC-CON01-001` 同类实验**间接**支撑 |
 | 5 | 并发 | 单写者锁只覆盖"第二个写者被拒"；多进程竞争未压测 |
-| 6 | **排版契约无验证面**（处置表 G 组第 6 行） | 现有 `t15`（`TC-017`）用 `visual::parse()` **自证**——`render` 与 `parse` 同属 `src/project/visual.rs`，**两者一起改错则用例仍绿**。**处置**：已把 `layout01`–`layout03` 的字节级期望样本写进 **§三 3.1**（含三个 golden 向量与独立判定器）；**用例本身尚未实现**（无对应代码） ⇒ **该缺口现在有了明确验证面，但仍未闭合** |
+| 6 | **排版契约无验证面**（处置表 G 组第 6 行） | 现有 `t15`（`TC-017`）用 `visual::parse()` **自证**——`render` 与 `parse` 同属 `src/gui_projection/visual.rs`，**两者一起改错则用例仍绿**。**处置**：已把 `layout01`–`layout03` 的字节级期望样本写进 **§三 3.1**（含三个 golden 向量与独立判定器）；**用例本身尚未实现**（无对应代码） ⇒ **该缺口现在有了明确验证面，但仍未闭合** |
 | 7 | **跨进程同源无验证面**（G 组第 5 行） | `cli05` 只覆盖同进程一次的 `project check`；单进程路径下该判定**不可能失败**。**处置**：已把 `IF-003a` 规程与 `cli07`/`cli08`/`crossproc01`/`crossproc02` 写进 **§三 3.2**；**用例未实现**，且 `IF-003a` 的编号载体（`WC-IC-001`）**不属本次执行员所有** ⇒ ⚠ **待人工裁定** |
 | 8 | **`M-03` 判定② 单向** | "只查只在 R1 中出现的键" ⇒ **增量漏算不被判失败**。**处置**：改法与 golden 向量已写进 **§三 3.3** 与 `WC-RTM-001` 的 `REQ-F-011` 备注；`M-03` 正文的改写落在 `WC-SQAP-001` §2.1.2（**不属本次执行员所有**）⇒ ⚠ **待人工裁定**（G 组第 4 行 ②、H 组） |
 | 9 | **`REQ-F-006`「无第二种写入路径」无逐路径反例** | 现只有**编译期**反例（`TC-041`，已变异实测会红）与 `TC-037` 的"`state`/`project` 后账本字节不变"。**处置**：已把**可判定三件套**（封闭面清单／逐候选路径反例／否证条件）写进 `WC-RTM-001` 的 `REQ-F-006` 备注；**逐候选路径反例尚未成文** ⇒ ⚠ **待人工裁定**承担者（G 组第 4 行 ③） |

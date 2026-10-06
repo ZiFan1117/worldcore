@@ -161,7 +161,7 @@
 
       **★ 备料（2026-09-28，执行者量；**只备料、不代选**）**
       **一、暴露面比字面窄（实测）**
-      · `Limits::none()` 是**哨兵**（`src/channel.rs:282`），只被**库内裸原语**用它：`serve_n`（`:450`）、`serve_once`（`:499`）；
+      · `Limits::none()` 是**哨兵**（`src/bus/mod.rs:282`），只被**库内裸原语**用它：`serve_n`（`:450`）、`serve_once`（`:499`）；
       · **CLI 不走裸原语**：`src/main.rs` 用的是 `channel::serve_once_with`（`:803`）／`serve_n_with`（`:814`）——**自带 `Session`**，
         而 `Session` 一律由 `Limits::from_policy` 造（`channel.rs` 逐字「读不到即拒启」）⇒ **生产入口是有界的** ✓；
       · ⇒ 本条的暴露面＝**库调用者直接调 `serve_once`／`serve_n`**（仓内用它的是测试：`channel_bounds.rs` 6 处／`contract.rs` 7 处／`write_side.rs` 1 处）。
@@ -198,14 +198,14 @@
   - **处置**：请人确认或改数（改数只改 `policy.json`）
 
       **★ 备料（2026-09-28，执行者量；**只备料、不代选**——`proposal.md` 逐字「属"谁让"的裁定，**agent 不代选**」）**
-      **一、四个现值（现取，逐字来自 `world-core/policy.json` 的 `channel_limits`）**
+      **一、四个现值（现取，逐字来自 `world-core/src/gate/policy.json` 的 `channel_limits`）**
       | # | 键 | 现值 | 防什么 | 越界错误码 |
       |---|---|---|---|---|
       | 1 | `max_connections` | **1** | 与服务重叠期间的第二条连接 | `Channel.TooManyConnections` |
       | 2 | `max_line_bytes` | **4096**（4 KiB） | 单条消息无限长 ⇒ 读到超限**当即停**、不无限缓冲 | `Channel.LineTooLong` |
       | 3 | `max_msgs_per_sec` | **8**（**每身份**、跨连接累计） | 同一身份刷消息 | `Channel.RateLimited` |
       | 4 | `idle_timeout_ms` | **5000**（5 s；读一行／写一行共用） | 连上不发请求占着 | `Channel.IdleTimeout` |
-      **配置件自己写明**（逐字）：「通道（M09 / IF-006）四个资源边界的**出厂初值**（`REQ-F-026`）…四个数**只**长在这里：代码里没有它们的任何缺省值（缺块或缺一项即拒启，见 `src/channel.rs::Limits::from_policy`）」。
+      **配置件自己写明**（逐字）：「通道（M09 / IF-006）四个资源边界的**出厂初值**（`REQ-F-026`）…四个数**只**长在这里：代码里没有它们的任何缺省值（缺块或缺一项即拒启，见 `src/bus/mod.rs::Limits::from_policy`）」。
       **二、改数的代价（现取核过，这是本条最要紧的一格）**
       · **只在 `policy.json` 里改** ⇒ 四个数**没有第二处**（代码无缺省；`_comment` 逐字如此）；
       · **测试不会因此变红**：`tests/channel_bounds.rs` 是**自造数值测机制**（例如逐字 `limits(4096, 100, 5_000)`、`limits(4096, 100, 300)`、`max_line_bytes=256`），**测的是"越界会不会被拒"，不是"出厂值等于几"**；
@@ -496,11 +496,11 @@
   | # | 坐标 | 该行自述的实现侧 |
   |---|---|---|
   | 1 | `openspec/specs/read-model/spec.md:105` | `world-core/src/main.rs`:28-30 与 `:153` |
-  | 2 | `openspec/specs/ledger-integrity/spec.md:181` | `world-core/src/ledger.rs`:506（**K-3 的修复判据**） |
+  | 2 | `openspec/specs/ledger-integrity/spec.md:181` | `world-core/src/ledger/mod.rs`:506（**K-3 的修复判据**） |
   | 3 | `openspec/specs/ledger-integrity/spec.md:191` | 缺陷出处 `WC-SCMP-001`:2537／:2541（K-3） |
   | 4 | `openspec/specs/gate-enforcement/spec.md:89` | `refused` 指纹的落点 |
   | 5 | `openspec/specs/gate-enforcement/spec.md:238` | （该行自述"这两句今天尚无断言"） |
-  | 6 | `openspec/specs/projections/spec.md:95` | `world-core/src/project/mod.rs`:124-145 |
+  | 6 | `openspec/specs/projections/spec.md:95` | `world-core/src/gui_projection/mod.rs`:124-145 |
   | 7 | `openspec/specs/projections/spec.md:103` | `world-core/src/main.rs`:408-410 |
   | 8 | `openspec/specs/envelope-validation/spec.md:121` 与 `:129` | `guard.rs::assert_not_other_writable`（:43）／`gate.rs`:113-117 |
   （另有 `channel-identity/spec.md:53` 一处同形态 ⇒ **一并核**，共 9 处。）

@@ -18,7 +18,7 @@
 1. **目的**：把 `world-core` 的模块划分、模块号及其与源码的对应关系**登记为可核对的事实**，使「某模块号是否真实存在」「某模块的职责与源码是否一致」两件事都有唯一判定面。
 2. **范围（在）**：`world-core/src/` 的模块边界、模块号分配、每个模块的职责/源码路径/提供接口/依赖模块。
 3. **范围（不在）**：接口的字段级契约（见 `WC-IC-001`）、需求条目（见 `WC-IRS-001`）、接口需求编号的同源核对（见 `WC-IRS-001` §3.1）、层（L1–L4）与实现顺序的完整论证（见附录 A §二）。
-4. **登记粒度**：**一个源码模块文件 ↔ 一个模块号**，例外只有两处共同模块（`src/event.rs`、`src/project/mod.rs`），在 §2.1 逐条声明其不占号的理由。**`src/error.rs` 不属于任何模块号**，其归属缺口见 §2.1。
+4. **登记粒度**：**一个源码模块文件 ↔ 一个模块号**，例外只有两处共同模块（`src/common/event.rs`、`src/gui_projection/mod.rs`），在 §2.1 逐条声明其不占号的理由。**`src/common/error.rs` 不属于任何模块号**，其归属缺口见 §2.1。
 5. **编号口径**：接口一律三位 `IF-001`–`IF-010`（来源：`WC-IC-001` §一 接口清单，10 行）。**两位短号（`IF-1`/`IF-01`）视为无效引用**（来源：`WC-IC-001` §一末「接口编号规则」）。
 
 ---
@@ -27,16 +27,16 @@
 
 | 模块号 | 模块名 | 职责（一句话） | 源码路径 | 提供接口 | 依赖模块 | intent（一句话） | deps 机核 | 契约锚点（WC-IC-001） | 四件同夹证据 | side_effects | 机核读数 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| **M01** | 本体（Ontology） | 世界的**法律**：事件形状、合法变更的判据。 | `src/ontology.rs`（`ontology.json` 为其入参） | **IF-005** 词表身份 | `M05`（静态墙，仅校验不写） |世界的**法律**：事件形状、合法变更的判据。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.1（`M01` 节）＋ §3.5 的 `IF-005`|实现 `src/ontology.rs`；用例 `tests/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`、`tests/acceptance.rs::t6_bad_ontology_refuses_to_start`|只读入参与只读校验，不写盘；不改世界的状态|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M02** | 账本（Ledger） | 世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。 | `src/ledger.rs` | **IF-001** 账本读写 | `M05`（静态墙） |世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.2（`M02` 节）＋ §3.1 的 `IF-001`|实现 `src/ledger.rs`；用例 `tests/contract.rs::c22_file_always_ends_on_a_line_boundary`、`tests/acceptance.rs::t2_events_survive_restart`|追加写账本文件（唯一非追加动作是启动期截掉末尾半行）；建/删单写者锁文件|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M03** | 读模型（Read Model） | **状态 = fold(账本)**：纯派生物，可随时删掉重算。 | `src/readmodel.rs` | **IF-009** 状态折叠与重建 | **无**（生产代码零出边） |**状态 = fold(账本)**：纯派生物，可随时删掉重算。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.3（`M03` 节）＋ §3.9 的 `IF-009`|实现 `src/readmodel.rs`；用例 `tests/contract.rs::c06_incremental_apply_equals_full_fold`、`tests/acceptance.rs::t8_read_model_refuses_broken_ledger`|生产代码零写盘、零出边；状态只活在内存里|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M04** | 运行时（Runtime） | 装配启动，持有**唯一写入口** `World::commit`。 | `src/lib.rs`、`src/main.rs`（CLI 入口见 `src/main.rs:7-9`） | **IF-008** 运行时入口（CLI） | `M01`、`M02`、`M03`、`M05`、`M06`、`M07`、**`M08`**（`src/main.rs:1332 use world_core::checkpoint::{read_model_with_checkpoint, Checkpoint};`）、**`M09`**（`:394` 与 `:1453 use world_core::channel::{self, ChannelConfig};`）、**`M10`**（`:1623-1625 use world_core::carrier::{…}`）、**`M12`**（`project surface` 那一臂：`use world_core::project::{…, surface, …}`） |装配启动，持有**唯一写入口** `World::commit`。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.4（`M04` 节）＋ §3.8 的 `IF-008`|实现 `src/lib.rs`、`src/main.rs`；用例 `tests/contract.rs::c15_errors_carry_machine_readable_codes`、`tests/atom_declared_only.rs::b05_cli_append_of_an_undeclared_entity_is_refused`|经唯一写入口往账本落笔；CLI 往 stdout/stderr 分流打印|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M05** | 门禁（Gate） | 一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。 | `src/gate.rs`、`src/guard.rs`（`policy.json` 为能力表数据） | **IF-002** 门禁裁决 | **`M10`**（`src/gate.rs:32 use crate::carrier::capd::{Manifest as CarrierManifest, Risk as CarrierRisk};`） |一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.5（`M05` 节）＋ §3.2 的 `IF-002`|实现 `src/gate.rs`、`src/guard.rs`；用例 `tests/contract.rs::c11_irreversible_is_owner_only_and_the_refusal_does_not_lie`、`tests/atom_reversibility.rs::a06_risk_sets_friction_weight_but_not_the_verdict`|自身不写盘；**拒绝必留痕**——留痕是经 `M04` 落的 `notice` 事件，不是它自己写账本|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M06** | 语言投影（Language Projection） | 结构化出口：逐行 JSON，给程序读。 | `src/project/language.rs` | **IF-003** 语言投影出口 | `M03` |结构化出口：逐行 JSON，给程序读。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.6（`M06` 节）＋ §3.3 的 `IF-003`|实现 `src/project/language.rs`；用例 `tests/acceptance.rs::t14_language_projection_matches_read_model`、`tests/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs`|往 stdout 输出逐行 JSON；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M07** | 视觉投影（Visual Projection） | 渲染出口：终端可读，**排版仍可被审计**。 | `src/project/visual.rs` | **IF-004** 视觉投影出口 | `M03` |渲染出口：终端可读，**排版仍可被审计**。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.7（`M07` 节）＋ §3.4 的 `IF-004`|实现 `src/project/visual.rs`；用例 `tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`、`tests/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs`|往 stdout 输出可审计排版；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M08** | 检查点（Checkpoint） | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。 | `src/checkpoint.rs` | **IF-010** 检查点读写与核验 | `M03`、`M05` |**带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.8（`M08` 节）＋ §3.10 的 `IF-010`|实现 `src/checkpoint.rs`；用例 `tests/cli.rs::cli15_usage_lists_three_checkpoint_subcommands`、`tests/cli.rs::cli17_checkpoint_resume_falls_back_to_post_hoc_comparison`|写/读检查点快照文件——**纯缓存**，删掉无后果；不写账本|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M12** | 屏面投影（Surface Projection） | **机器可读的现在的页面状态：只给屏幕那一面。** | `src/project/surface.rs` | **IF-012** 屏面投影出口 | `M03`、`M06`、`M07` |机器可读的现在的页面状态：只给屏幕那一面。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.12（`M12` 节）＋ `IF-012`（§2 接口总账）|实现 `src/project/surface.rs`；用例 `tests/projection_surface.rs::s01_only_screen_facing_types_come_out`、`tests/projection_surface.rs::s03_the_three_readings_are_same_source`|往 stdout 输出同源头 ＋ 一段 JSON；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
-| **M09** | 通道（Channel） | 跨进程入口：**一个套接字一个身份**，权限即身份。 | `src/channel.rs`（`channel.json` 为其入参；**本仓 `world-core/` 根目录无此文件**，实测仅有 `ontology.json`、`policy.json`） | **IF-006** 跨进程通道 | `M05` |跨进程入口：**一个套接字一个身份**，权限即身份。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.9（`M09` 节）＋ §3.6 的 `IF-006`|实现 `src/channel.rs`；用例 `tests/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`、`tests/channel_bounds.rs::l02_the_second_simultaneous_connection_is_refused`|建套接字文件并 `chmod 0600` ＋ `chown` 到目标 uid；自己不写账本（经 `M04` 请求）|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M01** | 本体（Ontology） | 世界的**法律**：事件形状、合法变更的判据。 | `src/ontology_definition/mod.rs`（`ontology.json` 为其入参） | **IF-005** 词表身份 | `M05`（静态墙，仅校验不写） |世界的**法律**：事件形状、合法变更的判据。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.1（`M01` 节）＋ §3.5 的 `IF-005`|实现 `src/ontology_definition/mod.rs`；用例 `tests/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`、`tests/acceptance.rs::t6_bad_ontology_refuses_to_start`|只读入参与只读校验，不写盘；不改世界的状态|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M02** | 账本（Ledger） | 世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。 | `src/ledger/mod.rs` | **IF-001** 账本读写 | `M05`（静态墙） |世界的**事实**：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.2（`M02` 节）＋ §3.1 的 `IF-001`|实现 `src/ledger/mod.rs`；用例 `tests/contract.rs::c22_file_always_ends_on_a_line_boundary`、`tests/acceptance.rs::t2_events_survive_restart`|追加写账本文件（唯一非追加动作是启动期截掉末尾半行）；建/删单写者锁文件|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M03** | 读模型（Read Model） | **状态 = fold(账本)**：纯派生物，可随时删掉重算。 | `src/ontology_instance/readmodel.rs` | **IF-009** 状态折叠与重建 | **无**（生产代码零出边） |**状态 = fold(账本)**：纯派生物，可随时删掉重算。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.3（`M03` 节）＋ §3.9 的 `IF-009`|实现 `src/ontology_instance/readmodel.rs`；用例 `tests/contract.rs::c06_incremental_apply_equals_full_fold`、`tests/acceptance.rs::t8_read_model_refuses_broken_ledger`|生产代码零写盘、零出边；状态只活在内存里|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M04** | 运行时（Runtime） | 装配启动，持有**唯一写入口** `World::commit`。 | `src/lib.rs`、`src/main.rs`（CLI 入口见 `src/main.rs:7-9`） | **IF-008** 运行时入口（CLI） | `M01`、`M02`、`M03`、`M05`、`M06`、`M07`、**`M08`**（`src/main.rs:1332 use world_core::ontology_instance::checkpoint::{read_model_with_checkpoint, Checkpoint};`）、**`M09`**（`:394` 与 `:1453 use world_core::bus::{self, ChannelConfig};`）、**`M10`**（`:1623-1625 use world_core::carrier::{…}`）、**`M12`**（`project surface` 那一臂：`use world_core::gui_projection::{…, surface, …}`） |装配启动，持有**唯一写入口** `World::commit`。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.4（`M04` 节）＋ §3.8 的 `IF-008`|实现 `src/lib.rs`、`src/main.rs`；用例 `tests/contract.rs::c15_errors_carry_machine_readable_codes`、`tests/atom_declared_only.rs::b05_cli_append_of_an_undeclared_entity_is_refused`|经唯一写入口往账本落笔；CLI 往 stdout/stderr 分流打印|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M05** | 门禁（Gate） | 一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。 | `src/gate/mod.rs`、`src/gate/guard.rs`（`policy.json` 为能力表数据） | **IF-002** 门禁裁决 | **`M10`**（`src/gate/mod.rs:32 use crate::carrier::capd::{Manifest as CarrierManifest, Risk as CarrierRisk};`） |一件事**现在能不能做**：默认拒绝，按不可逆性加摩擦。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.5（`M05` 节）＋ §3.2 的 `IF-002`|实现 `src/gate/mod.rs`、`src/gate/guard.rs`；用例 `tests/contract.rs::c11_irreversible_is_owner_only_and_the_refusal_does_not_lie`、`tests/atom_reversibility.rs::a06_risk_sets_friction_weight_but_not_the_verdict`|自身不写盘；**拒绝必留痕**——留痕是经 `M04` 落的 `notice` 事件，不是它自己写账本|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M06** | 语言投影（Language Projection） | 结构化出口：逐行 JSON，给程序读。 | `src/gui_projection/language.rs` | **IF-003** 语言投影出口 | `M03` |结构化出口：逐行 JSON，给程序读。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.6（`M06` 节）＋ §3.3 的 `IF-003`|实现 `src/gui_projection/language.rs`；用例 `tests/acceptance.rs::t14_language_projection_matches_read_model`、`tests/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs`|往 stdout 输出逐行 JSON；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M07** | 视觉投影（Visual Projection） | 渲染出口：终端可读，**排版仍可被审计**。 | `src/gui_projection/visual.rs` | **IF-004** 视觉投影出口 | `M03` |渲染出口：终端可读，**排版仍可被审计**。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.7（`M07` 节）＋ §3.4 的 `IF-004`|实现 `src/gui_projection/visual.rs`；用例 `tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`、`tests/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs`|往 stdout 输出可审计排版；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M08** | 检查点（Checkpoint） | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。 | `src/ontology_instance/checkpoint.rs` | **IF-010** 检查点读写与核验 | `M03`、`M05` |**带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.8（`M08` 节）＋ §3.10 的 `IF-010`|实现 `src/ontology_instance/checkpoint.rs`；用例 `tests/cli.rs::cli15_usage_lists_three_checkpoint_subcommands`、`tests/cli.rs::cli17_checkpoint_resume_falls_back_to_post_hoc_comparison`|写/读检查点快照文件——**纯缓存**，删掉无后果；不写账本|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M12** | 屏面投影（Surface Projection） | **机器可读的现在的页面状态：只给屏幕那一面。** | `src/gui_projection/surface.rs` | **IF-012** 屏面投影出口 | `M03`、`M06`、`M07` |机器可读的现在的页面状态：只给屏幕那一面。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.12（`M12` 节）＋ `IF-012`（§2 接口总账）|实现 `src/gui_projection/surface.rs`；用例 `tests/projection_surface.rs::s01_only_screen_facing_types_come_out`、`tests/projection_surface.rs::s03_the_three_readings_are_same_source`|往 stdout 输出同源头 ＋ 一段 JSON；不持状态、不写任何东西|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
+| **M09** | 通道（Channel） | 跨进程入口：**一个套接字一个身份**，权限即身份。 | `src/bus/mod.rs`（`channel.json` 为其入参；**本仓 `world-core/` 根目录无此文件**，实测仅有 `ontology.json`、`policy.json`） | **IF-006** 跨进程通道 | `M05` |跨进程入口：**一个套接字一个身份**，权限即身份。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.9（`M09` 节）＋ §3.6 的 `IF-006`|实现 `src/bus/mod.rs`；用例 `tests/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`、`tests/channel_bounds.rs::l02_the_second_simultaneous_connection_is_refused`|建套接字文件并 `chmod 0600` ＋ `chown` 到目标 uid；自己不写账本（经 `M04` 请求）|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
 | **M10** | 载体适配器（Carrier Adapter） | **载体侧的手**：按清单调载体，只执行不裁决。 | `src/carrier/`（计划：`mod.rs`、清单解析、`device.rs`、`package.rs`、`job.rs`、`undo.rs`、`confirm.rs`）；执行清单 `cap.d/*.yaml` 为其入参，**与门禁策略同名对齐** | **IF-011** 载体动作执行 | **无**（源码 import 面没有兄弟模块引用——三条"设计意图"见本表下的说明） |**载体侧的手**：按清单调载体，只执行不裁决。|本列由 `module_graph.py` 判 deps == import|`WC-IC-001` §5.10（`M10` 节）的 `IF-011`|实现 `src/carrier/`（10 个 `.rs`）；用例 `tests/atom_reversibility.rs::a07_carrier_undo_is_neither_cross_checked_nor_a_proof_of_world_reversibility`|动载体（设备/包管理/进程、载体级撤销）并写被管路径——**对账本零写权限**|`python world-core/tools/module_graph.py --json` ⇒ A-4 ok=True（判据② deps == import 逐模块逐边相等、真实图与声明∪真实图各自无环）|
 
 > **「职责」列就是 A-1 的 `intent`**（登记表没有单独的 `intent` 列）：**一句话、≤30 字、不许并列两事**
@@ -46,7 +46,7 @@
 
 > **M10 的三条"设计意图"为什么不在依赖列里**：A-4 的依赖列是**代码有印证**的边
 > （`WC-ATOM-001` §二逐字：`deps 必须等于真实 import`）。`src/carrier/**` 的 7 个实现文件里
-> **没有** `crate::gate`（M05）／`crate::channel`（M09）的引用；`src/pairing.rs` 是
+> **没有** `crate::gate`（M05）／`crate::bus`（M09）的引用；`src/common/pairing.rs` 是
 > §2.1 登记的**共同模块（不占号）**，按口径**不作边目标**。⇒ 那三条是**设计意图**：
 > 「只请求裁决、不得自行放行」与「经通道提交请求」是**协议面**的约束，不是 import 面的边。
 > **协议面另有真实依赖**：M10 经 `M09` 的线协议向 `M04` 提交请求（实现面为真：`src/carrier/kernel.rs` 的 `UnixStream::connect` 对面正是 `src/main.rs` 的 `channel::serve_once`）——它**不在 import 面**，故不进依赖列；两处记载见本件 §4 硬约束 5 与 `WC-IC-001` §5.10 不变量②。**它们不改行为就被取消**——它们改记在此说明里，依赖列只留可被机核的边。
@@ -54,7 +54,7 @@
 
 **依赖列的订正记录**（说明写在表下、**不写进依赖列**——依赖列必须机器可解析：门禁 `ic_books_check.py` 是**文本式**取边，列里出现 `Mxx` 字样就会被当成一条边）：
 
-- M01：**（2026-09-28 订正：删去原句「与源码面一致」——该概括句在 M04／M05 行上不成立；本行的声明与源码相符，但**工具抽取口径**不认行内全限定路径 `crate::…`（如 `src/ontology.rs:134`），故工具报「声明了但代码里没有」——那是工具缺口，见 `module_graph.py` 文件头自述与实现不符）**
+- M01：**（2026-09-28 订正：删去原句「与源码面一致」——该概括句在 M04／M05 行上不成立；本行的声明与源码相符，但**工具抽取口径**不认行内全限定路径 `crate::…`（如 `src/ontology_definition/mod.rs:134`），故工具报「声明了但代码里没有」——那是工具缺口，见 `module_graph.py` 文件头自述与实现不符）**
 - M02：**（2026-09-28 删去原句「订正：与源码面一致」——**「一致」不由人自证**：它由 `world-core/tools/module_graph.py` 机核，而该工具有已知抽取缺口（见 M01 行注））**
 - M03：**（2026-09-28 删去原句「订正：与源码面一致」——**「一致」不由人自证**：它由 `world-core/tools/module_graph.py` 机核，而该工具有已知抽取缺口（见 M01 行注））**
 - M04：**（2026-09-28 订正：原列漏了 M08/M09/M10 三项——评审席·乙 的 A-4 报的就是它）**
@@ -62,7 +62,7 @@
 - M06：**（2026-09-28 删去原句「订正：与源码面一致」——**「一致」不由人自证**：它由 `world-core/tools/module_graph.py` 机核，而该工具有已知抽取缺口（见 M01 行注））**
 - M07：**（2026-09-28 删去原句「订正：与源码面一致」——**「一致」不由人自证**：它由 `world-core/tools/module_graph.py` 机核，而该工具有已知抽取缺口（见 M01 行注））**
 - M08：**（2026-09-28 删去原句「订正：与源码面一致」——**「一致」不由人自证**：它由 `world-core/tools/module_graph.py` 机核，而该工具有已知抽取缺口（见 M01 行注））**
-- M09：**（2026-09-28 订正：删去原句「与源码面一致」——该概括句在 M04／M05 行上不成立；本行的声明与源码相符，但**工具抽取口径**不认行内全限定路径 `crate::…`（如 `src/ontology.rs:134`），故工具报「声明了但代码里没有」——那是工具缺口，见 `module_graph.py` 文件头自述与实现不符）**
+- M09：**（2026-09-28 订正：删去原句「与源码面一致」——该概括句在 M04／M05 行上不成立；本行的声明与源码相符，但**工具抽取口径**不认行内全限定路径 `crate::…`（如 `src/ontology_definition/mod.rs:134`），故工具报「声明了但代码里没有」——那是工具缺口，见 `module_graph.py` 文件头自述与实现不符）**
 - M10：**（2026-09-27 新增，见 §2.4）**
 
 > ⚠️ **`M10` 的源码路径状态（2026-09-27 复测后更正）**：**已落成**——`world-core/src/carrier/` 存在，`mod.rs`／`capd.rs`／`kernel.rs`／`provider.rs`／`providers.rs`／`recover.rs`／`run.rs` **7 个文件**、`git ls-files` 全部在册。（**本行原写「计划路径、源码尚未落成、`world-core/src/carrier/` 不存在」**——那句在写下时属实，今天已不成立。）新增模块号属配置项变更（§四），**须走变更控制并随框架基线追认**；在本行被追认之前，`M10` 只表**身份已分配**，不表"已实现"。
@@ -73,19 +73,21 @@
 
 | 源码文件 | 是否占模块号 | 处理 | 依据 |
 |---|---|---|---|
-| `src/event.rs` | **不占号** | 属 `M01` 的机制面（信封与信纸构造） | 附录 A §二「共同模块（不占模块号）」；文件内 `pub const WORLD_VERSION: u64 = 1;`（`src/event.rs:16`）、`pub fn new_event(...)`（`src/event.rs:26`） |
-| `src/project/mod.rs` | **不占号** | 横跨 `M06`/`M07`（同源判定：`header_line`、`parse_header`、`assert_same_source`，`src/project/mod.rs:77/86/124`） | 同上 |
-| `src/delivery.rs` | **不占号** | 横跨 `M04`（`World::commit_requested`：经它把 `to` 写进信封）与 `M06`/`M07`/`M09`（三个出口读同一个判据）：**一条记录给谁**——带 `to` 只送该收件人、无 `to`（或空）＝广播。**只读派生**，不给 `World` 加字段、不写盘 | 本体 `ontology.json:18`（`"to": "string  # 目的地；空 = 广播"`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
-| `src/pairing.rs` | **不占号** | 属 `M02` 的机制面（**账本里的事后核对**），并由 `M10` 复用其中"什么算一次 `act` 的结果"这一条判据：**请求与应答的配对**——配对键 `request_id` ＋因果 `trace`。`M10` 因此对 `M02` 有一条真实依赖边（登记见 §2 `M10` 行） | 本体 `ontology.json:33`（`act` 必填 `request_id`）、`:19`（`trace`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
-| `src/error.rs` | **不占号** | **横跨全部模块**：错误码契约（`pub const PREFIX`、`pub fn code_of`、`pub fn has_code`）。它不属任何单个模块——每个模块都`s use` 它，**它是共同模块，不是缺口** | 附录 A §二「共同模块（不占模块号）」；**2026-09-28 由"登记缺口"改判为共同模块**：判据③ 与依赖抽取告警都点过它，处置是**规范登记**而不是继续挂着 |
+| `src/common/event.rs` | **不占号** | 属 `M01` 的机制面（信封与信纸构造） | 附录 A §二「共同模块（不占模块号）」；文件内 `pub const WORLD_VERSION: u64 = 1;`（`src/common/event.rs:16`）、`pub fn new_event(...)`（`src/common/event.rs:26`） |
+| `src/common/mod.rs` | **不占号** | 公共模块的**面件**（协议与契约封装的入口：`delivery`／`error`／`event`／`pairing` 四个机制同住一夹，件件仍是**一件**） | 2026-10-07 随结构迁移新增（本件 §2.1 登记） |
+| `src/ontology_instance/mod.rs` | **不占号** | **实例面的面件**（内装 `readmodel`＝`M03`、`checkpoint`＝`M08`）；实例**不是另存的料**，是从账本算出来的 | 2026-10-07 随结构迁移新增（本件 §2.1 登记） |
+| `src/gui_projection/mod.rs` | **不占号** | 横跨 `M06`/`M07`（同源判定：`header_line`、`parse_header`、`assert_same_source`，`src/gui_projection/mod.rs:77/86/124`） | 同上 |
+| `src/common/delivery.rs` | **不占号** | 横跨 `M04`（`World::commit_requested`：经它把 `to` 写进信封）与 `M06`/`M07`/`M09`（三个出口读同一个判据）：**一条记录给谁**——带 `to` 只送该收件人、无 `to`（或空）＝广播。**只读派生**，不给 `World` 加字段、不写盘 | 本体 `ontology.json:18`（`"to": "string  # 目的地；空 = 广播"`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
+| `src/common/pairing.rs` | **不占号** | 属 `M02` 的机制面（**账本里的事后核对**），并由 `M10` 复用其中"什么算一次 `act` 的结果"这一条判据：**请求与应答的配对**——配对键 `request_id` ＋因果 `trace`。`M10` 因此对 `M02` 有一条真实依赖边（登记见 §2 `M10` 行） | 本体 `ontology.json:33`（`act` 必填 `request_id`）、`:19`（`trace`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
+| `src/common/error.rs` | **不占号** | **横跨全部模块**：错误码契约（`pub const PREFIX`、`pub fn code_of`、`pub fn has_code`）。它不属任何单个模块——每个模块都`s use` 它，**它是共同模块，不是缺口** | 附录 A §二「共同模块（不占模块号）」；**2026-09-28 由"登记缺口"改判为共同模块**：判据③ 与依赖抽取告警都点过它，处置是**规范登记**而不是继续挂着 |
 | `src/agent/` （`mod.rs`／`audit.rs`／`protocol.rs`／`completion.rs` **逐个占一行登记**，见下四行） | **不占号** | Agent 原动时（作者裁定三：Rust 实现＋属 world-core＋归入相应代码位置）。**无单一归属**：它今天**不是既有 M01–M10 任何模块的实现面**——是**新的一层**（执行侧的留痕与长活儿）；而 `M04` 的 CLI **尚未接它**（本件只落库，不接 CLI）⇒ 声明为**不占号的共同模块**，**不作任何模块的边目标** | 册 `openspec/BOOK/冲突总账.md` §7.15 的作者裁定（逐字三句）；`openspec/changes/agentd-in-rust-into-worldcore/specs/agent-runtime/spec.md` 的「与既有能力的边界」节；`WC-ATOM-001` §二 A-1 |
 | `src/agent/mod.rs` | **不占号** | 同上（Agent 原动时的模块面声明）；`pub mod audit/completion/protocol` 的出边是**模块内部**引用 | 同上 |
 | `src/agent/audit.rs` | **不占号** | 同上（结构化审计留痕） | 同上；会红断言 `tests/agent_audit.rs::g01`–`g04` |
 | `src/agent/protocol.rs` | **不占号** | 同上（行分隔结构化请求／应答） | 同上；会红断言 `tests/agent_protocol.rs::p01`–`p03` |
-| `src/agent/completion.rs` | **不占号** | 同上（完工通告、**不另立登记簿**）；它 `use crate::event`，而 `src/event.rs` 是不占号的共同模块 ⇒ **不产生模块号之间的边** | 同上；会红断言 `tests/agent_completion.rs::j01`–`j04` |
+| `src/agent/completion.rs` | **不占号** | 同上（完工通告、**不另立登记簿**）；它 `use crate::common::event`，而 `src/common/event.rs` 是不占号的共同模块 ⇒ **不产生模块号之间的边** | 同上；会红断言 `tests/agent_completion.rs::j01`–`j04` |
 | **`src/agent/` 不立新模块号（`M11`）——已裁定** | **不占号（维持）** | **已裁定：不立号**（作者 2026-09-28 授权执行者裁定）。**理由**：立号属**配置项变更**、会牵动 `WC-IC-001` 新增一节契约与 `WC-IRS-001` 的接口号 `IF-012`，**收益不足**。⇒ 上面五行（`src/agent/` 四件 ＋ 目录行）**继续有效**，`src/agent/**` 继续记为**不占号的共同模块**。**让路三要素**：**让的是哪一条**＝本表 §2 下 `M10` 行注逐字「新增模块号属配置项变更（§四），**须走变更控制并随框架基线追认**」；**为什么让**＝本次裁定（不立号 ⇒ 不触发该条）；**谁批的**＝**作者**（2026-09-28 授权执行者裁定） | `openspec/changes/agentd-in-rust-into-worldcore/review.md` §一之一（转录声明）；`WC-MODREG-001` §四 |
-| `src/project/language.rs`、`src/project/visual.rs`、`src/project/surface.rs` | 各占一（`M06`/`M07`/`M12`） | 各自契约在文件头 | 附录 A §一 决定理由第 1 条 |
-| 注册表列出的 `ontology.json` / `policy.json` | 数据文件，不占号 | 实存（`world-core/ontology.json` 1928 字节、`world-core/policy.json` 2385 字节） | `Get-ChildItem world-core -File` 实测 |
+| `src/gui_projection/language.rs`、`src/gui_projection/visual.rs`、`src/gui_projection/surface.rs` | 各占一（`M06`/`M07`/`M12`） | 各自契约在文件头 | 附录 A §一 决定理由第 1 条 |
+| 注册表列出的 `ontology.json` / `policy.json` | 数据文件，不占号 | 实存（`world-core/src/ontology_definition/ontology.json` 1928 字节、`world-core/src/gate/policy.json` 2385 字节） | `Get-ChildItem world-core -File` 实测 |
 | **九个模块之间无循环依赖** | — | 判定面与证据见 §4.2 | — |
 
 ### §2.2 层（L1–L4）与允许依赖
@@ -247,26 +249,26 @@ checkpoint.rs → guard, readmodel
 project/mod.rs        → readmodel
 project/language.rs   → project, readmodel
 project/visual.rs     → project, readmodel
-channel.rs    → lib(World) + guard 的限定路径调用（src/channel.rs:172）
+channel.rs    → lib(World) + guard 的限定路径调用（src/bus/mod.rs:172）
 main.rs       → world_core::World（外部使用方，非模块内边）
 ```
 
-两条**看似回边、实为测试内**的引用（`#[cfg(test)] mod unit` 起始行：`src/readmodel.rs:246`、`src/project/mod.rs:149`）：
+两条**看似回边、实为测试内**的引用（`#[cfg(test)] mod unit` 起始行：`src/ontology_instance/readmodel.rs:246`、`src/gui_projection/mod.rs:149`）：
 
-- `src/readmodel.rs:249` `use crate::event;` —— 该行位于 `mod unit` 内（测试构造事件用），**不进发布产物**；
-- `src/project/mod.rs:152-153` `use crate::event; use crate::readmodel::State;` —— 同属 `mod unit`。
+- `src/ontology_instance/readmodel.rs:249` `use crate::common::event;` —— 该行位于 `mod unit` 内（测试构造事件用），**不进发布产物**；
+- `src/gui_projection/mod.rs:152-153` `use crate::common::event; use crate::ontology_instance::readmodel::State;` —— 同属 `mod unit`。
 
-⇒ 生产代码路径上**不存在** `M03→M01`、`M06/M07→M01` 的回边。**但登记表把 `src/event.rs` 划归 `M01`**（附录 A §二），若该归属按字面成立，则 M03（读模型）会经 `event` 反向依赖 M01 —— 这是**登记口径**与**源码面**的一处不一致，见 §4.3 第 4 条。
+⇒ 生产代码路径上**不存在** `M03→M01`、`M06/M07→M01` 的回边。**但登记表把 `src/common/event.rs` 划归 `M01`**（附录 A §二），若该归属按字面成立，则 M03（读模型）会经 `event` 反向依赖 M01 —— 这是**登记口径**与**源码面**的一处不一致，见 §4.3 第 4 条。
 
 ### §4.3 核对发现的不一致（如实登记，未修复）
 
 | # | 不一致 | 证据 | 影响面 |
 |---|---|---|---|
-| — | `src/error.rs` **已登记为共同模块**（2026-09-28 改判；原记作"登记缺口"） | `WC-MODREG-001` §2.1 共同模块表；`module_graph.py` 的"未被任何模块号登记"告警随之消失 | 错误码契约被**每个模块**共用 ⇒ 它是共同模块，不是缺口 |
+| — | `src/common/error.rs` **已登记为共同模块**（2026-09-28 改判；原记作"登记缺口"） | `WC-MODREG-001` §2.1 共同模块表；`module_graph.py` 的"未被任何模块号登记"告警随之消失 | 错误码契约被**每个模块**共用 ⇒ 它是共同模块，不是缺口 |
 | 2 | `M09` 源码路径中的 `channel.json` **本仓不存在** | `world-core/` 根目录仅 `ontology.json`、`policy.json`（`Get-ChildItem world-core -File`） | 登记表述已就地标注为「入参形态」
 | 3 | `M03` 行的依赖含「可选 `M08`」，`M08` 行的依赖含 `M03` —— **登记口径上互为依赖** | 附录 A §二 `M03`/`M08` 两行的「依赖模块」列 | 非源码循环（实现里 `M08→M03` 单向，`M03` 不引用 `Checkpoint`），但登记口径需一次澄清 |
-| 4 | `M08` 行的依赖写 `M02`（读账本），源码面 `src/checkpoint.rs` **不含** `use crate::ledger` | `Select-String -Path world-core\src\checkpoint.rs -Pattern 'use crate::'` ⇒ 仅 `crate::guard`、`crate::readmodel::State` 两条 | 实际是「调用方把账本事件切片传进来」（`src/checkpoint.rs:122` 签名），不是模块间依赖 |
-| 5 | 「一个 `.rs` ↔ 一个模块号」的规则被 `src/event.rs` 破坏：它被划归 `M01`，却同时被 `M03`/`M06`/`M07` 的**测试**引用，且生产路径上 `M03` 不引用它 | 见 §4.2 (b) 后段 | 规则需要在「属某模块」与「跨模块共用」之间二选一，否则 §4.2 的「无循环」只在源码面成立、在登记面不成立 |
+| 4 | `M08` 行的依赖写 `M02`（读账本），源码面 `src/ontology_instance/checkpoint.rs` **不含** `use crate::ledger` | `Select-String -Path world-core\src\checkpoint.rs -Pattern 'use crate::'` ⇒ 仅 `crate::gate::guard`、`crate::ontology_instance::readmodel::State` 两条 | 实际是「调用方把账本事件切片传进来」（`src/ontology_instance/checkpoint.rs:122` 签名），不是模块间依赖 |
+| 5 | 「一个 `.rs` ↔ 一个模块号」的规则被 `src/common/event.rs` 破坏：它被划归 `M01`，却同时被 `M03`/`M06`/`M07` 的**测试**引用，且生产路径上 `M03` 不引用它 | 见 §4.2 (b) 后段 | 规则需要在「属某模块」与「跨模块共用」之间二选一，否则 §4.2 的「无循环」只在源码面成立、在登记面不成立 |
 
 ### §4.4 与 §2 登记表的对应（谁提供哪条接口）
 
@@ -321,7 +323,7 @@ main.rs       → world_core::World（外部使用方，非模块内边）
 
 1. **两个投影是两件可独立替换的产物**，不是一件事的两个函数：
    语言投影给程序读、视觉投影给人看，各自的输出格式是**独立契约**
-   （`src/project/language.rs` / `visual.rs` 头部即各自契约），
+   （`src/gui_projection/language.rs` / `visual.rs` 头部即各自契约），
    各自有独立验收测试（`t14` / `t15`）。合成一个模块号会让
    "换掉视觉渲染器"看起来像"改了投影模块"，**掩盖变更的真实影响面**。
 2. **检查点是独立关注点**：它是**带 `base_seq` 的缓存**（性能手段），
@@ -342,29 +344,29 @@ main.rs       → world_core::World（外部使用方，非模块内边）
 
 | 模块号 | 模块名 | 层 | 职责（一句话） | 实现位置 | 依赖模块 | 提供接口 | 负责人 | 首次登记日期 | 现状 |
 |---|---|---|---|---|---|---|---|---|---|
-| **M01** | **本体（Ontology）** | L1 法律与事实 | 世界的**法律**：一条事件长什么样、什么算合法；并给出**词表身份** | `src/ontology.rs`、`ontology.json` | —（L1 最底层，不依赖任何模块） | **IF-005**：词表身份（加载 / 校验 / `vocab_hash`）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 0.5 本体信封；上游无对应 Step，见 §2.2） |
-| **M02** | **账本（Ledger）** | L1 法律与事实 | 世界的**事实**：只追加的语义事件日志；分配 `seq`；崩溃尾迹处理 | `src/ledger.rs` | —（L1 最底层，不依赖任何模块） | **IF-001**：账本读写（只追加 / 按 `seq` 读回 / 原子写）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 1 = 上游 Step 1 账本） |
-| **M03** | **读模型（Read Model）** | L2 状态 | **状态 = 折叠账本**；派生物、可随时删掉重算 | `src/readmodel.rs` | `M02` | **IF-009**：状态折叠与重建（`fold` / `from_json`）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 2 = 上游 Step 2 读模型） |
+| **M01** | **本体（Ontology）** | L1 法律与事实 | 世界的**法律**：一条事件长什么样、什么算合法；并给出**词表身份** | `src/ontology_definition/mod.rs`、`ontology.json` | —（L1 最底层，不依赖任何模块） | **IF-005**：词表身份（加载 / 校验 / `vocab_hash`）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 0.5 本体信封；上游无对应 Step，见 §2.2） |
+| **M02** | **账本（Ledger）** | L1 法律与事实 | 世界的**事实**：只追加的语义事件日志；分配 `seq`；崩溃尾迹处理 | `src/ledger/mod.rs` | —（L1 最底层，不依赖任何模块） | **IF-001**：账本读写（只追加 / 按 `seq` 读回 / 原子写）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 1 = 上游 Step 1 账本） |
+| **M03** | **读模型（Read Model）** | L2 状态 | **状态 = 折叠账本**；派生物、可随时删掉重算 | `src/ontology_instance/readmodel.rs` | `M02` | **IF-009**：状态折叠与重建（`fold` / `from_json`）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 2 = 上游 Step 2 读模型） |
 | **M04** | **运行时（Runtime）** | L3 治理与机制 | 装配与启动；**唯一写入口** `World::commit`（取号→造事件→法律→门禁→落笔） | `src/lib.rs`、`src/main.rs` | `M01`、`M02`、`M03`、`M05`、`M06`、`M07`、**`M08`** | **IF-008**：运行时入口（CLI；**唯一写入口** `World::commit`）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 4 的核心部分 = 装配与唯一写入口） |
-| **M05** | **门禁（Gate）** | L3 治理与机制 | 一件事**现在能不能做**：默认拒绝 + 按不可逆性加摩擦 + 拒绝留痕；并含**静态墙** | `src/gate.rs`、`src/guard.rs`、`policy.json` | `M01` | **IF-002**：门禁裁决（默认拒绝 + 不可逆分级 + 静态墙）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 5 = 上游 Step 5「门禁不可绕过的第一刀」） |
-| **M06** | **语言投影（Language Projection）** | L4 出口 | 结构化出口：逐行 JSON，给程序读 | `src/project/language.rs` | `M03` | **IF-003**：语言投影出口（逐行 JSON）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 7；上游 Step 4 含"语言投影雏形"） |
-| **M07** | **视觉投影（Visual Projection）** | L4 出口 | 渲染出口：终端可读，**排版仍可被审计** | `src/project/visual.rs` | `M03` | **IF-004**：视觉投影出口（可审计排版）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 8；**上游 Step 7 = 视觉投影**。⚠ 上游 `Step 8` 是「同源可核验」、**不是模块**，原写作裸 Step 编号易被误读，见 §2.2） |
-| **M08** | **检查点（Checkpoint）** | L2 状态 | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同 | `src/checkpoint.rs` | `M02`（`base_seq` 锚在账本位置）、`M03`（快照承载的状态） | **IF-010**：检查点读写与核验（带 `base_seq` 的缓存）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 3；**上游 Step 6 = 检查点**。缓存地位：可核验、删掉无后果） |
-| **M09** | **通道（Channel）** | L3 治理与机制 | 跨进程入口：**一个套接字一个身份**，权限即身份 | `src/channel.rs`（⚠ **`channel.json` 本仓不存在**：`git ls-files "*channel.json"` 零命中、`git check-ignore` 不忽略、`world-core/` 根目录只有 `ontology.json`/`policy.json`。它只是 `ChannelConfig::load(&Path)` 的**入参形态**，本仓**未提供出厂文件** ⇒ 见 §五 #9） | `M04` | **IF-006**：跨进程通道（文本行协议；一次一连接）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`a9233f0`） | ✅ 已实现（**项目** Step 6；**上游无对应 Step**（上游 Step 4 只写"一条 socket"）。v1 一次一连接） |
+| **M05** | **门禁（Gate）** | L3 治理与机制 | 一件事**现在能不能做**：默认拒绝 + 按不可逆性加摩擦 + 拒绝留痕；并含**静态墙** | `src/gate/mod.rs`、`src/gate/guard.rs`、`policy.json` | `M01` | **IF-002**：门禁裁决（默认拒绝 + 不可逆分级 + 静态墙）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 5 = 上游 Step 5「门禁不可绕过的第一刀」） |
+| **M06** | **语言投影（Language Projection）** | L4 出口 | 结构化出口：逐行 JSON，给程序读 | `src/gui_projection/language.rs` | `M03` | **IF-003**：语言投影出口（逐行 JSON）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 7；上游 Step 4 含"语言投影雏形"） |
+| **M07** | **视觉投影（Visual Projection）** | L4 出口 | 渲染出口：终端可读，**排版仍可被审计** | `src/gui_projection/visual.rs` | `M03` | **IF-004**：视觉投影出口（可审计排版）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 8；**上游 Step 7 = 视觉投影**。⚠ 上游 `Step 8` 是「同源可核验」、**不是模块**，原写作裸 Step 编号易被误读，见 §2.2） |
+| **M08** | **检查点（Checkpoint）** | L2 状态 | **带 `base_seq` 的缓存**，非真相；删掉后重算结果必须相同 | `src/ontology_instance/checkpoint.rs` | `M02`（`base_seq` 锚在账本位置）、`M03`（快照承载的状态） | **IF-010**：检查点读写与核验（带 `base_seq` 的缓存）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`aa5a981`） | ✅ 已实现（**项目** Step 3；**上游 Step 6 = 检查点**。缓存地位：可核验、删掉无后果） |
+| **M09** | **通道（Channel）** | L3 治理与机制 | 跨进程入口：**一个套接字一个身份**，权限即身份 | `src/bus/mod.rs`（⚠ **`channel.json` 本仓不存在**：`git ls-files "*channel.json"` 零命中、`git check-ignore` 不忽略、`world-core/` 根目录只有 `ontology.json`/`policy.json`。它只是 `ChannelConfig::load(&Path)` 的**入参形态**，本仓**未提供出厂文件** ⇒ 见 §五 #9） | `M04` | **IF-006**：跨进程通道（文本行协议；一次一连接）（编号取自 `WC-IC-001` §一 与 `WC-IRS-001`；⚠ **见本节末注**） | ⚠ **待人工指派**（R0 决议单 `WC-R0-DS-001` C 组「角色与指派人」；`EV-09`：AI 不得代签/代指派） | 2026-09-26（`a9233f0`） | ✅ 已实现（**项目** Step 6；**上游无对应 Step**（上游 Step 4 只写"一条 socket"）。v1 一次一连接） |
 
 **本表依赖列的订正记录**（说明写在表下、**不写进依赖列**——列里出现 `Mxx` 字样会被`ic_books_check.py` 的文本式取边当成一条边）：
 
 - M03：（读事件）、`M01`（家族/字段合法性）；可选 `M08`（载入缓存加速）
-- M04：（`src/main.rs:506 use world_core::checkpoint::…`）、**`M09`**（`:622 use world_core::channel::…`）、**`M10`**（`:752-754 use world_core::carrier::…`）　**（2026-09-28 订正：原列漏了 M08/M09/M10 三项——评审席·乙 的 A-4 报的就是它）**
+- M04：（`src/main.rs:506 use world_core::ontology_instance::checkpoint::…`）、**`M09`**（`:622 use world_core::bus::…`）、**`M10`**（`:752-754 use world_core::carrier::…`）　**（2026-09-28 订正：原列漏了 M08/M09/M10 三项——评审席·乙 的 A-4 报的就是它）**
 - M05：（家族/字段）、`policy.json`（能力表）；**不依赖 L4**（硬约束 ④）
 - M06：（只读同一读模型）
 - M07：（只读同一读模型）
 - M09：（经唯一写入口）、`M05`（裁决）
 
-**共同模块（不占模块号）**：`src/event.rs`（信封与信纸构造，属 M01 的机制面）、
-`src/project/mod.rs`（投影同源判定，横跨 M06/M07）。
+**共同模块（不占模块号）**：`src/common/event.rs`（信封与信纸构造，属 M01 的机制面）、
+`src/gui_projection/mod.rs`（投影同源判定，横跨 M06/M07）。
 
-**模块内机制（不占模块号，2026-09-27 登记）**：`src/ledger.rs` 的 `Sink`（**落笔 I/O 缝**，
+**模块内机制（不占模块号，2026-09-27 登记）**：`src/ledger/mod.rs` 的 `Sink`（**落笔 I/O 缝**，
 `pub(crate)`，4 个 I/O 原语）。为"故障注入"而设的窄接口：生产实现**只有** `FileSink`，
 测试替身 `FlakySink` 位于 `#[cfg(test)]` 内、**不进发布产物**；缝里不含取号/摘要链/本体校验/门禁裁决，
 故不改变 `append` 的决策路径。见 `WC-LLD-001` §二、`WC-UT-001`（`U20`–`U22`）。

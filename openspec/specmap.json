@@ -80,7 +80,7 @@
      "line": 8,
      "text": [
       "事件 SHALL 支持指定收件人：带 `to` 时只送该收件人，不带 `to` 时按广播处理；`act` 的应答 SHALL 能通过 `request_id` 追回它的请求。",
-      "（★ 2026-09-28 订正：本括注原写「今天：通道身份与一行应答已实现并实测，但 **`to` 的投递与请求/应答配对字段未实现**」——**那两个字段今天都落地了**：`to` 的投递＝`world-core/src/delivery.rs`（断言 `tests/delivery.rs` 的 `d01`–`d08`，含正控 `d04`）；请求—应答配对＝`world-core/src/pairing.rs`（断言 `tests/trace_notice.rs` 的 `f61`–`f65`）。**上一轮我只改了本 Requirement 的另外两条证据行、漏了这个括注**；⚠ 仍记在案的是：跨进程通道线格式的**端到端观测面不可达**（v1 CLI 无 `serve`）。）"
+      "（★ 2026-09-28 订正：本括注原写「今天：通道身份与一行应答已实现并实测，但 **`to` 的投递与请求/应答配对字段未实现**」——**那两个字段今天都落地了**：`to` 的投递＝`world-core/src/common/delivery.rs`（断言 `tests/delivery.rs` 的 `d01`–`d08`，含正控 `d04`）；请求—应答配对＝`world-core/src/common/pairing.rs`（断言 `tests/trace_notice.rs` 的 `f61`–`f65`）。**上一轮我只改了本 Requirement 的另外两条证据行、漏了这个括注**；⚠ 仍记在案的是：跨进程通道线格式的**端到端观测面不可达**（v1 CLI 无 `serve`）。）"
      ],
      "scenarios": [
       {
@@ -122,7 +122,7 @@
         "world-core/tests/channel_bounds.rs",
         "l01",
         "l06",
-        "policy.json",
+        "world-core/src/gate/policy.json",
         "channel_limits",
         "TC-076",
         "CT-08"
@@ -320,12 +320,12 @@
        "ev": [
         "world-core/tests/contract.rs",
         "c24",
-        "world-core/src/guard.rs",
+        "world-core/src/gate/guard.rs",
         "assert_not_symlink",
         "assert_not_other_writable",
         "assert_owned_by",
         "ext.world.",
-        "world-core/src/guard.rs::assert_not_other_writable"
+        "world-core/src/gate/guard.rs::assert_not_other_writable"
        ]
       },
       {
@@ -336,13 +336,13 @@
        "ev": [
         "world-core/tests/contract.rs",
         "c24",
-        "world-core/src/gate.rs",
+        "world-core/src/gate/mod.rs",
         "Policy",
         "load",
         ":1504",
         "policy",
         ":1516",
-        "world-core/src/gate.rs"
+        "world-core/src/gate/mod.rs"
        ]
       }
      ]
@@ -410,7 +410,7 @@
      "line": 209,
      "text": [
       "系统 SHALL 忽略任何不认识的旗标，并按它认得的那些继续处理；SHALL NOT 因为出现未知旗标而拒收。",
-      "（依据逐字：出厂本体 `world-core/ontology.json:20` —— `\"flags\": \"array  # 能力旗标；未知旗标必须忽略\"`。）",
+      "（依据逐字：出厂本体 `world-core/src/ontology_definition/ontology.json:20` —— `\"flags\": \"array  # 能力旗标；未知旗标必须忽略\"`。）",
       "本条与「未知**家族** SHALL 被拒」**对偶**，两条 SHALL NOT 互相冒充：分界线是",
       "**不认识的语义拒绝，不认识的附加信息忽略**。「这条事件带着我不认得的旗标」SHALL NOT 被读成",
       "「这个家族我不认识」；「这个家族我不认识」SHALL NOT 被读成「有旗标不认识」。",
@@ -1108,7 +1108,7 @@
   {
    "cap": "projections",
    "file": "openspec\\specs\\projections\\spec.md",
-   "purpose": "规定\"同一份账，各按自己要用的方式读\"这一层对外可核的行为：语言投影与视觉投影必须同源、 同源核对必须接在出厂命令上、词表变更必须能被检出、投影只能省略不能添加。 **同源核对只证\"同源\"，证不了\"两份记录说的是同一件事\"**——书第五章（合订本 `:659`）逐字：这一格的**当日结果**是\"绿而无效\"， 而**按\"能不能证明两份记录说的是同一件事\"来判，这一格是红的**；书同时把\"当日结果与结论色压在一列\"**点名为缺陷**（合订本 `:1819` M-12）。 书的**通过条件**是「**判定能看内容，且两份由不同一方生成**」（合订本 `:736`）；**今天只做到\"头部四项一致\"**（`world-core/src/project/mod.rs:124` 的 `assert_same_source`；书自己也写「第 124 行」）， 即书判红的那一半。今天的实测边界见 `openspec/changes/archive/2026-09-28-cover-unimplemented-capabilities/` 与本 change 的 `audit.md` P1／P2 两条。 这一能力服务 `显`。",
+   "purpose": "规定\"同一份账，各按自己要用的方式读\"这一层对外可核的行为：语言投影与视觉投影必须同源、 同源核对必须接在出厂命令上、词表变更必须能被检出、投影只能省略不能添加。 **同源核对只证\"同源\"，证不了\"两份记录说的是同一件事\"**——书第五章（合订本 `:659`）逐字：这一格的**当日结果**是\"绿而无效\"， 而**按\"能不能证明两份记录说的是同一件事\"来判，这一格是红的**；书同时把\"当日结果与结论色压在一列\"**点名为缺陷**（合订本 `:1819` M-12）。 书的**通过条件**是「**判定能看内容，且两份由不同一方生成**」（合订本 `:736`）；**今天只做到\"头部四项一致\"**（`world-core/src/gui_projection/mod.rs:124` 的 `assert_same_source`；书自己也写「第 124 行」）， 即书判红的那一半。今天的实测边界见 `openspec/changes/archive/2026-09-28-cover-unimplemented-capabilities/` 与本 change 的 `audit.md` P1／P2 两条。 这一能力服务 `显`。",
    "reqs": [
     {
      "title": "两份读法同源且可当场核对",
@@ -1213,7 +1213,7 @@
        "ev": [
         "world-core/tests/cli.rs",
         "cli13_project_check_criterion_reads_only_the_header",
-        "world-core/src/project/mod.rs"
+        "world-core/src/gui_projection/mod.rs"
        ]
       },
       {
@@ -1295,7 +1295,7 @@
       "已实测的拒绝面 SHALL 被逐类写明：① 序号断裂、② 旧值说谎（`change` 的 `before` 与当前值不符）、",
       "③ 未知事件家族。",
       "**边界 SHALL 被如实声明**：末尾半行在进入折叠**之前**就已被账本层截掉",
-      "（`world-core/src/ledger.rs:276-289`），故它**不是**读模型的拒绝面；",
+      "（`world-core/src/ledger/mod.rs:276-289`），故它**不是**读模型的拒绝面；",
       "读模型对\"解析失败的行\"不承担拒绝责任。"
      ],
      "scenarios": [
@@ -1397,7 +1397,7 @@
        "ev": [
         "world-core/tests/cli.rs:615",
         "cli15_usage_lists_three_checkpoint_subcommands",
-        "src/checkpoint.rs",
+        "src/ontology_instance/checkpoint.rs",
         "W-03",
         "P-09",
         "world-core/src/main.rs",
@@ -1516,7 +1516,7 @@
   {
    "cap": "write-side-adaptation",
    "file": "openspec\\specs\\write-side-adaptation\\spec.md",
-   "purpose": "规定\"世界外面的事怎么变成一条消息\"这一层对外可核的行为：**写侧只写、不裁决**，前值必须带上，翻不出来就报错，且这只手**以被管者身份运行、对账本与规则都没有写权限**。这一层原来在 OpenSpec 里**零落点**（书 §4.5 整节没有对应规格），本 delta 把它建档；覆盖面见下表。 **本 delta 覆盖书 §4.5 的哪三条、不覆盖哪一条**（不覆盖的也写在这里，免得被读成\"整节已落\"）： | 书 §4.5 的那一段 | 本 delta | |---|---| | `:585` 只写不裁决（准不准问 4.2 那道闸） | **覆盖**（第一条 Requirement；`act` 那一半的既有落点见 `WC-IRS-001` §3.12 的 `IF-011-R01`／`R08`） | | `:595`／`:597` 前值必须带上；翻不出来就报错、不许猜 | **覆盖**（第二条 Requirement；这一格此前**零落点**） | | `:601` 以被管者身份运行，对账本与规则都没有写权限 | **覆盖**（第三条 Requirement；静态墙的既有落点在 `world-core/src/guard.rs`，跨 uid 实测在 `world-core/tools/con01-no-bypass.sh`） | | `:599` 大对象不进主干道，主干道上只留一个内容指纹 | **不覆盖**：**货运道与内容指纹**今天**零落点**（既没有那条并行通道，也没有\"以内容引用当字段值\"的实现与断言）。⚠️ 同句的前半「主干道上的每一条记录都短」**另有落点**（`policy.json` 的 `channel_limits.max_line_bytes`，见 `world-core/src/channel.rs` 的 `Limits::from_policy`）——那是通道的单行上限，不是货运道，两者不得互相冒充 |",
+   "purpose": "规定\"世界外面的事怎么变成一条消息\"这一层对外可核的行为：**写侧只写、不裁决**，前值必须带上，翻不出来就报错，且这只手**以被管者身份运行、对账本与规则都没有写权限**。这一层原来在 OpenSpec 里**零落点**（书 §4.5 整节没有对应规格），本 delta 把它建档；覆盖面见下表。 **本 delta 覆盖书 §4.5 的哪三条、不覆盖哪一条**（不覆盖的也写在这里，免得被读成\"整节已落\"）： | 书 §4.5 的那一段 | 本 delta | |---|---| | `:585` 只写不裁决（准不准问 4.2 那道闸） | **覆盖**（第一条 Requirement；`act` 那一半的既有落点见 `WC-IRS-001` §3.12 的 `IF-011-R01`／`R08`） | | `:595`／`:597` 前值必须带上；翻不出来就报错、不许猜 | **覆盖**（第二条 Requirement；这一格此前**零落点**） | | `:601` 以被管者身份运行，对账本与规则都没有写权限 | **覆盖**（第三条 Requirement；静态墙的既有落点在 `world-core/src/gate/guard.rs`，跨 uid 实测在 `world-core/tools/con01-no-bypass.sh`） | | `:599` 大对象不进主干道，主干道上只留一个内容指纹 | **不覆盖**：**货运道与内容指纹**今天**零落点**（既没有那条并行通道，也没有\"以内容引用当字段值\"的实现与断言）。⚠️ 同句的前半「主干道上的每一条记录都短」**另有落点**（`policy.json` 的 `channel_limits.max_line_bytes`，见 `world-core/src/bus/mod.rs` 的 `Limits::from_policy`）——那是通道的单行上限，不是货运道，两者不得互相冒充 |",
    "reqs": [
     {
      "title": "〔无号·待流程侧增补〕写侧只写，不裁决",
@@ -1574,9 +1574,9 @@
      "text": [
       "写侧 SHALL 以**被管者身份**运行在自己的进程里，**SHALL NOT** 对账本与出厂规则有任何写权限；它要写世界，SHALL 经通道提交请求，走**与任何其他主体完全相同**的那条路（校验、过闸、落笔）。",
       "本条的两半各有归属，SHALL NOT 互相冒充：",
-      "- **\"对这些路径写不写得到\"（文件系统上的事实）**：`world-core/src/carrier/boundary.rs::assert_managed_cannot_write` —— 四条判据：不是符号链接、属主不是被管者、文件对 group/other 不可写、**所在目录**对 group/other 不可写且其属主不是被管者。它与 `world-core/src/guard.rs` 的静态墙**同一纪律、方向相反**（guard 的 `assert_owned_by` 要求属主**是**核心 uid——那一条要部署方显式传 `--owner-uid` 才运行；本处要求属主**不是**被管者），且刻意**不复用** `guard`：`M05 → M10` 已有一条真实 import 边，反向再连即**成环**（`WC-ATOM-001` §二 A-4）。",
-      "- **\"本进程现在到底是谁\"**：由部署保证（`world-core/src/channel.rs` 的 `bind` 一类的\"权限即身份\"、`runuser`／systemd `User=`），并由**跨 uid 实测**核；本模块不靠自称来证明身份。",
-      "⚠️ **本条今天证明到哪一步（如实声明）**：静态墙（`world-core/src/guard.rs`）与跨 uid 实拒**早已存在**（`world-core/tools/con01-no-bypass.sh`：以 `agent` 身份改配置／替换配置／直写账本三组全被拒，且断言 uid 自证与拒绝原因）；**新补的是写侧自己的那一半**——\"对这个被管者 uid，账本与规则写不写得到\"的可判函数 ＋ 会红的断言，以及**以被管者身份跑载体自己**的那条系统级实测（C-09）。"
+      "- **\"对这些路径写不写得到\"（文件系统上的事实）**：`world-core/src/carrier/boundary.rs::assert_managed_cannot_write` —— 四条判据：不是符号链接、属主不是被管者、文件对 group/other 不可写、**所在目录**对 group/other 不可写且其属主不是被管者。它与 `world-core/src/gate/guard.rs` 的静态墙**同一纪律、方向相反**（guard 的 `assert_owned_by` 要求属主**是**核心 uid——那一条要部署方显式传 `--owner-uid` 才运行；本处要求属主**不是**被管者），且刻意**不复用** `guard`：`M05 → M10` 已有一条真实 import 边，反向再连即**成环**（`WC-ATOM-001` §二 A-4）。",
+      "- **\"本进程现在到底是谁\"**：由部署保证（`world-core/src/bus/mod.rs` 的 `bind` 一类的\"权限即身份\"、`runuser`／systemd `User=`），并由**跨 uid 实测**核；本模块不靠自称来证明身份。",
+      "⚠️ **本条今天证明到哪一步（如实声明）**：静态墙（`world-core/src/gate/guard.rs`）与跨 uid 实拒**早已存在**（`world-core/tools/con01-no-bypass.sh`：以 `agent` 身份改配置／替换配置／直写账本三组全被拒，且断言 uid 自证与拒绝原因）；**新补的是写侧自己的那一半**——\"对这个被管者 uid，账本与规则写不写得到\"的可判函数 ＋ 会红的断言，以及**以被管者身份跑载体自己**的那条系统级实测（C-09）。"
      ],
      "scenarios": [
       {
@@ -1711,7 +1711,7 @@
    "title": "不可逆动作加摩擦，可逆免检留痕",
    "pri": "P1",
    "status": "green",
-   "raw": "已实现（TC-015＝tests/acceptance.rs::t10_gate_adds_friction_for_irreversible_capability，:400／:412／:413／:426 四处断言（行号订正（2026-09-27，承 R1 二轮席 独立评审席 的独立变异实测）：此前写 :414，实测 412 与 414 之间只有 :413 一处断言）；TC-028＝src/gate.rs::unit::* 4 项）。订正留痕（2026-09-27，承 R1 席 独立评审席 的缺格发现）：本条此前只写\"两类动作行为不同且都可审计\"，未写任何反例，且所述\"分级表\"在库内只以源码注释存在（无表、无反假断言）⇒ 现改为锚在 TC-015 四处现有断言上，不再引用那张不存在的表。⚠ **另有书 §5.5 判红的三条边界（V0.4 就地登记，见本条正文判据列的「实测边界（不假装满足）"
+   "raw": "已实现（TC-015＝tests/acceptance.rs::t10_gate_adds_friction_for_irreversible_capability，:400／:412／:413／:426 四处断言（行号订正（2026-09-27，承 R1 二轮席 独立评审席 的独立变异实测）：此前写 :414，实测 412 与 414 之间只有 :413 一处断言）；TC-028＝src/gate/mod.rs::unit::* 4 项）。订正留痕（2026-09-27，承 R1 席 独立评审席 的缺格发现）：本条此前只写\"两类动作行为不同且都可审计\"，未写任何反例，且所述\"分级表\"在库内只以源码注释存在（无表、无反假断言）⇒ 现改为锚在 TC-015 四处现有断言上，不再引用那张不存在的表。⚠ **另有书 §5.5 判红的三条边界（V0.4 就地登记，见本条正文判据列的「实测边界（不假"
   },
   {
    "id": "REQ-F-018",
@@ -1753,7 +1753,7 @@
    "title": "投递、应答与收件人",
    "pri": "P1",
    "status": "red",
-   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `world-core/src/delivery.rs`，断言 `tests/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `openspec/specs/delivery-and-resources/spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
+   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `world-core/src/common/delivery.rs`，断言 `tests/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `openspec/specs/delivery-and-resources/spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
   },
   {
    "id": "REQ-F-024",
@@ -1809,7 +1809,7 @@
    "title": "trace（信封因果字段）保留为需求",
    "pri": "P1",
    "status": "red",
-   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `tests/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `openspec/specs/ledger-integrity/spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
+   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `tests/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `openspec/specs/ledger-integrity/spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/common/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
   },
   {
    "id": "REQ-F-032",
@@ -2196,7 +2196,7 @@
    "conclusion": "两份记录对不对得上",
    "check": "给两条来自不同读法的记录，机械判定它们是不是同一件事",
    "pass": "判定能看内容，且两份由不同一方生成",
-   "result": "绿而无效。命令跑得通（world-core project check），只比头部四项（src/project/mod.rs 第 124 行），两份还是它自己渲染的（src/main.rs 第 394–397 行，2026-09-27 读）。按\"能不能证明\"判，这一格是红的",
+   "result": "绿而无效。命令跑得通（world-core project check），只比头部四项（src/gui_projection/mod.rs 第 124 行），两份还是它自己渲染的（src/main.rs 第 394–397 行，2026-09-27 读）。按\"能不能证明\"判，这一格是红的",
    "color": "amber",
    "line": 813
   },
@@ -2268,7 +2268,7 @@
    "conclusion": "可不可逆，两份配置对不上",
    "check": "出厂配置之间的一致性：同一项能力的两个轴讲不讲得通，摩擦挂在哪个变量上",
    "pass": "两处互校存在，且摩擦挂在动作的不可逆等级上",
-   "result": "红。闸读不到风险等级（src/gate.rs 第 44–48 行）；摩擦挂在执行者身份上（policy.json 第 32 行的 irreversible_actors，名单里只有 world://user），而那个人同时可写任意对象（同文件第 28 行）；两处无互校（2026-09-27 读配置与源码）",
+   "result": "红。闸读不到风险等级（src/gate/mod.rs 第 44–48 行）；摩擦挂在执行者身份上（policy.json 第 32 行的 irreversible_actors，名单里只有 world://user），而那个人同时可写任意对象（同文件第 28 行）；两处无互校（2026-09-27 读配置与源码）",
    "color": "red",
    "line": 821
   },
@@ -3447,7 +3447,7 @@
    "title": "投递、应答与收件人",
    "pri": "P1",
    "status": "red",
-   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `world-core/src/delivery.rs`，断言 `tests/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `openspec/specs/delivery-and-resources/spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
+   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `world-core/src/common/delivery.rs`，断言 `tests/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `openspec/specs/delivery-and-resources/spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
   },
   {
    "id": "REQ-F-026",
@@ -3475,7 +3475,7 @@
    "title": "trace（信封因果字段）保留为需求",
    "pri": "P1",
    "status": "red",
-   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `tests/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `openspec/specs/ledger-integrity/spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
+   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `tests/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `openspec/specs/ledger-integrity/spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/common/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
   },
   {
    "id": "REQ-F-032",

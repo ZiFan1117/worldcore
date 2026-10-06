@@ -5,7 +5,7 @@
 //! | 组 | 判据 | 反例（必须红） | 恢复（必须绿） |
 //! |---|---|---|---|
 //! | ① | **五要素节存在性**：任一节缺 ⇒ `Ontology::load` 拒启（`MissingSection`） | 逐节删（五节各一次） | 原本体 |
-//! | ② | **对象**：字段的**值类型**参与校验（含 `enum` **闭集**、`ref(<类型>)`）。★ **`kind` 除外**：`envelope.kind` 是**家族名**，走家族查找报 `UnknownKind` 并点名那个值——**不是**闭集（依据：`openspec/specs/envelope-validation/spec.md` 逐字「枚举值另有其主（家族查找报 `ext.world.Ontology.UnknownKind` 并点名）」；`openspec/BOOK/冲突总账.md` 逐字「`enum(...)` 明确豁免」。理由全文见 `src/ontology.rs::Ontology::validate_types` 的文档） | 给 `muted` 写整数；给 `status` 写越界值；`ref` 指向别的类型 | 写对 |
+//! | ② | **对象**：字段的**值类型**参与校验（含 `enum` **闭集**、`ref(<类型>)`）。★ **`kind` 除外**：`envelope.kind` 是**家族名**，走家族查找报 `UnknownKind` 并点名那个值——**不是**闭集（依据：`openspec/specs/envelope-validation/spec.md` 逐字「枚举值另有其主（家族查找报 `ext.world.Ontology.UnknownKind` 并点名）」；`openspec/BOOK/冲突总账.md` 逐字「`enum(...)` 明确豁免」。理由全文见 `src/ontology_definition/mod.rs::Ontology::validate_types` 的文档） | 给 `muted` 写整数；给 `status` 写越界值；`ref` 指向别的类型 | 写对 |
 //! | ③ | **关系**：命名关系的**两端类型必须已声明** | `from`/`to` 指向未声明的类型 | 指回已声明的类型 |
 //! | ④ | **内嵌**：声明式内嵌标记（`nested`＋`part_of`）——实例路径必须是 `world://<父>/<父实例>/<本类型>/<本实例>` | 内嵌类型写成两段（未声明实体）／写成三段的**错父** | 写成正确的四段 |
 //! | ⑤ | **按类型的实例计数**：声明为单实例的类型，fold 后实例数 > 1 ⇒ 红（`TooManyInstances`） | 上限 1 而写两个实例 | 只写一个 |
@@ -40,7 +40,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::ontology::Ontology;
+use world_core::ontology_definition::Ontology;
 
 // ────────────────────────── 夹具 ──────────────────────────
 
@@ -64,11 +64,11 @@ fn manifest_dir() -> PathBuf {
 }
 
 fn factory_ontology() -> PathBuf {
-    manifest_dir().join("ontology.json")
+    manifest_dir().join("src/ontology_definition/ontology.json")
 }
 
 fn factory_policy() -> PathBuf {
-    manifest_dir().join("policy.json")
+    manifest_dir().join("src/gate/policy.json")
 }
 
 fn chmod600(p: &Path) {
@@ -157,7 +157,7 @@ fn cli_check(ont: &Path, dir: &Path) -> (i32, String) {
 /// **①-a**：每一节**逐个**删掉 ⇒ `Ontology::load` **拒启**、点名缺的是哪一要素；
 /// 恢复 ⇒ 必须能加载。**五节各来一次**（不是抽查一节）。
 ///
-/// 判据面与装载面同源（都读 `src/ontology.rs` 的 `SECTIONS` 表）⇒
+/// 判据面与装载面同源（都读 `src/ontology_definition/mod.rs` 的 `SECTIONS` 表）⇒
 /// "补一节忘了加判据"不可能发生；本用例再**逐节**把它钉一遍。
 #[test]
 fn m01_every_missing_element_section_refuses_to_load_but_the_intact_one_loads() {
@@ -246,7 +246,7 @@ fn m02_cli_check_refuses_when_an_element_section_is_missing_and_passes_when_rest
 /// 由家族查找报 `ext.world.Ontology.UnknownKind` 并**点名那个值**（依据：上位规格
 /// `openspec/specs/envelope-validation/spec.md` 逐字「**枚举值**另有其主（**家族查找报
 /// `ext.world.Ontology.UnknownKind` 并点名**）」＋ `openspec/BOOK/冲突总账.md` 逐字
-/// 「`enum(...)` 明确豁免」）。**理由全文**见 `src/ontology.rs::Ontology::validate_types`
+/// 「`enum(...)` 明确豁免」）。**理由全文**见 `src/ontology_definition/mod.rs::Ontology::validate_types`
 /// 的文档（本处只指路，不复述）。⇒ 本用例判的是**别的** enum 字段（如 `status`）。
 ///
 /// 三格各一条反例：
@@ -266,13 +266,23 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
     w.commit(
         "change",
         "world://user",
-        world_core::event::change_body("world://notice/n-1", "muted", json!(null), json!(true)),
+        world_core::common::event::change_body(
+            "world://notice/n-1",
+            "muted",
+            json!(null),
+            json!(true),
+        ),
     )
     .expect("`muted: bool` 写 `true` 必须落笔");
     w.commit(
         "change",
         "world://user",
-        world_core::event::change_body("world://job/j-1", "status", json!(null), json!("doing")),
+        world_core::common::event::change_body(
+            "world://job/j-1",
+            "status",
+            json!(null),
+            json!("doing"),
+        ),
     )
     .expect("`status: enum(todo,doing,done)` 写 `doing` 必须落笔");
 
@@ -281,7 +291,12 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
         .commit(
             "change",
             "world://user",
-            world_core::event::change_body("world://notice/n-2", "muted", json!(null), json!(1)),
+            world_core::common::event::change_body(
+                "world://notice/n-2",
+                "muted",
+                json!(null),
+                json!(1),
+            ),
         )
         .expect_err("`muted: bool` 写整数必须被拒");
     assert!(
@@ -296,7 +311,7 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
         .commit(
             "change",
             "world://user",
-            world_core::event::change_body(
+            world_core::common::event::change_body(
                 "world://job/j-2",
                 "status",
                 json!(null),
@@ -323,7 +338,7 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
     w2.commit(
         "change",
         "world://user",
-        world_core::event::change_body(
+        world_core::common::event::change_body(
             "world://job/j-1",
             "owner",
             json!(null),
@@ -335,7 +350,7 @@ fn m03_field_value_types_are_checked_including_closed_enums_and_refs() {
         .commit(
             "change",
             "world://user",
-            world_core::event::change_body(
+            world_core::common::event::change_body(
                 "world://job/j-2",
                 "owner",
                 json!(null),
@@ -443,7 +458,7 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
     w.commit(
         "change",
         "world://user",
-        world_core::event::change_body(
+        world_core::common::event::change_body(
             "world://job/j-1/notice/n-1",
             "muted",
             json!(null),
@@ -457,7 +472,12 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
         .commit(
             "change",
             "world://user",
-            world_core::event::change_body("world://notice/n-9", "muted", json!(null), json!(true)),
+            world_core::common::event::change_body(
+                "world://notice/n-9",
+                "muted",
+                json!(null),
+                json!(true),
+            ),
         )
         .expect_err("声明为内嵌的类型，两段形态必须被拒");
     assert!(
@@ -471,7 +491,7 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
         .commit(
             "change",
             "world://user",
-            world_core::event::change_body(
+            world_core::common::event::change_body(
                 "world://notice/x/notice/n-9",
                 "muted",
                 json!(null),
@@ -500,7 +520,12 @@ fn m05_embedded_types_are_declared_not_expressed_by_three_segment_paths() {
     w3.commit(
         "change",
         "world://user",
-        world_core::event::change_body("world://notice/n-9", "muted", json!(null), json!(true)),
+        world_core::common::event::change_body(
+            "world://notice/n-9",
+            "muted",
+            json!(null),
+            json!(true),
+        ),
     )
     .expect("去掉内嵌标记后，两段形态必须重新合法（证明上面的红**是那一格造成的**）");
 }
@@ -531,7 +556,7 @@ fn m06_instance_counts_by_type_are_exposed_and_single_instances_are_enforced() {
         w.commit(
             "change",
             "world://user",
-            world_core::event::change_body(
+            world_core::common::event::change_body(
                 &format!("world://notice/{n}"),
                 "muted",
                 json!(null),
@@ -572,7 +597,7 @@ fn m06_instance_counts_by_type_are_exposed_and_single_instances_are_enforced() {
         let r = w2.commit(
             "change",
             "world://user",
-            world_core::event::change_body(
+            world_core::common::event::change_body(
                 &format!("world://notice/{n}"),
                 "muted",
                 json!(null),
@@ -843,14 +868,14 @@ fn m10_five_element_sections_live_under_underscore_keys_so_the_vocabulary_identi
         v
     };
     assert_ne!(
-        world_core::ontology::vocab_hash_of(&renamed_raw),
+        world_core::ontology_definition::vocab_hash_of(&renamed_raw),
         "fnv1a64:6a96abfa9a969462",
         "把分节从 `_` 键挪到非 `_` 键（内容一字不改）⇒ 身份**必变**——\
          这正是『挂 `_` 键』这条口径承重的证据"
     );
     // 而**没改名**的那一份（同一份出厂 JSON）⇒ 身份逐字不变（正控：上面的变化不是噪声）
     assert_eq!(
-        world_core::ontology::vocab_hash_of(&factory_json()),
+        world_core::ontology_definition::vocab_hash_of(&factory_json()),
         "fnv1a64:6a96abfa9a969462",
         "出厂本体的身份必须逐字不变"
     );
@@ -865,7 +890,10 @@ fn m10_five_element_sections_live_under_underscore_keys_so_the_vocabulary_identi
         "只改 `_` 键里的说明文字不该换身份"
     );
     // ⑤ 顺便钉住"按类型实例计数"这个读数面在**纯数据**上也成立（不依赖 `World`）
-    let cells = world_core::readmodel::DeclaredCells::new(vec!["world".into()], BTreeMap::new());
+    let cells = world_core::ontology_instance::readmodel::DeclaredCells::new(
+        vec!["world".into()],
+        BTreeMap::new(),
+    );
     assert!(cells.instance_limit("notice").is_none());
 }
 
@@ -1100,7 +1128,7 @@ fn m12_the_twelve_sections_attribution_table_must_match_the_real_underscore_sect
 
 /// **⑪**：**结构性死声明与悬空引用** ⇒ 拒启。
 ///
-/// 三条判据（`src/ontology.rs::check_structural_liveness`）：
+/// 三条判据（`src/ontology_definition/mod.rs::check_structural_liveness`）：
 /// 1. `_functions.entries` 里的入口**必须被至少一条动作引用**（`DeadFunctionEntry`）；
 /// 2. 动作声明的 `function` **必须真的在** `_functions.entries` 里（`DanglingFunctionRef`）；
 /// 3. `_interfaces` 里的能力**必须至少被动作或许可之一引用**（`DeadCapability`）。
@@ -1229,7 +1257,12 @@ fn m14_usage_lists_unused_declarations_but_never_fails() {
         w.commit(
             "change",
             "world://user",
-            world_core::event::change_body("world://notice/n-1", "muted", json!(null), json!(true)),
+            world_core::common::event::change_body(
+                "world://notice/n-1",
+                "muted",
+                json!(null),
+                json!(true),
+            ),
         )
         .unwrap();
     }
@@ -1355,7 +1388,7 @@ fn m16_describe_returns_the_intersection_of_interfaces_and_grants() {
 /// 「只增不改」**只有逐字节比对才可判**；近似比对会把"我改了默认输出"这种真违规放过去。
 #[test]
 fn m17_read_instance_face_shows_the_prior_value_and_the_default_output_is_unchanged() {
-    use world_core::event::change_body;
+    use world_core::common::event::change_body;
     let dir = tmpdir("m17");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();
@@ -1445,7 +1478,7 @@ fn m17_read_instance_face_shows_the_prior_value_and_the_default_output_is_unchan
 /// 「位点记在收件人自己」「叫醒可漏、由订户按 `seq` 补读」「读不到就说读不到」。
 #[test]
 fn m18_subscribe_requires_a_cursor_and_never_shows_stale_numbers() {
-    use world_core::event::change_body;
+    use world_core::common::event::change_body;
     let dir = tmpdir("m18");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();
@@ -1628,12 +1661,15 @@ fn append_raw_with_chain(lp: &Path, mut ev: Value) {
     }
     text.push_str(&serde_json::to_string(&ev).unwrap());
     text.push('\n');
+    if let Some(d) = lp.parent() {
+        std::fs::create_dir_all(d).unwrap();
+    }
     fs::write(lp, text).unwrap();
 }
 
 #[test]
 fn m20_write_side_refuses_a_lying_before_and_check_refuses_a_lying_ledger() {
-    use world_core::event::change_body;
+    use world_core::common::event::change_body;
     let dir = tmpdir("m20");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();
@@ -1717,7 +1753,7 @@ fn m20_write_side_refuses_a_lying_before_and_check_refuses_a_lying_ledger() {
         )
         .unwrap();
     }
-    let mut bad = world_core::event::new_event(
+    let mut bad = world_core::common::event::new_event(
         2,
         "change",
         "world://user",
@@ -1981,7 +2017,7 @@ fn m15_carrier_specific_strings_must_not_enter_the_ontology_identity() {
 ///   「值的类型与单位」已实现（那一张仍**只登记、未实现**）。
 #[test]
 fn m21_presence_semantics_are_declared_and_a_value_outside_the_closed_set_is_refused() {
-    use world_core::event::change_body;
+    use world_core::common::event::change_body;
     let dir = tmpdir("m21");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();
@@ -2161,7 +2197,7 @@ fn m21_presence_semantics_are_declared_and_a_value_outside_the_closed_set_is_ref
 /// 把 `World::check_presence_levels` 短路成恒 `Ok(())` ⇒ ①②当场变红（`ghost` 会"自报即通行"）。
 #[test]
 fn m22_presence_report_is_two_levels_declare_then_authorize() {
-    use world_core::event::{act_body, change_body};
+    use world_core::common::event::{act_body, change_body};
     let dir = tmpdir("m22");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();
@@ -2312,7 +2348,7 @@ fn m22_presence_report_is_two_levels_declare_then_authorize() {
 /// | ④ | 法律形态：出厂 `grants` 里 `notice.mute`／`notice.unmute` 的 `scope` | **不得**含 `world://*` | 把 `scope` 改回 `["world://*"]` ⇒ ④ 变红 |
 #[test]
 fn m23_capability_scope_names_concrete_subjects_not_a_wildcard() {
-    use world_core::event::{act_body, change_body};
+    use world_core::common::event::{act_body, change_body};
     let dir = tmpdir("m23");
     let lp = dir.join("ledger.jsonl");
     let ont = factory_ontology();

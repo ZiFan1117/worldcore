@@ -38,7 +38,7 @@
 已实测的拒绝面 SHALL 被逐类写明：① 序号断裂、② 旧值说谎（`change` 的 `before` 与当前值不符）、
 ③ 未知事件家族。
 **边界 SHALL 被如实声明**：末尾半行在进入折叠**之前**就已被账本层截掉
-（`world-core/src/ledger.rs:276-289`），故它**不是**读模型的拒绝面；
+（`world-core/src/ledger/mod.rs:276-289`），故它**不是**读模型的拒绝面；
 读模型对"解析失败的行"不承担拒绝责任。
 
 #### Scenario: 删掉读模型后重算结果一致
@@ -69,7 +69,7 @@
 - **WHEN** 对同一批事件分别做增量应用与全量折叠
 - **THEN** 两者结果相同
 - **证据**：`tests/contract.rs::c06_incremental_apply_equals_full_fold`（由 `world-core/check.sh` 第 ③b 步执行）
-      —— **⚠ 本条是防线冗余的**：生产路径上缺号由账本层 `world-core/src/ledger.rs:304` 先拒，
+      —— **⚠ 本条是防线冗余的**：生产路径上缺号由账本层 `world-core/src/ledger/mod.rs:304` 先拒，
       故本断言**不构成**端到端证明。
 
 ### Requirement: 检查点是缓存，可丢弃且必须自洽
@@ -98,7 +98,7 @@
 - **WHEN** 检查点内容被破坏
 - **THEN** 被拒绝
 - **证据**：`tests/contract.rs::c13_bad_checkpoints_are_refused`
-      —— **⚠ 其覆盖面不含"格式版本不符"这一分支**（`world-core/src/checkpoint.rs:94-99`）
+      —— **⚠ 其覆盖面不含"格式版本不符"这一分支**（`world-core/src/ontology_instance/checkpoint.rs:94-99`）
       ⇒ 需补断言（列进 tasks）。
 
 ### Requirement: 读模型是"一个真相"的检验面之一
@@ -121,7 +121,7 @@ SHALL NOT 被表述为"v1 CLI 从不读快照"。
 - **WHEN** 查阅 CLI 的用法串与分发分支
 - **THEN** 其中列出 `checkpoint write` / `checkpoint verify` / `checkpoint resume` 三条子命令，
       且 `checkpoint` 分支在 CLI 分发表里有对应项
-- **证据**：`world-core/tests/cli.rs:615` 的 **`cli15_usage_lists_three_checkpoint_subcommands`**（★ 2026-09-28 订正：本条原写「**本条尚无断言**（列进 tasks）」——**那句今天不成立**，该用例 live 在册、其头注逐字「为什么单列一条：`src/checkpoint.rs` 有「整册生产零调用点」的历史（`W-03` / `P-09`）」）——实现侧为 `world-core/src/main.rs`:28-30 与 `world-core/src/main.rs`:153；
+- **证据**：`world-core/tests/cli.rs:615` 的 **`cli15_usage_lists_three_checkpoint_subcommands`**（★ 2026-09-28 订正：本条原写「**本条尚无断言**（列进 tasks）」——**那句今天不成立**，该用例 live 在册、其头注逐字「为什么单列一条：`src/ontology_instance/checkpoint.rs` 有「整册生产零调用点」的历史（`W-03` / `P-09`）」）——实现侧为 `world-core/src/main.rs`:28-30 与 `world-core/src/main.rs`:153；
       三份仍写相反陈述的受控文档为 `world-core/docs/S4-实现/WC-UT-001-v0.1.md:54`、
       `world-core/docs/S1-需求/WC-SRS-001-v0.1.md:921`、`world-core/docs/S1-需求/WC-RTM-001.csv` 第 22 行。
 

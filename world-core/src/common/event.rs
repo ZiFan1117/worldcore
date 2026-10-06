@@ -51,7 +51,7 @@ pub fn with_flag(ev: &mut Value, flag: &str) {
 
 /// 一个**读者**从一条事件的 `flags` 里读出来的东西（`REQ-F-029`）。
 ///
-/// 依据（逐字）：`world-core/ontology.json:20` ——
+/// 依据（逐字）：`world-core/src/ontology_definition/ontology.json:20` ——
 /// `"flags": "array  # 能力旗标；未知旗标必须忽略"`。
 /// 分界线（`WC-FMT-001` §「未知家族 / 未知字段 / 未知旗标」逐字）：
 /// 「**不认识的语义拒绝，不认识的附加信息忽略**」。
@@ -88,7 +88,7 @@ pub fn is_factory_flag(flag: &str) -> bool {
 ///
 /// 口径（三条，都可判真假）：
 /// - 没有 `flags` 键、或 `flags` 不是数组 ⇒ 返回**空视图**（形状不归这里判：
-///   信封必填与家族信纸归 [`crate::ontology::Ontology::validate`]）；
+///   信封必填与家族信纸归 [`crate::ontology_definition::Ontology::validate`]）；
 /// - **原顺序**保留（旗标是有序数组，重排会让"同一条事件"读出两种样子）；
 /// - **不解释旗标的取值**（`gate.friction:` 后面跟什么等级，是写它的人的事）。
 pub fn read_flags<F>(ev: &Value, knows: F) -> Flags<'_>

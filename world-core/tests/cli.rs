@@ -20,7 +20,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use world_core::project::{assert_same_source, parse_header};
+use world_core::gui_projection::{assert_same_source, parse_header};
 
 /// 取本进程 uid（不引 libc：用 `/proc/self/status`）。
 ///
@@ -71,9 +71,15 @@ fn run(args: &[&str]) -> (i32, String, String) {
 fn check_args(d: &std::path::Path) -> Vec<String> {
     vec![
         "--ontology".into(),
-        manifest().join("ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".into(),
-        manifest().join("policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".into(),
         d.join("ledger.jsonl").display().to_string(),
         "check".into(),
@@ -106,9 +112,15 @@ fn cli02_after_append_check_reports_chained() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -150,9 +162,15 @@ fn cli03_require_chain_refuses_chainless_ledger() {
     let common = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -237,9 +255,15 @@ fn cli05_project_check_reports_same_source() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
         ]
@@ -273,9 +297,15 @@ fn cli06_require_chain_allows_empty_but_refuses_chainless_data() {
     let base = || -> Vec<String> {
         vec![
             "--ontology".into(),
-            manifest().join("ontology.json").display().to_string(),
+            manifest()
+                .join("src/ontology_definition/ontology.json")
+                .display()
+                .to_string(),
             "--policy".into(),
-            manifest().join("policy.json").display().to_string(),
+            manifest()
+                .join("src/gate/policy.json")
+                .display()
+                .to_string(),
             "--ledger".into(),
             lp.display().to_string(),
             "--require-chain".into(),
@@ -390,8 +420,14 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
     let d = tmpdir("cli09");
     let lp = d.join("ledger.jsonl");
     let (ont_s, pol_s, lp_s) = (
-        manifest().join("ontology.json").display().to_string(),
-        manifest().join("policy.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         lp.display().to_string(),
     );
 
@@ -417,7 +453,7 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
     );
 
     // ── ② 摩擦旗标：等级**取自载体清单**，不是写死在这里 ──
-    let cap_manifest = manifest().join("cap.d/ledger.compact.json");
+    let cap_manifest = manifest().join("src/carrier/cap.d/ledger.compact.json");
     let cap: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(&cap_manifest).unwrap()).unwrap();
     let level = cap["risk"]
@@ -469,9 +505,15 @@ fn cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction()
 fn args_for(lp: &std::path::Path, tail: &[&str]) -> Vec<String> {
     let mut v = vec![
         "--ontology".to_string(),
-        manifest().join("ontology.json").display().to_string(),
+        manifest()
+            .join("src/ontology_definition/ontology.json")
+            .display()
+            .to_string(),
         "--policy".to_string(),
-        manifest().join("policy.json").display().to_string(),
+        manifest()
+            .join("src/gate/policy.json")
+            .display()
+            .to_string(),
         "--ledger".to_string(),
         lp.display().to_string(),
     ];
@@ -486,7 +528,7 @@ const LEGAL_CHANGE: &str =
 
 /// **cli-13**（`5.1`）：`project check` 的判据**只剩头部四项**。
 ///
-/// 判据函数 `project::assert_same_source`（`src/project/mod.rs:124-145`；`cmd_project`
+/// 判据函数 `gui_projection::assert_same_source`（`src/gui_projection/mod.rs:124-145`；`cmd_project`
 /// 在 `src/main.rs:442` 调它）只比 `world` / `vocab` / `last_seq` / `state`，**不比正文**
 /// ⇒「一方少渲一半主体、头部四项相同」这个形状**在判据下仍然通过**。
 /// 这不是想要的行为，而是**当下边界**：本用例把它固定成会红的检查 ——
@@ -607,7 +649,7 @@ fn cli14_project_check_feeds_both_projections_the_same_state_and_vocab() {
 
 /// **cli-15**（`5.5`）：用法串里**列出** `checkpoint write|verify|resume` 三条子命令。
 ///
-/// 为什么单列一条：`src/checkpoint.rs` 有「整册生产零调用点」的历史（`W-03` / `P-09`）——
+/// 为什么单列一条：`src/ontology_instance/checkpoint.rs` 有「整册生产零调用点」的历史（`W-03` / `P-09`）——
 /// 接线之后，「用户能不能从帮助里知道这三条存在」就是接线的最后一段：
 /// **帮助里没有的用法等于不存在**。
 /// 出处：`src/main.rs:28-30`（`USAGE`）与 `:153`（分发到 `cmd_checkpoint`）。
@@ -635,7 +677,7 @@ fn cli15_usage_lists_three_checkpoint_subcommands() {
 
 /// **cli-16**（`5.3`）：`Checkpoint::FORMAT` 版本不符 ⇒ 点名 `ext.world.Checkpoint.BadFormat`。
 ///
-/// 该分支此前**零断言**（`src/checkpoint.rs:94-99`）。做法：写一份**真快照**，
+/// 该分支此前**零断言**（`src/ontology_instance/checkpoint.rs:94-99`）。做法：写一份**真快照**，
 /// 只把 `checkpoint` 版本号改成 999、其余字段一字不动 ⇒ `verify` 与 `resume`
 /// 都必须 rc=2 且点名 `BadFormat`。
 /// **正控**：未改动的那一份必须 rc=0（否则「报错」可能只是因为快照根本不可用）。

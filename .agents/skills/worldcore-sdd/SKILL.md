@@ -222,7 +222,7 @@ description: 语义世界／world-core 的**软件开发 skill**（我们自己�
 **★ 事故一例（2026-09-28，我造成的）：`git add <path>` 会把别人的在飞改动一起提交，而 `HEAD` 就此编译不过。**
 我修评审席那七条时，`src/lib.rs` 是**我的目标文件之一**（改一处调用点数注释），于是 `git add world-core/src/lib.rs` ——
 而**同一文件里还有另一工区的在飞接线**（`read_model()` 递"已声明格"进读模型）；定义那两样东西的
-`src/readmodel.rs`／`src/ontology.rs` **当时还没提交** ⇒ 提交出去的 `HEAD` 上：`lib.rs` 引用 `readmodel::DeclaredCells`／
+`src/ontology_instance/readmodel.rs`／`src/ontology_definition/mod.rs` **当时还没提交** ⇒ 提交出去的 `HEAD` 上：`lib.rs` 引用 `readmodel::DeclaredCells`／
 `Ontology::envelope_required`，而那两个文件里**各 0 处** ⇒ **`HEAD` 编译不过**（`cargo check --lib` rc=101，`error[E0433]: cannot find DeclaredCells in readmodel`）。
 同一次，`tasks.md` 里另一工区的三勾也被卷走 ⇒ **`HEAD` 上 tasks 声称某条已落地，而实现不在 `HEAD`**。
 

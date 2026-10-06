@@ -13,11 +13,11 @@
 //!
 //! | 断言 | 改坏哪一行 ⇒ 变红 |
 //! |---|---|
-//! | `d01` `d04` | `src/delivery.rs` 的 `filter(\|ev\| delivered_to(ev, recipient))` 换成 `filter(\|_\| true)`（把 `to` 当装饰）⇒ 两条一起红（`to` 指定的那条会出现在**别人的**出口上） |
-//! | `d07` | `src/delivery.rs` 的 `filter(\|s\| !s.is_empty())` 删掉 ⇒ **账本原文里**写着 `"to": ""` 的那条不再是广播 ⇒ 红 |
-//! | `d03` | `src/event.rs` 的 `with_to` 改成"空串也写进去"（`if !t.is_empty()` 删掉）⇒ 写侧落下 `"to": ""` ⇒ 红 |
-//! | `d05` `d06` | `src/pairing.rs` 的 `is_result` 改成恒 `false`（凡 `act` 都算意图）⇒ 结果被算成第二条意图 ⇒ 两条一起红 |
-//! | `d06` | `src/pairing.rs` 的 `Outcome::Mistraced` 分支并入 `Complete`（即不看 `trace`）⇒ 红 |
+//! | `d01` `d04` | `src/common/delivery.rs` 的 `filter(\|ev\| delivered_to(ev, recipient))` 换成 `filter(\|_\| true)`（把 `to` 当装饰）⇒ 两条一起红（`to` 指定的那条会出现在**别人的**出口上） |
+//! | `d07` | `src/common/delivery.rs` 的 `filter(\|s\| !s.is_empty())` 删掉 ⇒ **账本原文里**写着 `"to": ""` 的那条不再是广播 ⇒ 红 |
+//! | `d03` | `src/common/event.rs` 的 `with_to` 改成"空串也写进去"（`if !t.is_empty()` 删掉）⇒ 写侧落下 `"to": ""` ⇒ 红 |
+//! | `d05` `d06` | `src/common/pairing.rs` 的 `is_result` 改成恒 `false`（凡 `act` 都算意图）⇒ 结果被算成第二条意图 ⇒ 两条一起红 |
+//! | `d06` | `src/common/pairing.rs` 的 `Outcome::Mistraced` 分支并入 `Complete`（即不看 `trace`）⇒ 红 |
 //! | `d02` `d04` | 是**正控**：它们钉住"不该红的"——把投递判据改成"只送广播"（`delivered_to` 恒等于 `broadcast(ev)`）⇒ 这两条红，而 `d03`/`d07` 仍绿 |
 //!
 //! 逐条变异都在 VM 上真做过（改坏 → 红 → 恢复 → 绿），原始输出见本 change 的执行记录。
@@ -26,8 +26,11 @@ use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use world_core::pairing;
-use world_core::{delivery, event, World};
+use world_core::common::pairing;
+use world_core::{
+    common::{delivery, event},
+    World,
+};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -51,9 +54,9 @@ fn manifest_dir() -> PathBuf {
 fn open_world(tag: &str) -> World {
     let d = tmpdir(tag);
     World::open(
-        &manifest_dir().join("ontology.json"),
+        &manifest_dir().join("src/ontology_definition/ontology.json"),
         &d.join("ledger.jsonl"),
-        &manifest_dir().join("policy.json"),
+        &manifest_dir().join("src/gate/policy.json"),
     )
     .unwrap()
 }
@@ -473,9 +476,9 @@ fn d07_an_explicit_empty_to_in_the_raw_ledger_is_also_a_broadcast() {
     fs::write(&lp, raw).unwrap();
 
     let w = World::open_readonly(
-        &manifest_dir().join("ontology.json"),
+        &manifest_dir().join("src/ontology_definition/ontology.json"),
         &lp,
-        &manifest_dir().join("policy.json"),
+        &manifest_dir().join("src/gate/policy.json"),
     )
     .expect("工厂本体/策略 + 手写账本应当可以只读打开");
     let evs = w.ledger().read_all().unwrap();

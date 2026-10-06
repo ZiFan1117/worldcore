@@ -52,9 +52,9 @@ world-core —— 世界核心（语义事件是唯一真相）
   carrier do <能力> <动词> <请求号> [参数JSON] <socket>
                              手工跑一次：先问内核，准了才动手，动完回写结果
 
-默认路径: --ontology ./ontology.json  --ledger ./ledger.jsonl  --policy ./policy.json
+默认路径: --ontology ./src/ontology_definition/ontology.json  --ledger ./ledger.jsonl  --policy ./src/gate/policy.json
           --channel ./channel.json（**本仓未提供出厂文件**，由部署方给出）
-          --cap-dir ./cap.d（执行清单目录；本仓提供出厂样例）
+          --cap-dir ./src/carrier/cap.d（执行清单目录；本仓提供出厂样例）
 缺省身份: append 不写第 4 个参数时，actor 取 `world://user`——而 `policy.json` 把该主体列为
           **唯一可执行不可逆动作**的主体，并授权它写**任意**对象（`world://*`）。
           也就是说「不写身份」的后果是**最高授权**，不是匿名。
@@ -73,13 +73,13 @@ world-core —— 世界核心（语义事件是唯一真相）
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let mut ontology = PathBuf::from("ontology.json");
+    let mut ontology = PathBuf::from("src/ontology_definition/ontology.json");
     let mut ledger = PathBuf::from("ledger.jsonl");
-    let mut policy = PathBuf::from("policy.json");
+    let mut policy = PathBuf::from("src/gate/policy.json");
     // 通道配置（M09 接线：生产路径可调用）。**本仓不提供出厂 channel.json**（待人裁）。
     let mut channel_cfg = PathBuf::from("channel.json");
     // 执行清单目录（M10 接线）：**只回答"怎么干"**，允不允许由门禁裁决。
-    let mut cap_dir = PathBuf::from("cap.d");
+    let mut cap_dir = PathBuf::from("src/carrier/cap.d");
     // 内核套接字（M10 提交请求的落点）。**适配器对账本零写权限**，只能走它。
     let mut kernel_sock: Option<PathBuf> = None;
     // 是否允许终端确认（高危动作的人确认入口；**默认关闭 ⇒ 需要确认的动作一律拒绝**）。
@@ -279,7 +279,7 @@ fn main() -> ExitCode {
 /// 再等第一次真实使用。把它判红，等于**禁止"先声明"**，
 /// 那会毁掉「往上是领域概念各自生长」这条既有口径。
 ///
-/// ⇒ 与 [`crate::ontology::Ontology::load`] 里那条**会红**的"结构性死声明"的区别是：
+/// ⇒ 与 [`crate::ontology_definition::Ontology::load`] 里那条**会红**的"结构性死声明"的区别是：
 /// **「没人能走到它」是缺陷（拒启）；「还没人走到它」是常态（只报告）。**
 ///
 /// ## 射程（如实声明，不假装更宽）
@@ -322,7 +322,7 @@ fn cmd_usage(o: &Path, l: &Path, p: &Path) -> ExitCode {
     let mut used_cells: std::collections::BTreeSet<(String, String)> =
         std::collections::BTreeSet::new();
     for (subject, path, _) in state.entries() {
-        if let Some(t) = world_core::readmodel::type_of_subject(subject) {
+        if let Some(t) = world_core::ontology_instance::readmodel::type_of_subject(subject) {
             used_types.insert(t.to_string());
             used_cells.insert((t.to_string(), path.to_string()));
         }
@@ -391,7 +391,7 @@ fn cmd_usage(o: &Path, l: &Path, p: &Path) -> ExitCode {
 ///
 /// ⚠️ 本函数**不自己 `bind`**：监听套接字归载体所有（见内联模块 `serve` 的文档）。
 fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -> ExitCode {
-    use world_core::channel::{self, ChannelConfig};
+    use world_core::bus::{self, ChannelConfig};
 
     // ★ **A-05 属主断言在服务路径上也要跑**（与 `check` 同口径：法律／门禁／账本三项）。
     //   为什么它必须在这里：`serve` 是**真正跑的那条路径**；只在 `check` 上断言，
@@ -403,7 +403,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
             (p, "门禁策略（法律）"),
             (l, "账本（真相）"),
         ] {
-            if let Err(e) = world_core::guard::assert_owned_by(path, uid, role) {
+            if let Err(e) = world_core::gate::guard::assert_owned_by(path, uid, role) {
                 eprintln!("[FAIL] {e}");
                 return ExitCode::from(2);
             }
@@ -446,10 +446,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
             return ExitCode::from(2);
         }
     };
-    let mut bound: Vec<(
-        std::os::unix::net::UnixListener,
-        world_core::channel::Listener,
-    )> = Vec::new();
+    let mut bound: Vec<(std::os::unix::net::UnixListener, world_core::bus::Listener)> = Vec::new();
     for listener in listeners {
         let sock = match listener.local_addr() {
             Ok(a) => a.as_pathname().map(|x| x.to_path_buf()).unwrap_or_default(),
@@ -480,7 +477,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
             return ExitCode::from(2);
         }
     };
-    let limits = match channel::Limits::from_policy(p) {
+    let limits = match bus::Limits::from_policy(p) {
         Ok(x) => x,
         Err(e) => {
             eprintln!("[FAIL] {e}");
@@ -491,14 +488,14 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
     let watchdog = serve::watchdog_interval_from_env();
     // ④⑤ **先报到、后受理**（顺序由 `serve_activated_with` 的结构保证，有单元用例钉着）。
     let r = serve::serve_activated_with(notify.as_deref(), watchdog, "READY=1", || {
-        let mut sess = channel::Session::new(limits);
+        let mut sess = bus::Session::new(limits);
         // 受理循环：**每个口都要受理**（`usize::MAX` 次 = 直到进程被载体停掉）。
         // ★ 仍然是**同一个写者**（不许 fork、不许起第二个服务）；★ 仍然是**一次一条**
         //   （`max_connections` 只能为 1 那条**架构事实没动**，`BadConcurrency` 一个字没改）：
         //   多口只是把"口 B 上的连接要等口 A 让出循环"这件事**消掉**（轮询），**不是并发受理**。
         // ★ 复用通道那条**已受测**的路径（含四条资源边界与"身份不可自称"）。
         let (lsts, expects): (Vec<_>, Vec<_>) = bound.into_iter().unzip();
-        channel::serve_all_with(&mut w, &lsts, &expects, &mut sess, usize::MAX).map(|_| ())
+        bus::serve_all_with(&mut w, &lsts, &expects, &mut sess, usize::MAX).map(|_| ())
     });
     match r {
         Ok(()) => ExitCode::SUCCESS,
@@ -534,7 +531,7 @@ fn cmd_serve(o: &Path, l: &Path, p: &Path, cfg: &Path, owner_uid: Option<u32>) -
 ///
 /// ⚠️ 本函数**不写死任何条数**：每次从法律**现算**；用例独立复算对账，也不写死条数。
 fn cmd_describe(o: &Path) -> ExitCode {
-    let ont = match world_core::ontology::Ontology::load(o) {
+    let ont = match world_core::ontology_definition::Ontology::load(o) {
         Ok(x) => x,
         Err(e) => {
             eprintln!("[FAIL] {e}");
@@ -589,7 +586,7 @@ fn cmd_check(
                     (p, "门禁策略（法律）"),
                     (l, "账本（真相）"),
                 ] {
-                    if let Err(e) = world_core::guard::assert_owned_by(path, uid, role) {
+                    if let Err(e) = world_core::gate::guard::assert_owned_by(path, uid, role) {
                         eprintln!("[FAIL] {e}");
                         return ExitCode::from(2);
                     }
@@ -619,7 +616,7 @@ fn cmd_check(
                     w.policy().carrier_manifest().names().len()
                 ),
                 None => println!(
-                    "  互校 : ⚠️ 策略同级没有 `cap.d/` ⇒ **无从互校**（未校验要说出来）：\
+                    "  互校 : ⚠️ 找不到载体清单（`src/carrier/cap.d/` 或策略同级 `cap.d/`）⇒ **无从互校**（未校验要说出来）：\
                      那些能力的风险等级读不到，闸只知道可逆性布尔值"
                 ),
             }
@@ -708,7 +705,7 @@ fn cmd_policy(p: &Path) -> ExitCode {
                     pol.carrier_manifest().names().len()
                 ),
                 None => println!(
-                    "  互校 : ⚠️ 策略同级没有 `cap.d/`（载体侧什么都没声明）⇒ 这些能力的\
+                    "  互校 : ⚠️ 找不到载体清单（`src/carrier/cap.d/` 或策略同级 `cap.d/`）⇒ 这些能力的\
                      **风险等级读不到**（risk=未声明），不得当成低危"
                 ),
             }
@@ -808,7 +805,7 @@ fn cmd_state(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
 }
 
 fn cmd_kinds(o: &Path) -> ExitCode {
-    match world_core::ontology::Ontology::load(o) {
+    match world_core::ontology_definition::Ontology::load(o) {
         Ok(ont) => {
             println!(
                 "world={}  家族: {}",
@@ -958,7 +955,7 @@ mod project_serve {
             return ExitCode::from(2);
         }
         if let Some(dir) = sock.parent() {
-            if let Err(e) = world_core::guard::assert_not_other_writable(dir, "投影出口目录")
+            if let Err(e) = world_core::gate::guard::assert_not_other_writable(dir, "投影出口目录")
             {
                 eprintln!("[FAIL] {e}");
                 return ExitCode::from(2);
@@ -1066,7 +1063,7 @@ mod project_serve {
 }
 
 fn cmd_project(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
-    use world_core::project::{self, language, surface, visual};
+    use world_core::gui_projection::{self, language, surface, visual};
 
     let which = rest.get(1).map(String::as_str).unwrap_or("");
     // ★ `serve` 那一臂**在任何读模型之前**就分出去（它常驻、只推账本新行，不需要折叠状态）
@@ -1109,7 +1106,7 @@ fn cmd_project(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
             let a = language::render(&state, world, vocab);
             let b = visual::render(&state, world, vocab);
             let c = surface::render(&state, world, vocab);
-            match project::assert_same_source(&a, &b) {
+            match gui_projection::assert_same_source(&a, &b) {
                 Ok(()) => {
                     // ★ **两条独立腿**：只比 language↔visual 时，两者共用同一份折叠 ⇒ 该断言近乎恒真。
                     //   把屏面投影也拉进来两两互验，才让"同源"有牙（评判逐字：「恒真、抓不到东西」）。
@@ -1117,7 +1114,7 @@ fn cmd_project(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
                         ("语言投影与屏面投影", &a, &c),
                         ("视觉投影与屏面投影", &b, &c),
                     ] {
-                        if let Err(e) = project::assert_same_source(x, y) {
+                        if let Err(e) = gui_projection::assert_same_source(x, y) {
                             eprintln!("[FAIL] {what} 不同源：{e}");
                             return ExitCode::from(2);
                         }
@@ -1227,7 +1224,7 @@ fn cmd_read(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
     let mut by_type: std::collections::BTreeMap<String, Vec<(String, String, String)>> =
         std::collections::BTreeMap::new();
     for (subject, path, value) in state.entries() {
-        let t = world_core::readmodel::type_of_subject(subject)
+        let t = world_core::ontology_instance::readmodel::type_of_subject(subject)
             .unwrap_or("（未声明类型）")
             .to_string();
         let now = serde_json::to_string(value).unwrap_or_default();
@@ -1315,21 +1312,21 @@ fn cmd_subscribe(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
 
 /// `checkpoint` —— **M08 接线的生产调用点**（`W-03` / `P-09`）。
 ///
-/// 为什么要有这三个子命令：`src/checkpoint.rs` 此前**整册生产零调用点**
+/// 为什么要有这三个子命令：`src/ontology_instance/checkpoint.rs` 此前**整册生产零调用点**
 /// ——`capture` / `write` / `load` / `verify` / `resume_unverified` /
 /// `read_model_with_checkpoint` 在生产代码里各 0 命中，即"已实现"只是**文件里存在**，
 /// 用户永远用不到。接线的判据不是"文件里有"，而是"**生产路径可调用且契约要点逐条成立**"：
 ///
 /// | 契约要点（`WC-IC-M08`） | 本命令的落点 |
 /// |---|---|
-/// | 提供者：`M08` | `world_core::checkpoint` |
+/// | 提供者：`M08` | `world_core::ontology_instance::checkpoint` |
 /// | 输入：账本 + 快照路径 | `--ledger` / `<path>` |
 /// | 输出：快照文件 / 核验结论 / 续算指纹 | 三个子命令各自的 stdout |
-/// | 异常与错误码：`ext.world.Checkpoint.*` | 见 `src/checkpoint.rs` |
+/// | 异常与错误码：`ext.world.Checkpoint.*` | 见 `src/ontology_instance/checkpoint.rs` |
 /// | 不变量：**缓存不得成为第二真相** | `verify` 拿账本重算前 `base_seq` 条比对指纹；`resume` 与全量重算**逐字节**比对 |
 /// | 判据：删掉快照再算，结果不变 | `resume` 的输出必须等于 `state --json` |
 fn cmd_checkpoint(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
-    use world_core::checkpoint::{read_model_with_checkpoint, Checkpoint};
+    use world_core::ontology_instance::checkpoint::{read_model_with_checkpoint, Checkpoint};
     let sub = rest.get(1).map(String::as_str).unwrap_or("");
     let Some(cp_arg) = rest.get(2) else {
         eprintln!("用法: world-core checkpoint <write|verify|resume> <path>");
@@ -1433,7 +1430,7 @@ fn cmd_checkpoint(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
 
 /// `channel` —— **M09 接线的生产调用点**（`W-03` / `P-10`）。
 ///
-/// 为什么要有它：`src/channel.rs` 此前**整册生产零调用点**，`channel::bind` 连测试都零调用
+/// 为什么要有它：`src/bus/mod.rs` 此前**整册生产零调用点**，`bus::bind` 连测试都零调用
 /// ⇒「权限即身份」（`0600` + `chown` + 通道目录静态墙）**从未被执行过**；
 /// 原有测试用 `UnixListener::bind` 自己建套接字，**绕过了** `bind()`，
 /// 于是只验了"自称被拒"，**没验"别人连不上"**。
@@ -1450,7 +1447,7 @@ fn cmd_checkpoint(o: &Path, l: &Path, p: &Path, rest: &[String]) -> ExitCode {
 /// `bind` 不受四条边界约束（它不读消息，只建套接字）。
 #[cfg(unix)]
 fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> ExitCode {
-    use world_core::channel::{self, ChannelConfig};
+    use world_core::bus::{self, ChannelConfig};
     let sub = rest.get(1).map(String::as_str).unwrap_or("");
     let Some(sock_arg) = rest.get(2) else {
         eprintln!("用法: world-core --channel <path> channel <bind|accept> <socket>");
@@ -1491,7 +1488,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
         }
     }
     match sub {
-        "bind" => match channel::bind(&expect) {
+        "bind" => match bus::bind(&expect) {
             Ok(_lst) => {
                 println!("== world-core channel bind ==");
                 println!(
@@ -1525,7 +1522,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
             // **四个资源边界先取数**（`REQ-F-026`）：四条边界的数值**只**来自出厂配置，
             // 代码里没有缺省值 ⇒ 取不到就**拒启**（不许拿"没配"当"不设界"）。
             // 放在 `bind` 之前：连套接字都不该建——一个没有边界的通道不该上电。
-            let limits = match channel::Limits::from_policy(p) {
+            let limits = match bus::Limits::from_policy(p) {
                 Ok(x) => x,
                 Err(e) => {
                     eprintln!("[FAIL] {e}");
@@ -1539,8 +1536,8 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                 eprintln!("[FAIL] {e}");
                 return ExitCode::from(2);
             }
-            let mut sess = channel::Session::new(limits);
-            let lst = match channel::bind(&expect) {
+            let mut sess = bus::Session::new(limits);
+            let lst = match bus::bind(&expect) {
                 Ok(x) => x,
                 Err(e) => {
                     eprintln!("[FAIL] {e}");
@@ -1555,7 +1552,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                 }
             };
             if sub == "accept" {
-                return match channel::serve_once_with(&mut w, &lst, &expect, &mut sess) {
+                return match bus::serve_once_with(&mut w, &lst, &expect, &mut sess) {
                     Ok(ev) => {
                         println!("{}", serde_json::to_string(&ev).unwrap_or_default());
                         ExitCode::SUCCESS
@@ -1566,7 +1563,7 @@ fn cmd_channel(o: &Path, l: &Path, p: &Path, cfg: &Path, rest: &[String]) -> Exi
                     }
                 };
             }
-            match channel::serve_n_with(&mut w, &lst, &expect, &mut sess, n) {
+            match bus::serve_n_with(&mut w, &lst, &expect, &mut sess, n) {
                 Ok(ok) => {
                     println!("== world-core channel serve ==");
                     println!(

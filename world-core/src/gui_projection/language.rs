@@ -10,12 +10,12 @@
 //! {"subject":"world://notice/n-1","fields":{"muted":false}}
 //! ```
 //!
-//! - 第 1 行：同源头（见 [`crate::project`]）；
+//! - 第 1 行：同源头（见 [`crate::gui_projection`]）；
 //! - 其后每行一个主体，`fields` 是"字段路径 → 当前值"；
 //! - **不输出未发生的事**：只反映账本折叠出的状态，不猜测、不补默认值。
 
-use crate::project::{group_by_subject, header_line};
-use crate::readmodel::State;
+use crate::gui_projection::{group_by_subject, header_line};
+use crate::ontology_instance::readmodel::State;
 use serde_json::{json, Map, Value};
 
 /// 渲染语言投影。

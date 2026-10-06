@@ -57,8 +57,8 @@
 | **变更申请编号** | `CR-xxx`（一般变更）；`FC-YYYY-NNN`（**框架变更必填**） |
 
 > **框架变更不走 CR-**：敏感路径的**权威清单**是 `world-core/tools/scope_check.py` 的
-> `SENSITIVE_PATHS`（实测 `:130-141`）：`ontology.json`、`src/lib.rs`、`src/event.rs`、
-> `src/ontology.rs`、`src/ledger.rs`、`tests/`、`tools/`、`.github/workflows/`、
+> `SENSITIVE_PATHS`（实测 `:130-141`）：`ontology.json`、`src/lib.rs`、`src/common/event.rs`、
+> `src/ontology_definition/mod.rs`、`src/ledger/mod.rs`、`tests/`、`tools/`、`.github/workflows/`、
 > `.github/PULL_REQUEST_TEMPLATE.md`、`docs/评审/`。触及它们一律按框架变更处理，**必须走 R5**。
 > ⚠️ 旧写法里的 `skeleton/`、`docs/02-评审与门禁/` 在本仓**不存在**（实测 0 命中），已按上面的实测清单改正。
 
@@ -67,7 +67,7 @@
 本次改动**声明覆盖的路径**（供 `tools/scope_check.py` 判定是否越界）：
 
 ```
-<例如：src/ledger.rs, tests/acceptance.rs>
+<例如：src/ledger/mod.rs, tests/acceptance.rs>
 ```
 
 - [ ] 改动未超出上述声明范围

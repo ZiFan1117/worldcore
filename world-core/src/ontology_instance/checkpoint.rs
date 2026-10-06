@@ -29,8 +29,8 @@
 //! - 快照文件若可被他人写，攻击者可篡改缓存——`verify` 能检出（指纹不符），
 //!   但**不核验的路径会吃下篡改内容**。故 `write` 仍过静态墙检查。
 
-use crate::guard;
-use crate::readmodel::State;
+use crate::gate::guard;
+use crate::ontology_instance::readmodel::State;
 use serde_json::{json, Value};
 use std::path::Path;
 

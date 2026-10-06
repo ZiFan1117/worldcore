@@ -8,8 +8,8 @@
 | 审核人 / 批准人 | `<待人工>` / — |
 | 文档状态 | 草案（**未经评审、未经批准**） |
 | 受控模块 | `M08` 检查点（Checkpoint）——模块号与实现位置取自 `WC-MODREG-001-v0.1` §二 |
-| 实现位置 | `world-core/src/checkpoint.rs`（**只读核对，未修改**） |
-| 依据 | `WC-R4-DISP-001-v0.1` §二 A-4；`WC-MODREG-001-v0.1` §二；`WC-LLD-001-v0.1` §七；`WC-IC-001-v0.1` §一/§三；源码 `src/checkpoint.rs`、`src/readmodel.rs`；上游 `07/2-依据/15`、`07/4-计划/03` |
+| 实现位置 | `world-core/src/ontology_instance/checkpoint.rs`（**只读核对，未修改**） |
+| 依据 | `WC-R4-DISP-001-v0.1` §二 A-4；`WC-MODREG-001-v0.1` §二；`WC-LLD-001-v0.1` §七；`WC-IC-001-v0.1` §一/§三；源码 `src/ontology_instance/checkpoint.rs`、`src/ontology_instance/readmodel.rs`；上游 `07/2-依据/15`、`07/4-计划/03` |
 | 上游需求 | `REQ-F-021`（检查点/快照可重建）、`REQ-N-002`（启动时间=重放时间，靠检查点加速） |
 
 > **裸 `Step N` 视为无效引用**——本文件引用 Step 处一律写「项目 Step N」或「上游 Step N」；对照表唯一权威处 = `WC-MODREG-001` §2.2，其他文档只引用、不复写对照表。
@@ -48,11 +48,11 @@
 
 ### 1.2 设计约束只有一条，其余全部由它推出
 
-`src/checkpoint.rs:9` 把它写成一句原文：
+`src/ontology_instance/checkpoint.rs:9` 把它写成一句原文：
 
 > **快照永远是缓存的地位：账本说它错了，它就错了。**
 
-由此推出的三件事（`src/checkpoint.rs:11-16`）：
+由此推出的三件事（`src/ontology_instance/checkpoint.rs:11-16`）：
 
 1. **必须带 `base_seq`**——快照声明"折叠到哪一条为止"，**不能**声称比账本更靠前（`:12`）；
 2. **必须可被核验**——核验不通过**即拒绝使用**，"宁可全量重算，也不信一份说不清的缓存"（`:13-14`）；
@@ -83,9 +83,9 @@
 
 | 项 | 事实 | 来源 |
 |---|---|---|
-| 路径由谁给 | **由调用方显式传入** `Checkpoint::write(&Path)` / `Checkpoint::load(&Path)`；库内**不设**默认路径 | `src/checkpoint.rs:69`、`:86`；`WC-IC-001` 通则 `IF-D-03` |
+| 路径由谁给 | **由调用方显式传入** `Checkpoint::write(&Path)` / `Checkpoint::load(&Path)`；库内**不设**默认路径 | `src/ontology_instance/checkpoint.rs:69`、`:86`；`WC-IC-001` 通则 `IF-D-03` |
 | 文件名约定 | **源码中无任何约定**。测试用例自用的是临时目录下的 `checkpoint.json` | `tests/contract.rs:515` |
-| 与账本/本体的关系 | **无**。路径之间没有推导关系，也没有"状态目录"结构被实现 | `src/checkpoint.rs` 全文；`src/lib.rs:20`（仅 `pub mod checkpoint;`） |
+| 与账本/本体的关系 | **无**。路径之间没有推导关系，也没有"状态目录"结构被实现 | `src/ontology_instance/checkpoint.rs` 全文；`src/lib.rs:20`（仅 `pub mod checkpoint;`） |
 | 是否已被运行时使用 | **没有**。生产代码里**没有任何调用点**：`0` 处调用 `Checkpoint::capture/load/write/verify/resume_unverified`；`World::read_model()` 是全量折叠，不读检查点；CLI 无检查点子命令 | `src/lib.rs:250-257`（`read_model` 注释明说"不缓存、不写盘"）、`:254`（"将来若加快照（`M08`）…"）；`src/main.rs` 中 `checkpoint` 零命中；调用点全表见 §七 |
 
 > **结论（必须说清）**：**"路径与命名"这一节在源码里取不到规定**——
@@ -103,13 +103,13 @@
 
 | 项 | 事实 | 来源 |
 |---|---|---|
-| 序列化方式 | `serde_json::to_string(&doc)` —— **紧凑形态**（非 `to_string_pretty`） | `src/checkpoint.rs:76` |
-| 写入方式 | `std::fs::write(path, text)` —— **一次性整文件写入**（非追加） | `src/checkpoint.rs:78` |
+| 序列化方式 | `serde_json::to_string(&doc)` —— **紧凑形态**（非 `to_string_pretty`） | `src/ontology_instance/checkpoint.rs:76` |
+| 写入方式 | `std::fs::write(path, text)` —— **一次性整文件写入**（非追加） | `src/ontology_instance/checkpoint.rs:78` |
 | 行数 | **1 行**（紧凑 JSON 的字符串内不含真实换行） | 由 `:76` 推出 |
 | 文件结尾 | **无 `\n`**（`to_string` 不追加换行） | 由 `:76-78` 推出 |
-| 编码 | 假定 UTF-8；**代码未显式校验编码** | `src/checkpoint.rs:87`（`read_to_string`） |
-| 键序 | 写入顺序 = `checkpoint` → `base_seq` → `digest` → `state` | `src/checkpoint.rs:70-75` |
-| 键序是否受担保 | **不受担保**。读取侧按键名取值、不依赖顺序；"同样字节 ⇒ 同样文件"**未写成判据** | `src/checkpoint.rs:89-111`（逐键 `get`） |
+| 编码 | 假定 UTF-8；**代码未显式校验编码** | `src/ontology_instance/checkpoint.rs:87`（`read_to_string`） |
+| 键序 | 写入顺序 = `checkpoint` → `base_seq` → `digest` → `state` | `src/ontology_instance/checkpoint.rs:70-75` |
+| 键序是否受担保 | **不受担保**。读取侧按键名取值、不依赖顺序；"同样字节 ⇒ 同样文件"**未写成判据** | `src/ontology_instance/checkpoint.rs:89-111`（逐键 `get`） |
 | 与账本行的格式差异 | 账本是 **JSON Lines**（一行一事件）且**必须以 `\n` 结尾**；检查点是**单对象、无结尾换行** | `WC-IC-001-v0.1:56`（账本不变量②）；本文 `:76-78` |
 
 ### 2.3 字段表
@@ -118,10 +118,10 @@
 |---|---|---|---|---|---|
 | `checkpoint` | 整数（`u64`） | **是** | **必须恰好等于 `1`**（本版 `Checkpoint::FORMAT = 1`）；不等即拒 | 缺 → `Checkpoint.NoFormat`；不等 → `Checkpoint.BadFormat` | `:46`（`FORMAT`）、`:91-99` |
 | `base_seq` | 整数（`u64`） | **是** | 快照自称"折叠到账本第几条为止"；核验时**必须**满足"账本中 `seq <= base_seq` 的事件数 **恰好** `base_seq` 条" | 缺 → `Checkpoint.MissingBaseSeq`；不满足 → `Checkpoint.Stale` | `:100-102`、`:123-135` |
-| `digest` | 字符串 | **是** | 形态 `fnv1a64:` + 16 位小写十六进制（由 `format!("fnv1a64:{h:016x}")` 产生）。**非加密**，不得用于安全判断 | 缺 → `Checkpoint.MissingDigest`；不符 → `Checkpoint.DigestMismatch` | `:103-107`；`src/readmodel.rs:229-243` |
-| `state` | 对象 | **是** | `State::to_json()` 的**规范形式**，含 5 个字段：`last_seq`、`seen`、`acts`、`notices`、`objects` | 缺 → `Checkpoint.MissingState`；内部缺字段 → `ReadModel.BadState` | `:108-111`；`src/checkpoint.rs:50-56`；`src/readmodel.rs:211-227`、`:170-199` |
+| `digest` | 字符串 | **是** | 形态 `fnv1a64:` + 16 位小写十六进制（由 `format!("fnv1a64:{h:016x}")` 产生）。**非加密**，不得用于安全判断 | 缺 → `Checkpoint.MissingDigest`；不符 → `Checkpoint.DigestMismatch` | `:103-107`；`src/ontology_instance/readmodel.rs:229-243` |
+| `state` | 对象 | **是** | `State::to_json()` 的**规范形式**，含 5 个字段：`last_seq`、`seen`、`acts`、`notices`、`objects` | 缺 → `Checkpoint.MissingState`；内部缺字段 → `ReadModel.BadState` | `:108-111`；`src/ontology_instance/checkpoint.rs:50-56`；`src/ontology_instance/readmodel.rs:211-227`、`:170-199` |
 
-**`state` 必须满足的约束**（由 `State::from_json` 的构造过程给出，`src/readmodel.rs:170-199`）：
+**`state` 必须满足的约束**（由 `State::from_json` 的构造过程给出，`src/ontology_instance/readmodel.rs:170-199`）：
 
 | 子字段 | 类型 | 必填 | 事实 |
 |---|---|---|---|
@@ -137,10 +137,10 @@
 | 候选元数据 | 是否在文件里 | 事实与影响 |
 |---|---|---|
 | `base_seq` | ✅ **在** | 唯一的位置元数据；见 §2.3 |
-| `digest` | ✅ **在** | 状态指纹；**注意它不是词表 hash**，是 `State::to_json()` 的 FNV-1a（`src/readmodel.rs:234-243`） |
-| 世界版本（`world`） | ❌ **不在** | 检查点文件里**没有** `world` 字段。事件信封里有 `world`（`src/event.rs:28`，常量 `WORLD_VERSION = 1`，`:16`）。⇒ **检查点无法自我声明"我是哪个世界版本的缓存"** |
+| `digest` | ✅ **在** | 状态指纹；**注意它不是词表 hash**，是 `State::to_json()` 的 FNV-1a（`src/ontology_instance/readmodel.rs:234-243`） |
+| 世界版本（`world`） | ❌ **不在** | 检查点文件里**没有** `world` 字段。事件信封里有 `world`（`src/common/event.rs:28`，常量 `WORLD_VERSION = 1`，`:16`）。⇒ **检查点无法自我声明"我是哪个世界版本的缓存"** |
 | 词表 hash（`vocab_hash`） | ❌ **不在** | 检查点文件里**没有**词表身份字段（`ontology.rs` 提供 `vocab_hash()`，但检查点不记录它，`WC-IC-001-v0.1:79`）。⇒ **换词表后旧检查点不会被自己发现**；能否用别的机制挡住，见 §四 |
-| 写入时刻（`at`） | ❌ **不在** | 无时间字段。事件信封里有 `at`（`src/event.rs:32`，`unix_secs()`，`:73-78`），检查点不记录。⇒ 无"快照有多旧"的自述 |
+| 写入时刻（`at`） | ❌ **不在** | 无时间字段。事件信封里有 `at`（`src/common/event.rs:32`，`unix_secs()`，`:73-78`），检查点不记录。⇒ 无"快照有多旧"的自述 |
 
 > **为什么"不在"要写这么重**：`WC-R4-DISP-001` §二 F 组对 `M08-D04/D05` 的处置明确要求
 > `WC-LLD-001 §七` 增「不变量」（含 **是否携带 `world`/`vocab_hash`**）与「失败形态」两行。
@@ -165,13 +165,13 @@
 
 | 项 | 事实 | 来源 |
 |---|---|---|
-| **谁会写** | `Checkpoint::capture(&State)` 造快照 → `Checkpoint::write(&Path)` 落盘。**capture 只接受一个 `&State`**，因此**只能把"某一时刻已经折叠出来的状态"存下来** | `src/checkpoint.rs:50-56`、`:69-83` |
-| **写入后的检查** | 过**静态墙**：`guard::assert_after_create(path, "检查点（缓存）")` → `assert_not_other_writable`（**文件对 group/other 可写即失败**）。注释原文："缓存也不该由被管者改写（否则'未核验路径'会吃下篡改内容）" | `src/checkpoint.rs:80-81`；`src/guard.rs:156-158`、`:43`、`:53`、`:105` |
-| `base_seq` 怎么来 | `state.last_seq()`——**不是**调用方参数，也不是账本长度 | `src/checkpoint.rs:52` |
+| **谁会写** | `Checkpoint::capture(&State)` 造快照 → `Checkpoint::write(&Path)` 落盘。**capture 只接受一个 `&State`**，因此**只能把"某一时刻已经折叠出来的状态"存下来** | `src/ontology_instance/checkpoint.rs:50-56`、`:69-83` |
+| **写入后的检查** | 过**静态墙**：`guard::assert_after_create(path, "检查点（缓存）")` → `assert_not_other_writable`（**文件对 group/other 可写即失败**）。注释原文："缓存也不该由被管者改写（否则'未核验路径'会吃下篡改内容）" | `src/ontology_instance/checkpoint.rs:80-81`；`src/gate/guard.rs:156-158`、`:43`、`:53`、`:105` |
+| `base_seq` 怎么来 | `state.last_seq()`——**不是**调用方参数，也不是账本长度 | `src/ontology_instance/checkpoint.rs:52` |
 | **触发条件/阈值** | **未定**。`WC-HLD-001-v0.1:452` 待定项 1："`M08` 检查点的格式与触发阈值——需先有数据规模与 QG-02 数值（【候选】待人工）"，时点 "S3 后"。**该待定项仍未关闭** ⇒ **本文不发明阈值** | `WC-HLD-001-v0.1:452`、`:175-176` |
 | 运行时是否自动写 | **否**。生产代码里没有写入调用点（§2.1、§七） | `src/lib.rs:250-257`；`src/main.rs` 零命中 |
 
-> **文档与代码不符一处（如实登记）**：`src/checkpoint.rs:68` 的文档注释写
+> **文档与代码不符一处（如实登记）**：`src/ontology_instance/checkpoint.rs:68` 的文档注释写
 > "写入快照（纯文本 JSON）。**写后 fsync**，并过静态墙"，
 > 但 `write()` 的实现里**没有 fsync**（也没有 `Checkpoint.SyncFail` 这类错误码，
 > 而账本侧**有** `SyncFail`，见 `WC-IC-001-v0.1:52`）。
@@ -182,22 +182,22 @@
 
 | 项 | 事实 | 来源 |
 |---|---|---|
-| 读的方式 | `Checkpoint::load(&Path)`：整文件读入 → `serde_json::from_str` → 逐字段校验（§2.3） | `src/checkpoint.rs:86-117` |
-| 读回来以后两条路 | ① **快路径**：`resume_unverified(&账本)`——`State::from_json(state)` 后用 `apply` 依次折叠 `seq > base_seq` 的事件；② **核验路径**：先 `verify(&账本)`，通过再续算 | `src/checkpoint.rs:148-161`、`:119-146`；`WC-LLD-001-v0.1:102-104` |
-| 统一入口 | `read_model_with_checkpoint(账本, Option<&Checkpoint>)`：`None` → `State::fold(账本)`；`Some(cp)` → `cp.resume_unverified(账本)` | `src/checkpoint.rs:167-175` |
-| **`verify` 是可选的** | 名字里带 `unverified` 是**刻意的**："调用方**必须知道**自己跳过了核验"；`verify` 的成本 = **全量折叠成本**（要重算一遍）。故正常路径是**不核验直接续算、只在怀疑时核验** | `src/checkpoint.rs:26-28`、`:148-151`、`:119-122` |
+| 读的方式 | `Checkpoint::load(&Path)`：整文件读入 → `serde_json::from_str` → 逐字段校验（§2.3） | `src/ontology_instance/checkpoint.rs:86-117` |
+| 读回来以后两条路 | ① **快路径**：`resume_unverified(&账本)`——`State::from_json(state)` 后用 `apply` 依次折叠 `seq > base_seq` 的事件；② **核验路径**：先 `verify(&账本)`，通过再续算 | `src/ontology_instance/checkpoint.rs:148-161`、`:119-146`；`WC-LLD-001-v0.1:102-104` |
+| 统一入口 | `read_model_with_checkpoint(账本, Option<&Checkpoint>)`：`None` → `State::fold(账本)`；`Some(cp)` → `cp.resume_unverified(账本)` | `src/ontology_instance/checkpoint.rs:167-175` |
+| **`verify` 是可选的** | 名字里带 `unverified` 是**刻意的**："调用方**必须知道**自己跳过了核验"；`verify` 的成本 = **全量折叠成本**（要重算一遍）。故正常路径是**不核验直接续算、只在怀疑时核验** | `src/ontology_instance/checkpoint.rs:26-28`、`:148-151`、`:119-122` |
 | 启动时是否读 | **当前不读**。上游 `07/4-计划/03` §五 ④ 要求"重放账本 → 算出读模型（**有检查点就：载入检查点 + 只重放增量**）"；`WC-R4-DISP-001` §二 C 组指出这里需裁决"启动是否载入检查点（上游要求载入、`CR-006` 要求仅显式）"。**该裁决未落笔** | `07/4-计划/03:183`；`WC-R4-DISP-001-v0.1:75` |
 | 与"读模型新鲜度"的关系 | `07/2-依据/15:314`、`07/4-计划/03:240` 的待定项 1："投影取带 `base_seq` 的快照，还是常驻订阅增量？混用时怎么判断'我落后了'？"——**未决**。`WC-R4-DISP-001` §二 C 组对 `§4.5` 的处置要求增写"`base_seq` 服务于**读者**判断过期" | `07/2-依据/15:314`；`07/4-计划/03:240`；`WC-R4-DISP-001-v0.1:77` |
 
 > ⚠ **术语陷阱（必须说清）**：上游 `07/2-依据/15` 与 `07/4-计划/03` 里的 `base_seq`
-> 讲的是"**投影读者**判断自己落后了"；而 `src/checkpoint.rs` 的 `base_seq`
+> 讲的是"**投影读者**判断自己落后了"；而 `src/ontology_instance/checkpoint.rs` 的 `base_seq`
 > 讲的是"**这份缓存折叠到账本第几条为止**"。两者**同名不同用**。
 > 本文只定义**后者**（源码事实）；前者是否要落在同一个字段上，**未决**
 > （`WC-R4-DISP-001-v0.1:77` 已要求登记"项目静默收窄"）。
 
 ### 3.3 何时判失效（**三条拒用路径**）
 
-`verify()` 的顺序（`src/checkpoint.rs:122-146`）：
+`verify()` 的顺序（`src/ontology_instance/checkpoint.rs:122-146`）：
 
 ```
 ① 取账本中 seq <= base_seq 的前缀
@@ -206,7 +206,7 @@
 ④ 若 recomputed.digest() != 快照自称的 digest  →  DigestMismatch——以账本为准，本快照作废
 ```
 
-`load()` 的拒收（在 `verify` 之前，`src/checkpoint.rs:86-117`）：
+`load()` 的拒收（在 `verify` 之前，`src/ontology_instance/checkpoint.rs:86-117`）：
 
 ```
 ⑤ 不是合法 JSON                 →  BadJson
@@ -236,17 +236,17 @@
 
 | 出处 | 原文 |
 |---|---|
-| `src/checkpoint.rs:14` | "核验**不通过即拒绝使用**——**宁可全量重算**，也不信一份说不清的缓存" |
-| `src/checkpoint.rs:164-166` | "**有快照走快路径，没快照走全量——两者结果必须逐字节相同**"；"这个函数就是 `REQ-F-021` 的可检验面：**删掉快照文件再调一次，结果不变**" |
-| `src/checkpoint.rs:140` | `DigestMismatch` 的理由里写明"本快照作废并须重新生成" |
+| `src/ontology_instance/checkpoint.rs:14` | "核验**不通过即拒绝使用**——**宁可全量重算**，也不信一份说不清的缓存" |
+| `src/ontology_instance/checkpoint.rs:164-166` | "**有快照走快路径，没快照走全量——两者结果必须逐字节相同**"；"这个函数就是 `REQ-F-021` 的可检验面：**删掉快照文件再调一次，结果不变**" |
+| `src/ontology_instance/checkpoint.rs:140` | `DigestMismatch` 的理由里写明"本快照作废并须重新生成" |
 
 **特别区分三种"不可以用旧值"的场合**（这三种的处置**不同**，不得混为一谈）：
 
 | 场合 | 正确行为 | 事实/依据 |
 |---|---|---|
-| （a）**快照文件不存在** | **静默走全量**（这是正常状态，不是错误） | `src/checkpoint.rs:171-172`（`None => State::fold(...)`） |
-| （b）**快照存在但失效** | **降级重算**（拒绝使用该文件，但世界继续可用） | `src/checkpoint.rs:14`、`:140`；`WC-R4-DISP-001-v0.1:77` 要求裁决"**坏快照：拒启还是降级重算**" |
-| （c）**账本本身坏了**（序号断裂 / 旧值说谎 / 未知家族） | **必须报错，不得猜** | `src/readmodel.rs:17-18`、`:94-98`、`:146-149`、`:110-115`；`tests/acceptance.rs` 的 `t8` |
+| （a）**快照文件不存在** | **静默走全量**（这是正常状态，不是错误） | `src/ontology_instance/checkpoint.rs:171-172`（`None => State::fold(...)`） |
+| （b）**快照存在但失效** | **降级重算**（拒绝使用该文件，但世界继续可用） | `src/ontology_instance/checkpoint.rs:14`、`:140`；`WC-R4-DISP-001-v0.1:77` 要求裁决"**坏快照：拒启还是降级重算**" |
+| （c）**账本本身坏了**（序号断裂 / 旧值说谎 / 未知家族） | **必须报错，不得猜** | `src/ontology_instance/readmodel.rs:17-18`、`:94-98`、`:146-149`、`:110-115`；`tests/acceptance.rs` 的 `t8` |
 
 > ⚠ **（b）的裁决尚未落笔**。`WC-R4-DISP-001` §二 C 组把"坏快照：拒启还是降级重算"
 > 列为**须增写的裁决**（`M08-D04/D06`）。本文按**代码现状**陈述：
@@ -265,10 +265,10 @@
 
 | # | 陈述 | 性质 | 来源 |
 |---|---|---|---|
-| a1 | 全量折叠**只接受连续的账本前缀**：`apply` 逐步核对 `seq == last_seq + 1`，不连续即 `ReadModel.SeqGap` | ✅ 代码事实 | `src/readmodel.rs:92-99`（`let expected = self.last_seq + 1;` `:92`） |
-| a2 | 续算 `resume_unverified` **不做任何输入连续性校验**：它只 `filter(seq > base_seq)` 后逐条 `apply` | ✅ 代码事实 | `src/checkpoint.rs:152-160`（filter `:154-156`） |
-| a3 | 该 filter **本身不会**把缺口"滤掉"：若 `state.last_seq == base_seq`（这正是 `capture()` 的构造，`:50-56`），则 `apply` 的 `expected` 从 `base_seq + 1` 起——缺口落在"被保留"的那一侧，**照样会被 `SeqGap` 抓到** | ✅ 由 a2 + `:50-56` 推出 | `src/checkpoint.rs:52`（`base_seq: state.last_seq()`） |
-| a4 | ⇒ 要让"缺口被跳过"，需要**额外前提**：`state.last_seq > base_seq`（`state` 自称已折叠到比 `base_seq` 更靠后），使 filter 把缺口连同其前的连续段一起滤掉。**该前提在现行代码里由构造保证不成立**（a3），且 `load`/`verify` 都**不校验**二者相等（§2.3） | ⚠ **条件性推论，未实测** | `src/checkpoint.rs:122-146`（`verify` 只比指纹）、`:152-160`；§2.3 |
+| a1 | 全量折叠**只接受连续的账本前缀**：`apply` 逐步核对 `seq == last_seq + 1`，不连续即 `ReadModel.SeqGap` | ✅ 代码事实 | `src/ontology_instance/readmodel.rs:92-99`（`let expected = self.last_seq + 1;` `:92`） |
+| a2 | 续算 `resume_unverified` **不做任何输入连续性校验**：它只 `filter(seq > base_seq)` 后逐条 `apply` | ✅ 代码事实 | `src/ontology_instance/checkpoint.rs:152-160`（filter `:154-156`） |
+| a3 | 该 filter **本身不会**把缺口"滤掉"：若 `state.last_seq == base_seq`（这正是 `capture()` 的构造，`:50-56`），则 `apply` 的 `expected` 从 `base_seq + 1` 起——缺口落在"被保留"的那一侧，**照样会被 `SeqGap` 抓到** | ✅ 由 a2 + `:50-56` 推出 | `src/ontology_instance/checkpoint.rs:52`（`base_seq: state.last_seq()`） |
+| a4 | ⇒ 要让"缺口被跳过"，需要**额外前提**：`state.last_seq > base_seq`（`state` 自称已折叠到比 `base_seq` 更靠后），使 filter 把缺口连同其前的连续段一起滤掉。**该前提在现行代码里由构造保证不成立**（a3），且 `load`/`verify` 都**不校验**二者相等（§2.3） | ⚠ **条件性推论，未实测** | `src/ontology_instance/checkpoint.rs:122-146`（`verify` 只比指纹）、`:152-160`；§2.3 |
 
 即：a1/a2 的**处置差异是真实的**（一条查连续性、一条不查），但它**要变成静默错算还需要 a4 那个额外前提**；
 **不是"喂进带缺口的输入就会静默跳号"。** 上一版本文把 a3/a4 混为一谈，已在本次修订更正。
@@ -277,8 +277,8 @@
 
 | # | 不可达理由 | 来源 |
 |---|---|---|
-| 1 | **连续性在读账本时就被强制**：`Ledger::open` 的"**第二步：逐行校验 `seq` 连续（缺号即损坏，拒绝启动）**"——`if seq != last + 1` 即返回 `ext.world.Ledger.SeqGap` 并**拒绝启动**。⇒ **任何经 `Ledger` 读到的事件序列必然是从 1 开始的连续前缀**，缺口**到不了** `read_model_with_checkpoint` | `src/ledger.rs:211-231`（断言 `:223-228`；段首注释 `:211`）；另见 `WC-IC-001-v0.1:51`（`Ledger::open` 的 `SeqGap`＝"缺号即拒启"） |
-| 2 | **`read_model_with_checkpoint` 当前零生产调用者**：`src/` 内只有定义（`checkpoint.rs:167-175`、`:152-161`），**调用点全在测试里**，且测试喂进去的 `&all` 是**测试自己造的切片**，不是从账本读出来的 | 定义 `src/checkpoint.rs:167-175`、`:152-161`；调用点 `tests/contract.rs:496`、`:500`、`:504`、`:517`、`:520`、`:525`、`:568`、`:578`、`:585`、`:592`；§7.1 全表 |
+| 1 | **连续性在读账本时就被强制**：`Ledger::open` 的"**第二步：逐行校验 `seq` 连续（缺号即损坏，拒绝启动）**"——`if seq != last + 1` 即返回 `ext.world.Ledger.SeqGap` 并**拒绝启动**。⇒ **任何经 `Ledger` 读到的事件序列必然是从 1 开始的连续前缀**，缺口**到不了** `read_model_with_checkpoint` | `src/ledger/mod.rs:211-231`（断言 `:223-228`；段首注释 `:211`）；另见 `WC-IC-001-v0.1:51`（`Ledger::open` 的 `SeqGap`＝"缺号即拒启"） |
+| 2 | **`read_model_with_checkpoint` 当前零生产调用者**：`src/` 内只有定义（`checkpoint.rs:167-175`、`:152-161`），**调用点全在测试里**，且测试喂进去的 `&all` 是**测试自己造的切片**，不是从账本读出来的 | 定义 `src/ontology_instance/checkpoint.rs:167-175`、`:152-161`；调用点 `tests/contract.rs:496`、`:500`、`:504`、`:517`、`:520`、`:525`、`:568`、`:578`、`:585`、`:592`；§7.1 全表 |
 | 3 | 由 1 + 2 得：**"坏账本上静默跳过"在现行代码里不可达，不是现行缺陷** | —— |
 
 **（c）性质（不要把这一节读大）**：即便活化，它也是**控制流差异**（过滤 vs 逐条推进），
@@ -298,7 +298,7 @@
 （前提 2 直接消失：会出现生产调用者）。
 ⇒ 现将该不对称登记为一条**接线约束**：
 
-> **接线约束 W-1**：**`M08` 接线时，喂给 `read_model_with_checkpoint` 的事件必须来自 `Ledger` 的读路径**（`Ledger::open` 已在 `src/ledger.rs:211-231` 强制连续性、缺号即拒启）；
+> **接线约束 W-1**：**`M08` 接线时，喂给 `read_model_with_checkpoint` 的事件必须来自 `Ledger` 的读路径**（`Ledger::open` 已在 `src/ledger/mod.rs:211-231` 强制连续性、缺号即拒启）；
 > **不得由调用方自行解析账本文件绕过该校验**（例如自己 `serde_json` 逐行读、或对账本做过滤/切片后再喂进来）。
 > 违反它的后果：全量折叠**必然**会拦下不连续的输入（`ReadModel.SeqGap`），
 > 而续算**不做这项检查**（§3.5 a1/a2）——于是"有快照的路径比无快照的路径更宽松"。
@@ -375,7 +375,7 @@
 > **`【待确认】`**：是否存在仓库外/未入库的检查点脚手架——
 > 若有，本文应引用它；若没有，则"手工五步"目前**无法照抄执行**，只能用 `cargo test` 的两条用例代替。
 > **验证方法**：`git ls-files world-core | findstr /i checkpoint` 只应命中
-> `src/checkpoint.rs` 与 `docs/` 下的文档；`git grep -n "Checkpoint::" -- world-core/src world-core/tests` 的调用点应**只在 `tests/contract.rs`**。
+> `src/ontology_instance/checkpoint.rs` 与 `docs/` 下的文档；`git grep -n "Checkpoint::" -- world-core/src world-core/tests` 的调用点应**只在 `tests/contract.rs`**。
 
 **第 3 步——反例（必须能观测到"红"）**：
 
@@ -411,7 +411,7 @@
 
 ### 5.1 两者都是派生，但**不是同一个概念**
 
-| 维度 | `M03` 读模型（`src/readmodel.rs`） | `M08` 检查点（`src/checkpoint.rs`） |
+| 维度 | `M03` 读模型（`src/ontology_instance/readmodel.rs`） | `M08` 检查点（`src/ontology_instance/checkpoint.rs`） |
 |---|---|---|
 | 一句话 | **状态本身**：`state = fold(events[0..seq])` | **状态折叠结果的缓存**：把某次 `fold` 的产物存下来复用 |
 | 层 | L2 状态 | L2 状态（同一层） |
@@ -419,7 +419,7 @@
 | 谁是"必须对的" | 对账本**必然**一致（它就是算出来的） | 可能**陈旧/被篡改/不符**——必须可核验 |
 | 删掉它的后果 | **无**（不存在可删的东西） | **必须无**（判据②，§四） |
 | 出错的处置 | 报错而不猜（`SeqGap`/`BeforeMismatch`/`UnknownKind`） | 拒绝使用、改全量重算 |
-| 代码事实 | `src/readmodel.rs:11-18`（三条硬性质）、`:25-26`（"快照在 v1 不存在…将来若加，只能是带 `base_seq` 的缓存"） | `src/checkpoint.rs:1-31` |
+| 代码事实 | `src/ontology_instance/readmodel.rs:11-18`（三条硬性质）、`:25-26`（"快照在 v1 不存在…将来若加，只能是带 `base_seq` 的缓存"） | `src/ontology_instance/checkpoint.rs:1-31` |
 | 文档事实 | `WC-MODREG-001-v0.1:52`（`M03` 行）、`WC-HLD-001-v0.1:168-172` | `WC-MODREG-001-v0.1:57`（`M08` 行）、`WC-HLD-001-v0.1:166-176` |
 
 ### 5.2 为什么**不能**合并成一个概念（三条理由，都有出处）
@@ -434,15 +434,15 @@
 |---|---|---|
 | `M08` **只读** `M03` 与账本，**不得写**账本 | L2 层通则："只读 L1；**不得**写 L1" | `WC-MODREG-001-v0.1:73`、`:106` |
 | `M08` 不得成为状态出口 | 状态的对外出口仍是 `World::read_model()`（全量折叠）；检查点是**入口侧的加速**，不是新的真相出口 | `src/lib.rs:250-257` |
-| `M08` 的文件也过静态墙 | "缓存也不该由被管者改写" | `src/checkpoint.rs:80-81` |
+| `M08` 的文件也过静态墙 | "缓存也不该由被管者改写" | `src/ontology_instance/checkpoint.rs:80-81` |
 | 依赖方向 | 依赖图里 `M03 读模型 ⇠ M08 检查点`，同处 L2 | `WC-MODREG-001-v0.1:93` |
 
-> **一处容易读错的代码关系**：`M08` **依赖** `M03` 的 `State`（`use crate::readmodel::State;`，
-> `src/checkpoint.rs:33`），而 `M03` 的 `from_json` 注释**反向提到** `M08`
-> （"用途：检查点（`M08`）从缓存恢复"，`src/readmodel.rs:166-169`）。
+> **一处容易读错的代码关系**：`M08` **依赖** `M03` 的 `State`（`use crate::ontology_instance::readmodel::State;`，
+> `src/ontology_instance/checkpoint.rs:33`），而 `M03` 的 `from_json` 注释**反向提到** `M08`
+> （"用途：检查点（`M08`）从缓存恢复"，`src/ontology_instance/readmodel.rs:166-169`）。
 > 后者是**注释级的说明**，不是代码依赖（`readmodel.rs` **不** `use` `checkpoint`）；
 > 但"从快照恢复**必须**经过 `State::from_json`"是一条**真实约束**
-> （`State` 字段私有 ⇒ 只能由本模块构造，`src/readmodel.rs:31-34`）。
+> （`State` 字段私有 ⇒ 只能由本模块构造，`src/ontology_instance/readmodel.rs:31-34`）。
 
 ---
 
@@ -454,12 +454,12 @@
 | # | 不担保 | 为什么（事实/推断） | 标记 |
 |---|---|---|---|
 | N-1 | **不担保掉电一致性** | 写入是 `std::fs::write` **整文件覆盖**，**无**"临时文件 + rename"、**无** fsync（`:78`，与 `:68` 注释不符，见 §3.1）。⇒ 掉电时可能留下**半截文件**。半截文件的后果**并非静默**（多半 `BadJson`，见 `:89-90`），但"**必然是 BadJson 而不是恰好合法的截断**"**没有保证**——紧凑 JSON 若被截在某个完整对象处，理论上仍可解析。 | 半截文件的**实际形态**：`【待验证】`。**验证方法**：在 VM 内用 `truncate -s <n> ckpt.json` 造 5–10 个不同长度，逐个 `Checkpoint::load`，统计 `Err/Ok` 分布；再用 `dm-flakey`/`dm-error` 做真掉电注入（`WC-SQAP-001` 的 `M-02` 档，`WC-R4-DISP-001-v0.1:156` 已要求补此档） |
-| N-2 | **不担保 fsync 已执行** | 注释说"写后 fsync"，代码**没有**（§3.1）；也没有 `SyncFail` 码。 | ✅ **已核对（静态）**：以 `src/checkpoint.rs:69-83` 为准 |
+| N-2 | **不担保 fsync 已执行** | 注释说"写后 fsync"，代码**没有**（§3.1）；也没有 `SyncFail` 码。 | ✅ **已核对（静态）**：以 `src/ontology_instance/checkpoint.rs:69-83` 为准 |
 | N-3 | **不担保跨版本可读** | 版本校验是**硬拒**：`checkpoint != 1` → `BadFormat`（`:94-99`）。这是**设计的**（A-4 的理由="`checkpoint:1` 的兼容性义务应为零"），但要注意其副作用：**格式升级后，旧快照不是"降级重算"，而是 `load` 直接失败**——降级只有调用方自己写（§3.4(b)），而该调用方**不存在**。 | 以 `:91-99`、`:46` 为准 |
 | N-4 | **不担保向前兼容的读法** | "只加字段、不改旧字段含义"是 `:46` 的**注释承诺**；读取侧**不接受未知的 `checkpoint` 值**，也**不校验未知字段**（§2.3）。⇒ "只加字段"在**读侧**是可容忍的（未知键被忽略），在**版本号**上则必须递增。 | `:46`、`:89-111` |
-| N-5 | **不担保加密完整性 / 防篡改** | `digest` 是 **FNV-1a 64，非加密**（`src/readmodel.rs:229-243`，`WC-IC-001-v0.1:84`："**不得**用于安全判断"）。⇒ **任何能写该文件的人都能同时改 `state` 和 `digest`，使 `verify` 通过**。`verify` 防的是"**不一致**"，不是"**恶意**"。 | ✅ 已核对（静态）。**验证方法**：按 `c13` 的方式改 `state` **并**把 `digest` 一并改成新状态的指纹 → 期望 `verify` **通过**（这就是"防不住恶意"的可执行证据） |
-| N-6 | **不担保未核验路径的安全性** | 模块自述（`:29-30`）："快照文件若可被他人写，攻击者可篡改缓存——`verify` 能检出（指纹不符），但**不核验的路径会吃下篡改内容**"。静态墙（`:81`）只查"**文件**对 group/other 不可写"，**不查所在目录**、**不查属主**（`guard::assert_after_create` 只调 `assert_not_other_writable`，`src/guard.rs:156-158`）。 | 模块已自曝（`WC-R4-DISP-001-v0.1:261` 记为"站得住"）。**目录/属主的真实缺口**：`【待验证】`——`assert_owned_by`（`src/guard.rs:132`）**未**被 `write()` 调用 |
-| N-7 | **不担保携带写入时刻** | 无 `at` 字段（§2.4）。⇒ **无法判断"这份快照是 3 秒前还是 3 天前写的"**，只能靠账本侧比对（`base_seq` + 账本当前长度）。 | ✅ 已核对（静态）：`src/checkpoint.rs:70-75` 只有 4 个键 |
+| N-5 | **不担保加密完整性 / 防篡改** | `digest` 是 **FNV-1a 64，非加密**（`src/ontology_instance/readmodel.rs:229-243`，`WC-IC-001-v0.1:84`："**不得**用于安全判断"）。⇒ **任何能写该文件的人都能同时改 `state` 和 `digest`，使 `verify` 通过**。`verify` 防的是"**不一致**"，不是"**恶意**"。 | ✅ 已核对（静态）。**验证方法**：按 `c13` 的方式改 `state` **并**把 `digest` 一并改成新状态的指纹 → 期望 `verify` **通过**（这就是"防不住恶意"的可执行证据） |
+| N-6 | **不担保未核验路径的安全性** | 模块自述（`:29-30`）："快照文件若可被他人写，攻击者可篡改缓存——`verify` 能检出（指纹不符），但**不核验的路径会吃下篡改内容**"。静态墙（`:81`）只查"**文件**对 group/other 不可写"，**不查所在目录**、**不查属主**（`guard::assert_after_create` 只调 `assert_not_other_writable`，`src/gate/guard.rs:156-158`）。 | 模块已自曝（`WC-R4-DISP-001-v0.1:261` 记为"站得住"）。**目录/属主的真实缺口**：`【待验证】`——`assert_owned_by`（`src/gate/guard.rs:132`）**未**被 `write()` 调用 |
+| N-7 | **不担保携带写入时刻** | 无 `at` 字段（§2.4）。⇒ **无法判断"这份快照是 3 秒前还是 3 天前写的"**，只能靠账本侧比对（`base_seq` + 账本当前长度）。 | ✅ 已核对（静态）：`src/ontology_instance/checkpoint.rs:70-75` 只有 4 个键 |
 | N-8 | **不担保携带世界版本 / 词表 hash** | 均**不在**（§2.4）。⇒ **换词表、换 `world` 版本后，旧检查点自身不会知道自己过期**。 | 换词表后**实际会发生什么**：`【待验证】`。**验证方法**：用词表 A 造快照，用词表 B 重开世界，调 `read_model_with_checkpoint`——期望的**安全**结果是"检不出但也不影响（因为 `state` 只是折叠结果）"，**危险**结果是"投影同源被破坏却无人报错"。两者必须实测区分，**不得推理** |
 | N-9 | **不担保路径/命名/保留策略** | 源码中不存在这些规定（§2.1）。何时写、写几个、留多久——**全部未决** | `WC-HLD-001-v0.1:452`（触发阈值未定）；`WC-SCMP-001` §8.4 `TBD-05`（账本保留策略，R7 前） |
 | N-10 | **不担保本文件本身的受控地位** | A-4 的处置是"部分采纳"，**人尚未裁定**"范围外声明 vs 受控格式"（§八） | `WC-R4-DISP-001-v0.1:37` |
@@ -473,33 +473,33 @@
 
 | 事实 | 文件:行 |
 |---|---|
-| `M08` = 检查点，实现位置 `src/checkpoint.rs` | `WC-MODREG-001-v0.1:57` |
+| `M08` = 检查点，实现位置 `src/ontology_instance/checkpoint.rs` | `WC-MODREG-001-v0.1:57` |
 | 检查点独立成模块号的理由（"缓存不得成为第二真相"） | `WC-MODREG-001-v0.1:32-34` |
 | 模块声明 | `src/lib.rs:20` |
-| 模块头：缓存地位那句原文 | `src/checkpoint.rs:9` |
-| 三条落实（带 `base_seq` / 可核验 / 删掉无后果） | `src/checkpoint.rs:11-16` |
-| 格式示例（模块头） | `src/checkpoint.rs:20-21` |
-| 已知局限自述（核验需重算、未核验路径吃篡改） | `src/checkpoint.rs:24-30` |
-| `FORMAT = 1`；"只加字段、不改旧字段含义" | `src/checkpoint.rs:46` |
-| `capture`：`base_seq = state.last_seq()`、`digest = state.digest()` | `src/checkpoint.rs:50-56` |
-| `write`：4 键文档 / `to_string` / `fs::write` / 静态墙 | `src/checkpoint.rs:69-83` |
-| `write` 的注释称 fsync 而代码无（**不符**） | `src/checkpoint.rs:68` vs `:78` |
-| `load`：逐字段校验与 6 个错误码 | `src/checkpoint.rs:86-117` |
-| `verify`：前缀长度 + `State::fold` 重算 + 指纹比对 | `src/checkpoint.rs:122-146` |
-| `resume_unverified`：`from_json` + 折叠 `seq > base_seq` | `src/checkpoint.rs:148-161` |
-| `read_model_with_checkpoint`：`None` → 全量 | `src/checkpoint.rs:167-175` |
-| `State::from_json`：4 个必填数值 + `objects` 两级 | `src/readmodel.rs:170-199` |
-| `State::to_json`：规范形式 5 字段 | `src/readmodel.rs:211-227` |
-| `digest`：FNV-1a 64，**非加密** | `src/readmodel.rs:229-243` |
-| `digest` 常量（OFFSET/PRIME） | `src/readmodel.rs:235-236` |
-| 折叠"报错而不猜"（`SeqGap`/`BeforeMismatch`/`UnknownKind`） | `src/readmodel.rs:92-99`、`:146-149`、`:110-115` |
-| **读账本时已强制 `seq` 连续**（缺号即拒启）——这是 §3.5 不可达性的前提 1 | `src/ledger.rs:211-231`（断言 `:223-228`） |
+| 模块头：缓存地位那句原文 | `src/ontology_instance/checkpoint.rs:9` |
+| 三条落实（带 `base_seq` / 可核验 / 删掉无后果） | `src/ontology_instance/checkpoint.rs:11-16` |
+| 格式示例（模块头） | `src/ontology_instance/checkpoint.rs:20-21` |
+| 已知局限自述（核验需重算、未核验路径吃篡改） | `src/ontology_instance/checkpoint.rs:24-30` |
+| `FORMAT = 1`；"只加字段、不改旧字段含义" | `src/ontology_instance/checkpoint.rs:46` |
+| `capture`：`base_seq = state.last_seq()`、`digest = state.digest()` | `src/ontology_instance/checkpoint.rs:50-56` |
+| `write`：4 键文档 / `to_string` / `fs::write` / 静态墙 | `src/ontology_instance/checkpoint.rs:69-83` |
+| `write` 的注释称 fsync 而代码无（**不符**） | `src/ontology_instance/checkpoint.rs:68` vs `:78` |
+| `load`：逐字段校验与 6 个错误码 | `src/ontology_instance/checkpoint.rs:86-117` |
+| `verify`：前缀长度 + `State::fold` 重算 + 指纹比对 | `src/ontology_instance/checkpoint.rs:122-146` |
+| `resume_unverified`：`from_json` + 折叠 `seq > base_seq` | `src/ontology_instance/checkpoint.rs:148-161` |
+| `read_model_with_checkpoint`：`None` → 全量 | `src/ontology_instance/checkpoint.rs:167-175` |
+| `State::from_json`：4 个必填数值 + `objects` 两级 | `src/ontology_instance/readmodel.rs:170-199` |
+| `State::to_json`：规范形式 5 字段 | `src/ontology_instance/readmodel.rs:211-227` |
+| `digest`：FNV-1a 64，**非加密** | `src/ontology_instance/readmodel.rs:229-243` |
+| `digest` 常量（OFFSET/PRIME） | `src/ontology_instance/readmodel.rs:235-236` |
+| 折叠"报错而不猜"（`SeqGap`/`BeforeMismatch`/`UnknownKind`） | `src/ontology_instance/readmodel.rs:92-99`、`:146-149`、`:110-115` |
+| **读账本时已强制 `seq` 连续**（缺号即拒启）——这是 §3.5 不可达性的前提 1 | `src/ledger/mod.rs:211-231`（断言 `:223-228`） |
 | `WC-IC-001` 对同一事实的表述（`Ledger::open` 的 `SeqGap`＝"缺号即拒启"） | `WC-IC-001-v0.1:51` |
 | §3.6 接线约束 W-1 的检查点所需事实（`Checkpoint.*` 调用点仅在测试） | §7.1 全表；`tests/contract.rs:496`、`:500`、`:504`、`:517`、`:520`、`:525`、`:568`、`:578`、`:585`、`:592` |
-| `M03` 自述"v1 不持久化任何东西"、"快照只能是带 `base_seq` 的缓存" | `src/readmodel.rs:11-14`、`:25-26` |
+| `M03` 自述"v1 不持久化任何东西"、"快照只能是带 `base_seq` 的缓存" | `src/ontology_instance/readmodel.rs:11-14`、`:25-26` |
 | `World::read_model()` 不读检查点（全量折叠） | `src/lib.rs:250-257` |
-| `guard::assert_after_create` → 只查"其他用户可写" | `src/guard.rs:156-158`；`assert_not_other_writable` `:43`；`assert_not_symlink` `:105`；`assert_owned_by` `:132`（**未被 `write` 调用**） |
-| 世界版本常量（在事件里，不在检查点里） | `src/event.rs:16`、`:28`；时间戳 `:32`、`:73-78` |
+| `guard::assert_after_create` → 只查"其他用户可写" | `src/gate/guard.rs:156-158`；`assert_not_other_writable` `:43`；`assert_not_symlink` `:105`；`assert_owned_by` `:132`（**未被 `write` 调用**） |
+| 世界版本常量（在事件里，不在检查点里） | `src/common/event.rs:16`、`:28`；时间戳 `:32`、`:73-78` |
 | `c12` 四条判据 | `tests/contract.rs:456-531`（判据 1 `:503-509`、判据 2 `:523-530`、判据 3 `:501`、判据 4 `:511-512`） |
 | `c13` 三类坏快照必拒 + "理由说清谁说了算" | `tests/contract.rs:533-594`（`:570-571`、`:580`、`:585`、`:593`） |
 | 测试自用文件名 `checkpoint.json`（**非规定**） | `tests/contract.rs:515` |
@@ -534,8 +534,8 @@
 
 | 文件 | 调用 | 性质 |
 |---|---|---|
-| `src/checkpoint.rs:13`、`:15`、`:28`、`:151` | 文档注释 | 非调用 |
-| `src/checkpoint.rs:152`、`:167`、`:173` | 模块内部（`resume_unverified` / `read_model_with_checkpoint`） | **库内自洽**，无外部调用者 |
+| `src/ontology_instance/checkpoint.rs:13`、`:15`、`:28`、`:151` | 文档注释 | 非调用 |
+| `src/ontology_instance/checkpoint.rs:152`、`:167`、`:173` | 模块内部（`resume_unverified` / `read_model_with_checkpoint`） | **库内自洽**，无外部调用者 |
 | `tests/contract.rs:467`、`:496`、`:500`、`:504`、`:517`、`:520`、`:525` | `c12` | **测试** |
 | `tests/contract.rs:539`、`:568`、`:578`、`:585`、`:592` | `c13` | **测试** |
 
@@ -550,12 +550,12 @@
 
 | 方向 | 条目 |
 |---|---|
-| **上游** | `WC-R4-DISP-001-v0.1` §二 A-4（本文件的立项依据；**处置=部分采纳，人未裁定采用哪一支**）、§二 C 组（`§4.5`/`§7.1` 待裁决）、§二 F 组（`M08-D04/D05/D11`）、§二 G 组（`M08-D02/D03`）、§四（`M08` 站得住项）<br>`WC-MODREG-001-v0.1` §一理由 2、§二（`M08` 行）、§2.1（L2 层约束）——**模块号只从此处取**<br>`WC-SRS-001-v0.1` `REQ-F-021`（`:135`）、`TC-019`（`:178`）；`WC-FSR-001-v0.1:159`（`REQ-N-002`）<br>`WC-HLD-001-v0.1` §4.5（`:166-176`）、§十 待定项 1（`:452`）<br>`WC-LLD-001-v0.1` §七（`:96-106`）、§九不变量③（`:128`）<br>`WC-IC-001-v0.1` §一（`IF-*` 清单）、§三（错误码表）、§四通则<br>源码：`src/checkpoint.rs`、`src/readmodel.rs`、`src/guard.rs`、`src/lib.rs`、`src/event.rs`、`tests/contract.rs`<br>仓外上游：`07/2-依据/15` §十二 待定项 1（`:314`）；`07/4-计划/03` §五 ④（`:183`）、§六 上游 Step 6（`:215`）、§八 待定项 1（`:240`） |
+| **上游** | `WC-R4-DISP-001-v0.1` §二 A-4（本文件的立项依据；**处置=部分采纳，人未裁定采用哪一支**）、§二 C 组（`§4.5`/`§7.1` 待裁决）、§二 F 组（`M08-D04/D05/D11`）、§二 G 组（`M08-D02/D03`）、§四（`M08` 站得住项）<br>`WC-MODREG-001-v0.1` §一理由 2、§二（`M08` 行）、§2.1（L2 层约束）——**模块号只从此处取**<br>`WC-SRS-001-v0.1` `REQ-F-021`（`:135`）、`TC-019`（`:178`）；`WC-FSR-001-v0.1:159`（`REQ-N-002`）<br>`WC-HLD-001-v0.1` §4.5（`:166-176`）、§十 待定项 1（`:452`）<br>`WC-LLD-001-v0.1` §七（`:96-106`）、§九不变量③（`:128`）<br>`WC-IC-001-v0.1` §一（`IF-*` 清单）、§三（错误码表）、§四通则<br>源码：`src/ontology_instance/checkpoint.rs`、`src/ontology_instance/readmodel.rs`、`src/gate/guard.rs`、`src/lib.rs`、`src/common/event.rs`、`tests/contract.rs`<br>仓外上游：`07/2-依据/15` §十二 待定项 1（`:314`）；`07/4-计划/03` §五 ④（`:183`）、§六 上游 Step 6（`:215`）、§八 待定项 1（`:240`） |
 | **本文件** | `WC-CKFMT-001`（`v0.1`，2026-09-27）——**检查点格式说明**：语义地位 + 字节级格式 + 写/读/失效 + 删除无后果的验证 + 与 `M03` 的边界 + 不担保清单 |
 | **下游消费者** | ① `WC-SCMP-001` §4.2（**须登记本配置项**；参照 `WC-LFMT-001-v0.1`/`WC-PFMT-001-v0.1` 的 `@world:1` 行形态，`WC-SCMP-001-v0.1:319-320`）<br>② `WC-SDP-001` §3.1 任务表 / §3.3 阶段产出 / §3.4 里程碑（**三处落位**；`WC-R4-DISP-001-v0.1:23` 纪律 7："**未落位前不得声称'格式已受控'**"）<br>③ `WC-IC-001` §三 错误码表（补 `Checkpoint.*` 族叶子码；处置见 `WC-R4-DISP-001-v0.1:92`）<br>④ `WC-LLD-001` §七（增"不变量"与"失败形态"两行；处置见 `:124`）<br>⑤ `WC-RE09-003`/`WC-RE09-004`（补录 `c12`/`c13` 的逐条原始输出与提交号；处置见 `:137`）<br>⑥ `WC-TS-001`（`c12`/`c13` 的输入/期望）<br>⑦ `WC-RTM-001`（`REQ-F-021` ↔ `TC-019` ↔ `M08`）<br>⑧ 将来实现"检查点接线"者：**本文只描述格式与语义，不授权接线**（触发阈值见 `WC-HLD-001-v0.1:452` 未关闭的待定项） |
 | **本编号的引用现状** | **本编号由本次修订新引入，尚未被任何文档引用。** 核验：全仓 `CKFMT` 命中 **1 处**，即 `WC-R4-DISP-001-v0.1:37` 的 A-4 行——该行是**提出**本编号的处置建议（"**若人工认为需受控，则改立 `WC-CKFMT-001`**"），**不是**引用一份已存在的文件；且该行写的是"或显式声明范围外"。除该处外，全仓（含 `WC-SCMP-001` §4.2、`WC-SDP-001`、`WC-RTM-001`）**无任何 `WC-CKFMT` 引用**。 |
 | **本文件的受控状态** | ⚠️ **未受控、未登记、未落位**。A-4 的处置是"**部分采纳**"且**优先支是"范围外声明"** ⇒ 本文的存续取决于人工裁定。**在人工裁定并完成上述①②落位之前，本文只是草稿。** |
-| **与旧结论的关系（本轮必答项）** | `WC-RE09-001-v0.1`（项目 Step 1–2 执行记录）§三 载有旧结论：**"v1 **不做**快照（`M08`）"**（`:110`），并在 §四遗留 2 记："`t7` 的'删掉读模型'在 v1 是**结构性**的（本就没有持久形态），而非'删除一个真实文件后重建'——**因为 v1 无快照**。等 `M08` 落地后，**必须补一条针对真实快照文件的删除重建测试**"（`:118-120`）。<br>**该旧结论已过时，且旧遗留义务已履行**：① `M08` 已落地（`src/checkpoint.rs` 存在；`WC-MODREG-001-v0.1:57` 标"✅ 已实现（项目 Step 3）"）；② 真实快照文件的"写盘 → 删除 → 重算一致"测试**已存在**，即 `c12`（`tests/contract.rs:514-530`：`cp.write(&cp_path)` → `load` → `remove_file` → 重算并断言相同）。<br>**正确表述（取代旧结论）**：> **v1 **有**快照，但它是**带 `base_seq` 的缓存**；其"删掉无后果"由针对真实文件的 `c12` 固化。**<br>**登记依据**：`WC-R4-DISP-001-v0.1:145`（G 组）已就此裁定——"`WC-RE09-001` 的过期结论（`M08-D03`）｜**采纳**｜'v1 不做快照'等旧结论回灌；`G-23` 扩项；那条'**必须**补真实快照文件删除重建测试'的义务**补关闭记录**"；`WC-R4-DISP-001-v0.1:179` 要求把回灌面扩到 `WC-RE09-001:110/119`。<br>⚠ **但**：本文**只**在本文内给出正确表述；`WC-RE09-001-v0.1:110/119` 与 `WC-CR-006:264` 的**回灌尚未执行**（`WC-R4-DISP-001` 仍是"仅拟稿"，`:11`："本表本身不改变任何规范条款的效力"）⇒ **旧结论目前仍印在那两份文件里**，读那两份文件的人仍会被误导。**本文不修改它们**（纪律：只创建本文件）。 |
+| **与旧结论的关系（本轮必答项）** | `WC-RE09-001-v0.1`（项目 Step 1–2 执行记录）§三 载有旧结论：**"v1 **不做**快照（`M08`）"**（`:110`），并在 §四遗留 2 记："`t7` 的'删掉读模型'在 v1 是**结构性**的（本就没有持久形态），而非'删除一个真实文件后重建'——**因为 v1 无快照**。等 `M08` 落地后，**必须补一条针对真实快照文件的删除重建测试**"（`:118-120`）。<br>**该旧结论已过时，且旧遗留义务已履行**：① `M08` 已落地（`src/ontology_instance/checkpoint.rs` 存在；`WC-MODREG-001-v0.1:57` 标"✅ 已实现（项目 Step 3）"）；② 真实快照文件的"写盘 → 删除 → 重算一致"测试**已存在**，即 `c12`（`tests/contract.rs:514-530`：`cp.write(&cp_path)` → `load` → `remove_file` → 重算并断言相同）。<br>**正确表述（取代旧结论）**：> **v1 **有**快照，但它是**带 `base_seq` 的缓存**；其"删掉无后果"由针对真实文件的 `c12` 固化。**<br>**登记依据**：`WC-R4-DISP-001-v0.1:145`（G 组）已就此裁定——"`WC-RE09-001` 的过期结论（`M08-D03`）｜**采纳**｜'v1 不做快照'等旧结论回灌；`G-23` 扩项；那条'**必须**补真实快照文件删除重建测试'的义务**补关闭记录**"；`WC-R4-DISP-001-v0.1:179` 要求把回灌面扩到 `WC-RE09-001:110/119`。<br>⚠ **但**：本文**只**在本文内给出正确表述；`WC-RE09-001-v0.1:110/119` 与 `WC-CR-006:264` 的**回灌尚未执行**（`WC-R4-DISP-001` 仍是"仅拟稿"，`:11`："本表本身不改变任何规范条款的效力"）⇒ **旧结论目前仍印在那两份文件里**，读那两份文件的人仍会被误导。**本文不修改它们**（纪律：只创建本文件）。 |
 
 ---
 
@@ -588,7 +588,7 @@
 4. 本文**不声称**：检查点格式已受控、`REQ-F-021` 已验证、`CON-03` 已闭环、
    `M08` 已可用（它**未接线**）。
 5. 本文**不发明**模块号（取自 `WC-MODREG-001-v0.1:57`）、
-   不发明字段名（取自 `src/checkpoint.rs:70-75`）、
+   不发明字段名（取自 `src/ontology_instance/checkpoint.rs:70-75`）、
    不发明路径（源码无 ⇒ 写"取不到"）、不发明阈值（`WC-HLD-001-v0.1:452` 未决）。
 6. **行号坐标的核对时点与失效风险（必读）**：§七 的全部行号在 **2026-09-27 起草当场**逐一核到。
    但本仓库**当时正处于并发修订中**——起草过程中已实测到

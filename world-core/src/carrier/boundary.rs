@@ -11,23 +11,23 @@
 //!
 //! | 问题 | 谁回答 |
 //! |---|---|
-//! | "本进程现在到底是谁" | **部署**：一个套接字一个身份（`src/channel.rs` 的 `bind`，权限即身份）、`runuser`／systemd `User=`；跨 uid 实测见 `tools/con01-no-bypass.sh` 与 `tools/carrier_acceptance.sh` 的 C-09 |
+//! | "本进程现在到底是谁" | **部署**：一个套接字一个身份（`src/bus/mod.rs` 的 `bind`，权限即身份）、`runuser`／systemd `User=`；跨 uid 实测见 `tools/con01-no-bypass.sh` 与 `tools/carrier_acceptance.sh` 的 C-09 |
 //! | "**对这个被管者身份**，账本与规则写不写得到" | **本模块**（[`assert_managed_cannot_write`]） |
 //!
 //! 把这两件事分开是刻意的：写侧**不能靠自证身份**来证明边界（自称谁都不算数，
 //! 与 `src/carrier/mod.rs:75` 的"请求去掉身份"同一纪律）；能查的是**文件系统上的事实**。
 //!
-//! ## 与 `src/guard.rs` 的关系：**同一纪律，两个提问，刻意不复用**
+//! ## 与 `src/gate/guard.rs` 的关系：**同一纪律，两个提问，刻意不复用**
 //!
-//! `src/guard.rs:43` 的 `assert_not_other_writable` 问的是"**这条法律／真相是否对被管者开放**"
+//! `src/gate/guard.rs:43` 的 `assert_not_other_writable` 问的是"**这条法律／真相是否对被管者开放**"
 //! （内核进程启动时判，答"开放"即拒绝启动）；本模块问的是"**对这个被管者身份**，它写不写得到"
 //! （写侧自查，答"写得到"即不许动手）。两条判据在 mode 位上同源
 //! （`mode & 0o022 == 0`、所在目录同判、拒符号链接），方向却相反：
-//! `guard` 用 `assert_owned_by`（`src/guard.rs:127`）要求属主**是**核心 uid，
-//! 本模块要求属主**不是**被管者 uid（`src/guard.rs:137` 逐字：「**属主永远能 chmod u+w 后写它**」）。
+//! `guard` 用 `assert_owned_by`（`src/gate/guard.rs:127`）要求属主**是**核心 uid，
+//! 本模块要求属主**不是**被管者 uid（`src/gate/guard.rs:137` 逐字：「**属主永远能 chmod u+w 后写它**」）。
 //!
-//! ⚠️ **为什么不 `use crate::guard`**：`M05 → M10` 已有一条真实 import 边
-//! （`src/gate.rs:32` 读载体清单），反向再连即**成环**，`WC-ATOM-001` §二 A-4 不许，
+//! ⚠️ **为什么不 `use crate::gate::guard`**：`M05 → M10` 已有一条真实 import 边
+//! （`src/gate/mod.rs:32` 读载体清单），反向再连即**成环**，`WC-ATOM-001` §二 A-4 不许，
 //! `tools/module_graph.py` 判据② 会红。故此处**重述判据而不复用**。
 //! 这不是放宽：**两侧判据都成立**，才谈得上"写侧写不到法律与真相"。
 
@@ -79,7 +79,7 @@ pub fn assert_managed_cannot_write(
             return Err(format!(
                 "ext.world.Carrier.BoundaryOwned: {role} 边界未立住：{} 的属主就是被管者\
                  （uid={managed_uid}）。\n\
-                 \x20 为什么这算致命：**属主永远能 chmod u+w 后写它**（`src/guard.rs:137` 同一条口径），\n\
+                 \x20 为什么这算致命：**属主永远能 chmod u+w 后写它**（`src/gate/guard.rs:137` 同一条口径），\n\
                  \x20 于是 mode 位再严也挡不住——法律与真相的属主必须是核心 uid。\n\
                  \x20 处置：把属主改回核心 uid（如 `chown root {}`），写侧以另一个身份运行",
                 path.display(),
@@ -130,7 +130,7 @@ pub fn assert_managed_cannot_write(
     #[cfg(not(unix))]
     {
         // 非 Unix 没有 POSIX 权限位 ⇒ **"写不到"这件事不成立**。
-        // 这里刻意与 `src/guard.rs:86-91` 的"非 Unix 跳过"不同：guard 的调用方
+        // 这里刻意与 `src/gate/guard.rs:86-91` 的"非 Unix 跳过"不同：guard 的调用方
         // 在别的平台上仍要能启动，而本函数的**全部意义**就是那句断言；
         // 判不了就按不通过处置（"未能校验"不等于"校验通过"）。
         Err(format!(
@@ -143,7 +143,7 @@ pub fn assert_managed_cannot_write(
 
 /// 取一条路径"所在目录"，用于「目录不得对 group/other 可写」这一步。
 ///
-/// ⚠️ 与 `src/guard.rs:168-173` 同一处 `D-31` 修正：相对路径（默认调用形态里的
+/// ⚠️ 与 `src/gate/guard.rs:168-173` 同一处 `D-31` 修正：相对路径（默认调用形态里的
 /// `ledger.jsonl`）其 `parent()` 是**空串**，若过滤掉就**静默跳过**目录检查——
 /// 而目录权限恰恰是"能不能换掉这条法律"的真正答案。空 parent ⇒ 按 `.`（当前目录）判。
 fn parent_dir(path: &Path) -> Option<&Path> {

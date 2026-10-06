@@ -123,7 +123,7 @@ mod unit {
         };
         assert!(!s.admitted());
         assert_eq!(
-            crate::error::code_of(s.verdict().unwrap()),
+            crate::common::error::code_of(s.verdict().unwrap()),
             Some("ext.world.Gate.WriteRejected")
         );
         // 转述时逐字保留内核的判词，不改写成写侧自己的话

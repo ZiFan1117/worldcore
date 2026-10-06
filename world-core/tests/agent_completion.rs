@@ -29,7 +29,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use world_core::agent::completion::{completions_in, pending, Completion, Status, NOTICE_TYPE};
-use world_core::{event, World};
+use world_core::{common::event, World};
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -47,11 +47,11 @@ fn tmpdir(tag: &str) -> PathBuf {
 }
 
 fn ontology() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ontology.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/ontology_definition/ontology.json")
 }
 
 fn policy() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("policy.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/gate/policy.json")
 }
 
 /// `j01` —— **活儿结束 ⇒ 账本里读得到它的完工通告**。
