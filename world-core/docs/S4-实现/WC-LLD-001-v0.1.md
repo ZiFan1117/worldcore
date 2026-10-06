@@ -55,7 +55,7 @@
 | **A-2 一个原子一个文件夹，四件同夹** | 上表「四件同夹」列**逐行给出三处落点**。⚠ **本仓的测试不在 `src/` 同夹**（在 `world-core/tests/`）⇒ 按**可指认**判、不按同目录判，口径与判据③ 一致 |
 | **A-3 契约字段齐** | `intent`／`input`／`output` 见下文各模块节的「关键结构」与「不变量」；`side_effects` 的模块级落点是 `WC-MODREG-001` §2 的 `side_effects` 列 |
 | **A-4 `deps == import` 且无环** | 上表 `deps == import` 列（判据② 逐模块逐边相等；环按强连通分量逐条打印） |
-| **A-5 生成物不许手编** | **本文件不是生成物**；上表「生成物」列对十个模块**一律为"无"**。本仓由判据⑪⑫⑬ 管的生成物是 `openspec/BRIDGE.md`／`openspec/specmap.json`／`openspec/BOOK/节对齐.md` 那一族 |
+| **A-5 生成物不许手编** | **本文件不是生成物**；上表「生成物」列对十个模块**一律为"无"**。本仓由判据⑪⑫⑬ 管的生成物是 `openspec/generated/BRIDGE.md`／`openspec/generated/specmap.json`／`openspec/generated/节对齐.md` 那一族 |
 | **A-6 UTF-8 无 BOM** | 本文件自身（`python world-core/tools/plain_text_audit.py <本文件>`） |
 
 > **覆盖口径（如实登记）**：上表**十行＝`M01`–`M10`**，与 `WC-MODREG-001` §2 的十行**同行数**。

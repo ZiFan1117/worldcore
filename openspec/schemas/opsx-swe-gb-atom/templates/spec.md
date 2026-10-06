@@ -58,17 +58,17 @@
      ——漏掉任何一条，守卫会红，而且**红得对**：
 
      1. 重跑生成链（**三步，顺序不能错**）：
-          python openspec/tools/gen_specmap.py
-          python openspec/tools/gen_secmap.py
-          python openspec/tools/gen_bridge_md.py
-        ⚠ **中间那步 `gen_secmap.py` 不许省**：判据⑬ 核的是 `openspec/BOOK/节对齐.md` 首部
-        记下的 `specmap.json` 哈希是否＝当前值 ⇒「specmap 重跑过、secmap 没跟着重跑」一律红，
+          python openspec/gen/gen_specmap.py
+          python openspec/gen/gen_secmap.py
+          python openspec/gen/gen_bridge_md.py
+        ⚠ **中间那步 `gen_secmap.py` 不许省**：判据⑬ 核的是 `openspec/generated/节对齐.md` 首部
+        记下的 `openspec/generated/specmap.json` 哈希是否＝当前值 ⇒「specmap 重跑过、secmap 没跟着重跑」一律红，
         而**只补跑 bridge 不消除它**（补跑 secmap 才转绿）。实测两种错序都 rc=1：
         ①先 secmap 再 specmap；②先 bridge 再 specmap。
-        （不跑 ⇒ `spec_bridge.py` 判据⑪ 报「BRIDGE.md 与生成器的当前输出不一致」）
-     2. 新增 / 改名的 Requirement 必须进 `openspec/BRIDGE.md` 的**在册面**：
+        （不跑 ⇒ `spec_bridge.py` 判据⑪ 报「openspec/generated/BRIDGE.md 与生成器的当前输出不一致」）
+     2. 新增 / 改名的 Requirement 必须进 `openspec/generated/BRIDGE.md` 的**在册面**：
         判据④ 按**标题逐字**核规格树下的每一条；漏一条即红。
-        新能力的 delta 若尚未并入主规格（change 未归档），走 `BRIDGE.md` 的
+        新能力的 delta 若尚未并入主规格（change 未归档），走 `openspec/generated/BRIDGE.md` 的
         「由 change 引入、归档时并入主规格」那一节登记，**不许**为了让它"看起来成立"
         而手动塞进 `openspec/specs/`（那会让归档报 `ADDED already exists`）。
      3. 单行加一格 / 减一格都要按表头列数重建，改完跑

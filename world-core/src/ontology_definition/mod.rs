@@ -1568,7 +1568,7 @@ impl Ontology {
     ///   它的执行者是**家族查找**（`ext.world.Ontology.UnknownKind`，并**点名那个值**），
     ///   不是枚举闭集。依据：`openspec/specs/envelope-validation/spec.md` 逐字
     ///   「**枚举值**另有其主（**家族查找报 `ext.world.Ontology.UnknownKind` 并点名**）」
-    ///   与 `openspec/BOOK/冲突总账.md` 逐字「`enum(...)` 明确豁免」。
+    ///   与 `world-core/docs/理论/冲突总账.md` 逐字「`enum(...)` 明确豁免」。
     ///   理由与出处写在 [`Ontology::validate_types`] 的文档里（本处只指路）。
     /// - **不认得的写法一律放行**：本体没声明的类型口径，判据**不替它发明**
     ///   （要收窄就往本体里写一条认得的声明，并配一条反例）。
@@ -1734,7 +1734,7 @@ impl Ontology {
     ///
     /// **依据（逐字，上位规格）**：`openspec/specs/envelope-validation/spec.md` ——
     /// 「**枚举值**另有其主（**家族查找报 `ext.world.Ontology.UnknownKind` 并点名**）」；
-    /// `openspec/BOOK/冲突总账.md` ——「`enum(...)` 明确豁免」。
+    /// `world-core/docs/理论/冲突总账.md` ——「`enum(...)` 明确豁免」。
     /// ⇒ 口径是「**`enum` 闭集，`kind` 除外**」，**不是**「`enum` 一律闭集」。
     /// ⚠️ **不许**把 `kind` 改成闭集：那会让 `tests/family_readmodel.rs` 的 `h02`
     /// （只加扩展的家族必须照常可读）变红，并换掉 `e03`／`h02` 的错误码

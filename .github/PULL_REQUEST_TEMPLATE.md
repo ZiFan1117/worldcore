@@ -21,7 +21,7 @@
 > `smoke` / `unit-test` / `gate-self-test` / `traceability` / `scope` /
 > `openspec-validate` / `spec-bridge` / `module-graph`，任一失败不予合入。
 > ⚠️ 其中 `spec-bridge`（判据⑥ 归档件未签）与 `module-graph`（工具在建）今天是**如实红**：
-> 已知状态的台账与处置权见 `openspec/BOOK/冲突总账.md` §五。
+> 已知状态的台账与处置权见 `world-core/docs/理论/冲突总账.md` §五。
 > **不得**用 `continue-on-error`、注释掉步骤、或放宽判据来换绿。
 
 ---

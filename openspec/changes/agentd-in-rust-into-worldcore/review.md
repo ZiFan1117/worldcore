@@ -70,7 +70,7 @@
      用 `git show <sha>:<path>` **读提交里的件**（不读工作区）、给**可逐字转录**的判定语、
      并列出**它自己的"未核"清单**；
   2. **作者落笔**：R5 结论与批准人已由作者指示签署（见 §一之一）。**agent 不代签其他各件**（本仓逐字纪律）。
-- **本案的特殊披露**：本件的「生成器补丁」（`openspec/tools/gen_bridge_md.py`）
+- **本案的特殊披露**：本件的「生成器补丁」（`openspec/gen/gen_bridge_md.py`）
   与「它服务的立件」**出自同一个执行者** ⇒ **判据④ 由被它服务的人自己改过**。
   这一格**必须由独立评审席与作者各核一次**，不许只用执行者自己的读数。
 
@@ -79,7 +79,7 @@
 | # | 判据 | 证据类型 | 可复现命令 | 原始输出 | 环境版本号 | 提交号 | 结论 | 裁定依据 |
 |---|---|---|---|---|---|---|---|---|
 | 1 | 新能力在编号桥有在册面（判据④） | `EV-11b 实测证据` | `python world-core/tools/spec_bridge.py` | `—— 通过 16 / 失败 0 ——`（`[OK] ④ 编号桥覆盖`；rc=0） | OpenSpec 1.13.2／Python 3 | `4c78631` | **通过** | 命令退出码 |
-| 2 | 生成物与生成器逐字节一致（判据⑪） | `EV-11b 实测证据` | 同上 | `[OK] ⑪ BRIDGE.md 与生成器的当前输出逐字节一致（生成物不许手编）` | 同 | `4c78631` | **通过** | 命令输出 |
+| 2 | 生成物与生成器逐字节一致（判据⑪） | `EV-11b 实测证据` | 同上 | `[OK] ⑪ openspec/generated/BRIDGE.md 与生成器的当前输出逐字节一致（生成物不许手编）` | 同 | `4c78631` | **通过** | 命令输出 |
 | 3 | 生成器补丁的**反向验证**：挪走本 change ⇒ 输出逐字节不变 | `EV-11b 实测证据` | 见 §3.2 第 2 行（挪走 ⇒ sha256 相等；放回 ⇒ CHANGED） | `IDENTICAL`（挪走后与改动前 sha256 相等）／`CHANGED`（放回后新节出现） | 同 | `af8fbd0` | **通过** | 两次 sha256 对照 |
 | 4 | `openspec validate` 形态 | `EV-11b 实测证据` | `npx --yes @fission-ai/openspec@1.13.2 validate --all --strict` | `Totals: 12 passed, 0 failed (12 items)`（rc=0） | OpenSpec 1.13.2 | `4c78631` | **通过** | 命令退出码 |
 | 5 | **已落地 3 件**的会红断言与变异证明（第 4 件当时未落库；**已在 `6b2e77b` 落地并另测**——见 §7.1 的 A 表） | `EV-11b 实测证据` | VM 上 `cargo test --locked --test agent_audit`／`--test agent_protocol`／`--test agent_completion` | **已取**（VM 实测）：`agent_audit` → `test result: ok. 4 passed; 0 failed`；`agent_protocol` → `ok. 3 passed; 0 failed`；`agent_completion` → `ok. 4 passed; 0 failed`；模块单测 `--lib agent::audit` → `ok. 5 passed; 0 failed`；全量 `cargo test --locked` → **17 个 `--test` 目标全 `0 failed`**（口径：`world-core/tests/*.rs` 共 **17** 个文件；`cargo test` 打印 `test result:` 共 **20** 行 ＝ 17 个 `--test` 目标 ＋ 2 个 lib 目标 ＋ 1 个 bin 目标）。**变异证明**：`sanitize` 恒返回原值 ⇒ 单测 `a_raw_newline_in_any_value_is_replaced` **FAILED**；`serve` 坏字节改中止 ⇒ `p02` **FAILED**；`pending` 引入外部状态 ⇒ `j03` **FAILED**；`from_wait(None)`→`Running` ⇒ `j02` **FAILED**（四处恢复后均回绿） | VM `cargo 1.98.1`／`Linux 7.2.6-arch2-1` | `8f43879`／`ae63876` | **通过**（3 件；第 4 件见 §7.1） | 命令退出码 ＋ `test result:` 行 |
@@ -268,7 +268,7 @@
 
 #### 7.3.1 事实（逐字，不掩饰）
 - **`74dc9bc` 这一笔卷进了 5 个不是我的文件**：
-  `openspec/BOOK/冲突总账.md`（册线）与 `openspec/schemas/opsx-swe-gb-atom/` 的
+  `world-core/docs/理论/冲突总账.md`（册线）与 `openspec/schemas/opsx-swe-gb-atom/` 的
   `README.md`／`schema.yaml`／`templates/proposal.md`／`templates/review.md`（schema 线）。
 - **★ 滞留起点＝`72c0269`**（关键事实，评审席与我一致认定）：
   这 5 件**上一次有记录的提交是 `72c0269`**——也就是**我第一次卷走它们的那一笔**。

@@ -1,0 +1,227 @@
+# 06-swe-gb 废止与三者融合版收敛 · 动作台账
+
+> **本件是什么**：一次**跨仓搬迁 ＋ 仓废止 ＋ 引用改写**的动作记录。
+> **它不是规格、不是流程交付物、不是 change**：不进 `openspec/specs/**`、不进任何 change、`spec_bridge.py` 不读它。
+> 归档在 `world-core/docs/理论/` 下，理由与同目录的 `冲突总账.md`／`工区-*.md` 相同——该目录已是本仓**过程证据**的落脚处。
+>
+> **规矩**：本件按本仓 §7.10 的先例写——**改了仓外的件 ⇒ 先备份、再写、把回退办法写进台账**。
+> **历史读数不追改**：本件只写"现在是什么"，历次读数保留在原处。
+
+---
+
+## 〇、这次动作的依据（作者指示，逐字）
+
+1. 「**06-swe-gb废除，只留三者融合版本**」
+2. 「**修改问题**」
+3. 追问三格后作者选定的处置（逐字摘要）：
+   - **留 `opsx-swe-gb-atom`，废 `opsx-swe-gb`**；
+   - **先归档改名，不删：搬进 08 的受控面，再改引用**；
+   - `standards/` **迁到 08 之外的一个法源目录，仍不进 git**；
+   - 沙箱权限放开，**先跑通读数**。
+
+---
+
+## 一、搬迁：两个落点
+
+| 内容 | 从 | 到 | 件数／体积 | 完整性判据 |
+|---|---|---|---|---|
+| 流程侧法源（`docs/` ＋ `templates/`） | `D:\Code\06-swe-gb\` | **`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/`**（**本仓内，纳入版本控制**） | **48 件 / 1.09 MB** | **逐文件 sha256 对账：47/47 一致、0 缺失、0 不一致**（第 48 件是本件新增的 `README.md`） |
+| 标准原文法源（`standards/`） | `D:\Code\06-swe-gb\standards\` | **`D:\Code\05-swe-gb-standards\standards\`**（**仓外，不进任何 git**） | **94 件 / 230.73 MB** | **搬迁前后逐文件 sha256 集合一致**（`Move-Item`，非复制 ⇒ 无副本） |
+
+**两处落点各自的说明件**（本件之外的出处登记）：
+
+- 本仓内：`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/README.md`
+- 仓外：`D:\Code\05-swe-gb-standards\README.md`
+
+### 1.1 为什么"标准原文"必须出仓
+
+源仓 `standards/README.md` 逐字：
+
+> 「⚠️ **本目录下的标准正文本地存放，不进 git。** 理由：国标 / ISO / GJB 正文均有**版权**（GJB 另有**密级**）。推送到公开仓库属于再分发，会有法律与保密风险。」
+
+原仓 `.gitignore` 对应条目逐字：`standards/**` ＋ `!standards/README.md`。
+而本仓 `github.com/ZiFan1117/worldcore` 是**公开**的（`MAINTENANCE.md` 规则 10）⇒ **它不能进本仓**。
+
+### 1.2 为什么"流程侧法源"必须进仓——**这是本次动作最有价值的一半**
+
+搬迁时点实测，源仓 `D:\Code\06-swe-gb` 的 `docs/` 下**大量流程正文从未被提交**：
+
+```
+git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
+其中含：docs/附件/附件一…附件八（全部 8 份）
+        docs/01-流程与阶段/流程档位定义.md
+        docs/00-标准依据/{标准依据,标准下载清单,国标全集清单,29110原文提取}.md
+        docs/04-配置与版本/变更记录/*.md
+        docs/导读本.md
+```
+
+⇒ **搬迁之前，这些件没有任何提交可回溯**（删掉即不可恢复）。
+这正是源仓 `WC-SCMP-001` 的 **`G-59`** 登记的那条**未关闭**缺陷的处置：
+
+> 「① `06-swe-gb/docs/附件/` 是**未跟踪目录** ⇒ 附件二/三/七**不在任何提交内**，对流程库的引用**只能锚在工作区 blob 上**」
+
+**本件把它纳入本仓版本控制 ⇒ 该缺陷的第一半到此关闭**（第二半"行号只能锚工作区"由 §三 的 LF 口径处置）。
+
+---
+
+## 二、引用改写：**只改活引用，历史件不追改**
+
+### 2.1 改前的作业面（现取）
+
+| 量 | 值 |
+|---|---|
+| 提及 `06-swe-gb`（任意形态）的件 | **37 个文件** |
+| 其中含**绝对路径** `D:\Code\06-swe-gb` 的处数 | **28 处 / 9 个文件** |
+
+### 2.2 改了什么（**20 处路径，9 行**）
+
+| 件 | 性质 | 改法 |
+|---|---|---|
+| `openspec/schemas/opsx-swe-gb/templates/review.md`（4 处） | **活引用**：会被逐字抄进每个新 change 的"引用根" | 全部改为仓内相对路径 |
+| `openspec/schemas/opsx-swe-gb-atom/templates/review.md`（4 处） | 同上 | 同上 |
+| `openspec/changes/fc-2026-001-openspec-into-cm/boundary.md`（1 处） | **活引用**：分工边界的法源 | 改为仓内相对路径 |
+| 同上 `proposal.md`（1 处） | 活引用（R5 触发条件依据） | 改为仓内相对路径 |
+| 同上 `tasks.md`（1 处） | 活引用（7.6 的验收面） | 改为仓内相对路径 |
+| `world-core/docs/S0-立项/WC-SDP-001-v0.1.md`（5 处） | **活引用**：§0.1 引用锚点表 ＋ `REF-12` | 改为仓内相对路径；`REF-12` 补"已搬入受控面" |
+| `world-core/docs/S0-立项/WC-SCMP-001-v0.1.md`（2 处） | **活引用**：`REF-04`／`REF-13-01` | 同上；`REF-13-01` 补标准原文的仓外落点 |
+
+### 2.3 什么**没**改（**13 处，全部是历史证据**）
+
+| 件 | 处数 | 为什么不动 |
+|---|---|---|
+| `world-core/docs/S0-立项/WC-SDP-001-v0.1.md` §0.4 核对表 | 10 | 那是"**本回合实测值**"（某一时点的读数与当时的命令）。**改路径＝伪造当时的证据**。已就地加一条 **2026-09-28 补记**说明它已过期与其原因（不改原字） |
+| `world-core/docs/S0-立项/WC-SCMP-001-v0.1.md` 的 `G-59` 与 ① 行 | 2 | 同上：`G-59` 记的是"当时实测到的事实" |
+| `world-core/docs/评审/WC-RV-R1-001-v0.1.md`（评审记录） | 1 | **评审记录＝过程证据**，其职责就是记"当时依据哪一份、怎么判的" |
+| `world-core/docs/评审/WC-PF-001-v0.1.md`（评审记录） | 1 | 同上 |
+
+> **口径**：本仓既有规矩「**历史件不追改**」（`冲突总账.md` §八 第 6 行、`:669` 逐字「旧节一律保留、不追改」）。
+> ⇒ **旧路径不删、只加说明**；它们的解析根＝**本仓 git 历史**与**本件 §一 的搬迁对照表**。
+
+### 2.4 ★ 一处**执行者自己造成的**副作用（如实登记）
+
+改 `fc-2026-001/proposal.md:82` 时，执行者除了把绝对路径换成仓内相对路径，**还顺手删掉了 `:61-68` 这个行号**。
+**核后确认：那个行号本来是对的**——`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md:61` 是 FC 词表表头、`:68` 是 `FC-6` 行。
+⇒ 属**删除正确信息**。方向与该仓"引用不写行号"那条规矩一致，但**那条规矩的理由是"行号会烂"，而此处行号没有烂** ⇒
+**这一处是执行者没有依据的改动**，如实登记。回退办法见 §五。
+
+### 2.5 核过的"行号没被打乱"（**搬迁是复制/移动，不改内容**）
+
+| 被引处 | 现取内容 | 判定 |
+|---|---|---|
+| `框架与模块共演化.md:61` | `\| 编号 \| 触发条件 \| 说明 \| 建议处置 \|`（FC 词表表头） | **仍锚得住** |
+| `框架与模块共演化.md:68` | `**FC-6** \| **个人偏好** … 不改：记入技术债清单` | **仍锚得住** |
+| `附件二-阶段流程与交付物.md:655` | `**条款.** 文档里每一处**能力声明**都必须能被一条命令复核。` | **仍锚得住**（H-21） |
+
+---
+
+## 三、行数口径（**搬迁后复现了源仓登记的差异**）
+
+| 件 | bytes | **LF** | `Get-Content .Count` | 差 |
+|---|---|---|---|---|
+| `docs/附件/附件二-阶段流程与交付物.md` | 248,306 | **2452** | 1847 | **605** |
+
+⇒ **与源仓 `WC-SCMP-001` 的 `G-59②` 完全一致**（该条记的正是 `附件二 LF 2452 / Get-Content 1847 / 差 605`）。
+**核行数一律用 LF**：`([System.IO.File]::ReadAllBytes(<路径>) \| Where-Object { $_ -eq 10 }).Count`。
+
+---
+
+## 四、下一步（**未做，如实登记**）
+
+| # | 项 | 状态 |
+|---|---|---|
+| 1 | `06-swe-gb` **原地归档改名**（不删） | **✅ 已做（2026-09-28）** —— 全量移入 `D:\Code\heavy-archive\06-swe-gb-retired-2026-09-28\`（**29,423 件 / 834.5 MB**，含 `.venv-ocr` 与 `.git`），**空目录已移除 ⇒ `D:\Code\06-swe-gb` 不再存在**；归档侧说明件＝该目录下的 `README-归档说明.md`。⚠ **随动作订正本件 §五 的回退办法**：源处 `docs/`／`templates/` **已删**（不是保留），要退回得从归档取 |
+| 2 | **默认档切 `opsx-swe-gb-atom`**（`openspec/config.yaml` 第 1 行）；`spec_bridge.py` 判据③ 会因此红 ⇒ 须同步改守卫 | **✅ 已做（2026-09-28）** —— **两处同改**：`openspec/config.yaml:1` ＝ `schema: opsx-swe-gb-atom`；`world-core/tools/spec_bridge.py:52` 的 `SCHEMA_NAME` 同步改为 `"opsx-swe-gb-atom"`（判据③ 是直接比对该常量，见 `:208`）。**读数（改后）**：判据③ `[OK]`、`spec_bridge.py` **通过 16 / 失败 0 rc=0**、`--self-test` **16/16 条判据各有 ≥1 反例 rc=0**、`openspec validate --all --strict` **12 passed / 0 failed rc=0**、`openspec validate --archived` **5 passed / 0 failed rc=0**、`schema validate opsx-swe-gb-atom` **✓ valid**。受控面文档同步：`MAINTENANCE.md` 规则 3、`schemas/README.md` §首。⚠ **本项属"改门禁自身"（改判据③ 的比对常量）** ⇒ 按本仓口径**须送独立评审席复核**，本件只登记"已做＋读数"，**不代签** |
+| 3 | `opsx-swe-gb` 的**受控面口径**（`schemas/README.md` §五"七件"、`MAINTENANCE.md` 规则 5） | **未做** |
+| 4 | §四 之外**评审意见里的"修改问题"**（处置排序见 `D:\Code\_review-verdicts\五席合并判词.md` §十） | **部分已做**：§四 第 0 项（判据⑪ 的生成链）**已修并转绿**，见 §六 |
+
+---
+
+## 六、顺手修掉的一处**真红**（不是本动作引入的，但被本动作暴露）
+
+**发现过程**：取基线读数时（本动作开始前）`spec_bridge.py` 已是 **通过 15 / 失败 1**，
+唯一红项＝**判据⑪**（`openspec/generated/BRIDGE.md` 与生成器输出不一致）。
+
+**红的原因（逐字取自守卫输出）**：
+
+```
+仓内「| 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **9** |」
+生成器「| 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **10** |」
+（仓内 18952 字节 sha256=0e37bf5089b5，生成器 18953 字节 sha256=307cf8d5aaa8）
+```
+
+**根因（可核，取自 `gen_bridge_md.py:220-230`）**：该计数是
+`world-core/docs/` **递归扫全部文件**、**按内容**（`read_text().lower()`）检索 `openspec` 字样所得——
+**与本动作无关地变过**（该目录里"含 openspec 字样"的文件由 9 份变 10 份）。
+
+**处置**：按 `MAINTENANCE.md` 规则 11 的**正确顺序**重跑生成链（**先 `gen_specmap`、再 `gen_secmap`、最后 `gen_bridge_md`**）：
+
+```
+python openspec/gen/gen_specmap.py   → rc=0；{"caps": 9, "reqs": 49, "scns": 87, "evs": 164, "srs": 41, "judges": 17, "booksecs": 46}
+python openspec/gen/gen_secmap.py    → rc=0；节数 = 41（六章正文）｜四源全无登记的 = 22
+python openspec/gen/gen_bridge_md.py → rc=0；rows=49 unmapped=31 gov=5 srs_no_req=19 collide=5
+```
+
+**跑后**：
+
+| 件 | 跑前 | 跑后 | 判定 |
+|---|---|---|---|
+| `openspec/generated/BRIDGE.md` | 18952 B sha `0e37bf5089b5` | **18953 B sha `307cf8d5aaa8`** | **变**（正是判据⑪ 要的） |
+| `openspec/generated/specmap.json` | 157026 B sha `bcb31c99ab85` | **157026 B sha `bcb31c99ab85`** | **未变**（逐字节） |
+| `openspec/generated/节对齐.md` | 13366 B sha `7ad32c7bf532` | **13366 B sha `7ad32c7bf532`** | **未变**（逐字节） |
+
+**`openspec/generated/BRIDGE.md` 的实际 diff（只有一行）**：
+
+```
+- | 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **9** | 逐文件 `read_text().lower()` 检索 |
++ | 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **10** | 逐文件 `read_text().lower()` 检索 |
+```
+
+**⇒ 判据⑪ 转绿；`spec_bridge.py` 由 `通过 15 / 失败 1` 变为 `通过 16 / 失败 0`。**
+
+> ★ **顺带证伪了一处自认（重要）**：`openspec/gen/gen_specmap.py:10-15` 的文件头逐字写着
+> 「**2026-09-28 实测：本生成器当前跑不出仓里那份产物**（149,314 B → 103,243 B）……已加 fail loud」。
+> **本次实跑：它跑通了、rc=0，且产物 `openspec/generated/specmap.json` 与仓内那份逐字节一致** ⇒
+> **那句自认今天已不成立**（那两处输入随书合并消失的问题，显然已被其它动作修好）。
+> **本件只登记这个事实与读数，不代改 `gen_specmap.py` 的注释**（它属工具面，改它要走 R5）。
+> **回退点**：改前的三份件已备份在 `D:\Code\_backup-2026-09-28-fix\`（`openspec/generated/BRIDGE.md.before` 等）。
+| 5 | 本件之外的**两份仓外说明件**是否要纳入某处登记 | **未做** |
+
+---
+
+## 五、回退办法（**可核，给命令**）
+
+```powershell
+# ① 把搬进本仓的流程侧法源退回原处（先删新位置，再拷回）
+Remove-Item -Recurse -Force 'D:\Code\08-worldcore-openspec\openspec\process-source'
+Copy-Item -LiteralPath 'D:\Code\06-swe-gb\docs' -Destination 'D:\Code\06-swe-gb' -Recurse -Force   # 注：源处 docs 未删，仍在
+# 注：搬迁用的是 Copy（不是 Move）⇒ 源处 docs/ 与 templates/ **仍然完整存在**，本步通常不需要
+
+# ② 把标准原文法源退回原处
+Move-Item -LiteralPath 'D:\Code\05-swe-gb-standards\standards' -Destination 'D:\Code\06-swe-gb\standards' -Force
+
+# ③ 撤销本次对仓内文件的改动（含 §2.4 那处多余的删除）
+git -C 'D:\Code\08-worldcore-openspec' restore -- openspec/changes/fc-2026-001-openspec-into-cm `
+    openspec/schemas/opsx-swe-gb/templates/review.md openspec/schemas/opsx-swe-gb-atom/templates/review.md `
+    "world-core/docs/S0-立项/WC-SDP-001-v0.1.md" "world-core/docs/S0-立项/WC-SCMP-001-v0.1.md"
+
+# ④ 取消暂存（搬运件）
+git -C 'D:\Code\08-worldcore-openspec' restore --staged -- （仓外）heavy-archive/worldcore-过程料-2026-10-07
+```
+
+⚠ **搬迁 `docs/` 与 `templates/` 用的是 Copy**（源处保留），**`standards/` 用的是 Move**（源处已空）。
+⇒ 若要完全回到动作前，**①里的拷贝那步是多余的、②是必需的**。
+
+---
+
+## 六、本件不能证明的事（**能力边界**）
+
+1. **不能证明"搬过来那份是权威版本"**：源仓 `docs/` 大部分**未跟踪**，无提交可锚；
+   本件只能证明"**搬迁这一刻两边逐文件 sha256 一致**"。
+2. **不能证明源仓 `standards/` 那批 PDF 未被裁剪或篡改**——源仓自己记着**三份来源可疑**、且
+   `GB/T 8567-2006` 手上这份 **100 页 vs 官方 132 页**。本件不替它背书。
+3. **不能保证 13 处历史件里的旧路径"读者一定能解析"**：本件加的是说明，**没有做机械替换**；
+   要它们可解析，得靠**本件的 §一 对照表**或**本仓 git 历史**。
+4. **不能证明 `06-swe-gb` 原地归档之后"没有人再引用旧路径"**——本件未加会红的判据；
+   要拦住"新写旧路径"，须另立一条判据（属工具面，要走 R5）。
+5. **本件的一切读数都取自 `pwsh` 的当场输出**，但**未附原始输出的归档文件**；
+   要复算请按各节给出的命令重跑。

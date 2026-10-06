@@ -80,7 +80,7 @@
 | `src/common/delivery.rs` | **不占号** | 横跨 `M04`（`World::commit_requested`：经它把 `to` 写进信封）与 `M06`/`M07`/`M09`（三个出口读同一个判据）：**一条记录给谁**——带 `to` 只送该收件人、无 `to`（或空）＝广播。**只读派生**，不给 `World` 加字段、不写盘 | 本体 `ontology.json:18`（`"to": "string  # 目的地；空 = 广播"`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
 | `src/common/pairing.rs` | **不占号** | 属 `M02` 的机制面（**账本里的事后核对**），并由 `M10` 复用其中"什么算一次 `act` 的结果"这一条判据：**请求与应答的配对**——配对键 `request_id` ＋因果 `trace`。`M10` 因此对 `M02` 有一条真实依赖边（登记见 §2 `M10` 行） | 本体 `ontology.json:33`（`act` 必填 `request_id`）、`:19`（`trace`）；书 §4.6；`openspec/changes/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
 | `src/common/error.rs` | **不占号** | **横跨全部模块**：错误码契约（`pub const PREFIX`、`pub fn code_of`、`pub fn has_code`）。它不属任何单个模块——每个模块都`s use` 它，**它是共同模块，不是缺口** | 附录 A §二「共同模块（不占模块号）」；**2026-09-28 由"登记缺口"改判为共同模块**：判据③ 与依赖抽取告警都点过它，处置是**规范登记**而不是继续挂着 |
-| `src/agent/` （`mod.rs`／`audit.rs`／`protocol.rs`／`completion.rs` **逐个占一行登记**，见下四行） | **不占号** | Agent 原动时（作者裁定三：Rust 实现＋属 world-core＋归入相应代码位置）。**无单一归属**：它今天**不是既有 M01–M10 任何模块的实现面**——是**新的一层**（执行侧的留痕与长活儿）；而 `M04` 的 CLI **尚未接它**（本件只落库，不接 CLI）⇒ 声明为**不占号的共同模块**，**不作任何模块的边目标** | 册 `openspec/BOOK/冲突总账.md` §7.15 的作者裁定（逐字三句）；`openspec/changes/agentd-in-rust-into-worldcore/specs/agent-runtime/spec.md` 的「与既有能力的边界」节；`WC-ATOM-001` §二 A-1 |
+| `src/agent/` （`mod.rs`／`audit.rs`／`protocol.rs`／`completion.rs` **逐个占一行登记**，见下四行） | **不占号** | Agent 原动时（作者裁定三：Rust 实现＋属 world-core＋归入相应代码位置）。**无单一归属**：它今天**不是既有 M01–M10 任何模块的实现面**——是**新的一层**（执行侧的留痕与长活儿）；而 `M04` 的 CLI **尚未接它**（本件只落库，不接 CLI）⇒ 声明为**不占号的共同模块**，**不作任何模块的边目标** | 册 `world-core/docs/理论/冲突总账.md` §7.15 的作者裁定（逐字三句）；`openspec/changes/agentd-in-rust-into-worldcore/specs/agent-runtime/spec.md` 的「与既有能力的边界」节；`WC-ATOM-001` §二 A-1 |
 | `src/agent/mod.rs` | **不占号** | 同上（Agent 原动时的模块面声明）；`pub mod audit/completion/protocol` 的出边是**模块内部**引用 | 同上 |
 | `src/agent/audit.rs` | **不占号** | 同上（结构化审计留痕） | 同上；会红断言 `tests/agent_audit.rs::g01`–`g04` |
 | `src/agent/protocol.rs` | **不占号** | 同上（行分隔结构化请求／应答） | 同上；会红断言 `tests/agent_protocol.rs::p01`–`p03` |
@@ -173,7 +173,7 @@
 | **A-2 四件同夹** | §2「**源码路径**」列＝实现件；「**四件同夹证据**」列＝该模块的原子级用例（`tests/…::fn`）；「**契约锚点（WC-IC-001）**」列＝契约件 | 判据③：实现文件在盘上存在、`tests/` 里有用例能指到它、`WC-IC-001` 里有含该模块号的标题；判据④：证据列每个 token **必须是真存在的 `#[test]`**、锚点列每个 `IF-0xx` **必须在 `WC-IC-001` 里真出现** | **机核** |
 | **A-3 契约字段齐** | §2 末六列即本模块的 `intent`／`deps`／契约锚点／四件同夹证据／`side_effects`／机核读数 | 判据④：**逐行逐栏**非空；`intent` 非占位、无并列；`side_effects` 允许写"无"但**不许留空** | **机核**（**但 `side_effects` 那句内容对不对，机器读不出 ⇒ 只有人核**） |
 | **A-4 `deps == import` 且无环** | §2「**依赖模块**」列＝声明的出边集；「**deps 机核**」列点名判它的工具 | 判据②：**声明集 ≡ 代码里真实 import 的兄弟模块集**（逐模块逐边相等），且真实边与「声明∪真实」两条线**各自无环**（按强连通分量逐条打印环路径） | **机核** |
-| **A-5 生成物不许手编** | **本表不是生成物**——详见本节下方那条口径更正 | 本表**没有** A-5 的判据；A-5 的判据在 `openspec/BRIDGE.md` 那一族生成物上（`world-core/tools/spec_bridge.py` 判据⑪⑫⑬） | **本表不适用** |
+| **A-5 生成物不许手编** | **本表不是生成物**——详见本节下方那条口径更正 | 本表**没有** A-5 的判据；A-5 的判据在 `openspec/generated/BRIDGE.md` 那一族生成物上（`world-core/tools/spec_bridge.py` 判据⑪⑫⑬） | **本表不适用** |
 | **A-6 UTF-8 无 BOM** | 本文件自身 | `python world-core/tools/plain_text_audit.py <本文件>`（BOM／非法 UTF-8／NUL 判红，`--self-test` 含 BOM 反例） | **机核** |
 
 **本表承担不了的三件事（如实登记，不许读成"已覆盖"）**：
@@ -194,11 +194,11 @@
 > **正确的分工是**：本表是**机器回读的输入**、不是生成物——
 > `module_graph.py` 判据①②③④ 与 `ic_books_check.py` 都**读本表**；
 > 而**该由生成器产出、且「改了输入必须重跑生成器」由判据管着**的那一族是
-> `openspec/BRIDGE.md`、`openspec/specmap.json`、`openspec/BOOK/节对齐.md`（判据⑪⑫⑬）。
+> `openspec/generated/BRIDGE.md`、`openspec/generated/specmap.json`、`openspec/generated/节对齐.md`（判据⑪⑫⑬）。
 >
 > **★ 两句容易被读成互相顶撞的话，口径在此钉死（两件不同的事）**：
 > ① **本表与本表**：本表**不是生成物**，故 A-5「不许手编」**管不到本表**（本节上表那一行写的「本表不适用」就是这个意思）；
-> ② **A-5 这条约定本身**：它的**可执行落点**（会红的判据）**只有** `openspec/BRIDGE.md` 那一族生成物，
+> ② **A-5 这条约定本身**：它的**可执行落点**（会红的判据）**只有** `openspec/generated/BRIDGE.md` 那一族生成物，
 >    由 `world-core/tools/spec_bridge.py` 判据⑪⑫⑬ 承担。
 > ⇒ **「本表不适用 A-5」与「A-5 的真实落点只有 BRIDGE 那一族」是同一件事的两面，不是两种说法**。
 > `module_graph.py` 文件头与 `WC-ATOM-001` §五 都按 ② 写；本行按 ① 写。**两处引用同一口径。**
@@ -379,7 +379,7 @@ main.rs       → world_core::World（外部使用方，非模块内边）
 > **★ 谁让（2026-09-27，本节为推翻上面那条形态裁定的登记）**
 > - **让的是哪一条**：本行上面那句「设计侧**按模块分册** `WC-IC-M01`…`WC-IC-M09`」以及它引的 `WC-R4-DISP-001` §三 **E-3** 裁定。
 > - **为什么要让**：**作者 2026-09-27 指示**（逐字）「我的软件开发流程那几个文档就很固定，就那么几个文档，**不要给我出现了好多个文档**」「**文档不要太散了**」；据此立的 `.agents/skills/worldcore-sdd/SKILL.md` §二 把文档集**封口**：S2 的接口契约**就那么一份**（`WC-IC-001`，一册分节 `§5.1`–`§5.10` = `M01`–`M10`）。
-> - **谁批的**：**作者**（上引原话；原话逐字另录于 `openspec/BOOK/冲突总账.md`）。
+> - **谁批的**：**作者**（上引原话；原话逐字另录于 `world-core/docs/理论/冲突总账.md`）。
 > - **执行结果**：11 册（`WC-IC-M01`–`M10` ＋ 总则）**已并入 `WC-IC-001` 一册**，原文件已删；门禁 `ic_books_check.py` 由"册数一致"改判"**模块节齐**"（负例：删掉某一模块的节 ⇒ 立刻红）。
 > **本列回填的实际意义**：它**消灭了"某模块能没有接口却仍在登记表里成立"这一机制缺口**（见 §五 #5）——现在每个模块都至少有一个具名接口，
 > 缺口从"无接口"变成"**接口未生效**"。

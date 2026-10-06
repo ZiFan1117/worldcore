@@ -1,6 +1,6 @@
 # Review
 
-> **数值口径（2026-09-27 补）**：本文出现的「**23 条承诺／39 条需求**」是**立件时点**的读数（时点见 `design.md` 的时序表，`ef2c9a0`／`21:32:37`）。**现行权威值见 `openspec/BRIDGE.md` §七**：规格承诺 **33 条**、流程侧唯一需求号 **41 个**（该表**现算**，并给复算命令）。按 skill §八「一个事实一个权威载体」，**本件不复述现读数**；历史读数保留，因为它记录的是"当时看到什么"。
+> **数值口径（2026-09-27 补）**：本文出现的「**23 条承诺／39 条需求**」是**立件时点**的读数（时点见 `design.md` 的时序表，`ef2c9a0`／`21:32:37`）。**现行权威值见 `openspec/generated/BRIDGE.md` §七**：规格承诺 **33 条**、流程侧唯一需求号 **41 个**（该表**现算**，并给复算命令）。按 skill §八「一个事实一个权威载体」，**本件不复述现读数**；历史读数保留，因为它记录的是"当时看到什么"。
 
 > **本件是本次 change 的第五件产物，也是归档的那道闸。** OpenSpec 本身没有角色概念，它允许 agent 自己
 > propose → apply → archive；项目流程的责任铁律是「**执行者不能是唯一批准者**」。
@@ -26,7 +26,7 @@
 **判定归属**：本结论由**独立评审席回件**判定（席·甲：席·乙（代码与规格面）判**可签**（对象 `848d9cf`，限其核过的 4 项，未核清单已列）；席·乙：席·丙（定谳席）判**可签**（对象 `d1e7a28`；其两条必改经回证后由本席自行撤回）），**执行者仅转录，未参与判定**。
 
 **建议 ≠ 是**：批准只对评审席在**冻结对象**上核过的范围成立；**本档不能证明的事**见 §四／§3.1（能力边界）。
-**同轮另一席的情况（如实记录）**：席·甲（流程与文档面，对象 `848d9cf`）判**需改**并列出 3 条必改（§五 validate 读数 10→11；`WC-MODREG-001` §五 表依赖列仍掺说明；档位词两套）——**3 条已全部落地于 `d1e7a28`，并经席·丙 逐条复核确认落地**。另：席·丙 前一条判词里的 2 条必改**已由席·丙 自行撤回**（其错误在方法：`merge-base --is-ancestor` 不能定时点、`-S` 查不出行内更正），撤回原文与复现命令见 `openspec/BOOK/冲突总账.md`。
+**同轮另一席的情况（如实记录）**：席·甲（流程与文档面，对象 `848d9cf`）判**需改**并列出 3 条必改（§五 validate 读数 10→11；`WC-MODREG-001` §五 表依赖列仍掺说明；档位词两套）——**3 条已全部落地于 `d1e7a28`，并经席·丙 逐条复核确认落地**。另：席·丙 前一条判词里的 2 条必改**已由席·丙 自行撤回**（其错误在方法：`merge-base --is-ancestor` 不能定时点、`-S` 查不出行内更正），撤回原文与复现命令见 `world-core/docs/理论/冲突总账.md`。
 
 ## 二、执行者与批准者的分离声明
 
@@ -64,7 +64,7 @@
 - [ ] ★ **触发条件成立**（FC-1…FC-6）——**建议值：成立**（依据见下两行）。**这不是判定**：「触发条件是否成立」由主持人判，AI 只给建议与代价；**建议不等于是**
       <!-- FC-6「个人偏好——我觉得这样更优雅」一律驳回 -->
       命中的编号：**FC-1（契约不足）／FC-2（职责错位）／FC-3（假设被推翻）／FC-5（测试不可达）**；**未命中 FC-4／FC-6**
-      现象证据：① 流程侧 `world-core/docs/` 下检索 `openspec` 的命中数（**以 `openspec/BRIDGE.md` §七 数值权威表的现算值为准 ＋ 用表内复算命令复算；本处不复述数**）；② `openspec validate --archived` 当时 = `0 passed / 1 failed`（`✗ 2 incomplete tasks (18/20)`）；③ `spec_bridge*` 五处**全无**；④ 规格侧 REQ 号 **0 处** vs `WC-SRS-001` 的 REQ 号，两侧计数**同以 §七 现算值为准**；⑤ 六路逐条审计 **46 条**（严重 15，见 `audit.md`）。**逐条依据句见 `proposal.md` 的「R5 触发条件」表；数值口径见 `openspec/BRIDGE.md` §七。**
+      现象证据：① 流程侧 `world-core/docs/` 下检索 `openspec` 的命中数（**以 `openspec/generated/BRIDGE.md` §七 数值权威表的现算值为准 ＋ 用表内复算命令复算；本处不复述数**）；② `openspec validate --archived` 当时 = `0 passed / 1 failed`（`✗ 2 incomplete tasks (18/20)`）；③ `spec_bridge*` 五处**全无**；④ 规格侧 REQ 号 **0 处** vs `WC-SRS-001` 的 REQ 号，两侧计数**同以 §七 现算值为准**；⑤ 六路逐条审计 **46 条**（严重 15，见 `audit.md`）。**逐条依据句见 `proposal.md` 的「R5 触发条件」表；数值口径见 `openspec/generated/BRIDGE.md` §七。**
 - [ ] ★ 至少给出 **2 个方案对比**，且**含"不改"或"最小改"案** —— **建议值：满足**（见 `design.md` 方案对比：甲机制先行／乙不改或最小改／丙一个巨型 change）。**这不是判定**：由主持人核；**建议不等于是**
 - [ ] ★ 影响范围明确，**回归范围可推导**（R-A / R-B / R-C / R-D）—— **建议值：满足**（见 `design.md` 影响分析节）。**这不是判定**：由主持人核；**建议不等于是**
 - [ ] 若为破坏性变更，已通知**全部使用方** —— **建议值：不适用**（破坏性变更：无；但 3 份主规格的 `## Purpose` 有更正，见 `proposal.md`）。**这不是判定**：由主持人核；**建议不等于是**
@@ -79,7 +79,7 @@
 |---|---|
 | 验收在哪台机器 / 什么环境跑的 | VM `world`（VirtualBox Arch Linux，内核 `7.2.6-arch2-1`），工作区 `/root/world/world-core`；**主机无 Rust 工具链，一切构建与验收只在 VM 内** |
 | 版本 / 提交号（**★ 复核对象＝包含本行的提交**，M14 第四次） | **对象＝包含本行的那个提交** —— 定位：`git log -1 --format="%H %ci" -- openspec/changes/fc-2026-001-openspec-into-cm/review.md`（提交时点见该提交本身）。**前三轮评审**：第 1 轮两席判「不可签」（12 条＋必改，已落地）；第 2 轮两席判「不可签」（甲 5 条 → `58a1cb5`；乙 2 条＋6 建议 → `8cd3db6`）；**第 3 轮两席因轮次预算耗尽被中断、未出判词 —— 如实记：那次评审没有结果，不算通过、也不算不通过**。**本行的父提交＝`d119ea310d15501b52d9dbb6b7778582b5faf32b`**。**本批落笔**：`module_graph` 三条缺陷（③ 打印不存在的环边／④ 不区分声明边与真实边且漏报真环／⑤ 目录型模块的边）已修；`WC-MODREG-001` 的依赖列恢复**机器可解析**（订正说明挪到表下）；契约册 `WC-IC-001` 三个模块节的依赖边对齐 ⇒ **IC 门禁 rc=0 转绿**；**VM 镜像同步**（推 215 件、删 79 件远端多余物 ⇒ 远端多余 0，**VM 终于与本机同树**）。**冻结协议**：自本提交起、到本轮复评结束，**不再向本仓提交任何东西**；若因评审回件而落笔，**必先告知席位**，且被评对象以本行为准（`git show <该哈希>:<path>`）。 |
-| **本轮机器读数（四要素：时点／命令／原始输出／提交号）** | 见 `openspec/tools/collect_evidence.py`（**它现取、不判通过与否**）。**冻结提交上实测**（执行者跑，单进程 Python 调用以避开外壳管道的编码改写）：`openspec validate --all --strict` **11 passed / 0 failed（rc=0）**（**★ 原写 10——那是 `fc-2026-004-assertions` 建件之前的读数**。读数**必须现取**：本项目已三次因写死读数而被评审席判「与事实相反」；**此后本栏一律以命令输出为准，不复述条数**）；`spec_bridge.py` **9 通过 / 2 失败（rc=1）**——红项＝**⑥ 归档件评审未签**（＝等本轮评审通过后签的那条）与 **⑩ `fc-2026-002` 的 delta 与主规格撞车 10 处**（处置＝`archive --yes --skip-specs`，且归档前须先签）；`validate --archived` **1 passed, 0 failed（rc=0）**；`spec_bridge.py --self-test` **rc=0**（**判据与反例的条数以该命令的输出为准，本处不复述**——实测该数在本轮之内就从 9 增到 11，**写死即过期**；自证口径是「**每条**判据至少一个反例 ＋ 正控全绿」）。**VM 独立复核（执行者跑，非工区自报）**：整树同步脚本 `D:\Code\sync-vm.ps1` **已改为镜像模式**（推完再删远端多余件）——此前**只推不删**，VM 上累积了本机早已删掉的件（实测 VM 的 `world-core/docs/` 有 125 个文件、本机 46），**导致"VM 现场 ≠ 被评的树"、读数不可复现**；`bash check.sh` 与 `cargo test --locked` 的读数见本 change 的 `audit.md`。 |
+| **本轮机器读数（四要素：时点／命令／原始输出／提交号）** | 见 `openspec/gen/collect_evidence.py`（**它现取、不判通过与否**）。**冻结提交上实测**（执行者跑，单进程 Python 调用以避开外壳管道的编码改写）：`openspec validate --all --strict` **11 passed / 0 failed（rc=0）**（**★ 原写 10——那是 `fc-2026-004-assertions` 建件之前的读数**。读数**必须现取**：本项目已三次因写死读数而被评审席判「与事实相反」；**此后本栏一律以命令输出为准，不复述条数**）；`spec_bridge.py` **9 通过 / 2 失败（rc=1）**——红项＝**⑥ 归档件评审未签**（＝等本轮评审通过后签的那条）与 **⑩ `fc-2026-002` 的 delta 与主规格撞车 10 处**（处置＝`archive --yes --skip-specs`，且归档前须先签）；`validate --archived` **1 passed, 0 failed（rc=0）**；`spec_bridge.py --self-test` **rc=0**（**判据与反例的条数以该命令的输出为准，本处不复述**——实测该数在本轮之内就从 9 增到 11，**写死即过期**；自证口径是「**每条**判据至少一个反例 ＋ 正控全绿」）。**VM 独立复核（执行者跑，非工区自报）**：整树同步脚本 `D:\Code\sync-vm.ps1` **已改为镜像模式**（推完再删远端多余件）——此前**只推不删**，VM 上累积了本机早已删掉的件（实测 VM 的 `world-core/docs/` 有 125 个文件、本机 46），**导致"VM 现场 ≠ 被评的树"、读数不可复现**；`bash check.sh` 与 `cargo test --locked` 的读数见本 change 的 `audit.md`。 |
 | 关键工具链版本 | cargo **1.98.1** `(797e8a9bc 2026-08-05)` / rustc **1.98.1** `(48a229cea 2026-09-01)`；Python **3.11.15**；OpenSpec CLI **1.13.2** |
 | 验收命令与原始输出在哪 | **★ 现读数（2026-09-28，评审席·乙 在 VM 实测）**：`bash check.sh` → **rc=1**，**红在第 ⑧ 步**（逐字 `❌ 规格层守卫 失败（rc=1）—— 验证留档不得吞掉失败`），红项＝判据⑥ 归档件评审未签。**逻辑上也必然**：`world-core/check.sh:186-187` 第 ⑧ 步一直是 `run_tail … python3 tools/spec_bridge.py`，而 `run_tail`（`:51-53`）逐字 `if [ "$rc" -ne 0 ]; then … exit 1` ⇒ **只要 ⑥ 红，含第 ⑧ 步的 check.sh 必 rc≠0**。**基线复现（历史读数，判据⑥ 落地之前、第 ⑧ 步尚未进 `check.sh` 时）**：`ssh world "cd /root/world/world-core && bash check.sh"` → **rc=0**（构建／冒烟／三条专属测试／契约 25 项／投影同源／纯文本审计／系统级验收 52 项 0 失败／S1 验证面 59＋117 项断言 0 失败）。**本轮已跑**，用于确认"证据环境今天真的能跑" |
 | 归档环境指纹的路径 | 　**待补**（实施合入后写入 `world-core/docs/证据/`） |
@@ -90,7 +90,7 @@
 |---|---|
 | **起点提交** | `fd9a892dbc801ad8ec93d1108fd908168a4b91e7`（`main`，提交总数 5） |
 | **起点工作区** | 2 处已改（`openspec/schemas/README.md`、`opsx-swe-gb/schema.yaml`）＋ 3 处未跟踪（`fc-2026-001…/`、`fc-2026-002…/`、`zz-selftest/`〔评审席临时件〕）+ `docs/` **无未提交改动** |
-| **开工前提逐项** | 默认档 `schema: spec-driven`（**待切**）；`spec_bridge.py` **不存在**；`openspec/MAINTENANCE.md`、`openspec/BRIDGE.md` **不存在**；`spec-governance` **未进主规格** ⇒ 与 `tasks.md` 的六组任务对得上 |
+| **开工前提逐项** | 默认档 `schema: spec-driven`（**待切**）；`spec_bridge.py` **不存在**；`openspec/MAINTENANCE.md`、`openspec/generated/BRIDGE.md` **不存在**；`spec-governance` **未进主规格** ⇒ 与 `tasks.md` 的六组任务对得上 |
 | **主机 ↔ VM（核对前）** | `src/`、`tests/`、`tools/`、`ontology.json`、`policy.json`、`check.sh`、`Cargo.*`、`cap.d/`、`templates/`、`deploy/` **全部一致**；**`docs/` 有 21 件分叉**：13 件内容不同、8 件 VM 全无 |
 | **分叉方向（判据：时间戳 ＋ 主机 `docs/` 无未提交改动）** | **VM 落后**，不是带改动。例：`语义世界-序.md` VM `20:30:59` / 主机 `20:56:40`；`第五章` VM `20:32:30` / 主机 `21:03:40`；`清稿待办` VM `20:34:06` / 主机 `20:58:57`。⇒ VM 停在 07 那轮清稿**之前**的文档上 |
 | **处置** | 用本仓自带 `D:\Code\push-vm.ps1`（按字节推送 ＋ 回读 sha256）把 21 件同步到 VM，逐件 `LOCAL = REMOTE` |
@@ -122,13 +122,13 @@
 | # | 时点 | 做了什么 | 谁指示 | 为什么先行 | 回退点 |
 |---|---|---|---|---|---|
 | 1 | 2026-09-27 22:12–22:18 | **改融合档文字**：主本 `D:\Code\10-openspec-swe-gb\schemas\` 的 `opsx-swe-gb/schema.yaml`（顶层 `description` ＋ `proposal`／`specs`／`design`／`review` 四条 instruction）与**新建主本 `README.md`**；随后**同步到本仓** `openspec/schemas/`。**七件逐文件 sha256 一致** | **项目负责人**（当面对话中指示） | 这份文件是**下一件活的判据**：不改它，下一个 change 会照旧被指示"同一批文件双读、流程侧只留一行指针" | ① 本仓：`git checkout <本轮之前的提交> -- openspec/schemas`（旧哈希 `schema.yaml` `E58AF96448B1ABCF`、`README.md` `84A24BE93FB7B0DC`）② **主本无版本控制**（`10-openspec-swe-gb` 不是 git 仓）：`README.md` 原不存在，`schema.yaml` 旧内容可按上述哈希从本仓 git 取回 |
-| 2 | 2026-09-27 22:30–23:00 | **实施第 1–5 组任务**：① `config.yaml` 默认档切 `opsx-swe-gb` ② 造 `world-core/tools/spec_bridge.py`（**当时**五条判据 ＋ `--self-test` 五条反例）③ 接 `check.sh` **第 ⑧ 步** ④ 新增 `openspec/BRIDGE.md`（编号桥长期载体）⑤ 新增 `openspec/MAINTENANCE.md`（常设项出口）⑥ 为归档 change 补 `review.md`、把两条常设项移出其 `tasks.md` ⑦ 起草 `cover-unimplemented-capabilities`（保持不归档）⑧ `openspec/` 层 56 件同步到 VM | **项目负责人**（当面对话中指示"开始开发"） | 五席评审一致判定：**两道闸今天没有任何执行者**（实测 `review.md` 通篇"待签"而 `apply` 仍 `state=ready`；一个**没有** `review.md` 的 change 用 `archive --yes` 照样 rc=0 归档）——不先补执行者，后面所有改动都是纸面 | `git revert <本轮的提交>`（改动集中在文本 ＋ 一个新脚本；归档件那一步单独一个提交，可分开回退） |
+| 2 | 2026-09-27 22:30–23:00 | **实施第 1–5 组任务**：① `config.yaml` 默认档切 `opsx-swe-gb` ② 造 `world-core/tools/spec_bridge.py`（**当时**五条判据 ＋ `--self-test` 五条反例）③ 接 `check.sh` **第 ⑧ 步** ④ 新增 `openspec/generated/BRIDGE.md`（编号桥长期载体）⑤ 新增 `openspec/MAINTENANCE.md`（常设项出口）⑥ 为归档 change 补 `review.md`、把两条常设项移出其 `tasks.md` ⑦ 起草 `cover-unimplemented-capabilities`（保持不归档）⑧ `openspec/` 层 56 件同步到 VM | **项目负责人**（当面对话中指示"开始开发"） | 五席评审一致判定：**两道闸今天没有任何执行者**（实测 `review.md` 通篇"待签"而 `apply` 仍 `state=ready`；一个**没有** `review.md` 的 change 用 `archive --yes` 照样 rc=0 归档）——不先补执行者，后面所有改动都是纸面 | `git revert <本轮的提交>`（改动集中在文本 ＋ 一个新脚本；归档件那一步单独一个提交，可分开回退） |
 
 ### 7.1 第 2 次施行的**结果**（原始读数）
 
 | 门禁 | 施行前 | 施行后 |
 |---|---|---|
-| `python3 world-core/tools/spec_bridge.py`（本 change 新造的守卫） | **不存在** | **6 通过 / 1 失败，rc=1**（**条数以 `--json` 的 `passed`/`failed` 为准**；失败的是**判据⑥**：归档件的评审未签——那条红是**既存事实**，见 `openspec/BOOK/冲突总账.md`；**本 change 归档前必须先签，签后该条转绿**） |
+| `python3 world-core/tools/spec_bridge.py`（本 change 新造的守卫） | **不存在** | **6 通过 / 1 失败，rc=1**（**条数以 `--json` 的 `passed`/`failed` 为准**；失败的是**判据⑥**：归档件的评审未签——那条红是**既存事实**，见 `world-core/docs/理论/冲突总账.md`；**本 change 归档前必须先签，签后该条转绿**） |
 | ├ 其 `--self-test`（**每条**反例必红） | — | **rc=0**：**每条**反例逐条"已红 OK"，正控全绿（**条数不写死**，以该命令输出为准） |
 | `openspec validate --all --strict` | `9 passed / 1 failed`（红的是空壳 `fc-2026-002`） | **`9 passed / 0 failed`** |
 | `openspec validate --archived` | **`0 passed / 1 failed`**（`✗ 2 incomplete tasks (18/20)`，即 schema 自己预言过的"常设项永久挡住"） | **`1 passed / 0 failed`** |
@@ -168,7 +168,7 @@
 
 > **本节的边界（写明，免得被读成"已解决"）**：本节**只是登记**——**"不合规"这件事本身没有消失**：
 > 它要么被**追认**、要么被**回退**，两条都要**人**落笔（`proposal.md` 逐字「属"谁让"的裁定，**agent 不代选**」）。
-> 该开口同时登记在 `openspec/BOOK/冲突总账.md` §八 第 2 条。
+> 该开口同时登记在 `world-core/docs/理论/冲突总账.md` §八 第 2 条。
 
 ---
 
@@ -180,9 +180,9 @@
 | `design.md` | 影响分析 ＋ 方案对比（含不改案）＋ 决策 ＋ 排除清单 ＋ 回滚 | 本 change 目录 |
 | `specs/spec-governance/spec.md` | 新增能力的 delta（5 条 Requirement，逐条带场景与证据） | 本 change 目录 |
 | `tasks.md` | 六组任务，每条自带验收方式 | 本 change 目录 |
-| **`audit.md`** | **六路逐条审计的 46 条发现**（每条带文件:行号＋逐字引文＋实跑命令与 rc）——**本 change 存在的直接理由** | 本 change 目录（由 `specmap.json` 生成，未手抄） |
+| **`audit.md`** | **六路逐条审计的 46 条发现**（每条带文件:行号＋逐字引文＋实跑命令与 rc）——**本 change 存在的直接理由** | 本 change 目录（由 `openspec/generated/specmap.json` 生成，未手抄） |
 | **`mapping.md`** | **编号桥映射表**（23 条承诺 ↔ 39 条需求；撞号 5／无号 5／无人认领 17） | 本 change 目录 |
 | **`boundary.md`** | **分工边界表**：OpenSpec 与软件开发流程谁管什么（S0–S7 交付物、R0–R8 评审、H-01…H-26 硬条款逐项判"归谁"）——**以后每件新事都先查它** | 本 change 目录 |
-| 对照图 | 书 ↔ OpenSpec ↔ 实盘与流程侧 的可视化（可点、可筛，含"从头看：这条链"） | `D:\Code\_specmap\specmap.html`（数据 `specmap.json`） |
+| 对照图 | 书 ↔ OpenSpec ↔ 实盘与流程侧 的可视化（可点、可筛，含"从头看：这条链"） | `D:\Code\_specmap\specmap.html`（数据 `openspec/generated/specmap.json`） |
 
 > **签字与责任归属归人，不可代签。** 本件由人填写，agent 只能准备材料、跑门禁、贴原始输出。

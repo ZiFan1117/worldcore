@@ -47,7 +47,7 @@ name: world-core 门禁
 #   module-graph       原子化机核  `world-core/tools/module_graph.py`（WC-ATOM-001 §二 A-1／A-4／A-2）
 #
 # ⚠️ **今天有两条是红的，且不许掩盖**（逐条读数写在各自作业的注释里，实测时点 2026-09-27）：
-#   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `openspec/BOOK/冲突总账.md` §五 裁-1
+#   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `world-core/docs/理论/冲突总账.md` §五 裁-1
 #      （作者指示「评审完结束后签我的名字」⇒ **评审通过后**才签，未过不签）。
 #   ② `module-graph` —— **2026-09-28 已转绿**（三条判据 `通过 3 / 失败 0`；真源码环 `M04↔M09` 已按
 #      「消回边、保留合法方向」改成 DAG：`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）。
@@ -301,7 +301,7 @@ jobs:
         # 为什么**不**把它注释掉、**不**加 continue-on-error、**不**放宽判据：
         #   「归档件没签却在账上记成已归档」正是本项目最忌的形态（把未定当已定）；
         #   把已知缺陷藏进绿灯里，比红着更坏。
-        # 台账与处置权：`openspec/BOOK/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；
+        # 台账与处置权：`world-core/docs/理论/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；
         #   评审未过不签）⇒ 两条出路：① 走完评审并签署 ⇒ 本步自动转绿；② 作者裁定该归档件退出示踪。
         run: python world-core/tools/spec_bridge.py
 

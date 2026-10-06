@@ -5,7 +5,7 @@
 //! | 组 | 判据 | 反例（必须红） | 恢复（必须绿） |
 //! |---|---|---|---|
 //! | ① | **五要素节存在性**：任一节缺 ⇒ `Ontology::load` 拒启（`MissingSection`） | 逐节删（五节各一次） | 原本体 |
-//! | ② | **对象**：字段的**值类型**参与校验（含 `enum` **闭集**、`ref(<类型>)`）。★ **`kind` 除外**：`envelope.kind` 是**家族名**，走家族查找报 `UnknownKind` 并点名那个值——**不是**闭集（依据：`openspec/specs/envelope-validation/spec.md` 逐字「枚举值另有其主（家族查找报 `ext.world.Ontology.UnknownKind` 并点名）」；`openspec/BOOK/冲突总账.md` 逐字「`enum(...)` 明确豁免」。理由全文见 `src/ontology_definition/mod.rs::Ontology::validate_types` 的文档） | 给 `muted` 写整数；给 `status` 写越界值；`ref` 指向别的类型 | 写对 |
+//! | ② | **对象**：字段的**值类型**参与校验（含 `enum` **闭集**、`ref(<类型>)`）。★ **`kind` 除外**：`envelope.kind` 是**家族名**，走家族查找报 `UnknownKind` 并点名那个值——**不是**闭集（依据：`openspec/specs/envelope-validation/spec.md` 逐字「枚举值另有其主（家族查找报 `ext.world.Ontology.UnknownKind` 并点名）」；`world-core/docs/理论/冲突总账.md` 逐字「`enum(...)` 明确豁免」。理由全文见 `src/ontology_definition/mod.rs::Ontology::validate_types` 的文档） | 给 `muted` 写整数；给 `status` 写越界值；`ref` 指向别的类型 | 写对 |
 //! | ③ | **关系**：命名关系的**两端类型必须已声明** | `from`/`to` 指向未声明的类型 | 指回已声明的类型 |
 //! | ④ | **内嵌**：声明式内嵌标记（`nested`＋`part_of`）——实例路径必须是 `world://<父>/<父实例>/<本类型>/<本实例>` | 内嵌类型写成两段（未声明实体）／写成三段的**错父** | 写成正确的四段 |
 //! | ⑤ | **按类型的实例计数**：声明为单实例的类型，fold 后实例数 > 1 ⇒ 红（`TooManyInstances`） | 上限 1 而写两个实例 | 只写一个 |
@@ -245,7 +245,7 @@ fn m02_cli_check_refuses_when_an_element_section_is_missing_and_passes_when_rest
 /// ★ **`enum` 闭集有一处字段级豁免**：`envelope.kind` **不进**这条判据——它是**家族名**，
 /// 由家族查找报 `ext.world.Ontology.UnknownKind` 并**点名那个值**（依据：上位规格
 /// `openspec/specs/envelope-validation/spec.md` 逐字「**枚举值**另有其主（**家族查找报
-/// `ext.world.Ontology.UnknownKind` 并点名**）」＋ `openspec/BOOK/冲突总账.md` 逐字
+/// `ext.world.Ontology.UnknownKind` 并点名**）」＋ `world-core/docs/理论/冲突总账.md` 逐字
 /// 「`enum(...)` 明确豁免」）。**理由全文**见 `src/ontology_definition/mod.rs::Ontology::validate_types`
 /// 的文档（本处只指路，不复述）。⇒ 本用例判的是**别的** enum 字段（如 `status`）。
 ///

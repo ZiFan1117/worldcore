@@ -78,7 +78,7 @@ npx --yes @fission-ai/openspec@1.13.2 status --change <name>
 | **归档时没有任何东西会拦你**——`archive` 不是门禁 | `schema.yaml` 的 `tasks.instruction`／`review.instruction`／`apply.instruction` 三处都写明 | 实测：tasks 未全勾时 `archive --yes` 仍 `rc=0`，**且已把 delta 合并进主规格** |
 | tasks 全勾这一条由**事后 lint** 复查（不是门禁） | `templates/tasks.md` 头注 ＋ `tasks.instruction` | `openspec validate --archived` ⇒ 未勾件报 `N incomplete tasks (x/y completed)` 并 rc=1，**红了要回退** |
 | **`--skip-specs` 的边界**：纯文档／工具类 change 无 delta 时，须在 `.openspec.yaml` 写 `skip_specs: true` | `.openspec.yaml`（CLI 生成，**不手改**） | 不写 ⇒ `validate --strict` 报 `Change must have at least one delta` rc=1；写了 ⇒ rc=0 |
-| ★ **precedence**：形式／机制按 OpenSpec；与流程冲突时**让给 OpenSpec** | `schema.yaml` 的 `fusion` 第 1 条（`source: openspec`）的 `evidence` 段内（含让路三要素） | 三要素齐；登记处 `openspec/BOOK/冲突总账.md` 的同名新节（标题含`让路三要素`） |
+| ★ **precedence**：形式／机制按 OpenSpec；与流程冲突时**让给 OpenSpec** | `schema.yaml` 的 `fusion` 第 1 条（`source: openspec`）的 `evidence` 段内（含让路三要素） | 三要素齐；登记处 `world-core/docs/理论/冲突总账.md` 的同名新节（标题含`让路三要素`） |
 
 ### 2.2 第 2 样 · **国际软件开发流程（06-swe-gb 那套）**
 
@@ -95,8 +95,8 @@ npx --yes @fission-ai/openspec@1.13.2 status --change <name>
 | **基线（需求／框架／产品）** | 本档**不立基线**（不新增册子）；`templates/design.md` 的 Open Questions 要求把"只能由作者落笔"的事（签字／裁定／追认）明写谁做什么、落点指向登记者 | 无机器判据；基线三律的出处是 `附件五-配置与版本.md` |
 | **配置管理与变更控制（CR／R5）** | `templates/proposal.md`：变更号**独占文档头的 `CR:` 一行**（**标题之下第 3 行**——第 2 行是空行；**不是**一张属性表）；一个 change 目录＝一份 CR | `spec_bridge.py` 编号桥；`world-core/docs/S0-立项/WC-SCMP-001-v0.1.md` |
 | **追溯 RTM** | `templates/spec.md`：编号从流程侧取，取不到写「无号·待增补」 | `world-core/docs/S1-需求/WC-RTM-001.csv`（现取 **14 列**，第 14 列「备注」是附录等价物）；`world-core/tools/trace_matrix.py` |
-| **编号桥（互相指、不互相抄）** | `templates/spec.md` 的编号条 ＋ `openspec/BRIDGE.md` | `spec_bridge.py` **判据④**（`BRIDGE.md` 必须覆盖规格树下**每一条** Requirement） |
-| ★ **precedence**：流程按 06-swe-gb；**机制／形式这一面的争执让给 OpenSpec** | `schema.yaml` 的 `fusion` 第 2 条（`source: international-process`）的 `evidence` 段内（含让路三要素） | 三要素齐；登记处 `openspec/BOOK/冲突总账.md` 的同名新节（标题含`让路三要素`） |
+| **编号桥（互相指、不互相抄）** | `templates/spec.md` 的编号条 ＋ `openspec/generated/BRIDGE.md` | `spec_bridge.py` **判据④**（`openspec/generated/BRIDGE.md` 必须覆盖规格树下**每一条** Requirement） |
+| ★ **precedence**：流程按 06-swe-gb；**机制／形式这一面的争执让给 OpenSpec** | `schema.yaml` 的 `fusion` 第 2 条（`source: international-process`）的 `evidence` 段内（含让路三要素） | 三要素齐；登记处 `world-core/docs/理论/冲突总账.md` 的同名新节（标题含`让路三要素`） |
 
 > ⚠ **仓层面一处必须先说的实测**：`.openspec.yaml` 的 `skip_specs` **不改变** `review` 那条闸。
 > `openspec archive --yes` 在任何情况下都不读 `review.md`。**唯一会拦的两条是 `spec_bridge.py` 判据①（归档目录必须有 `review.md`）与判据⑥（已签）**，
@@ -113,7 +113,7 @@ npx --yes @fission-ai/openspec@1.13.2 status --change <name>
 | **A-2 一个原子一个文件夹（契约＋实现＋测试同夹）** | 第 3 栏「四件同夹」——三件都要写**真实路径或用例名** | 人工判；旁证同上（`module_graph.py` 判据②核的是 `src/` 登记面） |
 | **A-3 契约字段齐** | 第 3 栏的"契约"格（规格条目／`WC-IC-001`） | 人工判 |
 | **A-4 `deps == import` 且无环** | 第 4 栏 `deps == import` | `python world-core/tools/module_graph.py`（**读数现取，本处不复述**；自证 `--self-test`）＋人工贴读数 |
-| **A-5 生成物不许手编** | 第 5 栏「生成物（重跑命令 / 无）」 | `spec_bridge.py` **判据⑪⑫⑬**（`BRIDGE.md`／`specmap.json`／`节对齐.md` 逐字节一致） |
+| **A-5 生成物不许手编** | 第 5 栏「生成物（重跑命令 / 无）」 | `spec_bridge.py` **判据⑪⑫⑬**（`openspec/generated/BRIDGE.md`／`openspec/generated/specmap.json`／`节对齐.md` 逐字节一致） |
 | **A-6 UTF-8 无 BOM** | **第 6 栏「机核读数」**（编码这一个读数就写在这里） | `python world-core/tools/plain_text_audit.py --self-test` ⇒ 现取**含 BOM 反例判红 OK**；也可对单件跑同一条命令 |
 
 **★ 两件必须说清的事（免得把这条读成"已落成自动门禁"）**：
@@ -127,7 +127,7 @@ npx --yes @fission-ai/openspec@1.13.2 status --change <name>
 ### 2.4 第 4 样 · **我们的经验**（逐条变约束）
 
 **权威载体是源件，本件引用不复述**：`.agents/skills/worldcore-sdd/SKILL.md` §一–§十四、
-`openspec/MAINTENANCE.md` 16 条、`openspec/BOOK/冲突总账.md` §7.8–§7.16。
+`openspec/MAINTENANCE.md` 16 条、`world-core/docs/理论/冲突总账.md` §7.8–§7.16。
 
 按"**有没有会红的执行者**"分三档落进本档（skill §五：**没有反例的判据是装饰**）：
 
@@ -138,7 +138,7 @@ npx --yes @fission-ai/openspec@1.13.2 status --change <name>
 | 让路三要素（半写＝不写） | `templates/proposal.md` 必填栏 | `spec_bridge.py` 判据⑦ |
 | 判据必须会红（一判据一反例＋正控） | `templates/tasks.md` 的**变异三栏**（断言在哪／变异怎么变红／正控） | `spec_bridge.py --self-test`；`module_graph.py --self-test` |
 | 搜字样 ≠ 认结构（不取第一处字样） | `templates/spec.md` 的**证据行两形态硬规矩** | `spec_bridge.py` 判据② |
-| 生成物不许手编；改了源重跑生成链 | `schema.yaml` 的 `specs.instruction` 末段 | `spec_bridge.py` 判据⑪⑫⑬；重跑 `python openspec/tools/gen_specmap.py` → `python openspec/tools/gen_bridge_md.py` |
+| 生成物不许手编；改了源重跑生成链 | `schema.yaml` 的 `specs.instruction` 末段 | `spec_bridge.py` 判据⑪⑫⑬；重跑 `python openspec/gen/gen_specmap.py` → `python openspec/gen/gen_bridge_md.py` |
 | 绝不把「没做到」写成「做到了」 | `templates/design.md` 排除清单 ＋ L5 覆盖边界 | `spec_bridge.py` 判据②（形态）＋ 评审席（内容） |
 | 正文不掺修订记录／改因块 | `templates/design.md` 头注 | `spec_bridge.py` 判据⑧⑨ |
 | 一个事实只有一个权威载体；读数现取 | `templates/design.md` L5 表第 ② 格要求"命令＋输出＋时点＋对象" | `spec_bridge.py` 判据⑪⑫⑬⑮ |
@@ -238,7 +238,7 @@ validate <name> --strict（无 delta）    ⇒ rc=1  Change must have at least o
 ## 七、本件自己不能证明的事（**别把它读成万能背书**）
 
 0. **★ 本版（本档 7 件的字节）落在哪一笔：** 本档的现行文本最后改定于
-   **提交 `72c0269`**（该笔的提交消息属另一条线，见 `openspec/BOOK/冲突总账.md` §7.18 的事故台账），
+   **提交 `72c0269`**（该笔的提交消息属另一条线，见 `world-core/docs/理论/冲突总账.md` §7.18 的事故台账），
    其后只有台账侧的两笔补记（`冲突总账` 的 §7.18／§7.19），**本档 7 件自 `72c0269` 起未再改**。
    ⚠ **下面第 1 条引的 `1b58dc0` 是"仓根门禁读数"的锚，不是本件字节的锚** ——
    按 `1b58dc0` 去读本档，读到的会是**整改前**的文本。要读本版，请按 **`72c0269`**（或它之后的 HEAD）取件。
@@ -248,12 +248,12 @@ validate <name> --strict（无 delta）    ⇒ rc=1  Change must have at least o
    `openspec validate --archived` ⇒ **`4 passed, 0 failed`**。
    ⚠ **但它会随别人的在飞件变**：我在改造期间的工作区里就见过 `12 passed, 1 failed`（另一条线的
    `agentd-in-rust-into-worldcore` 当时只有 `proposal.md`、缺 delta）与 `spec_bridge.py` 非全绿
-   （同一件的证据锚点与 `BRIDGE.md`／生成器不一致）。⇒ **别引用任何写死的门禁读数**；
+   （同一件的证据锚点与 `openspec/generated/BRIDGE.md`／生成器不一致）。⇒ **别引用任何写死的门禁读数**；
    **以你手上那棵树的命令输出为准**（`python world-core/tools/spec_bridge.py`；`openspec validate --all --strict`）。
    本档自己的三条是稳的：`openspec schema validate opsx-swe-gb-atom` ✓、七件 `table_width_audit.py` 0 红、UTF-8 无 BOM／LF。
 2. **模板里的栏位只保证"它出现在材料里"，不保证"填对了"。**
    机器能判形态（证据行有没有 token、结论栏签没签），**判不了"断言是否与声明相符"**——
    那归评审：流程侧有现成的**反面清单 12 条**，落点＝
-   `openspec/process-source/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md` 的「反面清单（"格式对但内容是空的"12 种典型形态）」（**本件不复述其条目**）。
+   `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md` 的「反面清单（"格式对但内容是空的"12 种典型形态）」（**本件不复述其条目**）。
 3. **本档没有增加任何新的机器判据**。它复用既有守卫（`spec_bridge.py`／`module_graph.py`／`plain_text_audit.py`）。
    ⇒ 「原子化」那一列的"会红"是**那些脚本会红**，不是**本 schema 会红**——schema 本身不含校验器逻辑。

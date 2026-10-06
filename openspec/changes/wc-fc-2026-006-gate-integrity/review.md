@@ -8,10 +8,10 @@
 >
 > **当前状态：⏳ 待独立评审席回件 → 再由作者签。执行者只准备材料、跑门禁、贴原始输出；不代签、不代判。**
 
-> **引用根**：本件引用的流程文档真身在 `openspec/process-source/06-swe-gb/docs/`（**本仓内**，仓根无 `docs/`）。
-> 下文简写：`附件二` ＝ `openspec/process-source/06-swe-gb/docs/附件/附件二-阶段流程与交付物.md`；
-> `附件三` ＝ `openspec/process-source/06-swe-gb/docs/附件/附件三-评审与门禁.md`；
-> `检查单` ＝ `openspec/process-source/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`。
+> **引用根**：本件引用的流程文档真身在 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/`（**本仓内**，仓根无 `docs/`）。
+> 下文简写：`附件二` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/附件/附件二-阶段流程与交付物.md`；
+> `附件三` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/附件/附件三-评审与门禁.md`；
+> `检查单` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`。
 
 ## 一、基本信息
 
@@ -115,7 +115,7 @@
 
 - **本轮的实质性技术裁定至少 1 条**（否则按 H-26 判**无效轮次、须重做**）：<!-- 待评审席填 -->
 - **反面清单 12 条是否逐条对照**：<!-- 待评审席填 -->
-  （全表在 `openspec/process-source/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`，
+  （全表在 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`，
   本档只摘其中三条——见 §三 表下那段）
 
 ## 五、R5 准出逐项
