@@ -54,7 +54,9 @@ echo "=============================================================="
 
 id agent >/dev/null 2>&1 || useradd -M -s /usr/bin/nologin agent
 rm -rf "$SANDBOX" "$RUNBOX"; mkdir -p "$SANDBOX" "$RUNBOX"
-cp "$SRC/src/ontology_definition/ontology.json" "$SRC/src/gate/policy.json" "$SANDBOX/"
+mkdir -p "$SANDBOX/src/ontology_definition" "$SANDBOX/src/gate"
+cp "$SRC/src/ontology_definition/ontology.json" "$SANDBOX/src/ontology_definition/ontology.json"
+cp "$SRC/src/gate/policy.json" "$SANDBOX/src/gate/policy.json"
 chown -R root:root "$SANDBOX"; chmod 755 "$SANDBOX"
 chmod 644 "$SANDBOX/src/ontology_definition/ontology.json" "$SANDBOX/src/gate/policy.json"
 ( cd "$SANDBOX" && "$CORE" --ledger "$SANDBOX/ledger.jsonl" --ontology "$SANDBOX/src/ontology_definition/ontology.json" \
@@ -97,7 +99,10 @@ echo
 echo "── ⑤ ★ 真正该测的一格：agent 能到达二进制时，仍进不去 ────"
 echo "   做法：把二进制与法律复制到 agent 可读可执行的运行盒（0755），"
 echo "         账本目录由 root 拥有（0755）、账本 0600 —— 让 agent 跑到门禁跟前。"
-cp "$CORE" "$RUNBOX/world-core"; cp "$SRC/src/ontology_definition/ontology.json" "$SRC/src/gate/policy.json" "$RUNBOX/"
+cp "$CORE" "$RUNBOX/world-core"
+mkdir -p "$RUNBOX/src/ontology_definition" "$RUNBOX/src/gate"
+cp "$SRC/src/ontology_definition/ontology.json" "$RUNBOX/src/ontology_definition/ontology.json"
+cp "$SRC/src/gate/policy.json" "$RUNBOX/src/gate/policy.json"
 chmod 755 "$RUNBOX/world-core"; chmod 755 "$RUNBOX"
 mkdir -p "$RUNBOX/lib" && chown root:root "$RUNBOX/lib" && chmod 755 "$RUNBOX/lib"
 runuser -u agent -- "$RUNBOX/world-core" --ontology "$SANDBOX/src/ontology_definition/ontology.json" \

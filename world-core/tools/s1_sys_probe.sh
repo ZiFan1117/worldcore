@@ -91,7 +91,9 @@ fi
 SB="$(mktemp -d)"
 trap 'rm -rf "$SB"' EXIT
 chmod 700 "$SB"
-cp src/ontology_definition/ontology.json src/gate/policy.json "$SB"/
+mkdir -p "$SB/src/ontology_definition" "$SB/src/gate"
+cp src/ontology_definition/ontology.json "$SB/src/ontology_definition/ontology.json"
+cp src/gate/policy.json "$SB/src/gate/policy.json"
 chmod 600 "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json"
 L="$SB/ledger.jsonl"
 
