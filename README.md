@@ -2,7 +2,7 @@
 >
 > **事情是什么**：原先**单独一份**的 `github.com/ZiFan1117/software-engineering-gb`
 > （仓根 README 曾以 `# worldcore` 开头，内容＝worldcore 的 S0–S7 流程物）**已由作者指示废止**：
-> 它的流程侧原文**搬进本仓受控面** → `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/`；
+> 它的流程侧原文**搬进本仓受控面** → `_料/process-source/06-swe-gb/`；
 > 标准原文因版权/密级**留在仓外不进 git** → `D:\Code\05-swe-gb-standards\standards\`；
 > 其余（`.git`／`tools`／`.venv-ocr` 等）**全量归档** → `D:\Code\heavy-archive\06-swe-gb-retired-2026-09-28\`。
 > **旧仓的公开面（`software-engineering-gb` 的 `main`）已被覆盖为"三者融合版"**，
@@ -20,7 +20,7 @@
 >
 > **搬迁的完整记录**（完整性判据、改了什么与没改什么、**回退命令**）在
 > `openspec/work/06-swe-gb废止与三者融合收敛.md`；
-> 搬迁件自己的说明在 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/README.md`。
+> 搬迁件自己的说明在 `_料/process-source/06-swe-gb/README.md`。
 >
 > **标准原文不在本仓**：`standards/`（17 份 PDF ＋ 16 份转好的 MD，共 230.73 MB）
 > 因**版权与密级**原因**不进任何 git**。仓根 `.gitignore` 已补 `standards/*` 与 `*.pdf` 兜底规则

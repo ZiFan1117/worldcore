@@ -79,7 +79,7 @@ FC: WC-FC-2026-001
 | **A/B 档** | **B 档** | 三条判据全不命中才可 A 档。本变更：① **有**第二个人需要交接 ② **有**交付物与验收责任（规格层、归档门禁）③ 失效后果**不可接受** ⇒ 三条均命中 |
 | **评审档位** | **R5** | 触及 **契约面**（`openspec/specs/**`）、**工具**（`tools/spec_bridge.py`）、**工作流**（默认档与归档门禁） |
 | **命中的敏感路径** | 逐条列 | `openspec/config.yaml`、`openspec/specs/**`（新增 `spec-governance`；6 份既有主规格的 **23 条 Requirement 只读**，其中 3 份的 `## Purpose` 在本次更正）、`openspec/schemas/**`（改掉"双读＋一行指针"的写法；主本在 `D:\Code\10-openspec-swe-gb`）、`openspec/changes/archive/2026-09-27-baseline-verified-doctrine/**`（补 `review.md`、移常设项）、`world-core/tools/spec_bridge.py`（新增）、`world-core/check.sh`（加一步）、`world-core/.scope-declaration.json`（范围门禁要求时） |
-| **R5 触发条件** | 见下（逐条命中／未命中 ＋ 依据句） | 见 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md` 的 FC 词表 |
+| **R5 触发条件** | 见下（逐条命中／未命中 ＋ 依据句） | 见 `_料/process-source/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md` 的 FC 词表 |
 | **破坏性变更** | **无** | 不改任何接口、不改出厂行为、不改既有 Requirement 语义 |
 
 **R5 触发条件（逐条判，不许只写「感觉不对」）**——词表出处：`框架与模块共演化.md:61-68`：
