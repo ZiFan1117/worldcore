@@ -1,6 +1,6 @@
 # Design
 
-> **数值口径（2026-09-27 补）**：本文出现的「**23 条承诺／39 条需求**」是**立件时点**的读数（时点见 `design.md` 的时序表，`ef2c9a0`／`21:32:37`）。**现行权威值见 `openspec/BRIDGE.md` §七**：规格承诺 **33 条**、流程侧唯一需求号 **41 个**（该表**现算**，并给复算命令）。按 skill §八「一个事实一个权威载体」，**本件不复述现读数**；历史读数保留，因为它记录的是"当时看到什么"。
+> **数值口径（2026-09-27 补）**：本文出现的「**23 条承诺／39 条需求**」是**立件时点**的读数（时点见 `design.md` 的时序表，`ef2c9a0`／`21:32:37`）。**现行权威值见 `openspec/generated/BRIDGE.md` §七**：规格承诺 **33 条**、流程侧唯一需求号 **41 个**（该表**现算**，并给复算命令）。按 skill §八「一个事实一个权威载体」，**本件不复述现读数**；历史读数保留，因为它记录的是"当时看到什么"。
 
 > **本件是本次 OpenSpec change 的 `design.md`**，其中「影响分析」一节即 R5 的准入要件。
 > **优先次序**：OpenSpec 那一套是**唯一的产物**；软件流程只作**件内的栏位与附表**（批准人、环境指纹、准出判据、需求号追溯），**不另立流程册、不设双份登记**。
@@ -25,8 +25,8 @@
 1. **这一层没有受控身份**：`world-core/docs/` 下全部 `.md`/`.csv` 检索 `openspec`，**命中 0 处**——改它无号可挂、无基线可归、无签字可查。
 2. **归档门禁今天是红的**：`openspec validate --archived` → `Totals: 0 passed, 1 failed`，明细 `✗ 2 incomplete tasks (18/20 completed)`；那两条是 `## 6. 基线之后的维护` 下的常设项，`git show 311ff30` 证明是"收口归档"那次提交自己加进 `tasks.md` 的。
 3. **融合档承诺的闸没有部件**：融合档逐字写「归档门禁由 `openspec validate --archived` ＋ `spec_bridge.py` 共同承担」；五个位置（08 仓、`10-openspec-swe-gb` 主本、`09-dsh-openspec-fixed`、`06-swe-gb`、07 主仓）逐个检索 `spec_bridge*` → **全部无**。
-4. **编号桥两头都在、中间没接**：流程侧 `WC-SRS-001` 与 `WC-RTM-001.csv` 里 REQ 号在用、`world-core/tools/` 引用 38 个不同号；规格侧 **0 处**（规格树下每条 Requirement 标题一条没号）。**两侧计数的权威值与复算命令见 `openspec/BRIDGE.md` §七 数值权威表（现算）**——本处不复述数（skill §八：一个事实只有一个权威载体）。
-5. **基线只核过"名字存在性"**：`tasks.md:16/17/22`、`design.md:121` 逐字只核"证据行指向真实存在的测试名"，自报"6 份规格 / 40 条证据 / 0 条未命中"。本轮六路逐条复核后：**46 条对不上**（严重 15 / 重要 12 / 一般 14 / 提示 5）——逐条见本 change 的 `audit.md`（由 `specmap.json` 生成，未手抄）。**其中 5 条把书里判红的东西写成了绿。**
+4. **编号桥两头都在、中间没接**：流程侧 `WC-SRS-001` 与 `WC-RTM-001.csv` 里 REQ 号在用、`world-core/tools/` 引用 38 个不同号；规格侧 **0 处**（规格树下每条 Requirement 标题一条没号）。**两侧计数的权威值与复算命令见 `openspec/generated/BRIDGE.md` §七 数值权威表（现算）**——本处不复述数（skill §八：一个事实只有一个权威载体）。
+5. **基线只核过"名字存在性"**：`tasks.md:16/17/22`、`design.md:121` 逐字只核"证据行指向真实存在的测试名"，自报"6 份规格 / 40 条证据 / 0 条未命中"。本轮六路逐条复核后：**46 条对不上**（严重 15 / 重要 12 / 一般 14 / 提示 5）——逐条见本 change 的 `audit.md`（由 `openspec/generated/specmap.json` 生成，未手抄）。**其中 5 条把书里判红的东西写成了绿。**
 
 **证据环境是分裂的**（承上一版 design，仍然成立）：主机是 git 仓库与编辑处，但**没有 Rust 工具链**；构建与验收只在 VM 内做（`ssh world`，Arch Linux，cargo 1.98.1，`/root/world/world-core`）。本轮已实测：`bash check.sh` **rc=0 全通过**（构建 / 冒烟 / 三条专属测试 / 契约 25 项 / 投影同源 / 纯文本审计 / 系统级验收 52 项 / S1 验证面 59＋117 项断言）。
 
@@ -69,7 +69,7 @@
 
 **R5 触发条件**：本 change 触及**契约面**（`openspec/specs/**`）、**工具**（`tools/spec_bridge.py`）、**工作流**（默认档与归档门禁）⇒ 按融合档判据**判 R5**。**无破坏性变更**：不改任何接口、不改产品代码与出厂行为、不改既有 Requirement 语义。
 
-**现象证据**（全部实测，数值口径见 `openspec/BRIDGE.md`）：① 流程侧 `world-core/docs/` 下 **133 个 `.md`/`.csv`** 检索 `openspec` **0 命中**；② `openspec validate --archived` 当时 = `0 passed / 1 failed`（`✗ 2 incomplete tasks (18/20)`）；③ `spec_bridge*` 五处**全无**；④ 规格侧 REQ 号 **0 处** vs `WC-SRS-001` **371 处**（旧稿写 378，不可复现，已改）；⑤ 六路逐条审计 **46 条**（严重 15，见 `audit.md`）。
+**现象证据**（全部实测，数值口径见 `openspec/generated/BRIDGE.md`）：① 流程侧 `world-core/docs/` 下 **133 个 `.md`/`.csv`** 检索 `openspec` **0 命中**；② `openspec validate --archived` 当时 = `0 passed / 1 failed`（`✗ 2 incomplete tasks (18/20)`）；③ `spec_bridge*` 五处**全无**；④ 规格侧 REQ 号 **0 处** vs `WC-SRS-001` **371 处**（旧稿写 378，不可复现，已改）；⑤ 六路逐条审计 **46 条**（严重 15，见 `audit.md`）。
 
 ## 方案对比
 
@@ -160,7 +160,7 @@
 | 删了什么 | `1-理论与哲学/`（7）／`2-依据/`（16）／`3-备选路线/`（3）／`4-计划/`（4）／`00-总纲.md`（1）／`world-core/docs/理论/` 散件（79，含 38 篇专家评审） |
 | 保留了什麼 | `world-core/docs/理论/语义世界-理论书-第一版-合订.md`（**唯一正件**，2572 行）；`变更记录.md`（旧布局史料） |
 | **解析根** | 旧引用一律解析到**本仓 git 历史**：`git show bf2eae7:<原路径>`（退场前最后状态）。**这是唯一的解析根** |
-| 已做的登记 | `openspec/BOOK/README.md` §一（正件表）；`openspec/schemas/README.md` §〇 末注；`openspec/MAINTENANCE.md` 规则 9 |
+| 已做的登记 | `world-core/docs/理论/README.md` §一（正件表）；`openspec/schemas/README.md` §〇 末注；`openspec/MAINTENANCE.md` 规则 9 |
 | **未做的**（如实登记） | 引用点上**逐处**加"已退场"注记未做完（复评席 M7 列了 9 处，本件已改 2 处、`audit.md:88` 与 `fc-2026-002` 的若干处**待改**）；且「内容并入合订本」这句对 `2-依据`／`3-备选路线`／`4-计划`（**30 件**）**没有证据**——它们**不在合订本里**（合订本只含序＋六章＋附录一–五）。**这一句应改成"其内容不再在本仓维护，只在 git 历史里可查"** |
 | 回退点 | `git revert bf2eae7`（或 `git checkout bf2eae7 -- <路径>` 单独取回） |
 

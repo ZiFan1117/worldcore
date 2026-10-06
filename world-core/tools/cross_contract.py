@@ -162,10 +162,10 @@ def judge(ont, pol, only=None):
             undec.append((cid, msg))
 
     # ── 输入面：缺段即拒（fail-closed；缺段不许被读成"没有矛盾"）────────
-    for label, key, who in (("ontology", "_interfaces", "ontology.json"),
-                            ("ontology", "_actions", "ontology.json"),
-                            ("policy", "capabilities", "policy.json"),
-                            ("policy", "actions", "policy.json")):
+    for label, key, who in (("ontology", "_interfaces", "src/ontology_definition/ontology.json"),
+                            ("ontology", "_actions", "src/ontology_definition/ontology.json"),
+                            ("policy", "capabilities", "src/gate/policy.json"),
+                            ("policy", "actions", "src/gate/policy.json")):
         d = ont if label == "ontology" else pol
         if not isinstance(d.get(key), dict):
             # ★ 输入面是**前置条件**，不是某一条判据 ⇒ 它**故意绕开 `only` 过滤**：
@@ -537,8 +537,8 @@ def _run(ont_path, pol_path, extra=()):
 
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True)
-    ap.add_argument("--ontology", default="ontology.json")
-    ap.add_argument("--policy", default="policy.json")
+    ap.add_argument("--ontology", default="src/ontology_definition/ontology.json")
+    ap.add_argument("--policy", default="src/gate/policy.json")
     ap.add_argument("--self-test", action="store_true", dest="self_test")
     ap.add_argument("--set", dest="set_name", default="all", choices=sorted(SETS),
                     help="只判这一套：cross＝C-01…C-07（两件不许互相矛盾）／"

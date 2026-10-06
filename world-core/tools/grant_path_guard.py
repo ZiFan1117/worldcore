@@ -36,7 +36,7 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent          # world-core/
-ONT = ROOT / "ontology.json"
+ONT = ROOT / "src" / "ontology_definition" / "ontology.json"
 SRC = ROOT / "src"
 
 DECL_KEY = "_grant_via_ledger"

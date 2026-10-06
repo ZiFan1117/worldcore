@@ -124,7 +124,7 @@ seed_config() {
   #
   # ★ 为什么映射**住在 `/etc`、不住在仓里**（Lead 2026-10-05 钉死）：★**它含本机事实**
   #   （`uid` 每台机不同）⇒ ★**含本机事实的产物，不入版本控制，也不住在仓内路径。**
-  #   （对照：`openspec/BRIDGE.md` 是**文档派生量、不含本机事实** ⇒ 它入仓。）
+  #   （对照：`openspec/generated/BRIDGE.md` 是**文档派生量、不含本机事实** ⇒ 它入仓。）
   UIDS="$CONF_DIR/owner_uid.json"
   GEN="$SRC_DIR/../tools/gen_owner_uid.py"
   RENDER="$SRC_DIR/../tools/render_channel.py"

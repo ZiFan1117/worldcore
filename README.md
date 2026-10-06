@@ -2,7 +2,7 @@
 >
 > **事情是什么**：原先**单独一份**的 `github.com/ZiFan1117/software-engineering-gb`
 > （仓根 README 曾以 `# worldcore` 开头，内容＝worldcore 的 S0–S7 流程物）**已由作者指示废止**：
-> 它的流程侧原文**搬进本仓受控面** → `openspec/process-source/06-swe-gb/`；
+> 它的流程侧原文**搬进本仓受控面** → `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/`；
 > 标准原文因版权/密级**留在仓外不进 git** → `D:\Code\05-swe-gb-standards\standards\`；
 > 其余（`.git`／`tools`／`.venv-ocr` 等）**全量归档** → `D:\Code\heavy-archive\06-swe-gb-retired-2026-09-28\`。
 > **旧仓的公开面（`software-engineering-gb` 的 `main`）已被覆盖为"三者融合版"**，
@@ -19,8 +19,8 @@
 > **没给旧仓改名**是刻意的——改名会断掉既有 URL 与引用；改不改留给作者裁。
 >
 > **搬迁的完整记录**（完整性判据、改了什么与没改什么、**回退命令**）在
-> `openspec/BOOK/06-swe-gb废止与三者融合收敛.md`；
-> 搬迁件自己的说明在 `openspec/process-source/06-swe-gb/README.md`。
+> `openspec/work/06-swe-gb废止与三者融合收敛.md`；
+> 搬迁件自己的说明在 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/README.md`。
 >
 > **标准原文不在本仓**：`standards/`（17 份 PDF ＋ 16 份转好的 MD，共 230.73 MB）
 > 因**版权与密级**原因**不进任何 git**。仓根 `.gitignore` 已补 `standards/*` 与 `*.pdf` 兜底规则
@@ -64,7 +64,7 @@
 | 我想找 | 去哪（一条就够） |
 |---|---|
 | **世界核心的实现代码** | `world-core/src/`——总装 `lib.rs`／`main.rs`；账本 `ledger.rs`；门禁 `gate.rs`；本体执行者 `ontology.rs`；读模型 `readmodel.rs`；信封 `event.rs`；通道 `channel.rs`；投递 `delivery.rs`；检查点 `checkpoint.rs`；**Agent 运行时** `agent/`；**载体适配** `carrier/`；**投影** `project/` |
-| **某个能力的对外承诺** | `openspec/specs/<能力>/spec.md`（**能力数现取**：`openspec list --specs`；`Requirement` 条数以 `openspec/BRIDGE.md` 为准） |
+| **某个能力的对外承诺** | `openspec/specs/<能力>/spec.md`（**能力数现取**：`openspec list --specs`；`Requirement` 条数以 `openspec/generated/BRIDGE.md` 为准） |
 | **某条承诺的证据（哪个测试在作证）** | `openspec/specs/**` 里的 `- **证据**：<path>::<fn>` 行 → 直接落到 `world-core/tests/<file>.rs`；**改名即失锚**，由 `tools/spec_bridge.py` 判据② 盯着 |
 | **接口契约（模块之间怎么说话）** | `world-core/docs/S2-设计/WC-IC-001-v0.1.md`（**一册**，每模块一节；依赖列逐边与模块登记表一致） |
 | **跑测试／跑门禁** | 在 VM 上 `bash world-core/check.sh`（21 步、阻断式）；仓根 `./check.sh` 是它的**转发入口**。⚠️ 宿主（Windows）没有 cargo/bash，跑不了 |
@@ -91,7 +91,7 @@
 | 一层条目 | 一句话 | 入库件数（实测） |
 |---|---|---|
 | **`world-core/`** | **世界核心**：Rust 实现（`src/`、`tests/`、`ontology.json`、`policy.json`）＋**流程文档**（`docs/`）＋**门禁工具**（`tools/`）＋出厂门禁 `check.sh` | 131 |
-| **`openspec/`** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档的改动）＋`schemas/`（融合档 `opsx-swe-gb`）＋`BOOK/`（书的派生工作件）＋`BRIDGE.md`／`MAINTENANCE.md`／`config.yaml` | 63 |
+| **`openspec/`** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档的改动）＋`schemas/`（融合档 `opsx-swe-gb`）＋`BOOK/`（书的派生工作件）＋`openspec/generated/BRIDGE.md`／`MAINTENANCE.md`／`config.yaml` | 63 |
 | **`.github/`** | **门禁自身**：`workflows/world-core-gate.yml`（CI 八作业）＋`PULL_REQUEST_TEMPLATE.md`（PR＝一次正式评审的记录） | 2 |
 | ~~`语义世界-架构/`~~ | **已退役到归档（2026-10-06）**：设计／评审／规程／研究料（76 篇顶层文档＋研究料，共 93 MB／2 608 件）；**刻意不进版本控制**。落点 `D:\Code\heavy-archive\语义世界-架构-退役-2026-10-06\`。★ 连带：`world-core/tools/kind_guard.py` 的扫描候选里**已含这个归档位置**，宿主机上该判据仍真跑（实测 **184 篇／0 红**，与退役前同一读数） | **0**（不入库；已不在工作树） |
 | ~~`agentd/`~~ | **已退场（2026-10-06）**：Go 参考实现（28 件）按作者裁定移除工作树 —— `WC-FC-2026-005` §3.1「不再作独立组件」；能力面已由 **Rust 版**接替（`world-core/src/agent/` 4 件 ＋ `world-core/tests/agent_*.rs` 4 件，读数见该 change）。**旧件仍在 git 历史**：`git show deafbae:agentd/cmd/agentd/main.go` | **0**（已移出工作树） |
@@ -123,9 +123,9 @@
 
 1. **冲突要写明"谁让"**：任何一次"不按书来"的处置，必须在件里写下**让的是哪一条、为什么让、谁批的**——
    **不写＝违规**。这条 2026-09-27 起已有机器项：`world-core/tools/spec_bridge.py` 的**判据⑦「让路登记」**。
-2. **尺子是机抽的摘要，判定冲突必须回原书核逐字**：尺子＝`openspec/BOOK/理念条目.md`；
-   台账＝`openspec/BOOK/冲突总账.md`（书 ↔ 规格 ↔ 流程三条边上的冲突逐条登记，带 `path:line`）。
-   `openspec/BOOK/` **只放派生工作件，不放书**——**它不是书，不承担结论**。
+2. **尺子是机抽的摘要，判定冲突必须回原书核逐字**：尺子＝`world-core/docs/理论/尺子-理念条目.md`；
+   台账＝`world-core/docs/理论/冲突总账.md`（书 ↔ 规格 ↔ 流程三条边上的冲突逐条登记，带 `path:line`）。
+   `world-core/docs/理论/` **只放派生工作件，不放书**——**它不是书，不承担结论**。
 
 ---
 
@@ -160,7 +160,7 @@
 | ① | 归档硬前置 | 每个 `openspec/changes/archive/*/` 必须有非空 `review.md` |
 | ② | 证据存在性 | 规格里 `- **证据**：<path>::<fn>` 的函数／脚本必须真实存在（改名即失锚） |
 | ③ | 默认档守卫 | `openspec/config.yaml` 的 `schema:` 必须是 `opsx-swe-gb-atom`（被改回默认档即失败） |
-| ④ | 编号桥覆盖 | `openspec/BRIDGE.md` 必须覆盖规格树下**每一条** `Requirement`（有号或显式标「无号」） |
+| ④ | 编号桥覆盖 | `openspec/generated/BRIDGE.md` 必须覆盖规格树下**每一条** `Requirement`（有号或显式标「无号」） |
 | ⑤ | 覆盖在册 | 至少一个 `cover-*` change **未归档**且 `tasks.md` 仍有未勾项（未实现的能力要有落点） |
 | ⑥ | 归档件的评审已签 | 结论 ∈ 批准／通过／有条件通过，且批准人非空、非占位 |
 | ⑦ | 让路登记 | 声明了「谁让」的件必须写全：让哪一条／为什么让／谁批的 |
@@ -170,7 +170,7 @@
 
 > ⚠️ **判据⑥ 的红与绿都如实报**（它管"归档件的评审已签"）：它转红时，
 > **不要**注释掉它、加 `continue-on-error`、或放宽判据强度——那正是本项目记过的病；
-> 处置台账在 `openspec/BOOK/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；未过不签）。
+> 处置台账在 `world-core/docs/理论/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；未过不签）。
 
 ### 3.2 CI（`.github/workflows/world-core-gate.yml`）
 
@@ -209,7 +209,7 @@
 | **取旧件** | `git show bf2eae7:2-依据/15-世界核心的组成与职责.md` | **rc=0**（反例 `git show bf2eae7:9-不存在的文件.md` → **rc=128**） |
 
 `bf2eae7` = `bf2eae72b0df52f5aec0ce276a0826feac35ef13`（2026-09-27，「fix(book): 书名副其实——书不搬进来，只指原址」）。
-同一口径另见 `openspec/schemas/README.md:38-40` 与 `openspec/BOOK/冲突总账.md:172`。
+同一口径另见 `openspec/schemas/README.md:38-40` 与 `world-core/docs/理论/冲突总账.md:172`。
 
 **仍留在文本里的旧引用怎么办**：它们不改写，按上面的解析根去取。实测（`rg`，排除 `refs/`、`omarchy*/`、
 `.git/` 与本件）：今天有 **33 个文本件、共 467 处**（`rg -o` 计数）仍在引用退场路径，最多的是
@@ -221,7 +221,7 @@
 > **术语表的处置**：旧 README 有一张术语表（"载／存／传／管／显"、"声明即请求"、"语义事件是唯一真相"）。
 > 这些说法在今天的合订本里**已查不到**（实测逐一 0 命中，如 `声明即请求` 0、`载、存` 0、`五件事` 0），
 > 故本件**不再沿用**——沿用等于把已改的说法写回正文。要术语请读
-> `openspec/BOOK/理念条目.md`（机抽的尺子），并回书核逐字。
+> `world-core/docs/理论/尺子-理念条目.md`（机抽的尺子），并回书核逐字。
 
 ---
 
@@ -230,8 +230,8 @@
 | 想干什么 | 读哪一件 |
 |---|---|
 | 想知道"这一层应当是什么" | 书：`world-core/docs/理论/语义世界-理论书-第一版-合订.md` |
-| 想按条目核对、或判一处冲突 | 尺子 `openspec/BOOK/理念条目.md` ＋ 台账 `openspec/BOOK/冲突总账.md` |
-| 想知道这台东西对外承诺什么 | `openspec/specs/`（能力数现取：`openspec list --specs`）与 `openspec/BRIDGE.md`（承诺 ↔ 流程侧需求号） |
+| 想按条目核对、或判一处冲突 | 尺子 `world-core/docs/理论/尺子-理念条目.md` ＋ 台账 `world-core/docs/理论/冲突总账.md` |
+| 想知道这台东西对外承诺什么 | `openspec/specs/`（能力数现取：`openspec list --specs`）与 `openspec/generated/BRIDGE.md`（承诺 ↔ 流程侧需求号） |
 | 想看正在改什么 | `openspec/changes/`：在办 3 件（`cover-unimplemented-capabilities` 未勾 26／`fc-2026-001-openspec-into-cm` 未勾 16·已勾 18／`fc-2026-002-spec-revisions` 未勾 42）＋归档 1 件（`2026-09-27-baseline-verified-doctrine`） |
 | 想看开发形态要求 | `world-core/docs/S0-立项/WC-ATOM-001-v0.1.md`（原子化编程：六条约定＋机核清单） |
 | 想知道规矩怎么定的 | `openspec/schemas/README.md`（融合档：谁管什么、产物链、评审档位）与 `openspec/MAINTENANCE.md`（规格层维护清单） |

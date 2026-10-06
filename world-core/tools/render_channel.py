@@ -262,7 +262,7 @@ def probe(fn):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(add_help=True)
-    ap.add_argument('--policy', default='policy.json')
+    ap.add_argument('--policy', default='src/gate/policy.json')
     ap.add_argument('--uids', default='deploy/listener_uids.json')
     ap.add_argument('--check', '--channel', dest='check', metavar='RENDER_JSON',
                     help='对账：渲染物每条必须在法律里解析到（--channel 是它的别名）')

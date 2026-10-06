@@ -150,7 +150,7 @@
    - 退本件全部改动：`git revert <本件提交>`（本件是三笔提交中的最后一笔；前两笔是搬迁与 README 说明）。
    - 只退 `WC-MODREG-001` 的读数栏：
      `Copy-Item 'D:\Code\_backup-2026-09-28-fix\WC-MODREG-001-v0.1.md.before' '<仓>\world-core\docs\S2-设计\WC-MODREG-001-v0.1.md' -Force`
-   - 只退生成物（若有）：`python openspec/tools/gen_specmap.py` → `gen_secmap.py` → `gen_bridge_md.py`（**顺序不能错**）。
+   - 只退生成物（若有）：`python openspec/gen/gen_specmap.py` → `gen_secmap.py` → `gen_bridge_md.py`（**顺序不能错**）。
 3. **不动运行中的系统**：本件只改工具与文档，不改任何产品行为、不改任何出厂配置 ⇒ 无需部署步骤。
 
 ## Open Questions

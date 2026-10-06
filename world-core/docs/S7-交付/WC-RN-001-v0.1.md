@@ -32,7 +32,7 @@ cargo build --locked --release
 
 | 限制 | 在册处 |
 |---|---|
-| **机核层守卫（`WC-ATOM-001` §四）今天通过**：真源码环 `M04 ↔ M09` 已按"消回边、保留合法方向"改成 DAG（`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）——**读数以 `bash check.sh` 与 `python world-core/tools/module_graph.py` 的输出为准，本节不复述数字** | `openspec/BOOK/冲突总账.md` 的"里程碑"一节 |
+| **机核层守卫（`WC-ATOM-001` §四）今天通过**：真源码环 `M04 ↔ M09` 已按"消回边、保留合法方向"改成 DAG（`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）——**读数以 `bash check.sh` 与 `python world-core/tools/module_graph.py` 的输出为准，本节不复述数字** | `world-core/docs/理论/冲突总账.md` 的"里程碑"一节 |
 | 一批"规格已写、断言未写"的条目：转出到 `openspec/changes/fc-2026-004-assertions/`，**未勾完** | 该 change 的 `tasks.md` |
 | **这一批 change 尚未归档**（它承载的九组能力**已落地并有会红的断言**：投递与应答、通道资源边界、家族演进与向前兼容、未知旗标与本体命名空间、`trace` 语义、通告的闸、写侧适配、读法是叶子、读模型缺格）——"落地"与"归档"是两件事，**本表说的是后者** | `openspec/changes/cover-unimplemented-capabilities/tasks.md` |
 | `S5/S6/S7` 之外**没有**别的流程侧文档（文档集封闭，见 skill §二） | — |
@@ -46,8 +46,8 @@ cargo build --locked --release
 | 世界必须怎样 | `openspec/specs/<能力>/spec.md` |
 | 模块的契约（接口、依赖、不变量） | `world-core/docs/S2-设计/WC-IC-001-v0.1.md`（一册） |
 | 模块号与源码的对应 | `world-core/docs/S2-设计/WC-MODREG-001-v0.1.md` |
-| 规格承诺 ↔ 流程侧需求号 | `openspec/BRIDGE.md`（数值**现算**） |
-| 这一轮改了什么、谁判的、谁签的 | `openspec/BOOK/冲突总账.md` |
+| 规格承诺 ↔ 流程侧需求号 | `openspec/generated/BRIDGE.md`（数值**现算**） |
+| 这一轮改了什么、谁判的、谁签的 | `world-core/docs/理论/冲突总账.md` |
 
 ## 五、这份文档不覆盖的
 

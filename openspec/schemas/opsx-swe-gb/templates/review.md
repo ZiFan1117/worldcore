@@ -5,10 +5,10 @@
 > **没有本件的 change 不许归档**（`spec_bridge.py` 判据① 复查；`openspec archive` 命令本身不拦，故归档前后必须跑一次守卫）。
 > **未签的本件不算已归档**：判据⑥ 读结论栏（应为 批准／通过／有条件通过 之一）与批准人栏（非空、非占位）。
 
-> **引用根**：本件引用的流程文档真身在 `openspec/process-source/06-swe-gb/docs/`（**本仓内**，仓根无 `docs/`）。
-> 下文简写：`附件二` ＝ `openspec/process-source/06-swe-gb/docs/附件/附件二-阶段流程与交付物.md`；
-> `附件三` ＝ `openspec/process-source/06-swe-gb/docs/附件/附件三-评审与门禁.md`；
-> `检查单` ＝ `openspec/process-source/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`。
+> **引用根**：本件引用的流程文档真身在 `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/`（**本仓内**，仓根无 `docs/`）。
+> 下文简写：`附件二` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/附件/附件二-阶段流程与交付物.md`；
+> `附件三` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/附件/附件三-评审与门禁.md`；
+> `检查单` ＝ `（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/02-评审与门禁/评审门禁与检查单.md`。
 
 ## 一、基本信息
 

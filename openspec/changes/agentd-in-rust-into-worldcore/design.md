@@ -2,7 +2,7 @@
 
 ## Context
 
-起点：`1b58dc0`（作者三句裁定已登记在册 `openspec/BOOK/冲突总账.md` §7.15，未立件）。
+起点：`1b58dc0`（作者三句裁定已登记在册 `world-core/docs/理论/冲突总账.md` §7.15，未立件）。
 
 塑造做法的现状与约束，**逐条都是读出来的、不是猜的**：
 
@@ -21,7 +21,7 @@
 5. **规格层的一道真缺口**：`spec_bridge.py` 判据④ 只扫**主规格树**（`openspec/specs/**/spec.md`），
    而 OpenSpec 的规矩是 **delta 在 change 归档时才并入主规格** ⇒ 新能力在归档前
    **不在判据④ 的扫描面里**，主规格树里也没有它的标题 ⇒ 判据④ 对它**永远绿**，
-   即它在编号桥里**没有在册面**。而 `openspec/BRIDGE.md` 是**生成物**（判据⑪ 逐字节核）⇒ **不许手编**。
+   即它在编号桥里**没有在册面**。而 `openspec/generated/BRIDGE.md` 是**生成物**（判据⑪ 逐字节核）⇒ **不许手编**。
    （这一条是**前两次立件失败的根因**，册 §7.15 记着那两次都当场撤回。）
 
 ## Goals / Non-Goals
@@ -46,9 +46,9 @@
 
 | 项 | 内容 |
 |---|---|
-| **受影响模块** | 新增 `world-core/src/agent/{mod,audit,protocol,completion}.rs`；新增 `world-core/tests/agent_{audit,protocol,completion,undo}.rs`；**改一行** `world-core/src/lib.rs`（加 `pub mod agent;`）；改 `openspec/tools/gen_bridge_md.py`（加一节发现逻辑）＋ 重跑 ⇒ 改 `openspec/BRIDGE.md`；改 5 件流程文档的 28 处措辞；**退场** 仓根 `agentd/**` 并归位 6 处引用点 |
+| **受影响模块** | 新增 `world-core/src/agent/{mod,audit,protocol,completion}.rs`；新增 `world-core/tests/agent_{audit,protocol,completion,undo}.rs`；**改一行** `world-core/src/lib.rs`（加 `pub mod agent;`）；改 `openspec/gen/gen_bridge_md.py`（加一节发现逻辑）＋ 重跑 ⇒ 改 `openspec/generated/BRIDGE.md`；改 5 件流程文档的 28 处措辞；**退场** 仓根 `agentd/**` 并归位 6 处引用点 |
 | **受影响需求** | 本件引入的新能力 `agent-runtime`（4 条 Requirement，逐条「无号·待流程侧增补」）。流程侧影响面：`WC-FSR-001`／`WC-SDP-001`／`WC-SCMP-001`／`WC-IRS-001`／`WC-SQAP-001`（口径改写）；`REQ-F-016`／`REQ-F-017`（门禁与不可逆性）**不动**——本件不裁决，只留痕与执行 |
-| **需重跑的测试** | ① `cargo test --locked`（16 个 target，VM 上跑）② 新增 4 个 target ③ `python world-core/tools/spec_bridge.py` ④ `npx --yes @fission-ai/openspec@1.13.2 validate --all --strict` ⑤ `python openspec/tools/gen_specmap.py` → `gen_bridge_md.py` ⑥ `python world-core/tools/table_width_audit.py <改过的 .md>` ⑦ `python world-core/tools/plain_text_audit.py`（编码闸） |
+| **需重跑的测试** | ① `cargo test --locked`（16 个 target，VM 上跑）② 新增 4 个 target ③ `python world-core/tools/spec_bridge.py` ④ `npx --yes @fission-ai/openspec@1.13.2 validate --all --strict` ⑤ `python openspec/gen/gen_specmap.py` → `gen_bridge_md.py` ⑥ `python world-core/tools/table_width_audit.py <改过的 .md>` ⑦ `python world-core/tools/plain_text_audit.py`（编码闸） |
 | **回归范围** | **R-A（只读）**：既有 9 个能力与 `carrier/**` 的行为**不变**——本件不 `use` 它们内部实现、不改它们一行 ⇒ 既有断言必须全绿（这是**正控**：若它们变红，说明我越界了）。**R-B（双向）**：`gen_bridge_md.py` 的改动必须**在没有在办新能力时输出逐字节不变**（已验证：挪走本 change ⇒ sha256 相等）。**R-C（单点）**：`lib.rs` 一行 `pub mod agent;`。**R-D（不适用）**：不改运行中的世界（新模块是库，不接进 `main` 的既有分支） |
 | **工作量估算** | 3–4 人日：对账与立件 1 日、4 件实现＋断言＋变异 1.5 日、28 处口径改写 0.5 日、退场与归位 0.5 日、评审与收口 0.5 日 |
 | **需通知的使用方** | **只有本仓自己**（仓根 `README.md`、仓根 `check.sh`、`.github/workflows/world-core-gate.yml`）。**BREAKING**：`agentd/` 的入口形态从"仓根一个独立 Go 程序"变为"`world-core` 内的 Rust 模块" ⇒ 随本件一并改这三处 |
@@ -97,10 +97,10 @@
   等于把裁定读成"改个措辞"。
 - **结论**：**不选**（作为**分期**的第二步是可以的，作为全部不行）。
 
-### 方案丁 · 生成器补丁 vs 手改进 `BRIDGE.md`
+### 方案丁 · 生成器补丁 vs 手改进 `openspec/generated/BRIDGE.md`
 
 - **做什么**：让新能力在编号桥有在册面。
-- **两条路**：① 手改 `BRIDGE.md`；② 给 `gen_bridge_md.py` 加一节发现逻辑。
+- **两条路**：① 手改 `openspec/generated/BRIDGE.md`；② 给 `gen_bridge_md.py` 加一节发现逻辑。
 - **代价**：① 零代码，但**违反判据⑪**（生成物不许手编）——而且手改的那一行**下次重跑生成器就没了**；
   ② 要改门禁侧工具（所以**必须送独立评审席**）。
 - **结论**：**选 ②**。理由：①不是"省事"，是**把闸绕过去**；skill §九 逐字
@@ -127,7 +127,7 @@
 | `world-core/src/agent/completion.rs` | 把"活儿干完了"写成一条可读回的通告（**不另立登记簿**） | 契约：delta 的「完工发通告，但不另立登记簿」条；实现：本文件；测试：`world-core/tests/agent_completion.rs` `j01`–`j04` | 声明 `use crate::common::event`（既有模块）＋ `serde_json` —— **仅 1 条出边，无环** | 无 | 同上，`--test agent_completion` |
 | `world-core/src/agent/mod.rs` | 声明 Agent 运行时的模块面与它与 `carrier` 的分工 | 契约：本文件头注（含"登记簿不许带回来"那条裁定）；实现：三行 `pub mod`；测试：由上面三个 target 覆盖 | 声明 `pub mod audit/protocol/completion` —— 出边 3 条，**无回边**（被 `lib.rs` 单向引用） | 无 | 同上 |
 | `world-core/tests/agent_undo.rs` | 钉住"撤销点在确认之后、失败即不执行、且不是世界回滚" | 契约：delta 的「动手前的载体撤销点」条；实现：**行为已在** `src/carrier/providers.rs::execute`（本件不改它）；测试：本文件 `u01`–`u04` | 声明 `use world_core::carrier::{capd, providers}` —— 仅测试侧出边 | 无 | 同上，`--test agent_undo` |
-| `openspec/tools/gen_bridge_md.py`（加一节） | 让在办 change 的新能力进编号桥的在册面 | 契约：本文件头注 ＋ `BRIDGE.md` 该节的自述；实现：本文件新增的发现逻辑；测试：**双向反向验证**（挪走 change ⇒ 输出逐字节不变；放回 ⇒ 出现该节） | 纯 Python 脚本，无 crate 内依赖 | **有生成物**：`openspec/BRIDGE.md`；重跑 `python openspec/tools/gen_specmap.py` → `python openspec/tools/gen_bridge_md.py` | `spec_bridge.py` 判据④ 与 ⑪ |
+| `openspec/gen/gen_bridge_md.py`（加一节） | 让在办 change 的新能力进编号桥的在册面 | 契约：本文件头注 ＋ `openspec/generated/BRIDGE.md` 该节的自述；实现：本文件新增的发现逻辑；测试：**双向反向验证**（挪走 change ⇒ 输出逐字节不变；放回 ⇒ 出现该节） | 纯 Python 脚本，无 crate 内依赖 | **有生成物**：`openspec/generated/BRIDGE.md`；重跑 `python openspec/gen/gen_specmap.py` → `python openspec/gen/gen_bridge_md.py` | `spec_bridge.py` 判据④ 与 ⑪ |
 
 > **A-2 说明（本仓形态）**：本仓 `tests/` 与 `src/` **不同夹**，按"可指认"判——
 > 上表每行的测试栏都给了**真实路径 ＋ 用例名**。
@@ -176,7 +176,7 @@
 
 | 不写入 | 为什么 | 出处 |
 |---|---|---|
-| **`WC-IC-001` 契约册逐模块展开** | **★ 已裁定：暂不纳入**（作者 2026-09-28，经上级转来）⇒ **待第 4 件落地后一并评估**。**评估时要给三样**：① **契约节要写什么**（`src/agent/{audit,protocol,completion}` 各自的入参／出参／失败形态与错误码）；② **牵动哪些册**（`WC-IC-001` 新增节；若同时要接口号，则 `WC-IRS-001` 的 `IF-012`；连带 `WC-RTM-001` 追溯面）；③ **代价**（册数与接口号的配置项变更手续、跨册一致性核对工作量） | 作者 2026-09-28 裁定（转录见 `review.md` §一之一）；册 `openspec/BOOK/冲突总账.md` §7.15 末「★ 仍待人裁的一格」 |
+| **`WC-IC-001` 契约册逐模块展开** | **★ 已裁定：暂不纳入**（作者 2026-09-28，经上级转来）⇒ **待第 4 件落地后一并评估**。**评估时要给三样**：① **契约节要写什么**（`src/agent/{audit,protocol,completion}` 各自的入参／出参／失败形态与错误码）；② **牵动哪些册**（`WC-IC-001` 新增节；若同时要接口号，则 `WC-IRS-001` 的 `IF-012`；连带 `WC-RTM-001` 追溯面）；③ **代价**（册数与接口号的配置项变更手续、跨册一致性核对工作量） | 作者 2026-09-28 裁定（转录见 `review.md` §一之一）；册 `world-core/docs/理论/冲突总账.md` §7.15 末「★ 仍待人裁的一格」 |
 | **能力面的挂法（新能力 vs 挂既有能力）** | **★ 已裁定：保留新能力 `agent-runtime`**（作者 2026-09-28；独立评审席对 delta 未提异议）⇒ **不改成挂既有能力** | 同上传录；册 §7.15「★★ 仍待人裁的一格（另一读法）」 |
 | **`internal/job` 的落盘登记簿** | 本项目已裁定它多余（"待办"由账本折叠回答）；带回来＝第二份待办真相 | `world-core/src/carrier/recover.rs` 头注；`src/carrier/providers.rs` 的 `Job` 头注 |
 | **改 `world-core/src/carrier/**` 的任何行为** | 它已成立且在服务；发现的问题**只登记不动手**（并行/他人文件面纪律） | skill §十四 |
@@ -200,7 +200,7 @@
 
 **落地步骤**（每一笔提交时树都必须是绿的）：
 
-1. **本笔**：change 四件产物齐（proposal／design／tasks／review ＋ delta）＋ 生成器补丁 ＋ 重跑 `BRIDGE.md`。
+1. **本笔**：change 四件产物齐（proposal／design／tasks／review ＋ delta）＋ 生成器补丁 ＋ 重跑 `openspec/generated/BRIDGE.md`。
    此时**不落任何 `src/agent/**`** ⇒ 期望 `spec_bridge.py` **16/0**、`validate --all --strict` rc=0。
 2. **逐件落地 4 件缺口**（一件一笔）：同一笔里落**该件的实现 ＋ 会红断言 ＋ 把该件证据行的
    「（待补）」改回真证据** ⇒ 每笔提交后仍 **16/0**。
@@ -212,7 +212,7 @@
 6. **收口**：tasks 全勾 ⇒ 请独立评审 ⇒ **由作者签** ⇒ 归档 ⇒ 复跑 `validate --archived` 与守卫。
 
 **回滚策略**：全部是**新增文件 ＋ 定点文本改动**。
-- 退到第 1 步之后：`git revert <该笔>`（生成器补丁有退化保护，退掉它 `BRIDGE.md` 仍自洽）。
+- 退到第 1 步之后：`git revert <该笔>`（生成器补丁有退化保护，退掉它 `openspec/generated/BRIDGE.md` 仍自洽）。
 - 退到开工前：`git revert` 本 change 的全部提交；`agentd/**` 的退场也在其中
   （旧件**留在 git 历史**，故 `git show <退场前提交>:agentd/<path>` 是它的解析根）。
 - **不存在"退到一半"的中间态**：`world-core/src/carrier/**` 一个字节都没动。
@@ -220,7 +220,7 @@
 ## Open Questions
 
 1. ~~**变更号由谁给**~~ ⇒ **已定：`WC-FC-2026-005`**（作者 2026-09-28 裁定）。
-   沿革：本件曾一律写「〔待作者给号〕」，登记在 `openspec/BOOK/冲突总账.md` §八；**现按裁定填实**。
+   沿革：本件曾一律写「〔待作者给号〕」，登记在 `world-core/docs/理论/冲突总账.md` §八；**现按裁定填实**。
 2. ~~**能力面的挂法**~~ ⇒ **已裁定：保留新能力 `agent-runtime`**（作者 2026-09-28 裁定；
    独立评审席对 delta 未提异议）⇒ **不改挂点**。
 3. ~~**内部实现是否纳入 `WC-IC-001` 契约册**~~ ⇒ **已裁定：暂不纳入**（作者 2026-09-28 裁定）；

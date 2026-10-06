@@ -108,11 +108,11 @@
 - [ ] 2.4 改 `WC-SCMP-001`（8 处，含 `REF-07-02` 登记行）。
 - [ ] 2.5 改 `WC-IRS-001`（10 处，含「不在本范围内：`agentd`（Go）**内部**实现」那一格）。
 - [ ] 2.6 改 `WC-SQAP-001`（4 处，含「明确不覆盖：`agentd` 的内部质量」）。
-- [ ] 2.7 **重跑生成链**：`python openspec/tools/gen_specmap.py` → `python openspec/tools/gen_bridge_md.py`。
+- [ ] 2.7 **重跑生成链**：`python openspec/gen/gen_specmap.py` → `python openspec/gen/gen_bridge_md.py`。
       **验收**：`spec_bridge.py` 判据⑪ `[OK]`（不重跑 ⇒ 它会红）。
 - [ ] 2.8 改过的每份 `.md` 跑 `python world-core/tools/table_width_audit.py <file>`。
       **验收**：无「行宽不符」。
-- [ ] 2.9 在册 `openspec/BOOK/冲突总账.md` **登记一条**：生成器补丁改了什么／为什么／反向验证读数／退化保护。
+- [ ] 2.9 在册 `world-core/docs/理论/冲突总账.md` **登记一条**：生成器补丁改了什么／为什么／反向验证读数／退化保护。
       **验收**：该节逐字含两个反向验证读数（IDENTICAL／CHANGED）。
 
 ## 3. 仓根 Go 退场与连带归位
@@ -133,7 +133,7 @@
       **读数四要素**：命令 ＋ 原始输出 ＋ 时点 ＋ 对象（提交号）。
       ⚠ 跑度量前**先读件里记的那条命令**（本组第 4.1 条就是它），不要按惯用命令另跑一遍——实测那条会出 8 倍差。
 - [ ] 4.2 VM 上跑 `bash check.sh`（既有 13 步），逐条读数入档。
-- [ ] 4.3 本机三条门禁：`python world-core/tools/spec_bridge.py`、`npx --yes @fission-ai/openspec@1.13.2 validate --all --strict`、`python world-core/tools/table_width_audit.py <改过的 .md>`；另跑 `python openspec/tools/gen_specmap.py` 后的 `specmap.json` 未变（证明我没改规格树）。
+- [ ] 4.3 本机三条门禁：`python world-core/tools/spec_bridge.py`、`npx --yes @fission-ai/openspec@1.13.2 validate --all --strict`、`python world-core/tools/table_width_audit.py <改过的 .md>`；另跑 `python openspec/gen/gen_specmap.py` 后的 `openspec/generated/specmap.json` 未变（证明我没改规格树）。
 - [ ] 4.4 归档后复跑 `npx --yes @fission-ai/openspec@1.13.2 validate --archived` 与 `python world-core/tools/spec_bridge.py`。
 - [ ] 4.5 **独立评审席**：另派一个子智能体（要求它独立复跑、用 `git show <sha>:<path>` 读件而不读工作区、给**可逐字转录**的判定语、并列出"未核"与它自己的错）。
       **验收**：`review.md` 里逐字记下它的判定语与它列出的"未核"清单。
