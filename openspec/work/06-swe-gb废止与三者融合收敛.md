@@ -25,12 +25,12 @@
 
 | 内容 | 从 | 到 | 件数／体积 | 完整性判据 |
 |---|---|---|---|---|
-| 流程侧法源（`docs/` ＋ `templates/`） | `D:\Code\06-swe-gb\` | **`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/`**（**本仓内，纳入版本控制**） | **48 件 / 1.09 MB** | **逐文件 sha256 对账：47/47 一致、0 缺失、0 不一致**（第 48 件是本件新增的 `README.md`） |
+| 流程侧法源（`docs/` ＋ `templates/`） | `D:\Code\06-swe-gb\` | **`_料/process-source/06-swe-gb/`**（**本仓内，纳入版本控制**） | **48 件 / 1.09 MB** | **逐文件 sha256 对账：47/47 一致、0 缺失、0 不一致**（第 48 件是本件新增的 `README.md`） |
 | 标准原文法源（`standards/`） | `D:\Code\06-swe-gb\standards\` | **`D:\Code\05-swe-gb-standards\standards\`**（**仓外，不进任何 git**） | **94 件 / 230.73 MB** | **搬迁前后逐文件 sha256 集合一致**（`Move-Item`，非复制 ⇒ 无副本） |
 
 **两处落点各自的说明件**（本件之外的出处登记）：
 
-- 本仓内：`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/README.md`
+- 本仓内：`_料/process-source/06-swe-gb/README.md`
 - 仓外：`D:\Code\05-swe-gb-standards\README.md`
 
 ### 1.1 为什么"标准原文"必须出仓
@@ -100,7 +100,7 @@ git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
 ### 2.4 ★ 一处**执行者自己造成的**副作用（如实登记）
 
 改 `fc-2026-001/proposal.md:82` 时，执行者除了把绝对路径换成仓内相对路径，**还顺手删掉了 `:61-68` 这个行号**。
-**核后确认：那个行号本来是对的**——`（仓外）heavy-archive/worldcore-过程料-2026-10-07/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md:61` 是 FC 词表表头、`:68` 是 `FC-6` 行。
+**核后确认：那个行号本来是对的**——`_料/process-source/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md:61` 是 FC 词表表头、`:68` 是 `FC-6` 行。
 ⇒ 属**删除正确信息**。方向与该仓"引用不写行号"那条规矩一致，但**那条规矩的理由是"行号会烂"，而此处行号没有烂** ⇒
 **这一处是执行者没有依据的改动**，如实登记。回退办法见 §五。
 
@@ -205,7 +205,7 @@ git -C 'D:\Code\08-worldcore-openspec' restore -- openspec/changes/fc-2026-001-o
     "world-core/docs/S0-立项/WC-SDP-001-v0.1.md" "world-core/docs/S0-立项/WC-SCMP-001-v0.1.md"
 
 # ④ 取消暂存（搬运件）
-git -C 'D:\Code\08-worldcore-openspec' restore --staged -- （仓外）heavy-archive/worldcore-过程料-2026-10-07
+git -C 'D:\Code\08-worldcore-openspec' restore --staged -- _料/process-source
 ```
 
 ⚠ **搬迁 `docs/` 与 `templates/` 用的是 Copy**（源处保留），**`standards/` 用的是 Move**（源处已空）。
