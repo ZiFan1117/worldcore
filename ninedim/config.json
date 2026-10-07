@@ -1,0 +1,188 @@
+{
+  "tier": "标准",
+  "language": "rust",
+  "standard": "NineDim（九维）",
+  "roots": {
+    "specs": "ninedim/01-意图环/04-规格",
+    "src": "src",
+    "tests": "scripts/test",
+    "tools": "scripts",
+    "docs": "docs",
+    "design": "ninedim/01-意图环/03-设计",
+    "changes": "ninedim/06-变更",
+    "records": "ninedim/records",
+    "review": "ninedim/02-枢纽A-前置闸",
+    "deploy": "deploy",
+    "generated": "generated",
+    "archive": "ninedim/06-变更/archive",
+    "pending": "ninedim/07-待审"
+  },
+  "atoms": [
+    {
+      "id": "A-01",
+      "name": "ontology_definition",
+      "zone": "src/ontology_definition",
+      "modules": [
+        "M01"
+      ],
+      "intent": "世界的法律：事件形状、合法变更的判据。",
+      "deps": []
+    },
+    {
+      "id": "A-02",
+      "name": "ledger",
+      "zone": "src/ledger",
+      "modules": [
+        "M02"
+      ],
+      "intent": "世界的事实：只追加的语义事件日志，分配 `seq`，处理崩溃尾迹。",
+      "deps": []
+    },
+    {
+      "id": "A-03",
+      "name": "ontology_instance",
+      "zone": "src/ontology_instance",
+      "modules": [
+        "M03",
+        "M08"
+      ],
+      "intent": "状态 = fold(账本)：纯派生物，可随时删掉重算。",
+      "deps": [
+        "gate"
+      ]
+    },
+    {
+      "id": "A-04",
+      "name": "runtime-root",
+      "zone": "src/runtime-root",
+      "modules": [
+        "M04"
+      ],
+      "intent": "装配启动，持有唯一写入口 `World::commit`。",
+      "deps": [
+        "ledger",
+        "ontology_definition",
+        "ontology_instance"
+      ]
+    },
+    {
+      "id": "A-05",
+      "name": "gate",
+      "zone": "src/gate",
+      "modules": [
+        "M05"
+      ],
+      "intent": "一件事现在能不能做：默认拒绝，按不可逆性加摩擦。",
+      "deps": []
+    },
+    {
+      "id": "A-06",
+      "name": "gui_projection",
+      "zone": "src/gui_projection",
+      "modules": [
+        "M06",
+        "M07",
+        "M12"
+      ],
+      "intent": "结构化出口：逐行 JSON，给程序读。",
+      "deps": [
+        "ontology_instance"
+      ]
+    },
+    {
+      "id": "A-07",
+      "name": "bus",
+      "zone": "src/bus",
+      "modules": [
+        "M09"
+      ],
+      "intent": "跨进程入口：一个套接字一个身份，权限即身份。",
+      "deps": [
+        "gate"
+      ]
+    },
+    {
+      "id": "A-08",
+      "name": "carrier",
+      "zone": "src/carrier",
+      "modules": [
+        "M10"
+      ],
+      "intent": "载体侧的手：按清单调载体，只执行不裁决。",
+      "deps": []
+    }
+  ],
+  "contracts": [
+    {
+      "id": "IF-005",
+      "atom": "ontology_definition",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-001",
+      "atom": "ledger",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-009",
+      "atom": "ontology_instance",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-008",
+      "atom": "runtime-root",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-002",
+      "atom": "gate",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-003",
+      "atom": "gui_projection",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-004",
+      "atom": "gui_projection",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-010",
+      "atom": "ontology_instance",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-012",
+      "atom": "gui_projection",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-006",
+      "atom": "bus",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    },
+    {
+      "id": "IF-011",
+      "atom": "carrier",
+      "text": "(摘自登记表 §2 契约锚点)",
+      "spec": ""
+    }
+  ],
+  "na": [
+    "NineDim 样板自带的 python 判据（scripts/verify/check_*.py）本档不接入：本档判据是自带的 40 件脚本（见 ninedim/records/或 scripts/README.md），口径更严",
+    "席位表：本档评审席数按各轮评审件自述，不由机器核",
+    "料（上游源码快照／标准料库／退役料）不属九维九项：统一住 refs/（不入版本控制）"
+  ]
+}

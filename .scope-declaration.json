@@ -1,0 +1,19 @@
+{
+  "allowed": [
+    "src/",
+    "tests/",
+    "docs/",
+    "tools/",
+    "deploy/",
+    "Cargo.toml",
+    "Cargo.lock",
+    "check.sh",
+    "NOTICE.md",
+    ".gitignore",
+    ".github/workflows/world-core-gate.yml",
+    ".github/PULL_REQUEST_TEMPLATE.md"
+  ],
+  "scope_note": "世界核心（world-core）子项目的允许改动范围（相对 ）。末 2 项是**仓库根**的框架契约文件（门禁工作流与 PR 模板）——GitHub 只发现仓库根的 .github/，故它们必须物理位于仓库根，却属于本项目，由 tools/scope_check.py 的 JOINT_JURISDICTION 拉回本门禁管辖。★ 2026-10-07 结构迁移：`templates/` 已并入 `docs/模板/`（故不再单列 `templates/`）；新增 `deploy/`（装机面：本轮随迁了 `install.sh` 的取件路径与两个 socket 的说明）。真实 PR 必须把本清单缩小到本次实际改动的范围，不得长期保持全开。",
+  "change_request": "CR-2026-10-07-01 · 结构迁移：**原子归夹**（一个功能一个夹）＋**数据跟着原子走**＋**门禁随迁**。授权：作者 2026-10-07 逐字「开始修改…烟囱式的执行…不要考虑代价，只考虑什么样实现的最完美」「直接审批执行」；结构定稿见 `docs/S2-设计/设计-WC-MODREG-001-v0.1.md` 与本轮 PR 描述。",
+  "impact_analysis": "本轮改的是**结构**（文件搬位＋随之改引用）与**判据的输入**，两条都要说清：\n\n【一、结构】`src/` 除 Cargo 入口外不留裸文件：`ontology.rs`→`ontology_definition/mod.rs`（`ontology.json` 随迁同夹）、`readmodel.rs`＋`checkpoint.rs`→`ontology_instance/`（面件 `mod.rs` 按 §2.1 登记为共同件例外）、`channel.rs`→`bus/mod.rs`、`gate.rs`＋`guard.rs`→`gate/`、`ledger.rs`→`ledger/mod.rs`、`event`/`delivery`/`pairing`/`error`→`common/`（公共模块：协议与契约封装）、`project/`→`gui_projection/`、`policy.json`→`gate/`、`cap.d/`→`carrier/`、`templates/`→`docs/模板/`。归属不变（登记表「入参」栏照旧写 M01/M05/M10）。\n\n【二、判据的输入（本轮最要紧的一类）】结构一变，**几个守卫的输入面就变了**，若不随迁，守卫会**静默失效**（仍打绿）——实测过两次：\n1. `tools/module_graph.py::module_tokens`：标识符原取「文件名去 `.rs`」，`src/X/mod.rs` 会取到 `mod`（关键字）⇒ 判据③的测试锚点实测 **303→195**、M02 **111→3**，而判据仍报 **4/0 绿**。已改为**取目录名**，并双向验证（真仓 303／副本 303）。\n2. `tools/scope_check.py` 的 `SENSITIVE_PATHS`：逐字路径，搬走后**静默失效**（`--demo` 仍打绿）。已随迁，并**补上 `policy.json` 这一既有缺口**（它此前不在表里）。\n3. `tools/carrier_contract.py`：`POLICY` 路径随迁；判据③的反例锚点 `RuntimeDirectory=world-core` 首次出现在**注释**里，`replace(...,1)` 改到注释 ⇒ 判据不会红而自测只报「★没红」。已把锚点**带上换行**，自测由 rc=1 转 **rc=0**。\n4. `tools/spec_bridge.py` 判据⑧：`templates/`→`docs/模板/` 后，21 份**空白表单**的「修订记录」栏被误判为正文修订记录 ⇒ 增豁免 `docs/模板/`（豁免理由写在常量旁）。\n5. `check.sh`：沙盒 `$SB` 要**保持与仓内同样的相对布局**（原来把两份配置平铺进 `$SB`）；`install.sh`：装机落点**摊平**（服务单元读的是 `/etc/world-core/ontology.json`）。服务单元的**装机路径不变**（那是目标机布局，不是仓内路径）。\n6. `gate::load_carrier_manifests`：「策略同级 `cap.d`」这条老约定因两件分居 `src/gate/` 与 `src/carrier/` 而失效 ⇒ 改为**候选顺序**（策略同级 → 新布局），两条都没有仍按「未校验」处理（不静默当通过）。\n\n【三、验证】宿主六闸现取：`module_graph` 4/0（`--self-test` rc=0）｜`spec_bridge` 16/0（rc=0）｜`carrier_contract` 绿（自测通过）｜`kind_guard` 0 红｜`plain_text_audit` 通过｜`openspec validate --all --strict` 13/0。**编译面本机无 cargo ⇒ 未校验**，以本 PR 的 CI 为准（`fmt`／`clippy -D warnings`／`build --locked`／`test --locked`／`scope`）。\n\n【四、范围】本清单暂保持全开是为让迁移可一次落地；落定后应缩小到实际改动面。"
+}

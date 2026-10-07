@@ -1,0 +1,326 @@
+name: world-core 门禁
+
+# ⚠️ 本文件**必须**位于**仓库根**的 `.github/workflows/` 下。
+#    GitHub Actions **只发现仓库根的工作流**——放在子目录（如
+#    `.github/workflows/`）等于**不存在**：不是"没跑过"，而是
+#    "结构上不可能跑"。2026-09-26 实测：本文件原在 .github/ 下，
+#    `gh run list` 输出为空、仓库根无 `.github/`，CI 从未也不可能运行。
+#    详见 docs/S0-立项/策划-WC-SCMP-001-v0.1.md §8.4 G-11。
+#    因此本文件每个 step 都显式写 `working-directory: world-core`。
+#
+# 把「能自动判定的门禁」全部交给 CI：
+#   - L0 骨架冒烟（S3 准出）：一条命令跑通 + 打印 READY
+#   - L1 单元 + 验收测试（S4 逐模块准出）
+#   - RTM 需求追溯完整性（S1 / S5 / S6 准出）
+#   - 改动范围检查（受控变更，防止静默改框架与越界重构）
+#   - 门禁工具自测（tools/ 校验器）
+# 人工评审只负责机器判不了的判断项（契约合理性、假设成立性、测试覆盖真实风险）。
+#
+# ⚠️ 本文件是「门禁自身」，属敏感路径，两道约束：
+#    ① 工具侧——`scripts/verify/scope_check.py` 的 `JOINT_JURISDICTION` + `SENSITIVE_PATHS`
+#       把它拉回本门禁管辖：改动它**必须写进 `.scope-declaration.json`**，
+#       否则 scope 作业判为越界。理由：不给"改门禁不需要声明"留口子。
+#    ② 流程侧——修改它必须走 R5 框架变更评审，并在 PR 中说明理由——
+#       否则「放宽门禁」会成为最容易的作弊路径。
+#
+# ⚠️ **严禁 `continue-on-error`**。gate-self-test 作业会检查这一点，
+#    检查范围是仓库根 `.github/workflows/` 下的**全部**工作流。
+#
+# ⚠️ 五个作业名不可删改（scripts/verify/ci_self_check.py 的 REQUIRED_JOBS）：
+#    smoke / unit-test / gate-self-test / traceability / scope
+#    （2026-09-27 增三个作业时，这五个一名未动；ci_self_check 的规则是
+#     「承载了门禁作业的工作流必须承载**全部**必需作业」，故新作业必须加在本文件里，
+#     不能另开一个只装新作业的工作流文件——那会同时触发「门禁被拆散」。）
+
+# ── 2026-09-27 增：规格层（OpenSpec）与原子化机核 ────────────────────────────
+# 为什么加在**本文件**而不是新开一个 `.github/workflows/*.yml`：
+#   ① 本文件已在 `.scope-declaration.json` 的声明范围内（第 15 行），
+#      且被 `scripts/verify/scope_check.py` 的 JOINT_JURISDICTION（:159-162）拉回管辖
+#      ⇒「改门禁必须写进声明」这条还成立。新开一个工作流文件反而**落在 scope 门禁辖区之外**
+#      （实测口径：scope_check.py 只把 JOINT_JURISDICTION 里点名的两件拉回管辖，其余走
+#      「另属他门」不判定）——那正是本文件开头反对的"改门禁不需要声明"。
+#   ② GitHub 只发现**仓库根** `.github/workflows/` 下的工作流（G-11 的老教训）。
+#
+# 三个新作业：
+#   spec-shape  形态门禁    `python scripts/verify/spec_shape.py`
+#   spec-bridge        规格层守卫  `scripts/verify/spec_bridge.py`
+#   module-graph       原子化机核  `scripts/verify/module_graph.py`（WC-ATOM-001 §二 A-1／A-4／A-2）
+#
+# ⚠️ **今天有两条是红的，且不许掩盖**（逐条读数写在各自作业的注释里，实测时点 2026-09-27）：
+#   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `docs/理论/冲突总账.md` §五 裁-1
+#      （作者指示「评审完结束后签我的名字」⇒ **评审通过后**才签，未过不签）。
+#   ② `module-graph` —— **2026-09-28 已转绿**（三条判据 `通过 3 / 失败 0`；真源码环 `M04↔M09` 已按
+#      「消回边、保留合法方向」改成 DAG：`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）。
+#      （该工具此前只在工作区；现已在版本控制内，并接进 `check.sh` 第 ⑨ 步与**本工作流**。）
+# 本项目的既有教训（见本文件 `RTM_STRICT` 那一段）：「**永远红的门禁等于没有门禁**」。
+# 故这里给的是**如实红**——处置权在人：要么补签／补齐，要么由作者裁定该件退出示踪。
+# **严禁**用 `continue-on-error`、注释掉步骤、或改判据强度来换绿：那正是 G-09／G-11 的同款病。
+# 另：本工作流的 `env` 段**不含任何密钥**，全部命令只用仓库内文件与公开 CLI。
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  PYTHONIOENCODING: utf-8
+
+  # ── 追溯门禁的强度开关（本工作流**唯一**允许的阶段开关）──────────────────
+  # S1–S4：需求已建立、但多数尚未实现。此时若启用 --strict（状态仅允许
+  #         「已实现/已测试/已验收」），门禁将**永远无法通过**——
+  #         而"永远红的门禁"等于没有门禁。本项目已因这一类缺陷栽过两次：
+  #         G-09（scope 路径口径错，永远红得没意义）、G-11（工作流位置错，跑不了）。
+  #         故 S1–S4 用非严格模式：仍强制"完整性 + 用例存在 + 编号合规 +
+  #         用例与需求对得上（语义追溯一致性）"。
+  #         ⚠ 2026-09-26 订正：原文此处写"双向一致"——**该反向检查未实现**
+  #         （scripts/verify/trace_matrix.py 的 docstring 声称"反向 测试用例 → 需求"，
+  #          但代码中无该读取路径；实测反向差集 11 处非空而 rc=0）。
+  #         登记见 WC-SCMP-001 §8.4 G-40；在该检查实现之前不得声称"双向一致"。
+  # S5 起：**必须**改为 "true"（测试准出要求需求已达可交付状态），并留痕。
+  #         记录见 WC-SCMP-001 §8.4 G-14；scripts/verify/ci_self_check.py 会断言本常量存在，
+  #         防止它被悄悄删掉（删掉=永久失去严格模式的可能性）。
+  RTM_STRICT: "false"
+
+jobs:
+  smoke:
+    name: L0 骨架冒烟（S3 门禁：一条命令跑通）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: 格式检查
+                run: cargo fmt --all -- --check
+      - name: 静态检查（警告即失败）
+                run: cargo clippy --all-targets -- -D warnings
+      - name: 构建
+                run: cargo build --locked
+      - name: 骨架冒烟 —— 必须打印 READY
+                run: |
+          rm -f ci-smoke.jsonl ci-smoke.lock
+          out=$(cargo run --quiet -- --ledger ci-smoke.jsonl check)
+          echo "$out"
+          echo "$out" | grep -q READY
+          # ── 新账本必须带摘要链（WC-SCMP-001 变更请求台账 · WC-CR-003）──
+          # 此前只有 VM 侧的 check.sh 在盯这件事；CI 也盯上，它才真正是被强制的。
+          # ⚠ 写进世界的东西**必须在出厂本体里声明过**（书 §5.3「声明以外的东西不许落账」；
+          #   执行者 `src/ontology_definition/mod.rs::check_concepts`）。本行原写 `world://ci/probe` ＋ `p`——
+          #   两个名字都没声明过 ⇒ append rc=2，紧接着的 `grep -q '有摘要链'` 必失败（**CI 的 smoke 作业曾因此常红**）。
+          #   改成已声明的格子（`notice.muted` 是 `bool`，故 `after` 取 `true`）；
+          #   这一步要的只是「写一条 → 断言账本带链 → `--require-chain` 过」，判据强度不变。
+          cargo run --quiet -- --ledger ci-smoke.jsonl append change \
+            '{"subject":"world://notice/probe","path":"muted","before":null,"after":true}' > /dev/null
+          out2=$(cargo run --quiet -- --ledger ci-smoke.jsonl check)
+          echo "$out2"
+          echo "$out2" | grep -q '有摘要链' || { echo "::error::新账本未带摘要链（WC-SCMP-001 变更请求台账 · WC-CR-003）"; exit 1; }
+          cargo run --quiet -- --ledger ci-smoke.jsonl --require-chain check > /dev/null
+          echo "摘要链：新账本带链，--require-chain 通过"
+      - name: 系统级验收 —— TC-037–TC-040（真实二进制端到端）
+                run: |
+          # ⚠️ 先自证判定器会红（"一个从不失败的检查不是检查，是装饰"）
+          bash scripts/test/system_acceptance.sh --self-test
+          # 再跑 4 条系统级用例：只追加/无第二条写路径、信封 8 必填字段与版本、
+          # 状态=账本投影（含反假断言）、本体缺失·损坏·版本不符三拒启
+          bash scripts/test/system_acceptance.sh
+
+  unit-test:
+    name: L1 单元 + 验收测试（S4 门禁）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: 全量测试
+                run: cargo test --locked --verbose
+
+  gate-self-test:
+    name: 门禁工具自测（tools/ 校验器）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 确认 CI 自身没有被 continue-on-error 削弱、且必需作业齐备
+                run: python scripts/verify/ci_self_check.py
+      - name: 范围声明必须是合法 JSON 且非空
+                run: |
+          python -c "import json,sys; d=json.load(open('.scope-declaration.json',encoding='utf-8')); sys.exit(0 if d.get('allowed') else 1)"
+      - name: 纯文本审计（REQ-N-001 / AC-07；先自证工具会失败）
+                run: |
+          # ⚠️ 先自证：**没有反例的自测等于没测**（本项目的老教训）
+          python scripts/verify/plain_text_audit.py --self-test
+          # 再审真实产物：词表与策略（账本由 smoke 作业在沙箱里产生，不入库）
+          python scripts/verify/plain_text_audit.py src/ontology_definition/ontology.json src/gate/policy.json
+      - name: 门禁工具可用性（用示例数据自证工具链是通的）
+                run: |
+          # ⚠️ 本步只证明"工具链是通的"，**不是**追溯结论：
+          # `--sample` = **显式**索取 docs/阶段外-待启用/_非本项目样例/ 的示例数据
+          #（该模式自带跳过模块登记表校验，且结论**不会**写成"覆盖率 100%"）。
+          # 真实数据的追溯由 traceability 作业负责（trace_matrix 裸跑默认即真实产物）。
+          # ⚠️ 样例数据**不得**在未加 --sample 时被当成输入：那样工具会直接判不通过。
+          python scripts/verify/trace_matrix.py --sample
+
+  traceability:
+    name: RTM 需求追溯门禁（S1 / S5 / S6）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 校验需求双向追溯完整性
+                run: |
+          SRS="docs/S1-需求/需求-WC-SRS-001-v0.1.md"
+          RTM="docs/S1-需求/WC-RTM-001.csv"
+          # 阶段开关（见文件顶部 RTM_STRICT 的说明）：S1–S4 非严格，S5 起严格。
+          STRICT=""
+          if [ "$RTM_STRICT" = "true" ]; then STRICT="--strict"; fi
+          echo "追溯门禁强度：RTM_STRICT=${RTM_STRICT}（STRICT='${STRICT}'）"
+          if [ -f "$RTM" ]; then
+            python scripts/verify/trace_matrix.py --matrix "$RTM" --srs "$SRS" $STRICT
+          elif [ -f "$SRS" ]; then
+            echo "::error::SRS 已存在但 RTM 缺失 —— S1 未完成，追溯门禁不通过"
+            exit 1
+          else
+            echo "::warning::S1 尚未开始（无 SRS/RTM）—— 追溯门禁在 S1 前不适用。"
+            echo "::warning::S1 产出 WC-RTM-001.csv 后本作业自动强制生效；不得改为静默跳过。"
+          fi
+
+  scope:
+    name: 改动范围门禁（受控变更）
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 校验改动是否越界
+                run: |
+          python scripts/verify/scope_check.py \
+            --base origin/${{ github.base_ref }} \
+            --scope .scope-declaration.json
+        # 退出码语义（见 scripts/verify/scope_check.py 文档字符串）：
+        #   0 = 范围合规   → 通过
+        #   1 = 越界       → 阻断（门禁不通过）
+        #   2 = 环境不可用 → 阻断（「未能校验」不等于「校验通过」）
+        #
+        # ⚠️ 此处**不得**再加 continue-on-error: true。
+        # 若某次变更确需越界，正确做法是更新 .scope-declaration.json
+        # （并走 R5 框架变更评审），而不是绕过门禁。
+
+  # ══════════════════════════════════════════════════════════════════════
+  # 规格层（OpenSpec）：形态门禁 ＋ 规格层守卫
+  #   分工（`docs/schemas/README.md` §1.3）：`openspec validate` 的绿只证明
+  #   **形态对**；「证据指向的测试是否真存在／归档件有没有签」由 `spec_bridge.py` 承担。
+  #   两者缺一，规格层的绿就是假绿。
+  # ══════════════════════════════════════════════════════════════════════
+  spec-shape:
+    name: 规格层形态门禁（python scripts/verify/spec_shape.py）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # OpenSpec CLI 的 engines 要 `node >= 20.19.0`（本机实测 package.json）。
+          node-version: "22"
+      - name: 安装 OpenSpec CLI（**版本钉死**，与本机实测的 1.13.2 一致）
+        # 钉版本的理由：形态门禁的判据（Scenario 恰好 4 个 `#`、delta 语法）随 CLI 版本变，
+        # 浮动版本会让"同一次提交、两个结论"。升级＝改这一行，且必须同时重跑本作业全绿。
+        run: npm install -g @fission-ai/openspec@1.13.2
+      - name: 形态门禁 —— 结构 / Scenario 恰好 4 个 `#` / delta 语法
+        # 2026-09-27 实测（本机 CLI 1.13.2，仓库根）：`Totals: 9 passed, 0 failed (9 items)`，rc=0。
+        # 反例已验过（不是橡皮图章）：在临时目录造一份"Scenario 只有 3 个 `#`"的 spec，
+        # 同一条命令给 `0 passed, 1 failed`、rc=1。
+        run: |
+          openspec --version
+          python scripts/verify/spec_shape.py
+      - name: schema 形态门禁 —— docs/schemas 下的 schema 结构与模板
+        # 为什么单列一步（**加在既有的 spec-shape 作业里，不新开作业**）：
+        #   上一步 `validate --all --strict` 管的是 **change 与 spec**，它对 `docs/schemas/**`
+        #   **一个字节都不读** ⇒ 新增档 `opsx-swe-gb-atom` 在此之前**没有任何作业在看**：
+        #   把它的 `template:` 改坏、或删掉 `templates/*.md`，`validate --all --strict`
+        #   照旧 rc=0、`0 failed`（passed 数是**活数**，随 change 数变，**本处不复述**；
+        #   以该命令自己的输出为准）。同一棵改坏的树上的**反例**见下。
+        #   而它的模板正是每个新 change 的**产物骨架**——它坏了，错误会一路漏到新 change 里才被人看见。
+        #   另：生成链（`gen_specmap.py` → `gen_secmap.py` → `gen_bridge_md.py`）**没有自己的作业**，
+        #   它的判据⑬ 只在 `spec-bridge` 作业里；本步**不是**它的检查（别把本步读成"生成链有作业了"）。
+        # 版本与上一步的安装**同一行**（`@fission-ai/openspec@1.13.2`）；`npx --yes` 只是取用已装好的那份，
+        #   不引入浮动版本。**已实测两种写法等价**（2026-09-28，本机 CLI 1.13.2，仓库根）：
+        #   全局 `openspec schema validate opsx-swe-gb-atom` 与 `npx --yes …@1.13.2 schema validate opsx-swe-gb-atom` 同值。
+        # 反例已验过（不是橡皮图章）：在**仓外**沙盒（`docs/schemas/opsx-swe-gb-atom/` 的副本）把
+        #   `schema.yaml` 的 `template: proposal.md` 改成指向一个不存在的文件（该占位串在 `schema.yaml` 里**只出现 1 处**），
+        #   同一条命令给 **rc=1** 且逐字报：
+        #     error: Template file 'no-such-template-file.md' not found for artifact 'proposal'
+        #   把改动还原后 **rc=0**（沙盒内 `schema.yaml` 逐字节还原＝回到该次实验开始时的原值，
+        #   证明"真改过、真还原"）。**该 sha256 本处不写值**：`schema.yaml` 会被别的线改
+        #   （实测：`e8f6a86` 之后 `d0495dd` 又改过它 4 行）⇒ 要核就现取：
+        #   `git rev-parse <sha>:docs/schemas/opsx-swe-gb-atom/schema.yaml` 或直接 sha256sum。
+        # 正控读数（2026-09-28，本机 CLI 1.13.2，本仓树）：本步 **rc=0**。
+        # 上一步的 passed 数**本处不复述**——它随 change 数变（2026-09-28 同日之内就因别的工区
+        # 归档了一个 change 而变过），**写死必然过期**。以该命令自己的输出为准。
+        run: |
+          openspec --version
+          npx --yes @fission-ai/openspec@1.13.2 schema validate opsx-swe-gb-atom
+
+  spec-bridge:
+    name: 规格层守卫（spec_bridge.py）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 守卫先自证会红（反例不变红 ⇒ 该守卫是装饰，拒绝合入）
+        # 2026-09-27 实测：rc=0（**每条**判据各有一个反例，逐条"已红 OK"）。
+        # 条数**不在此复述**——以 `python scripts/verify/spec_bridge.py --json` 的 `passed`/`failed` 为准（skill §八）。
+        run: python scripts/verify/spec_bridge.py --self-test
+      - name: 规格层守卫（逐条判据与条数以 --json 的 passed/failed 为准）
+        # ── 已知红，如实红，不许跳过 ────────────────────────────────────────
+        # 2026-09-27 实测（仓库根；`HEAD=50f30ac` 与 `HEAD=ab9d765` 两次复跑同值）：`通过 6 / 失败 1`，**rc=1**。
+        # 唯一红项＝判据⑥「归档件的评审已签」：
+        #   ninedim/06-变更/archive/2026-09-27-baseline-verified-doctrine/review.md
+        #   —— 结论 =「未签**（理由见 §四）」
+        # 为什么**不**把它注释掉、**不**加 continue-on-error、**不**放宽判据：
+        #   「归档件没签却在账上记成已归档」正是本项目最忌的形态（把未定当已定）；
+        #   把已知缺陷藏进绿灯里，比红着更坏。
+        # 台账与处置权：`docs/理论/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；
+        #   评审未过不签）⇒ 两条出路：① 走完评审并签署 ⇒ 本步自动转绿；② 作者裁定该归档件退出示踪。
+        run: python scripts/verify/spec_bridge.py
+
+  module-graph:
+    name: 原子化机核（A-1 单意图／A-4 deps==import 且无环／A-2 四件同夹）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 机核工具必须在本次签出里（缺席即**显式**报错，不得静默跳过）
+        # `策划-WC-ATOM-001-v0.1.md` §四 第 3 条把 A-4 的机核记为「**未建**」、落点在
+        # `cover-unimplemented-capabilities`。2026-09-27 23:06 实测该工具**已落到工作区**
+        # （`scripts/verify/module_graph.py`，51 317 字节），但 `git status` 仍是
+        # `?? scripts/verify/module_graph.py` ⇒ **尚未入库**。它一入库，本作业即自动生效；
+        # 若它还没入库，这一步**红**是正确结论（"未做到"不许冒充"已做到"）。
+                run: |
+          if [ ! -f scripts/verify/module_graph.py ]; then
+            echo "::error::scripts/verify/module_graph.py 不在本次签出里 —— 策划-WC-ATOM-001-v0.1.md §二 A-4「deps == import 且无环」今天就没有执行者"
+            exit 1
+          fi
+          ls -l scripts/verify/module_graph.py
+      - name: 机核先自证会红
+        # 2026-09-27 实测：**rc=1** —— 它自己的"正控（完好沙盒应全绿）"今天就失败，
+        # 且两条反例报"自证材料与登记表脱节"。⇒ 该件仍在建，**它的红是在建状态的如实反映**，
+        # 不是本工作流配错。不据此放宽本步（放宽＝替在建工具背书）。
+                run: python scripts/verify/module_graph.py --self-test
+      - name: 机核 —— 三条判据（逐条给会红的断言）
+        # 2026-09-27 实测：`通过 0 / 失败 3`，**rc=1**。最重的是判据②的
+        # 「依赖图**有环**：M05 → M05」（A-4 要求单向 DAG）与判据③的一批
+        # 「`src/**` 没有被任何模块号认领」。逐条登记在
+        # `ninedim/06-变更/cover-unimplemented-capabilities/`。
+                run: python scripts/verify/module_graph.py

@@ -67,3 +67,9 @@ standards/*
 # ⇒ 落点：**仓内** `_料/`（上游过程料）与 `_脚本/`（过程脚本）；`git status` 应始终干净。
 _料/
 _脚本/
+
+# ── 从 world-core/.gitignore 合并（crate 提到仓根后，这几条必须在根上）──
+target/
+*.jsonl
+!Cargo.lock
+/demo*

@@ -1,0 +1,91 @@
+{
+  "_comment": "WC 出厂门禁策略 —— 世界『法律』的另一半：谁能做什么、哪些不可逆。纯文本 JSON，语言无关。",
+  "_source": "依据 07/2-依据/15-世界核心的组成与职责.md（门禁）+ WC-SRS-001 REQ-F-015/016/017",
+  "_status": "【候选·v0.1】能力清单为 AI 起草的候选值，不是需求方给定的；正式能力表由 S2 的 WC-CAP-001 冻结（框架基线），冻结后变更走 R5",
+  "_invariants": [
+    "本文件是『法律』：改它等于改契约，走 R5 框架变更评审",
+    "本文件与账本所在处不得对 group/other 可写，否则世界核心拒绝启动（src/gate/guard.rs）",
+    "策略在启动时一次读入内存，运行中不重读：磁盘上改了要重启才生效（消除『运行中改规则』的窗口）",
+    "capabilities 里没有的能力一律**不放行**（默认拒绝，不是默认允许）"
+  ],
+
+  "policy": 1,
+
+  "channel_limits": {
+    "_comment": "通道（M09 / IF-006）四个资源边界的**出厂初值**（REQ-F-026）：并发连接数 / 单条消息字节 / 每秒消息数 / 空闲超时。四个数**只**长在这里：代码里没有它们的任何缺省值（缺块或缺一项即拒启，见 src/bus/mod.rs::Limits::from_policy）。",
+    "_why_here": "为什么不新立一份出厂 channel.json：该文件本仓不存在，且「是否补一份出厂 channel.json」在 WC-SCMP-001 §8.4 **G-28** 记着**待人裁定**（AI 不代选）；ontology.json 受词表身份约束（动一个非 `_` 键就换掉 fnv1a64 身份）。放本文件则四个数仍是**受控配置项**里的一格，且 tools/ 下的系统脚本本来就是复制本文件进沙箱。",
+    "_source": "**四个数不是书给的**：书（合订本 §4.5:599 / §4.6:621）只**定性**说「大对象不进主干道……主干道上只留一个内容指纹……主干道上的每一条记录都短」，全书**没有任何**数值（对『字节/每秒/并发/超时』逐词检索，命中处全是别的事）；WC-SRS-001 的 REQ-F-026 与 WC-IRS-001 §3.7.7 两处都明写「四个数值为【候选】」「AI 不得编造指标」。故本块是**本项目定的初值**（依 CT-08「四个资源边界的**具体数值属 S2 实现层**」，批准人 ZiFan / 2026-09-27），**不是书要求的数**；它是**可配置的出厂初值**——改本块即改数值，不必改代码。",
+    "_per_value": [
+      "max_connections = 1：**架构事实**，不是调优值——v1 顺序受理（src/bus/mod.rs 的 serve_n 一次一条；WC-MODREG-001 §二 M09「v1 一次一连接」；WC-IRS-001 §3.7.7 第 2 行「v1 恒为 1」）⇒ 只能写 1；写大于 1 的值即拒启 ext.world.Channel.BadConcurrency（真正的并发受理需要多线程服务端 + 单写者串行化，本轮未做，不许假装）。",
+      "max_line_bytes = 4096：出处 WC-SRS-001 的 REQ-F-026 描述列的**边界④**「一行请求与一条事件的字节数上限，超限即拒收，而不是无限缓冲」+ 书 §4.5:599 的定性口径「主干道上的每一条记录都短」。数从实测来：出厂本体下三类**最小合法请求行**实测 66（notice）/ 81（act）/ 97（change）字节 ⇒ 4096 约为最大者的 42 倍，够正文与参数；同时 4096 是 BufReader 默认缓冲（8 KiB）的一半 ⇒ 一条消息不会跨两次缓冲读。",
+      "max_msgs_per_sec = 8：出处 WC-IRS-001 §3.7.7 第 3 行「对外接口必须定义阈值与超限行为（IF-REQ-09）」。一次跨进程往返天然是**两个连接**（src/bus/mod.rs 的 serve_n 自述：先交意图、后交结果）⇒ 8 条/秒折合约 4 次往返/秒，是本机 agent 的正常节奏。⚠ **这不是调优结果**：书 §5.6 自己判「接入与对齐成本……数值已采集，阈值已写｜**未采集，判红**」⇒ 本项目没有性能实测基线，此值只是「够用且能挡住洪泛」的低值初值。",
+      "idle_timeout_ms = 5000：出处 WC-IRS-001 §3.7.7 第 1 行「每个接口必须定义二者且**服务方上限 < 调用方超时**（IF-REQ-04）」。5 000 ms 是本项目给定的**服务方**上限；仓内自有的调用方 tools/carrier_acceptance.sh 用 `timeout 20`（20 000 ms）⇒ 实测满足 5 000 < 20 000。调用方超时由调用方自定，但**必须大于本值**。"
+    ],
+    "_behavior": "超限即拒，且拒绝**点名**错误码与上限的当前值：单行上限 ⇒ ext.world.Channel.LineTooLong；每秒消息数 ⇒ ext.world.Channel.RateLimited；空闲超时 ⇒ ext.world.Channel.IdleTimeout；并发上限 ⇒ ext.world.Channel.TooManyConnections。四者都**不落笔**（世界状态不变），并回一行 {\"ok\":false,\"error\":…} 给对端（对端读得到，不靠猜）。",
+    "_not_logged": "通道侧的拒绝**不留账本流水**：M09 按 WC-IRS-001 的 IF-006-R04 不得持有账本写句柄，唯一写入口是 RequestSink::commit_requested（它要一条**已经成形**的请求）；留痕要另开写路径，且会把「被限流的那一条」变成一次落笔——正好是限流要防的放大器。若人裁定「通道拒绝也必须留痕」，须先裁定 IF-006-R04 的让路。",
+    "_no_hot_reload": "与策略同口径：启动时一次读入内存、运行中不重读（见本文件 _invariants）——磁盘上改了要重启才生效。",
+
+    "max_connections": 1,
+    "max_line_bytes": 4096,
+    "max_msgs_per_sec": 8,
+    "idle_timeout_ms": 5000
+  },
+
+  "capabilities": {
+    "_comment": "**能力层**：『这类东西能被怎样对待』。`kind` 三值 —— `read`（可读）／`config`（可配）／`invoke`（可调）。**能力不带 `reversible`**：可不可逆是**动作**的性质（见下面的 `actions`）。",
+    "_why_split": "**本段与 `actions` 是两层，不是一份清单的两种写法**：能力回答『能被怎样对待』，动作回答『怎么改』。一次动作必须**引用一个已声明的能力**（`actions.<动作>.capability`）——引用了不存在的能力 ⇒ 拒启（`ext.world.Gate.ActionCapabilityUnknown`）。能力名不许长得像具体对象（`world://…`）：能力**不落在具体类型／具体对象上**。",
+    "notice.mute":     { "kind": "invoke" },
+    "notice.unmute":   { "kind": "invoke" },
+    "job.start":       { "kind": "invoke" },
+    "job.finish":      { "kind": "invoke" },
+    "job.cancel":      { "kind": "invoke" },
+    "ledger.compact":  { "kind": "invoke" },
+    "world.rekey":     { "kind": "config" },
+    "world.migrate":   { "kind": "config" },
+    "presence.report": { "kind": "invoke" }
+  },
+
+  "actions": {
+    "_comment": "**动作层**：『怎么改』。动作是**唯一**的写入通道；`act` 事件的 `capability` 字段填的是**动作名**（见 `_naming`），而每个动作必须引用一个**已声明的能力**。`reversible` 在这里——闸的摩擦挂在动作的不可逆等级上。",
+    "_naming": "出厂口径：动作名与它所引用的能力名**同形**（`notice.mute` 既是能力名也是动作名）。这不是要求——两层可以不同名（一个能力可以有很多动作）；同形只是本版的命名选择，判据只看 `capability` 字段指得到指不到。",
+    "notice.mute":     { "capability": "notice.mute",    "reversible": true },
+    "notice.unmute":   { "capability": "notice.unmute",  "reversible": true },
+    "job.start":       { "capability": "job.start",      "reversible": true },
+    "job.finish":      { "capability": "job.finish",     "reversible": true },
+    "job.cancel":      { "capability": "job.cancel",     "reversible": true },
+    "ledger.compact":  { "capability": "ledger.compact", "reversible": false },
+    "world.rekey":     { "capability": "world.rekey",    "reversible": false },
+    "world.migrate":   { "capability": "world.migrate",  "reversible": false },
+    "presence.report": { "capability": "presence.report", "reversible": true }
+  },
+
+  "_capabilities_ontology_note": "能力的**条文**（哪类东西能被怎样对待）记在**本体** `ontology.json` 的 `_interfaces` 节（五要素之三）；本文件这一段是**闸侧的同一份能力的登记**（闸要知道哪些能力可裁决）。两处的名字集必须一致——`World::open` 逐项核对（`ext.world.Gate.CapabilityNotInOntology`），`tools/module_graph.py` 之外的这条漂移由它挡住。",
+  "_permissions_note": "**授权条文**在本体 `_permissions` 节：授在**能力**上（不许授在具体类型／具体对象上），默认显式拒绝。**授予/收回**这件事实走账本事件（一条 `change` 写能力格），本文件不存『谁已经拿到了什么』——那是事实，不是法律。",
+
+  "writes": {
+    "_comment": "谁可以写哪些主体（change 家族的授权）。默认拒绝：未列出的主体不得写任何主体。人（世界的主人）对其世界有主权；agent 只能通过 act 请求，由世界代它落 change。",
+    "_why": "2026-09-26 由安全评审发现 S-01：change 才是真正的状态写原语，此前它不过门禁 —— 于是被拒绝的 act 可以用 change 静默达成。此段即为补上的闸。",
+    "_lookup": "★ 取键是**按字面**（`gate.rs::authorize_write` 的 `self.writes.get(actor)`，**不做前缀匹配**）⇒ 末尾那个 `/*` 只是**键名的字面**，它**不**替任何主体匹配。新身份要写世界，必须在本段**加它自己那一个键**，否则第一条 `change` 当场被拒（`主体 … 未获写入授权`）。",
+    "world://user": ["world://*"],
+    "world://core": ["world://*"],
+    "world://agent/*": [],
+    "world://presence/omarchy": ["world://notice/*"]
+  },
+  "irreversible_actors": ["world://user"],
+  "_irreversible_note": "v1 没有审批通道：不可逆动作**只允许**这里列出的主体执行。其他主体会收到 AwaitApproval，且理由里明说『不要等批准』——避免让人以为等等就能批（WC-RV-R2-001 FIND-12/DEBT-07）。",
+
+  "subjects": {
+    "_comment": "主体白名单；结尾 * 表示前缀匹配（如 world://agent/* 覆盖所有 agent）",
+    "_why_presence": "★ 为什么在场者本轮进白名单：白名单管的是**能不能上总线说话**，能力许可管的是**能做什么**——两件事。在场者的**两级**是「申报（依据）／授权（许可）」，两级都**不**由白名单代替：`World::adjudicate` 对 `world://presence/<实例>` 先判申报、再判 `_permissions.grants` 的许可，**两级都过**才交回门禁；只加白名单不会放行任何能力。",
+    "_why_core": "2026-09-27 补：`world://core` 是 `writes` 里**唯一被授权可写任意主体**的主体（见上），却不在本白名单内 ⇒ **出厂策略自身不自洽**，且世界核心连自己记一条通告都要被拒。补入本表使策略自洽。",
+    "_why_omarchy": "★ 新身份 `world://presence/omarchy` 单列一行（界面自己的口 `/run/world-core/omarchy.sock`）。**它本已被 `world://presence/*` 覆盖**——单列不是为了让匹配成立，而是让「这个世界认可哪些在场的说话者」在表上一眼可数；★**白名单只给「能上总线说话」，不给任何能力**：它拿得到什么，仍由 `ontology.json` 的 `_permissions.grants` 逐能力决定（见那里的 `_omarchy_note`），且两级（申报／授权）都过才放行。",
+    "allow": ["world://user", "world://core", "world://agent/*", "world://presence/*", "world://presence/omarchy"]
+  },
+
+  "listeners": [
+    { "socket": "/run/world-core/world.sock", "actor": "world://core", "owner": "world-core" },
+    { "socket": "/run/world-core/dsh.sock", "actor": "world://agent/dsh", "owner": "dsh" },
+    { "socket": "/run/world-core/omarchy.sock", "actor": "world://presence/omarchy", "owner": "omarchy" }
+  ],
+  "_listeners_note": "**身份映射入法**：哪个口＝哪个身份。依据书 §4.3「身份与允许分开」与协议 §8「口给出身份」——这条绑定关系必须在法律里；总线上**不得**凭另一份配置文件（如 channel.json）自行定义映射，否则总线上会凭空多出一条法律里没有的映射。**生成关系**：渲染件 channel.json 是本表的**渲染物**，不是第二权威；它的主人是仓内生成器 `scripts/gen/render_channel.py`（读本表 ＋ 部署面 uid 映射 `deploy/listener_uids.json` ⇒ 渲出 `channel.json`；多一条法律里没有的映射即非零退出）。**① 生成关系 与 ② 受理关系两条执行体**：①＝`tools/render_channel.py --check`（含反例自测）；②＝`src/bus/mod.rs` 的 `ChannelConfig::load_checked`（受理期逐条对回本表，账外口**拒启** `ext.world.Channel.UndeclaredListener`）。本表读不出／为空 ⇒ 拒启（`Channel.NoDeclaredListeners`）：「没有对账基准」不许被读成「没有账外口」。**本表三格没有 `uid`**：`owner` 是**名字**，换成数字 uid 是**部署面**的事（那台机器上谁是这个世界用户），落 `deploy/listener_uids.json`，**不进法律**（法律不许带载体专有信息）。**在册未上线是合法状态**：本表登记了、今天没起的口**单独报**，**不红**（法律的本分是「先声明、后使用」）。"
+}
