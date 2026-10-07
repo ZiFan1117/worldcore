@@ -1,0 +1,1754 @@
+{
+ "_generator_sha256": "388d5ab5e5f56d0ccb09a5636c9a0c0b7785232ddb55c2652dad33f3920ebebd",
+ "generated": "2026-09-27",
+ "caps": [],
+ "srs": [
+  {
+   "id": "REQ-F-001",
+   "title": "语义事件是唯一真相",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-002",
+   "title": "事件信封字段完备且带版本",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-003",
+   "title": "账本只追加且为纯文本",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-004",
+   "title": "序号单一递增，缺号拒启",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-005",
+   "title": "崩溃尾迹（半行）启动时丢弃",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-006",
+   "title": "唯一写入口",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-007",
+   "title": "法律在前、落笔在后",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-008",
+   "title": "三个事件家族及其信纸字段",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-009",
+   "title": "change 必带旧值",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-010",
+   "title": "状态是账本的投影",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-011",
+   "title": "读模型可删掉重算且逐字节一致",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-012",
+   "title": "读模型不写盘、不改账本",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-013",
+   "title": "读模型拒绝坏账本",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-014",
+   "title": "回滚 = 追加补偿事件",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现（t17：状态回退 + 账本只增不减 + 可重算）"
+  },
+  {
+   "id": "REQ-F-015",
+   "title": "门禁不可绕过",
+   "pri": "P0",
+   "status": "half",
+   "raw": "部分实现（见 WC-CON01-001：进程内 + 静态墙已跨 uid 实测；祖先链遍历、通道层与 Landlock 自缚未做）"
+  },
+  {
+   "id": "REQ-F-016",
+   "title": "能力声明即请求，进门前查门禁",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现（t9：拒绝 + 不落笔 + notice 流水）"
+  },
+  {
+   "id": "REQ-F-017",
+   "title": "不可逆动作加摩擦，可逆免检留痕",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现（TC-015＝scripts/test/acceptance.rs::t10_gate_adds_friction_for_irreversible_capability，:400／:412／:413／:426 四处断言（行号订正（2026-09-27，承 R1 二轮席 独立评审席 的独立变异实测）：此前写 :414，实测 412 与 414 之间只有 :413 一处断言）；TC-028＝src/gate/mod.rs::unit::* 4 项）。订正留痕（2026-09-27，承 R1 席 独立评审席 的缺格发现）：本条此前只写\"两类动作行为不同且都可审计\"，未写任何反例，且所述\"分级表\"在库内只以源码注释存在（无表、无反假断言）⇒ 现改为锚在 TC-015 四处现有断言上，不再引用那张不存在的表。⚠ **另有书 §5.5 判红的三条边界（V0.4 就地登记，见本条正文判据列的「"
+  },
+  {
+   "id": "REQ-F-018",
+   "title": "语言投影（结构化出口）",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现（t14：逐行 JSON，解析回来与读模型逐项相等）"
+  },
+  {
+   "id": "REQ-F-019",
+   "title": "视觉投影（渲染出口）",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现（t15：渲染出口，排版可被审计脚本提取）。⚠ 覆盖范围：本条实现覆盖的是\"渲染出口存在且可审计\"；\"网页\"形态未实现，见 §6 未决项 14"
+  },
+  {
+   "id": "REQ-F-020",
+   "title": "两个投影同源",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现（t16：同源头 + 换词表/落后一方均被检出）"
+  },
+  {
+   "id": "REQ-F-021",
+   "title": "检查点/快照可重建",
+   "pri": "P2",
+   "status": "green",
+   "raw": "已实现（2026-09-27 状态订正：本条此前记 未实现，与本节 TC-019 的 已实现 及 WC-RTM-001.csv 的 REQ-F-021 行（第 22 行）的 已实现 自相矛盾——三处已按同一事实对齐，见 §八）"
+  },
+  {
+   "id": "REQ-F-022",
+   "title": "账本可重放（重启不丢）",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-F-023",
+   "title": "投递、应答与收件人",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `src/common/delivery.rs`，断言 `scripts/test/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `ninedim/01-意图环/04-规格/delivery-and-resources.spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
+  },
+  {
+   "id": "REQ-F-024",
+   "title": "投影不新增事实（只减不增）",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现（集成层：t14②/t15② 断言\"解析回来与读模型逐项相等\"，相等 ⇒ 不增；系统级判据 TC-042 待实现）"
+  },
+  {
+   "id": "REQ-F-025",
+   "title": "主体身份可核",
+   "pri": "P0",
+   "status": "half",
+   "raw": "部分实现（通道路径已实现并实测 c14；CLI 路径的身份不可核）"
+  },
+  {
+   "id": "REQ-F-026",
+   "title": "通道资源边界",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：四个数值在出厂配置 `policy.json` 的 `channel_limits`（**可配置**，代码里无缺省值），四条边界在生产路径生效（取不到数值即拒启、**在 `bind` 之前**），断言 `scripts/test/channel_bounds.rs` 的 `l01`–`l06`；系统级 `TC-076`。⚠ **四个数值本身仍待人工确认**（`CT-08` 批准的是\"具体数值属 S2 实现层\"，**不等于**批准这四个数）"
+  },
+  {
+   "id": "REQ-F-027",
+   "title": "家族演进与向前兼容",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现（加法演进那一层）**（`2026-09-28`）：新家族怎么加／旧读法怎么读新账本／新读法怎么读旧账本三层落在规格（`ninedim/01-意图环/04-规格/envelope-validation.spec.md` 的 `REQ-F-027`）＋断言 `tests/family_readmodel.rs` 的 `h01`–`h03`；⚠ **不含 upcasting**（`schema` 演进的落点**仍未裁决**——`WC-FSR-001` 的 `SL-06`／`CON-04` 已登记其后果；见后继件 `cover-remaining-capabilities` 的 `2.1`）"
+  },
+  {
+   "id": "REQ-F-028",
+   "title": "取值形状（字段类型口径）",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现（类型口径已实现并逐条可实测；字符集/长度上界未定，见 §6 未决项 12）"
+  },
+  {
+   "id": "REQ-F-029",
+   "title": "未知旗标必须忽略（与\"未知家族拒绝\"对偶）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：`event::{is_factory_flag,read_flags}`／`Ontology::read_flags` 为读点；断言 `scripts/test/ontology_ext.rs` 的 `e01`–`e05`；规格落点＝主规格 `ninedim/01-意图环/04-规格/envelope-validation.spec.md`。（**订正原行**：此前\"实现只有一行注释\"为真，本批已补实现与断言。原行的长句见 git 历史）"
+  },
+  {
+   "id": "REQ-F-030",
+   "title": "本体：极小核心 + 命名空间扩展",
+   "pri": "P1",
+   "status": "half",
+   "raw": "部分实现（结构事实上如此且判据 ① 可实测；判据 ②③ 无实现、无用例）"
+  },
+  {
+   "id": "REQ-F-031",
+   "title": "trace（信封因果字段）保留为需求",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `scripts/test/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `ninedim/01-意图环/04-规格/ledger-integrity.spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/common/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
+  },
+  {
+   "id": "REQ-F-032",
+   "title": "读法覆盖已声明字段（缺格即报错）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（★ 2026-09-28 二次订正，承独立评审席：本条此前写\"**部分实现**：缺格即报错那一半落地\"，而**另一半\"每格都读得出来\"也已有机器判据**——`tests/contract.rs::c36`（清单**从本体派生** `required ∪ optional`，逐格断言\"某一读法**以真值**读得到\"，并断言\"这几格**不进** `state`\"是**取舍**）。⚠ **射程**：可读面是**逐条读事件**与**投影头部**；**不**钉跨架构可读性、**不**钉 `body` **内部**字段）（原文如下，留痕）：**部分实现**（`2026-09-28`）：**缺格即报错**那一半落地——`readmodel.rs` 的 `DeclaredCells`／`MissingCell` ＋ `State::fold_declared`，装配在 `lib.rs::r"
+  },
+  {
+   "id": "REQ-N-001",
+   "title": "语言无关（纯文本）",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现（审计脚本 tools/plain_text_audit.py，正反例自证 + CI 执行）。⚠ 模块归属缺口：本条在 WC-RTM-001.csv 的 REQ-N-001 行（第 24 行）与 WC-HLD-001 中只登记 M02（账本），而\"词表必须纯文本\"应由 M01（本体） 承担 ⇒ 该子项在模块层无人认领（须在 RTM 的设计模块号列补 M01，该文件不属本次改动范围；见 §6 未决项 10）"
+  },
+  {
+   "id": "REQ-N-002",
+   "title": "零外部依赖纪律",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-N-003",
+   "title": "启动即校验本体",
+   "pri": "P0",
+   "status": "green",
+   "raw": "已实现"
+  },
+  {
+   "id": "REQ-N-004",
+   "title": "私有化部署形态",
+   "pri": "P1",
+   "status": "green",
+   "raw": "已实现（入口脚本 check.sh.new 已入库并实测跑通，见 TC-022；2026-09-27 订正）"
+  },
+  {
+   "id": "REQ-N-005",
+   "title": "可度量的质量目标",
+   "pri": "P0",
+   "status": "red",
+   "raw": "未实现（数值待人工，见 §6）"
+  },
+  {
+   "id": "REQ-N-006",
+   "title": "投影质量目标（同源率 / 事实可回溯率）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "未实现（数值待人工，见 §6 未决项 8）"
+  },
+  {
+   "id": "REQ-N-007",
+   "title": "代码覆盖率目标（QG-07）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "未实现（生效条件未触发：本版未取到第一次真实读数；关闭时点 R3 前，已在 §六 未决项 16 登记）"
+  },
+  {
+   "id": "REQ-N-008",
+   "title": "带检查点路径的性能目标（QG-13）",
+   "pri": "P2",
+   "status": "red",
+   "raw": "未实现（性能读数未取：v1 CLI 不暴露检查点路径，样本 ≥ 20 次的 P95 无法在 S1 取；前置硬条件已实测成立；关闭时点 S5 前，已在 §六 未决项 17 登记）"
+  },
+  {
+   "id": "REQ-N-009",
+   "title": "历史可携带且可在别处独立复算",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**状态见 §四**（★ 2026-09-28，承独立评审席：本节原写「**未实现**…**判据从未跑过**」，而 §四 已改为「部分实现」⇒ 同一份文件两个活载体、两种说法。按 skill §八「**别处只引用、不复述**」⇒ 本节**只给指针**）"
+  }
+ ],
+ "chapters": [
+  {
+   "chap": "序",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "序.1",
+     "title": "一、缺的是\"说法\"这一层",
+     "line": 13
+    },
+    {
+     "num": "序.2",
+     "title": "二、为什么这一层不能由参与方自己承担",
+     "line": 28
+    },
+    {
+     "num": "序.3",
+     "title": "三、主张：这一层由世界承担",
+     "line": 40
+    },
+    {
+     "num": "序.4",
+     "title": "四、这一层给的是什么",
+     "line": 52
+    },
+    {
+     "num": "序.5",
+     "title": "五、一句话",
+     "line": 64
+    }
+   ],
+   "line": 11
+  },
+  {
+   "chap": "一",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "1.1",
+     "title": "同一件事，三方不是一个意思",
+     "line": 157
+    },
+    {
+     "num": "1.2",
+     "title": "三方的\"意思\"是从哪来的",
+     "line": 169
+    },
+    {
+     "num": "1.3",
+     "title": "承载缺口：意思没有一处由大家共同依赖的地方",
+     "line": 181
+    },
+    {
+     "num": "1.4",
+     "title": "判定缺口：起了分歧，没有一处能裁",
+     "line": 191
+    },
+    {
+     "num": "1.5",
+     "title": "这两个缺口今天造成什么",
+     "line": 199
+    },
+    {
+     "num": "1.6",
+     "title": "已经统一的那一部分",
+     "line": 213
+    },
+    {
+     "num": "1.7",
+     "title": "别人的做法为什么不够",
+     "line": 230
+    }
+   ],
+   "line": 153
+  },
+  {
+   "chap": "二",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "2.1",
+     "title": "那个位置",
+     "line": 254
+    },
+    {
+     "num": "2.2",
+     "title": "它为什么不能是库、协议、应用",
+     "line": 276
+    },
+    {
+     "num": "2.3",
+     "title": "三个名字",
+     "line": 296
+    },
+    {
+     "num": "2.4",
+     "title": "只有一种写法",
+     "line": 318
+    },
+    {
+     "num": "2.5",
+     "title": "一本账",
+     "line": 340
+    },
+    {
+     "num": "2.6",
+     "title": "读法可以有若干份",
+     "line": 362
+    },
+    {
+     "num": "2.7",
+     "title": "极小核心",
+     "line": 378
+    },
+    {
+     "num": "2.8",
+     "title": "它只固定意思的形式",
+     "line": 396
+    },
+    {
+     "num": "2.9",
+     "title": "一个说法要回答的七个问题",
+     "line": 414
+    },
+    {
+     "num": "2.10",
+     "title": "能装的话有三类",
+     "line": 446
+    },
+    {
+     "num": "2.11",
+     "title": "说了要送到",
+     "line": 468
+    }
+   ],
+   "line": 250
+  },
+  {
+   "chap": "三",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "3.1",
+     "title": "多方同时在场时，意思只能由共同依赖的那一层承担",
+     "line": 496
+    },
+    {
+     "num": "3.2",
+     "title": "什么情况下这一层不必要",
+     "line": 528
+    },
+    {
+     "num": "3.3",
+     "title": "这一条今天有几分分量",
+     "line": 554
+    }
+   ],
+   "line": 492
+  },
+  {
+   "chap": "四",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "4.1",
+     "title": "只有一个地方能写",
+     "line": 574
+    },
+    {
+     "num": "4.2",
+     "title": "谁被允许做什么",
+     "line": 592
+    },
+    {
+     "num": "4.3",
+     "title": "谁在说话由系统给出",
+     "line": 614
+    },
+    {
+     "num": "4.4",
+     "title": "读的那一份",
+     "line": 636
+    },
+    {
+     "num": "4.5",
+     "title": "外面发生的事怎么写成一条消息",
+     "line": 660
+    },
+    {
+     "num": "4.6",
+     "title": "怎么把话送到",
+     "line": 682
+    }
+   ],
+   "line": 570
+  },
+  {
+   "chap": "五",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "5.1",
+     "title": "先说它做不到什么",
+     "line": 710
+    },
+    {
+     "num": "5.2",
+     "title": "两份记录对不对得上",
+     "line": 726
+    },
+    {
+     "num": "5.3",
+     "title": "没声明过的东西照样落账",
+     "line": 742
+    },
+    {
+     "num": "5.4",
+     "title": "系统还能强制到什么程度",
+     "line": 760
+    },
+    {
+     "num": "5.5",
+     "title": "可不可逆，两份配置对不上",
+     "line": 784
+    },
+    {
+     "num": "5.6",
+     "title": "每条结论对应的检验，今天跑是红是绿",
+     "line": 804
+    }
+   ],
+   "line": 706
+  },
+  {
+   "chap": "六",
+   "file": "语义世界-理论书-第一版-合订.md",
+   "secs": [
+    {
+     "num": "6.1",
+     "title": "\"同一件事\"还没有判定程序",
+     "line": 847
+    },
+    {
+     "num": "6.2",
+     "title": "判定的人不能是写它的人",
+     "line": 875
+    },
+    {
+     "num": "6.3",
+     "title": "这套名字的规矩还没有定",
+     "line": 901
+    },
+    {
+     "num": "6.4",
+     "title": "两件事的先后由谁定",
+     "line": 927
+    },
+    {
+     "num": "6.5",
+     "title": "每一格都有人读得到吗",
+     "line": 951
+    },
+    {
+     "num": "6.6",
+     "title": "三件是否充分",
+     "line": 969
+    },
+    {
+     "num": "6.7",
+     "title": "\"该不该干\"没有判据",
+     "line": 1001
+    },
+    {
+     "num": "6.8",
+     "title": "这批\"还没定\"的事记在哪一格",
+     "line": 1023
+    }
+   ],
+   "line": 843
+  }
+ ],
+ "judges": [
+  {
+   "sec": "5.1",
+   "conclusion": "能消灭\"查无此申请\"",
+   "check": "唯一写入路径加只追加账本，能否答出\"谁在何时改了哪个字段、前值是什么、因为哪一条\"",
+   "pass": "一条记录能答全这四项",
+   "result": "绿。写入口是编译期事实，带一段必须编译失败的用例（2026-09-27 读 src/lib.rs 第 39–63、143–213 行）；账本相关实测均可检出（2026-09-27，VM）",
+   "color": "green",
+   "line": 810
+  },
+  {
+   "sec": "5.1",
+   "conclusion": "消灭不了\"查无此后果\"",
+   "check": "世界外面产生的效果，能否被世界里再写一条记录撤回",
+   "pass": "有一本记外面效果的账，加一张对账表",
+   "result": "红。没有第二本账，也没有对账表；补偿记录撤不掉世界外面的效果",
+   "color": "red",
+   "line": 811
+  },
+  {
+   "sec": "5.1",
+   "conclusion": "消灭不了\"查无此人可担此责\"",
+   "check": "出事之后能否指出一个可担责的人",
+   "pass": "有归责与损失机制",
+   "result": "红。没有归责与损失机制；判定的人不能是写它的人，而第二个执行者不会出现",
+   "color": "red",
+   "line": 812
+  },
+  {
+   "sec": "5.2",
+   "conclusion": "两份记录对不对得上",
+   "check": "给两条来自不同读法的记录，机械判定它们是不是同一件事",
+   "pass": "判定能看内容，且两份由不同一方生成",
+   "result": "绿而无效。命令跑得通（world-core project check），只比头部四项（src/gui_projection/mod.rs 第 124 行），两份还是它自己渲染的（src/main.rs 第 394–397 行，2026-09-27 读）。按\"能不能证明\"判，这一格是红的",
+   "color": "amber",
+   "line": 813
+  },
+  {
+   "sec": "5.2",
+   "conclusion": "读的那一份每个格子都有人读得到",
+   "check": "每个已声明的字段至少有一份读法可读，缺格就报错",
+   "pass": "缺格即报错",
+   "result": "红。未实现",
+   "color": "red",
+   "line": 814
+  },
+  {
+   "sec": "5.3",
+   "conclusion": "没声明过的东西照样落账",
+   "check": "写入一个未声明的实体与一个未声明的字段",
+   "pass": "写入被拒",
+   "result": "红。rc=0，账本落笔，state --json 把它算进去（2026-09-27，VM）；concepts 在 src/ 零命中（2026-09-27 复核）",
+   "color": "red",
+   "line": 815
+  },
+  {
+   "sec": "5.3",
+   "conclusion": "说法改过一次之后，旧账还读不读得懂",
+   "check": "同一份账本跨越一次说法变更被读取，旧记录仍可判读",
+   "pass": "旧记录仍可判读",
+   "result": "未跑，判红。这一条要先有跨版本读取的实现",
+   "color": "red",
+   "line": 816
+  },
+  {
+   "sec": "5.4",
+   "conclusion": "强制力到哪里为止",
+   "check": "在被管者与管理者同机不同用户、世界以最高权限运行的形态下，逐条核九项保证",
+   "pass": "九项逐条有结论",
+   "result": "部分红。九项中拦得住 3 项、拦不住但看得见 2 项、拦不住 3 项、分情况 1 项（2026-09-27，VM；被管者 uid 1001；九项本轮已复跑，两遍结果一致，唯一变化是 #6 目录 mode 由\"此前是\"转为\"拦得住\"）",
+   "color": "half",
+   "line": 817
+  },
+  {
+   "sec": "5.4",
+   "conclusion": "谁能否掉这件事",
+   "check": "从\"我想做一件事\"到\"它发生\"，指出否决点在谁手里",
+   "pass": "能答出否决权在谁手里",
+   "result": "已答。否决权落在能改那份出厂清单文件的人手里；而那份文件被同一个用户改写后不留痕（2026-09-27，VM）",
+   "color": "red",
+   "line": 818
+  },
+  {
+   "sec": "5.4",
+   "conclusion": "能不能带着全部历史离开并独立复算",
+   "check": "带走全部账本，在别处独立复算出同一份状态",
+   "pass": "离开之后仍能独立复算",
+   "result": "未做，判红",
+   "color": "red",
+   "line": 819
+  },
+  {
+   "sec": "5.4",
+   "conclusion": "命令行入口的缺省身份是不是写在明处",
+   "check": "不写身份就敲一条命令，看用法提示里能不能读出自己用的是哪个身份",
+   "pass": "append 的第 4 个位置参数与它的缺省值都写在用法提示里",
+   "result": "绿。用法提示里 world://user 出现 2 处、可选参数 [actor] 出现 1 处（src/main.rs 第 20、22、45 行，2026-09-27 后读）；append 缺参数时 stderr 三行点明缺省身份（同文件第 332–337 行）。同行的另一半仍是红的：那个缺省主体是全权主体，可写任意对象（policy.json 第 28 行），\"不写身份＝最高授权\"这件事没有变",
+   "color": "green",
+   "line": 820
+  },
+  {
+   "sec": "5.5",
+   "conclusion": "可不可逆，两份配置对不上",
+   "check": "出厂配置之间的一致性：同一项能力的两个轴讲不讲得通，摩擦挂在哪个变量上",
+   "pass": "两处互校存在，且摩擦挂在动作的不可逆等级上",
+   "result": "红。闸读不到风险等级（src/gate/mod.rs 第 44–48 行）；摩擦挂在执行者身份上（policy.json 第 32 行的 irreversible_actors，名单里只有 world://user），而那个人同时可写任意对象（同文件第 28 行）；两处无互校（2026-09-27 读配置与源码）",
+   "color": "red",
+   "line": 821
+  },
+  {
+   "sec": "5.5",
+   "conclusion": "载体上的撤销点被当成了世界可逆",
+   "check": "执行清单里留了撤销点的能力，世界里是不是也可逆",
+   "pass": "两个轴各自有结论，且互不冒充",
+   "result": "红。cap.d/ledger.compact.json 第 6 行写 \"undo\": \"before-each\"，policy.json 第 20 行写 \"reversible\": false；载体撤销撤的是文件系统字节（src/carrier/mod.rs 第 30–34 行），与世界状态无关，而没有任何一处把两件事分开核对（2026-09-27 读配置与源码）",
+   "color": "red",
+   "line": 822
+  },
+  {
+   "sec": "5.6附表",
+   "conclusion": "用现有说法表达三个陌生领域的真实任务",
+   "check": "新增的能力名 = 0",
+   "pass": "",
+   "result": "未跑，判红",
+   "color": "red",
+   "line": 828
+  },
+  {
+   "sec": "5.6附表",
+   "conclusion": "逐条说明各标准解决了哪一层、这里多解决了哪一层",
+   "check": "逐对象分列",
+   "pass": "",
+   "result": "半绿。表已覆盖十余个对象，未逐对象分列",
+   "color": "half",
+   "line": 829
+  },
+  {
+   "sec": "5.6附表",
+   "conclusion": "给出今天的接入与对齐成本，并预设宣布失败的数值",
+   "check": "数值已采集，阈值已写",
+   "pass": "",
+   "result": "未采集，判红。这条另有一个特点：在\"不干\"的世界里它同样满分，因为它判的是造出来的东西好不好",
+   "color": "red",
+   "line": 830
+  },
+  {
+   "sec": "5.6附表",
+   "conclusion": "给出\"从事情发生到它出现在读法上\"的延迟上界",
+   "check": "有上界",
+   "pass": "",
+   "result": "未跑，判红",
+   "color": "red",
+   "line": 831
+  }
+ ],
+ "tests": {
+  "tests/acceptance.rs": [
+   "tmpdir",
+   "ontology",
+   "policy",
+   "t1_append_then_read_back",
+   "t2_events_survive_restart",
+   "t3_partial_line_is_discarded",
+   "t4_seq_gap_refuses_to_start",
+   "t5_law_rejects_and_does_not_write",
+   "t6_bad_ontology_refuses_to_start",
+   "t7_read_model_is_disposable_and_reproducible",
+   "t8_read_model_refuses_broken_ledger",
+   "s1_digest",
+   "t9_gate_rejects_undeclared_capability_and_records_notice",
+   "t10_gate_adds_friction_for_irreversible_capability",
+   "t11_world_refuses_to_start_when_law_is_writable_by_others",
+   "t12_world_refuses_start_when_ledger_is_writable_by_others",
+   "t13_running_world_does_not_reread_policy",
+   "t17_rollback_is_an_appended_compensating_event",
+   "seed_world",
+   "t14_language_projection_matches_read_model",
+   "t15_visual_projection_is_human_readable_yet_auditable",
+   "t16_two_projections_are_same_source_and_vocab_change_is_detected"
+  ],
+  "tests/agent_audit.rs": [
+   "tmpdir",
+   "record",
+   "g01_newline_in_value_does_not_split_the_frame",
+   "g02_file_fallback_is_jsonl_with_timestamp",
+   "g03_multi_sink_isolates_failures",
+   "g04_field_names_come_from_the_fixed_set"
+  ],
+  "tests/agent_completion.rs": [
+   "tmpdir",
+   "ontology",
+   "policy",
+   "j01_completion_is_a_ledger_notice",
+   "j02_start_failure_still_leaves_a_notice",
+   "j03_pending_comes_from_the_ledger_not_a_registry",
+   "j04_reading_completion_is_idempotent"
+  ],
+  "tests/agent_protocol.rs": [
+   "handler",
+   "p01_one_request_one_response_in_order",
+   "p02_bad_bytes_do_not_swallow_the_next_request",
+   "p03_refusals_are_structured_not_prose"
+  ],
+  "tests/agent_undo.rs": [
+   "name",
+   "capabilities",
+   "call",
+   "manifest",
+   "inv",
+   "tmpdir",
+   "u01_undo_happens_once_and_after_the_confirmation",
+   "u02_undo_failure_blocks_the_action",
+   "u03_no_undo_policy_means_zero_undo_calls",
+   "u04_carrier_undo_is_not_world_rollback"
+  ],
+  "tests/atom_declared_only.rs": [
+   "tmpdir",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "open_world",
+   "b01_undeclared_entity_is_refused_and_nothing_lands",
+   "b02_undeclared_field_is_refused_and_nothing_lands",
+   "b03_declared_entity_and_field_still_land",
+   "b04_bare_subject_is_a_registered_gap_not_a_declared_entity",
+   "b05_cli_append_of_an_undeclared_entity_is_refused",
+   "b06_concepts_gate_only_the_change_family"
+  ],
+  "tests/atom_reversibility.rs": [
+   "tmpdir",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "write_policy",
+   "write_ontology",
+   "write_manifest",
+   "flags_of",
+   "a01_conflicting_reversibility_refuses_to_start",
+   "a02_consistent_reversibility_starts_normally",
+   "a03_gate_reads_the_risk_level_of_the_factory_config",
+   "a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction",
+   "a05_non_whitelisted_actor_gets_friction_and_the_level_shows_in_the_flow",
+   "a06_risk_sets_friction_weight_but_not_the_verdict",
+   "a07_carrier_undo_is_neither_cross_checked_nor_a_proof_of_world_reversibility",
+   "undo_of"
+  ],
+  "tests/carrier_boundary.rs": [
+   "tmpdir",
+   "manifest_dir",
+   "deploy_dir",
+   "directives",
+   "app_dependencies",
+   "kernel_units_from",
+   "socket_perm_directives_outside_socket_units",
+   "run_cli",
+   "c01_unit_dependencies_must_not_point_at_applications",
+   "c02_with_every_application_down_the_world_still_checks_and_folds_the_same",
+   "c03_world_sources_never_read_the_carrier_units",
+   "string_literals",
+   "walk",
+   "c04_socket_permission_directives_belong_only_to_socket_units"
+  ],
+  "tests/carrier_serve.rs": [
+   "tmpdir",
+   "run_serve",
+   "s01_serve_without_listen_fds_is_refused_and_names_the_code",
+   "s02_serve_with_a_foreign_listen_pid_is_refused",
+   "s03_serve_without_listen_pid_is_refused",
+   "s04_serve_with_an_unusable_fd3_is_refused",
+   "s05_a_bad_notify_socket_does_not_mask_the_listen_fds_refusal"
+  ],
+  "tests/channel_bounds.rs": [
+   "commit_requested",
+   "tmpdir",
+   "bind_in",
+   "expect_for",
+   "request_line_of",
+   "minimal_request",
+   "read_reply",
+   "client",
+   "limits",
+   "l01_a_line_over_the_limit_is_refused_and_nothing_is_committed",
+   "l02_the_second_simultaneous_connection_is_refused",
+   "l03_a_silent_connection_is_cut_at_the_idle_timeout",
+   "l04_messages_over_the_per_second_limit_are_refused_across_connections",
+   "l05_the_four_numbers_come_only_from_the_config",
+   "l06_the_factory_config_really_carries_the_four_numbers",
+   "write_json",
+   "law_one",
+   "render_one",
+   "l07_the_render_is_checked_against_the_law_before_it_is_used",
+   "l08_the_factory_law_really_declares_every_rendered_identity"
+  ],
+  "tests/cli.rs": [
+   "libc_uid",
+   "tmpdir",
+   "manifest",
+   "run",
+   "check_args",
+   "as_refs",
+   "cli01_check_reports_ready_and_chain_status",
+   "cli02_after_append_check_reports_chained",
+   "cli03_require_chain_refuses_chainless_ledger",
+   "cli04_usage_error_exits_one",
+   "cli07_usage_string_discloses_default_actor",
+   "cli05_project_check_reports_same_source",
+   "cli06_require_chain_allows_empty_but_refuses_chainless_data",
+   "cli08_channel_bind_refuses_socket_not_in_identity_map",
+   "cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction",
+   "args_for",
+   "cli13_project_check_criterion_reads_only_the_header",
+   "cli14_project_check_feeds_both_projections_the_same_state_and_vocab",
+   "cli15_usage_lists_three_checkpoint_subcommands",
+   "cli16_checkpoint_format_mismatch_is_named",
+   "cli17_checkpoint_resume_falls_back_to_post_hoc_comparison",
+   "presence_list",
+   "cli18_presence_list_is_the_world_roster_not_the_carrier_inventory"
+  ],
+  "tests/contract.rs": [
+   "tmpdir",
+   "ontology",
+   "policy",
+   "write_policy",
+   "valid_policy_json",
+   "c01_change_is_gated_and_cannot_smuggle_an_act",
+   "named_field_in",
+   "c02_every_required_envelope_field_is_enforced",
+   "c03_policy_load_rejects_every_malformed_shape",
+   "c04_ontology_load_rejects_missing_file_and_empty_families",
+   "c05_event_ids_are_unique_within_a_process",
+   "c06_incremental_apply_equals_full_fold",
+   "c07_second_writer_is_refused",
+   "c08_stale_lock_is_reclaimed",
+   "c09_symlinked_law_is_refused",
+   "c10_owner_assertion_detects_wrong_owner",
+   "c11_irreversible_is_owner_only_and_the_refusal_does_not_lie",
+   "c12_checkpoint_is_a_cache_and_disposable",
+   "c13_bad_checkpoints_are_refused",
+   "c14_channel_takes_identity_from_kernel_not_from_request",
+   "libc_uid",
+   "c15_errors_carry_machine_readable_codes",
+   "chained",
+   "three_events",
+   "c16_chain_detects_local_tampering",
+   "c17_chain_distinguishes_absent_and_mixed",
+   "c18_chain_cannot_detect_a_full_rewrite",
+   "c19_written_ledger_carries_a_verifiable_chain",
+   "c20_startup_refuses_a_tampered_ledger",
+   "c21_is_chained_reflects_reality",
+   "c22_file_always_ends_on_a_line_boundary",
+   "c23_notice_with_reserved_prefix_is_refused_for_outsiders",
+   "c23_notice_from_unlisted_actor_is_refused",
+   "c23_gate_notice_says_what_it_refused",
+   "c24_known_codeless_outlets_carry_no_ext_world_prefix",
+   "write_v1_ledger",
+   "write_raw_jsonl",
+   "legal_change",
+   "c29_k3_chainless_ledger_survives_one_legal_append",
+   "c30_k3_boundary_chainless_ledger_plus_one_append_reports_mixed_chain",
+   "c31_chainless_ledger_opens_readonly_and_refuses_writes",
+   "c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused",
+   "c33_stale_lock_with_a_reused_live_pid_is_never_reclaimed",
+   "c34_envelope_field_types_are_checked_on_the_read_path",
+   "c35_the_ledger_alone_reproduces_the_same_state_elsewhere",
+   "c36_every_declared_envelope_cell_is_readable_from_some_read_view"
+  ],
+  "tests/delivery.rs": [
+   "tmpdir",
+   "manifest_dir",
+   "open_world",
+   "act_intent",
+   "act_result",
+   "d01_a_tagged_event_reaches_only_the_named_recipient",
+   "d02_an_untagged_event_is_broadcast_to_every_recipient",
+   "d03_an_empty_to_is_a_broadcast_and_a_name_narrows_it",
+   "d04_a_decorative_to_would_turn_this_red",
+   "d05_an_answer_can_be_traced_back_to_its_request_by_request_id",
+   "d06_the_pairing_key_is_request_id_and_a_broken_key_is_visible",
+   "d07_an_explicit_empty_to_in_the_raw_ledger_is_also_a_broadcast",
+   "d08_registered_boundaries_of_delivery_today"
+  ],
+  "tests/family_readmodel.rs": [
+   "tmpdir",
+   "chmod600",
+   "chmod600",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "write_ontology",
+   "add_pure_extension",
+   "declared_cells",
+   "base_ledger",
+   "write_ledger",
+   "h01_a_new_family_is_added_by_addition_and_the_new_reader_reads_the_old_ledger",
+   "h02_a_reader_refuses_a_ledger_that_uses_a_family_it_does_not_know",
+   "h03_a_new_optional_cell_is_ignored_while_a_new_required_cell_is_refused",
+   "h04_a_missing_declared_cell_is_refused_with_that_cell_named",
+   "h05_the_cli_read_path_refuses_a_missing_declared_cell_end_to_end",
+   "h06_an_empty_declared_cell_list_is_not_read_as_lenient",
+   "h07_the_declared_inventory_is_mechanically_enumerable",
+   "h08_every_declared_envelope_field_is_covered_and_the_coverage_is_load_bearing",
+   "run_wc",
+   "base_args",
+   "cli_append",
+   "cli_state",
+   "muted",
+   "retract_body",
+   "read_back",
+   "append_raw_with_chain",
+   "append_lying_before",
+   "ledger_with_a_lying_before",
+   "r01_a_retraction_of_the_bad_seq_makes_the_ledger_foldable_again",
+   "r02_the_retracted_seq_stays_in_the_ledger_and_carries_a_retracted_mark",
+   "r03_retracting_a_missing_or_already_retracted_seq_is_refused_by_name",
+   "r04_the_retraction_itself_is_in_the_ledger_not_only_in_memory",
+   "r05_a_retracted_effect_is_not_replayed_as_the_current_value",
+   "r06_retraction_does_not_change_the_world_now_and_stays_out_of_the_canonical_form"
+  ],
+  "tests/ontology_elements.rs": [
+   "tmpdir",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "chmod600",
+   "factory_json",
+   "write_ontology",
+   "write_policy",
+   "red_then_green",
+   "cli_check",
+   "m01_every_missing_element_section_refuses_to_load_but_the_intact_one_loads",
+   "m02_cli_check_refuses_when_an_element_section_is_missing_and_passes_when_restored",
+   "m03_field_value_types_are_checked_including_closed_enums_and_refs",
+   "m04_relation_endpoints_must_be_declared_types",
+   "m05_embedded_types_are_declared_not_expressed_by_three_segment_paths",
+   "m06_instance_counts_by_type_are_exposed_and_single_instances_are_enforced",
+   "m07_permissions_live_in_the_ontology_and_may_only_be_granted_on_capabilities",
+   "m08_actions_referencing_unknown_capabilities_are_refused_on_both_sides",
+   "m09_function_entries_admit_only_entry_names_never_command_literals",
+   "m10_five_element_sections_live_under_underscore_keys_so_the_vocabulary_identity_is_unchanged",
+   "m11_the_two_object_declarations_must_not_contradict_each_other",
+   "m12_the_twelve_sections_attribution_table_must_match_the_real_underscore_sections",
+   "m13_dead_entries_dangling_refs_and_dead_capabilities_are_refused",
+   "m14_usage_lists_unused_declarations_but_never_fails",
+   "m16_describe_returns_the_intersection_of_interfaces_and_grants",
+   "m17_read_instance_face_shows_the_prior_value_and_the_default_output_is_unchanged",
+   "m18_subscribe_requires_a_cursor_and_never_shows_stale_numbers",
+   "m19_serve_refuses_a_non_numeric_owner_uid",
+   "append_raw_with_chain",
+   "m20_write_side_refuses_a_lying_before_and_check_refuses_a_lying_ledger",
+   "has_ready_line",
+   "cli_check_raw",
+   "cli_sub_raw",
+   "cli_read",
+   "cli_describe",
+   "cli_usage",
+   "m15_carrier_specific_strings_must_not_enter_the_ontology_identity",
+   "m21_presence_semantics_are_declared_and_a_value_outside_the_closed_set_is_refused",
+   "m22_presence_report_is_two_levels_declare_then_authorize",
+   "m23_capability_scope_names_concrete_subjects_not_a_wildcard",
+   "m24_link_cardinality_only_executed_values_or_nothing"
+  ],
+  "tests/ontology_ext.rs": [
+   "tmpdir",
+   "chmod600",
+   "chmod600",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "write_ontology",
+   "add_pure_extension",
+   "flags_of",
+   "read_with",
+   "base_ledger",
+   "e01_unknown_flags_are_ignored_and_the_reader_continues_with_what_it_knows",
+   "e02_a_landed_ledger_line_with_unknown_flags_folds_byte_identically",
+   "e03_unknown_family_is_refused_on_both_sides_of_the_dual",
+   "e04_a_flag_the_factory_reader_does_not_know_still_lands_and_folds",
+   "e05_the_public_write_entry_lands_an_unknown_flag_end_to_end",
+   "x01_an_extension_item_colliding_with_a_core_field_is_refused_at_load",
+   "x02_a_pure_extension_keeps_the_fold_byte_identical"
+  ],
+  "tests/ontology_instance.rs": [
+   "tmpdir",
+   "chmod600",
+   "chmod600",
+   "manifest_dir",
+   "factory_ontology",
+   "factory_policy",
+   "write_ontology",
+   "cells_for",
+   "ledger_with",
+   "i01_an_instance_whose_type_is_not_declared_is_refused_by_the_read_side",
+   "i02_a_recovered_ledger_line_with_an_undeclared_entity_is_refused",
+   "i03_declared_instances_still_fold",
+   "i04_pure_extension_still_reads_the_old_ledger",
+   "i05_a_bare_subject_is_still_not_judged",
+   "i06_nested_four_segment_instances_are_judged_by_their_own_type",
+   "i07_an_empty_declared_entity_set_refuses_to_fold",
+   "i08_not_wiring_this_half_means_no_judgment_not_a_pass",
+   "i09_an_absent_declaration_face_is_not_verified_and_never_green",
+   "i10_an_empty_declaration_face_is_not_verified_and_never_green",
+   "i11_every_declared_thing_visible_is_green",
+   "i12_a_declared_thing_that_is_not_visible_is_red_and_named",
+   "i13_a_declared_presence_instance_must_have_visible_cells",
+   "i14_every_declared_projection_must_be_reachable"
+  ],
+  "tests/perf.rs": [
+   "env_usize",
+   "ontology",
+   "policy",
+   "sandbox",
+   "synthesize",
+   "percentile",
+   "ms",
+   "report",
+   "qg05_full_replay_of_100k_events",
+   "qg02_crash_recovery_with_a_torn_tail",
+   "qg01_append_10k_without_loss_or_duplication"
+  ],
+  "tests/projection_leaf.rs": [
+   "manifest",
+   "tmpdir",
+   "text",
+   "ok",
+   "run",
+   "run_in",
+   "args_for",
+   "as_refs",
+   "snapshot",
+   "assert_dir_unchanged",
+   "tri",
+   "sorted",
+   "append_one",
+   "seed_ledger",
+   "fold_state",
+   "state_triples",
+   "p01_language_alone_is_complete_and_the_other_reading_never_runs",
+   "p02_visual_alone_is_complete_and_the_other_reading_never_runs",
+   "p03_same_ledger_same_bytes_twice_and_no_state_kept_anywhere",
+   "p04_ledger_grows_so_does_each_reading",
+   "p05_a_lagging_reading_neither_breaks_nor_bleeds_into_the_other",
+   "p06_the_two_exits_do_not_carry_each_others_shapes"
+  ],
+  "tests/projection_surface.rs": [
+   "chg",
+   "st",
+   "one_surface_one_cell",
+   "s01_only_screen_facing_types_come_out",
+   "s02_carries_a_position",
+   "s03_the_three_readings_are_same_source"
+  ],
+  "tests/return_vocabulary.rs": [
+   "world_accepts",
+   "kernel_reserved",
+   "unreadable",
+   "executor_bell",
+   "gate_bell",
+   "rv01_the_executors_bell_is_not_understood_by_the_world",
+   "rv02_the_worlds_own_bell_is_understood",
+   "rv03_the_kernel_prefix_exemption_carries_weight",
+   "short_circuited",
+   "rv04_gutting_the_criterion_moves_the_verdict"
+  ],
+  "tests/trace_notice.rs": [
+   "tmpdir",
+   "manifest",
+   "run",
+   "ledger_bytes",
+   "has_bytes",
+   "events",
+   "kinds",
+   "flow",
+   "f61_append_with_trace_lands_and_reads_back_byte_for_byte",
+   "f62_append_without_trace_writes_no_trace_key_and_still_lands",
+   "f63_empty_trace_is_treated_as_absent",
+   "f64_a_traced_result_can_be_traced_back_from_the_ledger",
+   "f65_a_trace_pointing_at_a_nonexistent_id_is_still_accepted",
+   "f66_a_flag_without_a_value_is_a_usage_error",
+   "f67_flags_land_through_the_write_entry_and_unknown_ones_are_kept",
+   "f68_a_caller_supplied_reserved_flag_is_refused_and_leaves_a_flow",
+   "f69_commit_envelope_carries_flags_and_default_equals_commit",
+   "keys",
+   "f71_notices_that_must_not_be_sent_are_refused_and_leave_a_flow",
+   "f72_the_two_notice_refusal_paths_do_not_impersonate_each_other"
+  ],
+  "tests/write_side.rs": [
+   "tmpdir",
+   "manifest",
+   "this_uid",
+   "world_files",
+   "start_kernel",
+   "finish",
+   "assert_kernel_did_not_panic",
+   "fake_kernel",
+   "is_declared",
+   "book",
+   "book_at",
+   "ledger_lines",
+   "a_declared_change",
+   "a_misnamed_change",
+   "w01_the_write_side_submits_verbatim_and_never_adjudicates",
+   "w02_a_gate_refusal_leaves_a_trail_and_nothing_lands",
+   "w03_the_same_change_lands_when_the_world_allows_it",
+   "w04_a_change_without_a_previous_value_is_refused_and_the_ledger_does_not_grow",
+   "w05_an_undeclared_field_is_refused_and_never_guessed",
+   "w06_a_similar_field_name_never_reaches_the_kernel",
+   "w07_the_write_side_boundary_holds_only_when_the_facts_hold"
+  ]
+ },
+ "req_map": {
+  "事件按序落账并可跨进程读回": [
+   "REQ-F-003",
+   "REQ-F-022"
+  ],
+  "同一本账同时只有一个写者": [],
+  "残缺的尾部被丢弃，`seq` 空洞拒绝启动": [
+   "REQ-F-005",
+   "REQ-F-004"
+  ],
+  "账本文件恒以行边界收尾": [
+   "REQ-F-003"
+  ],
+  "摘要链检出局部篡改，并如实声明其边界": [],
+  "回滚是追加补偿事件，不是改写历史": [
+   "REQ-F-014"
+  ],
+  "信封的必填字段被逐字段强制": [
+   "REQ-F-002",
+   "REQ-F-008"
+  ],
+  "三类话之外一律被拒": [
+   "REQ-F-008",
+   "REQ-F-027"
+  ],
+  "法律损坏或指向别处时拒绝启动": [
+   "REQ-F-007",
+   "REQ-N-003"
+  ],
+  "事件身份在进程内唯一": [],
+  "错误携带机器可读的错误码": [],
+  "每一个写动作都过门禁": [
+   "REQ-F-016",
+   "REQ-F-015"
+  ],
+  "`act` 的效果不能靠 `change` 偷渡": [
+   "REQ-F-015",
+   "REQ-F-016"
+  ],
+  "不可逆动作只允许白名单主体并加摩擦": [
+   "REQ-F-017"
+  ],
+  "门禁配置在被管者不可写的域": [
+   "REQ-F-015"
+  ],
+  "运行中的世界不重读策略": [],
+  "读模型是可丢弃的缓存": [
+   "REQ-F-010",
+   "REQ-F-011",
+   "REQ-F-012"
+  ],
+  "增量折叠等价于全量折叠": [
+   "REQ-F-011"
+  ],
+  "检查点是缓存，可丢弃且必须自洽": [
+   "REQ-F-021"
+  ],
+  "两份读法同源且可当场核对": [
+   "REQ-F-020"
+  ],
+  "语言投影与读模型逐项相等": [
+   "REQ-F-018",
+   "REQ-F-024"
+  ],
+  "视觉投影的排版是可审计契约": [
+   "REQ-F-019"
+  ],
+  "身份取自内核而非请求自称": [
+   "REQ-F-025"
+  ]
+ },
+ "cap_book": {
+  "ledger-integrity": [
+   "2.5",
+   "4.1",
+   "5.1"
+  ],
+  "envelope-validation": [
+   "2.4",
+   "2.7",
+   "2.8",
+   "2.10",
+   "4.5"
+  ],
+  "gate-enforcement": [
+   "4.2",
+   "5.4",
+   "5.5"
+  ],
+  "read-model": [
+   "2.6",
+   "4.4"
+  ],
+  "projections": [
+   "2.6",
+   "4.4",
+   "5.2"
+  ],
+  "channel-identity": [
+   "2.11",
+   "4.3"
+  ]
+ },
+ "book_gaps": [
+  {
+   "num": "4.6",
+   "title": "怎么把话送到",
+   "why": "投递与订阅推送在规格里零落点",
+   "srs": [
+    "REQ-F-023"
+   ],
+   "book": "第四章 4.6"
+  },
+  {
+   "num": "2.11",
+   "title": "说了要送到",
+   "why": "\"送到\"这一层的规格缺失",
+   "srs": [
+    "REQ-F-023"
+   ],
+   "book": "第二章 2.11"
+  },
+  {
+   "num": "5.1",
+   "title": "先说它做不到什么",
+   "why": "世界外面的效果账、归责机制无规格（能力上限，不是缺陷）",
+   "srs": [],
+   "book": "第五章 5.1"
+  },
+  {
+   "num": "5.3",
+   "title": "没声明过的东西照样落账",
+   "why": "本体 concepts 实体层：规格已写、实现零读取",
+   "srs": [
+    "REQ-F-030"
+   ],
+   "book": "第五章 5.3"
+  },
+  {
+   "num": "5.5",
+   "title": "可不可逆，两份配置对不上",
+   "why": "可逆性判定与两处互校无规格",
+   "srs": [
+    "REQ-F-017"
+   ],
+   "book": "第五章 5.5"
+  },
+  {
+   "num": "2.9",
+   "title": "一个说法要回答的七个问题",
+   "why": "\"什么单位\"这一格今天没有位置可填",
+   "srs": [
+    "REQ-F-028"
+   ],
+   "book": "第二章 2.9"
+  }
+ ],
+ "findings": [
+  {
+   "cap": "envelope-validation",
+   "sev": "严重",
+   "n": "E1",
+   "title": "错误码那条的 Scenario 与证据错位：说「四类路径」，证据里没有一条账本路径",
+   "detail": "spec:78 写「触发法律、门禁、账本、读模型四类失败路径」；c15 的 7 条码来源（contract.rs:714/718/728/738/748/758/767）无一条账本路径——全仓唯一账本码断言在 scripts/test/cli.rs:155，而 check.sh 从不跑 cli.rs。且实测法律类存在无码出口：--policy pol-v2.json check → rc=2，报错是散文（gate.rs:115）。项目文档已自认：WC-IC-001:350-352「⚠ 无码」。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "严重",
+   "n": "E2",
+   "title": "t5 的证据行写「check.sh 步骤 ③」，而那一步根本不跑 t5",
+   "detail": "check.sh:98 只跑 --test acceptance -- t1_ t2_ t7_（原样复跑：3 passed / 14 filtered out）；--list 确认 t5 存在但被过滤。⇒ 这条要求的唯一证据在出厂单入口里从不运行。对照 c02 标注的步骤 ③b 是真的（跑整个 contract，25 passed）。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "重要",
+   "n": "E3",
+   "title": "「法律损坏或指向别处就拒启」比证据宽三处（实现都拒，只是没有载体）",
+   "detail": "① 策略文件缺失：c03 五类里没有「缺失」，全仓无载体——实测 rc=2；② 本体字段形状非法：c04 只测缺文件与空 families——实测删 envelope 段 rc=2（Ontology.NoEnvelope）；③ 本体软链：c09 只测策略（WC-HLD-001:1070 自认），实测本体软链 rc=2。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "重要",
+   "n": "E4",
+   "title": "「不存在静默接受一个畸形策略的路径」这句不成立",
+   "detail": "spec:52-53 是全称；而同一用例 contract.rs:207 正面断言「多余键应被忽略，而不是拒载」，gate.rs:129-133 明说未知键一律忽略。另 Policy::load 有 12 条拒载出口，只断言了 5 条。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "一般",
+   "n": "E5",
+   "title": "t5 没有断言 Scenario 的第二句「状态未被改动」",
+   "detail": "spec:30 要求状态未被改动；t5 全函数无 read_model()（对照 contract.rs:87-92 项目知道怎么写这条断言）。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "一般",
+   "n": "E6",
+   "title": "c02 里 world 字段那一轮的「报出字段名」恒真",
+   "detail": "contract.rs:121 断言 msg.contains(\"MissingField\") && msg.contains(field)，而 ontology.rs:32 的前缀自带 ext.world. ⇒ field==\"world\" 时必真。其余 7 个字段不受影响。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "提示",
+   "n": "E7",
+   "title": "三条证据对 umask 敏感；另有两处静默跳过",
+   "detail": "umask 000 下 c03/c04/c09 全红（rc=101），红因与主题无关（fixture mode 随 umask，报「权限为 666，对 group/other 可写」）。静默跳过两处：#![cfg(not(unix))] 使 c09 在非 Unix 上「0 项 + rc=0」；guard.rs:69-70 取不到目录属性即跳过整条目录检查。"
+  },
+  {
+   "cap": "envelope-validation",
+   "sev": "提示",
+   "n": "E8",
+   "title": "归档 tasks.md 给本能力列了 6 项，实物只有 5 条",
+   "detail": "tasks.md:6 把「行边界」列在 envelope-validation 下，而它实际在 ninedim/01-意图环/04-规格/ledger-integrity.spec.md:67。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "严重",
+   "n": "L1",
+   "title": "规格把「v1 无链账本仍可打开」写成已成立，而项目自己把这条路径登记为【高】级自杀缺陷",
+   "detail": "spec:111 与 contract.rs:1026 把「v1 兼容」写成已成立行为；WC-SCMP-001:2537「### K-3【高】在 v1（无链）账本上做一次正常 append 会把世界锁死 —— 升级路径自杀」。且归档 change 的七项排除清单从未点名 K-3（全 change 检索 K-3/K-4/K-5/SCMP = 0 命中），而 proposal.md:16-17 自称「把不成立、已知残余风险如实登记在规格里」。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "严重",
+   "n": "L2",
+   "title": "单写者那条的措辞超出实现前提：锁只记 pid 号",
+   "detail": "spec:29-30 写无条件；实现 ledger.rs:175 只写 std::process::id()，存活判据是 /proc/<pid> 存在（:182-184）⇒ 前提＝同机＋同 PID 命名空间＋/proc 可读。共享存储或独立 PID 命名空间下，存活写者的锁会被当陈旧锁回收（出现两个写者）。反向已实测：pid 号被复用时持有者已不存在却不回收（假锁死，rc=2）。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "重要",
+   "n": "L3",
+   "title": "「解析失败的最后一行被丢弃」与实际判据不是一回事，且完整事件会被静默物理删除",
+   "detail": "实现按最后一个 \\n 截断（ledger.rs:276-289，直接 set_len 落盘），不看能否解析。实测：只去掉末尾换行（该行仍是完整合法 JSON）⇒ check 报「条数=1」、rc=0，还打印「✅ 有摘要链」；随后一次 append 把该行物理删除并复用 seq。ledger.rs:385 自述「启动『截到最后一个 \\n』会静默删掉它们」——摘链那条边界要求如实声明，这条没有。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "重要",
+   "n": "L4",
+   "title": "t2 证据层级错位：规格写「新进程」，测试是同进程 drop + reopen",
+   "detail": "spec:23 写「以新进程打开」；acceptance.rs:88-104 实为同进程 drop 后 reopen。全仓只有 cli.rs:20/39 起新进程。真正合格的证据（TC-070，tools/s1_sys_probe2.sh:379-384「两次独立进程读回的事件序列逐字节相同」）没被引用。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "重要",
+   "n": "L5",
+   "title": "t1 的「逐字段一致」没有被断言",
+   "detail": "acceptance.rs:68-80 只比 len/seq/world/kind/body.before；actor、id、at、flags、body.subject、body.path、body.after 一个都没比。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "一般",
+   "n": "L6",
+   "title": "MixedChain 在启动路径被拒，没有任何自动化断言",
+   "detail": "lib.rs:105 load_chain()? 会拒，但仓库内 MixedChain 只出现在 contract.rs:845（注释）/879（c17 函数级）与两处 tools 注释；系统级证据只在 docs/理论/专家评审/复跑-九项保证-2026-09-27-VM.md:130-140 手工留档。与 L1 同一条路径。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "一般",
+   "n": "L7",
+   "title": "R6 把「系统实现回滚」写成能力，而系统里没有回滚操作",
+   "detail": "spec:116/120；src/ 全目录无回滚 API 或子命令（rollback_after_failed_write 是 I/O 回滚；carrier/mod.rs:32-34 明说载体撤销「不是世界状态」）；t17 由测试自己再提交一条互换 change（acceptance.rs:563-569）。SRS:257 的口径更准：「回滚通过追加一条普通 change 完成」。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "一般",
+   "n": "L8",
+   "title": "两处低危：注释误述文档现状、check.sh 未给路径",
+   "detail": "contract.rs:1039-1040 说「纯粹的 I/O 失败注入…本项目尚无工具」，而 WC-TP-001:79 已写「部分闭合（2026-09-27）…U20–U22 实测三条分支」（实跑 3 passed rc=0），且这是 R4 在写失败下最强的证据、规格未引；spec:19/25/36 只写 check.sh，而仓里有两个同名脚本（根 check.sh 完全不碰 world-core）。"
+  },
+  {
+   "cap": "ledger-integrity",
+   "sev": "严重",
+   "n": "L9",
+   "title": "基线自己的验证口径只有「名字存在性」——这就是 2–6 类问题从未被核过的原因",
+   "detail": "tasks.md:16/17/22、design.md:121 逐字把核对写成「证据行指向真实存在的测试名」「6 份规格 / 40 条证据 / 0 条未命中」。名字存在 ≠ 断言的真是那件事。本轮六路审计抓到的正是这个差值：机械命中 40/40，而语义相符远低于此。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "严重",
+   "n": "C1",
+   "title": "规格写「采用内核身份、忽略自称」，证据断言的却是「拒绝」",
+   "detail": "spec:16「世界采用内核给出的身份，请求正文里的自称被忽略」；contract.rs:668-670 实为 expect_err + contains(\"Impersonation\") + last_seq 不变（即拒绝且不落笔）。SRS:266/268/383、RTM:29/31 三处都写「拒绝且不落笔」⇒ 规格与证据、文档三方差一层意思。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "严重",
+   "n": "C2",
+   "title": "「从内核提供的连接元数据中取得身份」不成立：实现不取任何连接凭证",
+   "detail": "spec:11 写「连接元数据」；channel.rs:256-257 自述「不需要（也无法用）peer_cred」，身份＝套接字文件的属主/权限（channel.rs:187-200）。WC-LLD-001:140、SRS:268、WC-FMT-001:1023 三处文档口径与此一致，唯独规格写成了连接元数据。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "严重",
+   "n": "C3",
+   "title": "「身份取自内核」对 root 不成立，而这条边界规格通篇未登记",
+   "detail": "实测（套接字 actor=world://agent/1、uid=1001、mode=600）：uid 1001 连上→落笔 agent/1；root 连上→同样落笔 agent/1。只有 root「自称」world://user 才被拒 ⇒ 该检查只抓自称、不抓谁连上。书第五章:69 已登记「最高权限的用户可以连任何套接字，这一项对它无效」。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "重要",
+   "n": "C4",
+   "title": "被引证据绕过了它要验证的机制本身",
+   "detail": "contract.rs:642 用 std UnixListener::bind，没走 channel::bind（main.rs:578-581 自述这一绕过）；真正执行该机制的是 tools/system_acceptance.sh:301-351（㉒–㉖），由 check.sh 步骤⑦执行——而规格引的是步骤③b。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "重要",
+   "n": "C5",
+   "title": "写窄：四项已实现行为规格零落点",
+   "detail": "① 缺省拒绝 ext.world.Channel.NotConfigured（main.rs:604-615，实测 rc=2）② 自称与映射一致时被接受 ③ 拒绝时先回一行 {\"ok\":false,...} 再报错（channel.rs:279；SRS REQ-F-023 反例① 明确要求它）④ 空 listeners 拒载（channel.rs:89-94）。"
+  },
+  {
+   "cap": "channel-identity",
+   "sev": "一般",
+   "n": "C6",
+   "title": "断言里有两处装饰性成分",
+   "detail": "contract.rs:648 判据1 的请求根本没有 actor 字段 ⇒ 证明不了「自称被忽略」；libc_uid() 读不到 /proc 时静默返回 0（:685/689/693），而 expect.uid 在 serve_once 路径上从不被读 ⇒ 注释「同 uid 连接」（:644）无断言支撑。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "严重",
+   "n": "G1",
+   "title": "规格把书稿判红的「摩擦落点」反转写成绿",
+   "detail": "书稿 5.5:89 逐字「摩擦本该挂在动作的不可逆等级上…今天它挂在执行者的身份上」判红；spec:36 却写「SHALL 对声明为不可逆的能力追加摩擦」。实现 gate.rs:287-293 站书稿一边：不可逆只决定要不要看身份，加不加摩擦由身份决定。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "严重",
+   "n": "G2",
+   "title": "「只允许白名单主体」与「加摩擦」在出厂配置下不可能同时为真",
+   "detail": "policy.json:32 的 irreversible_actors 只有 world://user 一个；实测该唯一成员执行 reversible:false 的 ledger.compact ⇒ APPEND_RC=0、账本只 1 行 act、gate.* 通告 0 条（换 agent/1 才 RC=2 并落 1 条 awaiting-approval）。缺陷台账 D-20 已登记此事实。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "严重",
+   "n": "G3",
+   "title": "书稿判红的三条依据里，两条规格完全沉默——正是基线自己排除掉的东西",
+   "detail": "书稿 5.5:93 判「闸读不到风险等级」：ninedim/01-意图环/04-规格/ 下 risk|风险 零命中、gate.rs 零命中；书稿 5.6:117 判「载体可逆与世界可逆无互校」：规格通篇不提。而本基线 design.md:114 逐字把「可逆性判定的落地（两处配置对不上，判红）」列为明确不入基线，tasks.md:41-42 却用「测试函数名误报」把它对账掉了。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "重要",
+   "n": "G4",
+   "title": "一处张冠李戴：c23_gate_notice_says_what_it_refused 走的是不可逆路径",
+   "detail": "contract.rs:1152 断言的是 gate.awaiting-approval（不可逆路径，:1167），不是「保留前缀通告被拒」路径；而被引的 c23_notice_with_reserved_prefix 只查错误码、不查 refused 指纹。实测该路径流水确实带 refused=fnv1a64:a3fd5c16915cd6e1——行为是真的，但没有任何断言为它变红。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "一般",
+   "n": "G5",
+   "title": "规格写宽：说「属主与权限」，实现只看 mode 位、且属主断言默认不跑",
+   "detail": "spec:54-55「启动时检查法律与账本的属主与权限」；guard.rs:30-31 逐字「本模块只看 mode 位，不看属主」、:125-126「没人传 expected_uid 时它不会运行」。"
+  },
+  {
+   "cap": "gate-enforcement",
+   "sev": "一般",
+   "n": "G6",
+   "title": "漏了「通告的闸」与「门禁不可绕过的部分实现」边界",
+   "detail": "lib.rs:270/280 逐字「任何主体可以写任何通告」「任何人都能替世界说」（D-13）无 Requirement 级条目；SRS:258 / RTM:16 记「部分实现…祖先链遍历、通道层与 Landlock 自缚未做」的边界规格未写。另 spec:19 的「check.sh 步骤 ③」引用错（check.sh:98 只跑 t1_ t2_ t7_）。"
+  },
+  {
+   "cap": "projections",
+   "sev": "严重",
+   "n": "P1",
+   "title": "「同源」那条判据与命令实际做的事不是一件事，且近乎恒真",
+   "detail": "spec:18 的 THEN 是「两份投影首行逐字一致」；证据 cli.rs:236-241 只断言 rc==0 ＋ stdout 含「同源」「✅」。而 main.rs:396/407-410 两份投影共用同一个 state 与 vocab ⇒ mod.rs:126-145 的三个不等分支在 project check 里结构上不可达，对任何输入都只会绿。"
+  },
+  {
+   "cap": "projections",
+   "sev": "严重",
+   "n": "P2",
+   "title": "规格把项目自评为「绿而无效／红」的能力写成了「已成立」",
+   "detail": "spec:10-13 只写正向义务、一字不提边界；台账 v0.5:421/431 判「绿而无效（只比头部四项、不比内容；自己渲染两份再自己比，从未比过两份由不同一方独立生成的投影）」，第四章:192 直接判红，RTM:21 记「该用例尚未实现」。"
+  },
+  {
+   "cap": "projections",
+   "sev": "重要",
+   "n": "P3",
+   "title": "被引证据 cli05 不在规格并列指出的出厂步骤上",
+   "detail": "spec:19 写「（check.sh 步骤 ④）」；但 check.sh 全文不跑 --test cli（:98 只跑 t1_ t2_ t7_、:103 只跑 contract）⇒ bash check.sh 全绿的那次运行里 cli05 一次都没执行。"
+  },
+  {
+   "cap": "projections",
+   "sev": "重要",
+   "n": "P4",
+   "title": "视觉投影「与读模型逐项相等」已实现、已测、SRS 有判据，规格里没有任何条目",
+   "detail": "spec:29 只限定「语言投影 SHALL 由读模型派生」；而 acceptance.rs:674-679 的 t15 实断言视觉投影逐项相等（SRS REQ-F-019 判据④同款）。规格 Purpose 说「只能省略不能添加」，Requirement 没落。"
+  },
+  {
+   "cap": "projections",
+   "sev": "一般",
+   "n": "P5",
+   "title": "R2 措辞自相张力，且与 SRS 的 P0 条目口径不一",
+   "detail": "spec:29-30 主句要求「完全相等」，括注说「只能省略」（互相不容）；SRS:267（REQ-F-024，P0）的口径是包含关系 P ⊆ S。同一件事三处三个强度。"
+  },
+  {
+   "cap": "projections",
+   "sev": "一般",
+   "n": "P6",
+   "title": "R3 只写 2 条排版规则，审计器实际执行 11 条契约 / 12 个变异",
+   "detail": "spec:40-41 只列「2 空格主体行 / 6 空格字段行」两条；visual_layout_audit.py:15-32 列了契约 1–11（分隔线 44 个 U+2500、摘要行格式、空状态恰 4 行、字段行不得先于主体行…），12 个变异里多个落在规格没写的契约上。"
+  },
+  {
+   "cap": "projections",
+   "sev": "提示",
+   "n": "P7",
+   "title": "两条恒真断言与过时行号",
+   "detail": "s1_sys_probe2.sh:372 用同一个命令替换比自身（恒等），标签却写「自报同源」；台账三处引 src/main.rs:394-397，而「check」分支现在在 :407-410（行号漂移）。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "严重",
+   "n": "R1",
+   "title": "检查点 CLI 已接线，三份受控文档仍写「v1 CLI 从不读快照」",
+   "detail": "main.rs:28-30/153 已把 checkpoint write|verify|resume 接进生产 CLI；WC-RTM-001.csv:22、WC-SRS-001:921、WC-UT-001:54 仍断言不存在该路径。这条「零生产调用者」正是给 fsync 缺陷降级的唯一理由。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "严重",
+   "n": "R2",
+   "title": "规格写宽：「账本内容损坏 ⇒ 拒绝产出」，而末尾半行是静默丢弃",
+   "detail": "spec:22-23 用全称量词；ledger.rs:276-279 明确丢弃末尾半行，t3_partial_line_is_discarded 正面背书该行为。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "重要",
+   "n": "R3",
+   "title": "「检查点必须自洽」在规格里无定义、在断言里无落点",
+   "detail": "spec:37 标题承诺「自洽」，正文与两条 Scenario 零定义；checkpoint.rs 的 verify 只查 base_seq 与 digest。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "重要",
+   "n": "R4",
+   "title": "CLI 直接暴露未核验续算路径，模块文档承诺「核验不通过即拒绝使用」",
+   "detail": "main.rs:534-542 → checkpoint.rs:173 resume_unverified；checkpoint.rs:14 逐字「核验不通过即拒绝使用」，:29-30 自认「不核验的路径会吃下篡改内容」。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "一般",
+   "n": "R5",
+   "title": "Checkpoint::FORMAT 版本不符零断言，规格未登记版本约束",
+   "detail": "checkpoint.rs:94 的 BadFormat 分支存在但无测试；WC-SCMP-001:535 把版本约束列为缓存格式的唯一约束。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "一般",
+   "n": "R6",
+   "title": "实现有、规格没有的行为至少 3 项",
+   "detail": "① 确定性=逐字节可复现（readmodel.rs:40-42）② 末尾半行丢弃不算损坏 ③ 检查点格式版本约束。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "一般",
+   "n": "R7",
+   "title": "规格 Purpose 自称「唯一自动化检验所在」，与同仓文档冲突",
+   "detail": "spec:4-5；同仓另有摘要链核验（c19/c20/c21/cli02）与投影同源核对两条独立检验。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "一般",
+   "n": "R8",
+   "title": "REQ-N-008（带检查点路径的性能目标）无任何断言，规格未作范围外声明",
+   "detail": "WC-RTM-001.csv:40 状态「未实现」；scripts/test/perf.rs 三条全部 #[ignore]，无一条测带检查点续算。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "提示",
+   "n": "R9",
+   "title": "证据链无机械门禁：改一个测试名，规格不会变红",
+   "detail": "tools/doc_integrity.py 的受控清单里 openspec 零命中——正是本 change 要补的 spec_bridge.py 那一条。"
+  },
+  {
+   "cap": "read-model",
+   "sev": "提示",
+   "n": "R10",
+   "title": "t8 用 State::fold 直喂向量，使 SeqGap 检查在生产路径上不可达",
+   "detail": "账本层 ledger.rs:304 更早拦截；不是缺陷，是防线冗余，但读者会误以为是端到端验证。"
+  }
+ ],
+ "gaps_missing_req": [],
+ "gaps_uncovered_srs": [
+  {
+   "id": "REQ-F-023",
+   "title": "投递、应答与收件人",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`，`cover-unimplemented-capabilities` 归档）：投递（带 `to` 只送该收件人、无 `to` 即广播）落在 `src/common/delivery.rs`，断言 `scripts/test/delivery.rs` 的 `d01`–`d08`（含正控 `d04`）；规格落点＝主规格 `ninedim/01-意图环/04-规格/delivery-and-resources.spec.md` 的 `REQ-F-023`（该能力由本批**新建**）"
+  },
+  {
+   "id": "REQ-F-026",
+   "title": "通道资源边界",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：四个数值在出厂配置 `policy.json` 的 `channel_limits`（**可配置**，代码里无缺省值），四条边界在生产路径生效（取不到数值即拒启、**在 `bind` 之前**），断言 `scripts/test/channel_bounds.rs` 的 `l01`–`l06`；系统级 `TC-076`。⚠ **四个数值本身仍待人工确认**（`CT-08` 批准的是\"具体数值属 S2 实现层\"，**不等于**批准这四个数）"
+  },
+  {
+   "id": "REQ-F-029",
+   "title": "未知旗标必须忽略（与\"未知家族拒绝\"对偶）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：`event::{is_factory_flag,read_flags}`／`Ontology::read_flags` 为读点；断言 `scripts/test/ontology_ext.rs` 的 `e01`–`e05`；规格落点＝主规格 `ninedim/01-意图环/04-规格/envelope-validation.spec.md`。（**订正原行**：此前\"实现只有一行注释\"为真，本批已补实现与断言。原行的长句见 git 历史）"
+  },
+  {
+   "id": "REQ-F-030",
+   "title": "本体：极小核心 + 命名空间扩展",
+   "pri": "P1",
+   "status": "half",
+   "raw": "部分实现（结构事实上如此且判据 ① 可实测；判据 ②③ 无实现、无用例）"
+  },
+  {
+   "id": "REQ-F-031",
+   "title": "trace（信封因果字段）保留为需求",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（`2026-09-28`）：`trace` 的写入入口与透传落地，断言 `scripts/test/trace_notice.rs` 的 `f61`–`f66`（另 `f71`／`f72` 覆盖通告的闸）；规格落点＝主规格 `ninedim/01-意图环/04-规格/ledger-integrity.spec.md`。**\"缺省 trace 无从判\"**这一格的口径见 `src/common/pairing.rs` 的 `trace_agrees`（**不许拿\"没有\"当\"不一致\"**）"
+  },
+  {
+   "id": "REQ-F-032",
+   "title": "读法覆盖已声明字段（缺格即报错）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**已实现**（★ 2026-09-28 二次订正，承独立评审席：本条此前写\"**部分实现**：缺格即报错那一半落地\"，而**另一半\"每格都读得出来\"也已有机器判据**——`tests/contract.rs::c36`（清单**从本体派生** `required ∪ optional`，逐格断言\"某一读法**以真值**读得到\"，并断言\"这几格**不进** `state`\"是**取舍**）。⚠ **射程**：可读面是**逐条读事件**与**投影头部**；**不**钉跨架构可读性、**不**钉 `body` **内部**字段）（原文如下，留痕）：**部分实现**（`2026-09-28`）：**缺格即报错**那一半落地——`readmodel.rs` 的 `DeclaredCells`／`MissingCell` ＋ `State::fold_declared`，装配在 `lib.rs::r"
+  },
+  {
+   "id": "REQ-N-005",
+   "title": "可度量的质量目标",
+   "pri": "P0",
+   "status": "red",
+   "raw": "未实现（数值待人工，见 §6）"
+  },
+  {
+   "id": "REQ-N-006",
+   "title": "投影质量目标（同源率 / 事实可回溯率）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "未实现（数值待人工，见 §6 未决项 8）"
+  },
+  {
+   "id": "REQ-N-007",
+   "title": "代码覆盖率目标（QG-07）",
+   "pri": "P1",
+   "status": "red",
+   "raw": "未实现（生效条件未触发：本版未取到第一次真实读数；关闭时点 R3 前，已在 §六 未决项 16 登记）"
+  },
+  {
+   "id": "REQ-N-008",
+   "title": "带检查点路径的性能目标（QG-13）",
+   "pri": "P2",
+   "status": "red",
+   "raw": "未实现（性能读数未取：v1 CLI 不暴露检查点路径，样本 ≥ 20 次的 P95 无法在 S1 取；前置硬条件已实测成立；关闭时点 S5 前，已在 §六 未决项 17 登记）"
+  },
+  {
+   "id": "REQ-N-009",
+   "title": "历史可携带且可在别处独立复算",
+   "pri": "P1",
+   "status": "red",
+   "raw": "**状态见 §四**（★ 2026-09-28，承独立评审席：本节原写「**未实现**…**判据从未跑过**」，而 §四 已改为「部分实现」⇒ 同一份文件两个活载体、两种说法。按 skill §八「**别处只引用、不复述**」⇒ 本节**只给指针**）"
+  }
+ ],
+ "counts": {
+  "caps": 0,
+  "reqs": 0,
+  "scns": 0,
+  "evs": 0,
+  "srs": 41,
+  "judges": 17,
+  "booksecs": 46
+ }
+}

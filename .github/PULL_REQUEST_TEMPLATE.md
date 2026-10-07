@@ -7,7 +7,7 @@
 >
 > **六条必满足，缺一不可**（出处 `06-swe-gb/docs/附件/附件八-责任时间与阶段分解.md` §六——
 > **该件不在本仓**：实测全仓 `附件八*` 0 命中、`../docs/` 不存在。本仓的同类硬约定见
-> `openspec/schemas/README.md` §三（R5 前置闸／R4 后置闸）与 `world-core/docs/评审/`）：
+> `docs/schemas/README.md` §三（R5 前置闸／R4 后置闸）与 `docs/评审/`）：
 >
 > - [ ] **1. 变更说明写清「不改的后果」**——不是"优化""完善"
 > - [ ] **2. 变更类型正确标注**（下方勾选）
@@ -21,7 +21,7 @@
 > `smoke` / `unit-test` / `gate-self-test` / `traceability` / `scope` /
 > `openspec-validate` / `spec-bridge` / `module-graph`，任一失败不予合入。
 > ⚠️ 其中 `spec-bridge`（判据⑥ 归档件未签）与 `module-graph`（工具在建）今天是**如实红**：
-> 已知状态的台账与处置权见 `world-core/docs/理论/冲突总账.md` §五。
+> 已知状态的台账与处置权见 `docs/理论/冲突总账.md` §五。
 > **不得**用 `continue-on-error`、注释掉步骤、或放宽判据来换绿。
 
 ---
@@ -56,7 +56,7 @@
 | 关联缺陷 | `BUG-xxx` |
 | **变更申请编号** | `CR-xxx`（一般变更）；`FC-YYYY-NNN`（**框架变更必填**） |
 
-> **框架变更不走 CR-**：敏感路径的**权威清单**是 `world-core/tools/scope_check.py` 的
+> **框架变更不走 CR-**：敏感路径的**权威清单**是 `scripts/verify/scope_check.py` 的
 > `SENSITIVE_PATHS`（实测 `:130-141`）：`ontology.json`、`src/lib.rs`、`src/common/event.rs`、
 > `src/ontology_definition/mod.rs`、`src/ledger/mod.rs`、`tests/`、`tools/`、`.github/workflows/`、
 > `.github/PULL_REQUEST_TEMPLATE.md`、`docs/评审/`。触及它们一律按框架变更处理，**必须走 R5**。
@@ -67,7 +67,7 @@
 本次改动**声明覆盖的路径**（供 `tools/scope_check.py` 判定是否越界）：
 
 ```
-<例如：src/ledger/mod.rs, tests/acceptance.rs>
+<例如：src/ledger/mod.rs, scripts/test/acceptance.rs>
 ```
 
 - [ ] 改动未超出上述声明范围
@@ -78,7 +78,7 @@
 ## R4 模块评审检查单（门禁，逐项确认）
 
 ### 契约与设计
-- [ ] 模块行为符合其**接口契约**（见 `world-core/templates/03-设计类/03-模块接口契约.md`）
+- [ ] 模块行为符合其**接口契约**（见 `templates/03-设计类/03-模块接口契约.md`）
 - [ ] 未新增循环依赖；分层方向正确（低层不依赖高层）
 - [ ] **框架适配性回判已执行**——若不适配，已提 R5 框架变更评审
 - [ ] 设计文档已同步更新（**文档与代码无漂移**）

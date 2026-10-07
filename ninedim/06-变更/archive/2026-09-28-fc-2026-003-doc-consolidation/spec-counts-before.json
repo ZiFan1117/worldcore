@@ -1,0 +1,61 @@
+{
+ "channel-identity": {
+  "Requirement": 2,
+  "Scenario": 4,
+  "证据行": 4,
+  "长Requirement(>500字)": 0
+ },
+ "delivery-and-resources": {
+  "Requirement": 2,
+  "Scenario": 2,
+  "证据行": 2,
+  "长Requirement(>500字)": 0
+ },
+ "envelope-validation": {
+  "Requirement": 9,
+  "Scenario": 18,
+  "证据行": 18,
+  "长Requirement(>500字)": 2
+ },
+ "gate-enforcement": {
+  "Requirement": 9,
+  "Scenario": 17,
+  "证据行": 18,
+  "长Requirement(>500字)": 3
+ },
+ "ledger-integrity": {
+  "Requirement": 10,
+  "Scenario": 19,
+  "证据行": 19,
+  "长Requirement(>500字)": 0
+ },
+ "ontology-extensibility": {
+  "Requirement": 2,
+  "Scenario": 3,
+  "证据行": 3,
+  "长Requirement(>500字)": 1
+ },
+ "projections": {
+  "Requirement": 6,
+  "Scenario": 8,
+  "证据行": 8,
+  "长Requirement(>500字)": 1
+ },
+ "read-model": {
+  "Requirement": 6,
+  "Scenario": 13,
+  "证据行": 14,
+  "长Requirement(>500字)": 1
+ },
+ "write-side-adaptation": {
+  "Requirement": 3,
+  "Scenario": 3,
+  "证据行": 12,
+  "长Requirement(>500字)": 2
+ },
+ "_meta": {
+  "时点": "2026-09-28（本 change 的 1.4 动第一笔之前）",
+  "口径": "逐能力数 Requirement/Scenario/证据行；长Req = 标题到下一个 ####/### 之间 > 500 字符（含空白）",
+  "复算命令": "python scripts/verify/spec_length_audit.py"
+ }
+}
