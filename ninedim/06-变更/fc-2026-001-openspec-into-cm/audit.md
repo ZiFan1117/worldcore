@@ -85,7 +85,7 @@
 - **【重要】L5 · t1 的「逐字段一致」没有被断言**
   acceptance.rs:68-80 只比 len/seq/world/kind/body.before；actor、id、at、flags、body.subject、body.path、body.after 一个都没比。
 - **【一般】L6 · MixedChain 在启动路径被拒，没有任何自动化断言**
-  lib.rs:105 load_chain()? 会拒，但仓库内 MixedChain 只出现在 contract.rs:845（注释）/879（c17 函数级）与两处 tools 注释；系统级证据只在 docs/理论/专家评审/复跑-九项保证-2026-09-27-VM.md:130-140 手工留档。与 L1 同一条路径。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕
+  lib.rs:105 load_chain()? 会拒，但仓库内 MixedChain 只出现在 contract.rs:845（注释）/879（c17 函数级）与两处 tools 注释；系统级证据只在 ninedim/01-意图环/01-策划/专家评审/复跑-九项保证-2026-09-27-VM.md:130-140 手工留档。与 L1 同一条路径。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕
 - **【一般】L7 · R6 把「系统实现回滚」写成能力，而系统里没有回滚操作**
   spec:116/120；src/ 全目录无回滚 API 或子命令（rollback_after_failed_write 是 I/O 回滚；carrier/mod.rs:32-34 明说载体撤销「不是世界状态」）；t17 由测试自己再提交一条互换 change（acceptance.rs:563-569）。SRS:257 的口径更准：「回滚通过追加一条普通 change 完成」。
 - **【一般】L8 · 两处低危：注释误述文档现状、check.sh 未给路径**

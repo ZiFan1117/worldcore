@@ -16,7 +16,7 @@ import json, os, re, io, sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(_HERE))          # scripts/gen/ -> 仓根
 SPECS = os.path.join(REPO, "ninedim", "01-意图环", "04-规格")
-THEORY = os.path.join(REPO, "docs", "理论")
+THEORY = os.path.join(REPO, "ninedim", "01-意图环", "01-策划")
 SRS = os.path.join(REPO, "ninedim", "01-意图环", "02-需求", "需求-WC-SRS-001-v0.1.md")
 TESTS = os.path.join(REPO, "scripts", "test")
 OUT = os.environ.get("SPECMAP_OUT") or os.path.join(REPO, "generated", "specmap.json")
@@ -93,7 +93,7 @@ for ln in rl(SRS):
 # ---------- 3. 书：章节（**2026-09-28 重对准合订本**） ----------
 # 原来读逐章文件 `语义世界-第N章-*.md`——书合并成《合订本》之后那些文件不存在，
 # 本段会**静默产出 0 章**（已加 fail loud）。现在直接从合订本的章标题取。
-BOOK = os.path.join(THEORY, "语义世界-理论书-第一版-合订.md")
+BOOK = os.path.join(THEORY, "策划-理论书-第一版-合订.md")
 if not os.path.isfile(BOOK):
     raise SystemExit("[FAIL] 合订本不存在：%s（书章节与 5.6 判据表都由它取数）" % BOOK)
 book_lines = rl(BOOK)
@@ -268,7 +268,7 @@ FINDINGS = [
      "detail": "acceptance.rs:68-80 只比 len/seq/world/kind/body.before；actor、id、at、flags、body.subject、body.path、body.after 一个都没比。"},
     {"cap": "ledger-integrity", "sev": "一般", "n": "L6",
      "title": "MixedChain 在启动路径被拒，没有任何自动化断言",
-     "detail": "lib.rs:105 load_chain()? 会拒，但仓库内 MixedChain 只出现在 contract.rs:845（注释）/879（c17 函数级）与两处 tools 注释；系统级证据只在 docs/理论/专家评审/复跑-九项保证-2026-09-27-VM.md:130-140 手工留档。与 L1 同一条路径。"},
+     "detail": "lib.rs:105 load_chain()? 会拒，但仓库内 MixedChain 只出现在 contract.rs:845（注释）/879（c17 函数级）与两处 tools 注释；系统级证据只在 ninedim/01-意图环/01-策划/专家评审/复跑-九项保证-2026-09-27-VM.md:130-140 手工留档。与 L1 同一条路径。"},
     {"cap": "ledger-integrity", "sev": "一般", "n": "L7",
      "title": "R6 把「系统实现回滚」写成能力，而系统里没有回滚操作",
      "detail": "spec:116/120；src/ 全目录无回滚 API 或子命令（rollback_after_failed_write 是 I/O 回滚；carrier/mod.rs:32-34 明说载体撤销「不是世界状态」）；t17 由测试自己再提交一条互换 change（acceptance.rs:563-569）。SRS:257 的口径更准：「回滚通过追加一条普通 change 完成」。"},

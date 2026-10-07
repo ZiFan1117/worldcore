@@ -60,7 +60,7 @@
 
 | 项 | 内容 |
 |---|---|
-| **受影响模块** | ① `docs/openspec-config.yaml`（默认档）② 新增 `spec-governance` 能力——**delta 已就绪，归档时由 `openspec archive` 并入主规格**（**不是"现在已在主规格"**：`openspec list --specs` 今天为 **6** 条；**不要手动预并入**，那会令归档报 `ADDED already exists`）③ `docs/schemas/**`（改掉"双读＋一行指针"的写法；主本 `10-openspec-swe-gb` 同步）④ `ninedim/06-变更/archive/2026-09-27-baseline-verified-doctrine/**`（补 `review.md`、移常设项）⑤ 新增 `docs/openspec-MAINTENANCE.md`（规格层自己的维护清单）⑥ `scripts/verify/spec_bridge.py`（新增）⑦ `check.sh.new`（加一步）⑧ `.scope-declaration.json`（范围门禁要求时按需收窄） |
+| **受影响模块** | ① `ninedim/records/openspec-流程件/openspec-config.yaml`（默认档）② 新增 `spec-governance` 能力——**delta 已就绪，归档时由 `openspec archive` 并入主规格**（**不是"现在已在主规格"**：`openspec list --specs` 今天为 **6** 条；**不要手动预并入**，那会令归档报 `ADDED already exists`）③ `ninedim/records/openspec-流程件/schemas/**`（改掉"双读＋一行指针"的写法；主本 `10-openspec-swe-gb` 同步）④ `ninedim/06-变更/archive/2026-09-27-baseline-verified-doctrine/**`（补 `review.md`、移常设项）⑤ 新增 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（规格层自己的维护清单）⑥ `scripts/verify/spec_bridge.py`（新增）⑦ `check.sh.new`（加一步）⑧ `.scope-declaration.json`（范围门禁要求时按需收窄） |
 | **受影响需求** | 流程侧 **22 条**被映射（编号桥，见 `mapping.md`）；**5 条承诺取不到号**（登记为「无号」）；**9 条非绿需求无规格落点**（进覆盖 change） |
 | **需重跑的测试** | ① VM：`bash check.sh`（rc=0 为准出前提，本轮已跑）② 新增：`python3 scripts/verify/spec_bridge.py --self-test`（**每条判据各自的反例必须真红**；**条数与逐条结论以 `--json` 的 `passed`/`failed` 为准，本处不复述条数**）③ `openspec validate --all --strict`（6 项 → **7 项全绿**）④ `openspec validate --archived`（本 change 目标是**由红转绿**） |
 | **回归范围** | 按流程侧权威四档（`附件三-评审与门禁.md:265`「R-A 冒烟回归 / R-B 模块回归 / R-C 契约回归 / R-D 全量回归」；**流程侧没有 R-E**）：<br>**R-A 冒烟**：6 份主规格的 Requirement **一字不动** ⇒ 判据 = `git diff -U0 bf2eae7 <该轮提交> -- specs` 的**每个 hunk 都落在 `## Purpose` 段内**（出现 Requirement 级 hunk 即失败）。**实测（`bf2eae7`→`457c954`，2026-09-27 复算）：`3 files changed, 11 insertions(+), 5 deletions(-)`**；**读数会随提交变，故只认判据，不认写死的数字**<br>**R-B 模块**：`spec_bridge.py` 新增并接 `check.sh` ⇒ 判据 = `--self-test` **每条判据的反例全红**（条数以该命令输出为准）＋ `check.sh` 第 ⑧ 步通过<br>**R-C 契约**：归档件补 `review.md`、移两条常设项 ⇒ 判据 = `validate --archived` 由 `0 passed/1 failed` 变 `1 passed/0 failed`<br>**R-D 全量**：`spec-governance` 进主规格 ＋ 覆盖 change 在册 ⇒ 判据 = `validate --all --strict` 全绿且 `list --specs` 由 6 条变 7 条；**产品面**（`src/`、`tests/`）零改动并入本档，判据 = `git diff --stat` 在那两处为空 |
@@ -95,15 +95,15 @@
 
 ## Decisions
 
-1. **默认档切 `opsx-swe-gb`**（`docs/openspec-config.yaml`）。替代方案"每次显式 `--schema`"被否：忘了加参数就**静默**走回默认档，而静默回退正是本 change 要消灭的东西。
+1. **默认档切 `opsx-swe-gb`**（`ninedim/records/openspec-流程件/openspec-config.yaml`）。替代方案"每次显式 `--schema`"被否：忘了加参数就**静默**走回默认档，而静默回退正是本 change 要消灭的东西。
 2. **`spec_bridge.py` 的每条判据都必须能自证会红**（**判据条数与逐条清单以 `--json` 的 `passed`/`failed` 为准，本处不复述条数**）：归档目录必须有 `review.md`；每条 `证据：<path>::<fn>` 的函数/脚本必须真实存在；`config.yaml` 的 `schema:` 必须为 `opsx-swe-gb`；编号桥映射表覆盖规格树下**全部** Requirement；承载覆盖缺口的 change 存在且**未归档**。**自证口径写死**：`--self-test` 为**每条**判据各造一个反例样本，反例不变红即判"这条守卫是装饰"并拒绝合入。
 3. **编号桥落映射表，不改 Requirement 标题**。试挂证明两边多对多（**5 撞号 / 5 无号 / 17 条无人认领**，见 `mapping.md`）；标题只能带一个号，硬塞会重号 ⇒ 撤销"标题挂号"。桥＝`mapping.md`；规矩＝`spec-governance` 的"新增 Requirement 必须带流程侧号，取不到号登记为无号，不许自造、不许拿相近号硬凑"。
 4. **覆盖缺口落"故意不归档的 change"**：未实现的能力以 delta ＋ tasks 在册。**不写进主规格**——主规格描述的是**今天成立的行为**，把未实现的东西写进去就是把"未定"当"已定"。
 5. **46 条内容修订另立 `fc-2026-002`**（`audit.md` 随本 change 归档）。**例外**：凡"把已知缺陷写成已成立"的（`ledger-integrity` 的 K-3 升级路径自杀、`gate-enforcement` 的摩擦落点与风险等级、`projections` 的同源核对）一律列为 `fc-2026-002` 的 **P0 必做项，不得以"已知问题"挂账**。
-6. **归档遗留件的处置**：为已归档 change 补 `review.md`（签字留人）；两条常设维护项**移出** `tasks.md`（原处留一行指向维护清单的说明，**不静默删除**），落到 `docs/openspec-MAINTENANCE.md`。**只补件与移项，不改该 change 的任何既有结论。**
+6. **归档遗留件的处置**：为已归档 change 补 `review.md`（签字留人）；两条常设维护项**移出** `tasks.md`（原处留一行指向维护清单的说明，**不静默删除**），落到 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`。**只补件与移项，不改该 change 的任何既有结论。**
 7. **不建立第二套文档体系**（作者裁定）：流程细节只以**件内栏位与附表**存在——批准人/分离声明/准出判据/环境指纹写在 `review.md` 里，需求号追溯写在 `mapping.md` 里。**不改流程侧任何册子、不设双份登记、不写"一行指针"。**
    **判据**：本 change 的 **`boundary.md`（分工边界表）** 逐项定"这件事归谁管"——**OpenSpec 有的跟 OpenSpec；OpenSpec 没有的（阶段交付物、R0–R8 评审、基线/RTM/覆盖率/缺陷分级、H-01…H-26）跟流程；两边都有的「形态随 OpenSpec、内容随流程」**。
-   随之**改掉融合档自己的文字**：`docs/schemas/opsx-swe-gb/schema.yaml` 与 `docs/schemas/README.md` 里"同一批文件双读：流程侧只留一行指针""本件同时充当流程侧的 R5 影响分析"这类写法逐处改掉，改法以 `boundary.md` 为准（主本 `D:\Code\10-openspec-swe-gb` 同步，两处逐文件 sha256 一致）。
+   随之**改掉融合档自己的文字**：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 与 `ninedim/records/openspec-流程件/schemas/README.md` 里"同一批文件双读：流程侧只留一行指针""本件同时充当流程侧的 R5 影响分析"这类写法逐处改掉，改法以 `boundary.md` 为准（主本 `D:\Code\10-openspec-swe-gb` 同步，两处逐文件 sha256 一致）。
 
 ## Risks / Trade-offs
 
@@ -130,7 +130,7 @@
 | 4 | `WC-SCMP-001:2537`「### K-3【高】…升级路径自杀」 | **红（未修）**：无链账本一次 `append` 即自锁死；台账标【高】且**原基线排除清单漏了它** | 缺陷已登记、未修 | `cover-*` 的 `ledger-integrity` delta「无链账本的升级路径边界」＋ tasks 第 4 组 |
 | 5 | 书第四章 4.5 写侧适配（**整节零落点**） | **红 / 零落点**：`写侧｜旧系统｜适配｜适配器｜不裁决` 在规格树与三个在办 delta **全零命中** | 这一层**连规格都还没写** ⇒ 落点先补规格 | **待立**：并入 `cover-*`（本轮已登记为 9 处零落点之一） |
 | 6 | 书第五章 5.4 强制力（部分红） | **红一半**：CLI 缺省身份 `world://user` 可执行不可逆动作（实测 `rc=0`，零流水，`WC-SCMP-001:1250` T-02）；规格把"属主与权限"写成绿（`audit.md` G5） | 规格写宽了 + 实现未覆盖祖先链 | 规格侧 `fc-2026-002`（已改）；实现侧 `cover-*` tasks 第 8 组 |
-| 7 | `WC-THEORY-DEFECT-001-v0.2.md:43–69` 登记的 **29 条未修缺陷**（⚠ 该件**已按作者指示退场**，行号解析根＝本仓 git 历史 `bf2eae7` 之前的树：`git show bf2eae7:docs/理论/WC-THEORY-DEFECT-001-v0.2.md`） | **红（按台账未修）**：含 D-01 通道无超时、D-03 `notice` 不进读模型 | 规格已定、实现没做到 | 逐条并入各自的 change；**汇总落点**在覆盖 change 的 tasks 与缺陷台账 |
+| 7 | `WC-THEORY-DEFECT-001-v0.2.md:43–69` 登记的 **29 条未修缺陷**（⚠ 该件**已按作者指示退场**，行号解析根＝本仓 git 历史 `bf2eae7` 之前的树：`git show bf2eae7:ninedim/01-意图环/01-策划/WC-THEORY-DEFECT-001-v0.2.md`） | **红（按台账未修）**：含 D-01 通道无超时、D-03 `notice` 不进读模型 | 规格已定、实现没做到 | 逐条并入各自的 change；**汇总落点**在覆盖 change 的 tasks 与缺陷台账 |
 
 ## 排除清单
 
@@ -157,10 +157,10 @@
 | 项 | 内容 |
 |---|---|
 | 谁指示 | **作者**（2026-09-27）。原话**逐字**：「书只留一本合订本，其他的文本**可能**不需要」＋「agent-native-os 和 worldcore 是一个项目，以 worldcore 为准」＋「agent-native-os 这个仓库不需要了」 |
-| 删了什么 | `1-理论与哲学/`（7）／`2-依据/`（16）／`3-备选路线/`（3）／`4-计划/`（4）／`00-总纲.md`（1）／`docs/理论/` 散件（79，含 38 篇专家评审） |
-| 保留了什麼 | `docs/理论/语义世界-理论书-第一版-合订.md`（**唯一正件**，2572 行）；`变更记录.md`（旧布局史料） |
+| 删了什么 | `1-理论与哲学/`（7）／`2-依据/`（16）／`3-备选路线/`（3）／`4-计划/`（4）／`00-总纲.md`（1）／`ninedim/01-意图环/01-策划/` 散件（79，含 38 篇专家评审） |
+| 保留了什麼 | `ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md`（**唯一正件**，2572 行）；`变更记录.md`（旧布局史料） |
 | **解析根** | 旧引用一律解析到**本仓 git 历史**：`git show bf2eae7:<原路径>`（退场前最后状态）。**这是唯一的解析根** |
-| 已做的登记 | `docs/理论/README.md` §一（正件表）；`docs/schemas/README.md` §〇 末注；`docs/openspec-MAINTENANCE.md` 规则 9 |
+| 已做的登记 | `ninedim/01-意图环/01-策划/README.md` §一（正件表）；`ninedim/records/openspec-流程件/schemas/README.md` §〇 末注；`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` 规则 9 |
 | **未做的**（如实登记） | 引用点上**逐处**加"已退场"注记未做完（复评席 M7 列了 9 处，本件已改 2 处、`audit.md:88` 与 `fc-2026-002` 的若干处**待改**）；且「内容并入合订本」这句对 `2-依据`／`3-备选路线`／`4-计划`（**30 件**）**没有证据**——它们**不在合订本里**（合订本只含序＋六章＋附录一–五）。**这一句应改成"其内容不再在本仓维护，只在 git 历史里可查"** |
 | 回退点 | `git revert bf2eae7`（或 `git checkout bf2eae7 -- <路径>` 单独取回） |
 
@@ -168,12 +168,12 @@
 
 **本 change 只新增/移动文本与一个守卫脚本，不动运行中的系统。** 落地五步：
 
-1. **切默认档**：`docs/openspec-config.yaml` 的 `schema:` → `opsx-swe-gb`。
-2. **改融合档文字**：`docs/schemas/opsx-swe-gb/schema.yaml` 与 `README.md` 里"双读＋一行指针"的写法逐处改掉（主本 `10-openspec-swe-gb` 同步；两处 sha256 一致）。
+1. **切默认档**：`ninedim/records/openspec-流程件/openspec-config.yaml` 的 `schema:` → `opsx-swe-gb`。
+2. **改融合档文字**：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 与 `README.md` 里"双读＋一行指针"的写法逐处改掉（主本 `10-openspec-swe-gb` 同步；两处 sha256 一致）。
 3. **守卫**：新增 `scripts/verify/spec_bridge.py`（**当时**五条判据 ＋ `--self-test` 五条反例；**此后判据与反例都已增加，现值以 `--json` 的 `passed`/`failed` 与 `--self-test` 的输出为准，本处不复述条数**）；接 `check.sh.new`（新增一步，不改既有步骤号）。
 4. **新能力在归档时进主规格**：`spec-governance`——delta 在 `ninedim/06-变更/fc-2026-001-openspec-into-cm/specs/spec-governance/spec.md`，**归档时**由 CLI 并入 `ninedim/01-意图环/04-规格/spec-governance/`（今天该目录**尚不存在**）。
 5. **编号桥**：产出 `mapping.md`；**6 份主规格标题不改**；无号项在表内显式登记。
-6. **归档遗留**：补 `review.md`；两条常设项移入 `docs/openspec-MAINTENANCE.md`；`validate --archived` 转绿。
+6. **归档遗留**：补 `review.md`；两条常设项移入 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`；`validate --archived` 转绿。
 
 **回滚**：改动集中在两次提交（① 规格层与守卫脚本 ② 归档件补件），`git revert` 即回到今天；产品代码、测试、出厂行为不受影响。**归档件那一步单独提交**，便于分开回滚。
 

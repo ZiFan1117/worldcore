@@ -3,13 +3,13 @@
 > **数值口径（2026-09-27 补）**：本文出现的「**23 条承诺／39 条需求**」是**立件时点**的读数（时点见 `design.md` 的时序表，`ef2c9a0`／`21:32:37`）。**现行权威值见 `generated/BRIDGE.md` §七**：规格承诺 **33 条**、流程侧唯一需求号 **41 个**（该表**现算**，并给复算命令）。按 skill §八「一个事实一个权威载体」，**本件不复述现读数**；历史读数保留，因为它记录的是"当时看到什么"。
 
 > 格式硬约束：每条形如 `- [ ] X.Y 描述`；只有 `x` 算完成。每条自带验收方式。
-> **归档门禁要求全勾**；本来就做不完的常设项**不写在这里**（落 `docs/openspec-MAINTENANCE.md`）。
+> **归档门禁要求全勾**；本来就做不完的常设项**不写在这里**（落 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`）。
 > **前置**：本 change 判为 **R5**。作者已在对话中指示开工（`review.md` §七 有追认登记）；
 > **`review.md` 的签字栏仍留人**。
 
 ## 1. 默认档与守卫（让这一层的规矩可机核）
 
-- [x] 1.1 `docs/openspec-config.yaml` 第 1 行 `schema: spec-driven` → `schema: opsx-swe-gb`
+- [x] 1.1 `ninedim/records/openspec-流程件/openspec-config.yaml` 第 1 行 `schema: spec-driven` → `schema: opsx-swe-gb`
       **验收（★ 已按评审席④ 的更正改对）**：**新建一个探测 change，看它的 `.openspec.yaml` 是否钉 `opsx-swe-gb`**——
       **不得**用 `openspec status --json` 的 `defaultSchema` 判（实测它读的是 CLI 源码里的常量
       `planning-home.js:4 const REPO_DEFAULT_SCHEMA = 'spec-driven'`，与 `config.yaml` 无关；CLI 回显那句 `with schema 'spec-driven'` 同理）。
@@ -26,14 +26,14 @@
       **验收**：`ssh world "cd /root/world/world-core && bash check.sh"` **RC=0**，结论行含「规格层守卫」；
       日志 `/tmp/after-bridge.log`；**前置**：`` 层已同步到 VM（56 件，逐件 `LOCAL = REMOTE`）✓
 - [x] 1.6 **改掉融合档里"双读＋一行指针"的写法**（改写判据以本 change 的 `boundary.md` 为准）
-      **验收**：主本 `D:\Code\10-openspec-swe-gb\schemas\` ↔ 本仓 `docs/schemas/` **七件 sha256 一致** ✓；
+      **验收**：主本 `D:\Code\10-openspec-swe-gb\schemas\` ↔ 本仓 `ninedim/records/openspec-流程件/schemas/` **七件 sha256 一致** ✓；
       检索 `双读`／`融合档` ⇒ 0 命中 ✓（`一行指针` 仅存于否定句）
 
 ## 2. 规格层（新能力进主规格）
 
 - [ ] 2.1 `spec-governance` **在归档时**进主规格（`ninedim/01-意图环/04-规格/spec-governance/spec.md` 今天尚不存在）——delta 已在本 change 内就绪；**验收**：`openspec archive fc-2026-001-openspec-into-cm --yes` 之后 `openspec list --specs` 由 6 条变 7 条，且 `validate --all --strict` 仍 rc=0
       **验收**：`openspec list --specs` 由 6 条变 **7 条**，新增条 `requirementCount` = 5
-- [x] 2.2 新增 `docs/openspec-MAINTENANCE.md`（规格层自己的维护清单）
+- [x] 2.2 新增 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（规格层自己的维护清单）
       **验收**：文件存在；含"本件不进任何规格树"的声明；第 4.2 步移出的两条在此可检索命中 ✓
 - [ ] 2.3 规格层整体校验（与 6.1 同一件事，作 2.1 的验收）
       **验收**：`openspec validate --all --strict` ⇒ 全绿且 `list --specs` 含 `spec-governance`
@@ -56,7 +56,7 @@
 
 - [x] 4.1 为已归档 change `2026-09-27-baseline-verified-doctrine` 补 `review.md`
       **验收**：结论栏逐字写「语义层未核，已知 46 条」且**未写"通过"**；签字栏留人 ✓
-- [x] 4.2 把该 change `tasks.md` §6 两条常设项移出，落 `docs/openspec-MAINTENANCE.md`
+- [x] 4.2 把该 change `tasks.md` §6 两条常设项移出，落 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`
       **验收**：原处留痕（移出说明 ＋ 原逐字 ＋ 移出人／依据／时点），**未静默删除** ✓
 - [x] 4.3 归档门禁转绿
       **验收**：`openspec validate --archived` 由 `0 passed / 1 failed` 变 **`1 passed / 0 failed`** ✓
@@ -101,8 +101,8 @@
       **验收**：`R-E` 删掉或改名；README 改成"默认档由 `config.yaml` 的 `schema:` 决定"；主本同步 ＋ 七件 sha256 一致
       **★ 留痕（假勾，2026-09-27 补记）**：本条原写的判据是「`R-E` **全流程 0 命中**」，**勾上它的时候这句话并不成立**——
       `ninedim/06-变更/fc-2026-002-spec-revisions/design.md:63` 那一行的 `R-E` 仍在（且与同一行的「流程侧没有 R-E」自相矛盾），
-      而 `docs/理论/冲突总账.md:209` 已把 M6 记作「**已关**」⇒ **台账说已关、实际没关**。
-      **发现者／时间**：**独立评审席·甲**，`2026-09-27`（逐字证据见 `docs/理论/冲突总账.md:303` 第 7 条）。
+      而 `ninedim/01-意图环/01-策划/策划-冲突总账.md:209` 已把 M6 记作「**已关**」⇒ **台账说已关、实际没关**。
+      **发现者／时间**：**独立评审席·甲**，`2026-09-27`（逐字证据见 `ninedim/01-意图环/01-策划/策划-冲突总账.md:303` 第 7 条）。
       **本轮已改**：`R-E` 作为**档名**去除，"出厂判据强度不变"的内容挂到 `R-D` 之下并注明「原名 `R-E`」。
       **判据改成会红的形态**：`grep -rn 'R-E' ` 的命中**只允许**是①否定句（"流程侧没有 R-E"）②历史留痕里的「原名 R-E」；**出现第三个用途即判失败**
 - [x] 7.4 **README §四 第 11 行的口径**（席⑤ P0-2）：`validate --archived ✓ 1 passed, 0 failed` 是**沙盒口径**；
@@ -130,14 +130,14 @@
       与副本 `C:\Users\DIY\.agents\skills\openspec-swe-gb-fusion\SKILL.md`（sha256 同为 `2B601A54…`）里仍写
       「同址双读」「每条 Requirement 标题带 REQ 号」——**它是"问融合怎么做"时真正被加载的那份指令**
       **验收**：两份技能文件按 `boundary.md` 更新，并纳入受控面或登记为带责任人的遗留项
-- [ ] 7.12 **`docs/schemas/**` 的门禁归属**（席③ 无主判据面 (a)）：`.scope-declaration.json` 的 `allowed` 不含
+- [ ] 7.12 **`ninedim/records/openspec-流程件/schemas/**` 的门禁归属**（席③ 无主判据面 (a)）：`.scope-declaration.json` 的 `allowed` 不含
       `**`；`scope_check.py` 检索 `openspec` 0 命中；主本在仓库外且无版本控制 ⇒ 决定每个 change 产物形态的那一面**无门禁**
-      **验收**：给 `docs/schemas/**` 指定判据归属（并入判据③ 或单列一条），并写明主本的版本化或对账口径
+      **验收**：给 `ninedim/records/openspec-流程件/schemas/**` 指定判据归属（并入判据③ 或单列一条），并写明主本的版本化或对账口径
 - [x] 7.13 **本 tasks 文件自己的笔误**（席② L2）：3.1 说"四组数"却列了 5 个
       **已改**：3.1 更正为「五组数」并留痕（`2026-09-27 由 7.13 更正`）。
       **验收**：已在本轮改写时改正
       **★ 已满足（2026-09-28）**：本条的**验收面是"登记"**⇒ 已在 `review.md` §七 补 **7.3 合规性自认**：① 自认不满足 H-14 第 6(ii) 条（**未授权变更**）；② **补上缺的三项**（原门禁编号＝R5 但签字未完成／**只增强不放宽＝是**（逐条比对见第 6 组）／「阶段顺序偏离」＝**有**，如实登记）；③ 写明**两条出路**（作者追认补签／回退，**含各自代价**）。
-      ⚠ **但"不合规"本身没有消失**：它要么被追认、要么被回退，**两条都要人落笔**（本笔不代选）⇒ 该开口同时登记在 `docs/理论/冲突总账.md` §八 第 2 条。
+      ⚠ **但"不合规"本身没有消失**：它要么被追认、要么被回退，**两条都要人落笔**（本笔不代选）⇒ 该开口同时登记在 `ninedim/01-意图环/01-策划/策划-冲突总账.md` §八 第 2 条。
 
       **★ 备料（2026-09-28，执行者量；**只备料、不代裁**——`proposal.md` 逐字「属"谁让"的裁定，**agent 不代选**」）**
       **一、实况（现取，逐条带命令）**
@@ -148,15 +148,15 @@
       原写「决定每个 change 产物形态的那一面**无门禁**」——**实测应分成两半**：
       **形态**那一半**有**门禁：`spec_bridge.py` 的多条判据扫描面**含** `ninedim/01-意图环/04-规格/**` 与 delta（⑧ 流程文档无修订记录／⑨ 规格正文无改因块／⑩ ADDED 标题不撞车／⑯ 书的四件撤回说法不许写回…），
       且 `openspec validate --all --strict` 是 CI 的一个 job ⇒ **"规格正文长什么样"是被管的** ✓；
-      **改动范围／归属**那一半**没有**：没有任何判据回答"**这一次改动该不该动 `docs/schemas/**`**"（那正是 `.scope-declaration.json` 想回答的问题，而它的 `allowed` 不含 `**`）。
+      **改动范围／归属**那一半**没有**：没有任何判据回答"**这一次改动该不该动 `ninedim/records/openspec-流程件/schemas/**`**"（那正是 `.scope-declaration.json` 想回答的问题，而它的 `allowed` 不含 `**`）。
       **三、可选处置与代价（只列，不推荐）**
       | 选项 | 要做什么 | 代价／风险 |
       |---|---|---|
       | (a) **并入判据③（改动范围）** | 把 `**` 加进 `.scope-declaration.json` 的 `allowed`，或让 `scope_check.py` 另读一份面向规格层的声明 | 声明从此要**两处维护**；且 `allowed` 的口径是"本子项目允许改的路径"，把 `**` 塞进去会**放大** world-core 的管辖面（与 `scope_note` 逐字"真实 PR 必须把本清单缩小"的精神相反） |
-      | (b) **单列一条判据** | 在 `spec_bridge.py` 加一条"这次改动碰了 `docs/schemas/**`，须有声明／让路登记"的判据 | 需要新的对象（谁声明、放哪）；且判据本身要**会红**才算数（本仓口径） |
-      | (c) **明确"不在门禁内"＋写明对账口径** | 在 `docs/schemas/README.md` 写明"本层不受改动范围门禁管；对账口径是 X（例如：以 `git log -- docs/schemas` 为准）" | 最省事；但**"没有闸"这件事本身要被写明**（否则读者以为有管） |
+      | (b) **单列一条判据** | 在 `spec_bridge.py` 加一条"这次改动碰了 `ninedim/records/openspec-流程件/schemas/**`，须有声明／让路登记"的判据 | 需要新的对象（谁声明、放哪）；且判据本身要**会红**才算数（本仓口径） |
+      | (c) **明确"不在门禁内"＋写明对账口径** | 在 `ninedim/records/openspec-流程件/schemas/README.md` 写明"本层不受改动范围门禁管；对账口径是 X（例如：以 `git log -- docs/schemas` 为准）" | 最省事；但**"没有闸"这件事本身要被写明**（否则读者以为有管） |
       **四、共性问题（三条路都要一起定）**：**主本在仓库外且无版本控制**（本条与 `7.6`／`7.12` 记的是同一事实）⇒
-      **"仓内这份为准、主本怎么对账"**必须一并裁定（仓内已有先例可援：`docs/openspec-MAINTENANCE.md` 对 `_specmap` 的那句"**仓内这份为准，仓外那份只作历史**"）。
+      **"仓内这份为准、主本怎么对账"**必须一并裁定（仓内已有先例可援：`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` 对 `_specmap` 的那句"**仓内这份为准，仓外那份只作历史**"）。
 
 
       **★ 已办（2026-09-28，逐处核过 → 五处改、一处本已对齐）**：
@@ -171,8 +171,8 @@
       **⚠ 验收的另一半"主本同步"——★ 订正（2026-09-28）：我先前写"做不到"，那句是错的** ✗ ——
       我当时只查到"主本在**仓库外**"就下了结论；**实际主本就在这台机器上**（`D:\Code\10-openspec-swe-gb\schemas`）**且可写** ⇒ **已同步**：
       `README.md` 与 `opsx-swe-gb/schema.yaml` 两份（本程按本条逐处订正过的那两份）已写入主本；
-      **主本原两份已备份**在主本**上一层** `D:\Code\10-openspec-swe-gb\_backup-2026-09-28-schemas\`（**不是静默覆盖**）⇒ **现取七件 sha256 全一致（7/7）**，      即 `docs/openspec-MAINTENANCE.md` **规则 5**（「七件逐文件 sha256 一致；主本缺任何一件即为断链」）**今起成立**。
+      **主本原两份已备份**在主本**上一层** `D:\Code\10-openspec-swe-gb\_backup-2026-09-28-schemas\`（**不是静默覆盖**）⇒ **现取七件 sha256 全一致（7/7）**，      即 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` **规则 5**（「七件逐文件 sha256 一致；主本缺任何一件即为断链」）**今起成立**。
       **★ 一处如实留边界**：**本程改动之前**主本与副本是否一致，**本仓判断不了**（主本无版本控制）⇒ 只能说**"现在 7/7 一致"**，      **不能说"从来没断过"**。
-      **★ 凭什么说主本可写（评审席要求补的依据）**：**本次实测本身**——主本两件**已被写入**（sha256 现取 7/7 ✓）、**备份在主本上一层**（`D:\Code\10-openspec-swe-gb\_backup-2026-09-28-schemas\`；见 `docs/理论/冲突总账.md` 的 **7.10** 台账）⇒ **可写**是实测结论，不是推测。
+      **★ 凭什么说主本可写（评审席要求补的依据）**：**本次实测本身**——主本两件**已被写入**（sha256 现取 7/7 ✓）、**备份在主本上一层**（`D:\Code\10-openspec-swe-gb\_backup-2026-09-28-schemas\`；见 `ninedim/01-意图环/01-策划/策划-冲突总账.md` 的 **7.10** 台账）⇒ **可写**是实测结论，不是推测。
       **★ 这条错的性质**："把**能做到**写成**做不到**" —— 与本程前几次"把没做到写成做到了"**同族、方向相反**；      处置一样：**以实物为准、当场订正、留痕**。
       **下游**：`schema.yaml` 仍可解析（`yaml.safe_load` ⇒ `YAML_OK`）；`spec_bridge.py` **16/0**；`openspec validate --all --strict` **rc=0**。

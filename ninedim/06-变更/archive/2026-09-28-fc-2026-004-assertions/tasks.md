@@ -51,7 +51,7 @@
 
 ## 3. 补断言 · 门禁（含两条 P0 边界）
 
-- [x] 3.1 补一条断言：`world://user`（出厂 `irreversible_actors` 的唯一成员）执行不可逆能力（`ledger.compact`）⇒ **放行**（账本里**不出现**任何 `gate.*` 通告），且那条 `act` 事件**必带** `gate.friction:<等级>` 旗标——等级取自载体清单 `cap.d/ledger.compact.json` 的 `risk`（出厂为 `high`）。**验收**：断言当前为绿；变异（让白名单主体也走 `AwaitApproval`）⇒ 变红。出处：`src/gate.rs` 的 `Friction`／`Policy::verdict`（摩擦挂在**动作的不可逆等级**上）；`docs/理论/WC-THEORY-DEFECT-001-v0.2.md:55`（`D-20`）。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕
+- [x] 3.1 补一条断言：`world://user`（出厂 `irreversible_actors` 的唯一成员）执行不可逆能力（`ledger.compact`）⇒ **放行**（账本里**不出现**任何 `gate.*` 通告），且那条 `act` 事件**必带** `gate.friction:<等级>` 旗标——等级取自载体清单 `cap.d/ledger.compact.json` 的 `risk`（出厂为 `high`）。**验收**：断言当前为绿；变异（让白名单主体也走 `AwaitApproval`）⇒ 变红。出处：`src/gate.rs` 的 `Friction`／`Policy::verdict`（摩擦挂在**动作的不可逆等级**上）；`ninedim/01-意图环/01-策划/WC-THEORY-DEFECT-001-v0.2.md:55`（`D-20`）。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕
       **断言在哪**：`scripts/test/cli.rs:389`（`cli09_whitelisted_actor_may_run_irreversible_and_the_event_carries_friction`，走**真实二进制 ＋ 真实账本文件**）＋ `:410` 的 `assert_eq!(code, 0, "白名单主体执行不可逆动作必须**放行**…")`、`:428` 的 `assert_eq!(lines.len(), 1, "① 放行 ⇒ 账本里只该有那一条 act…")`、`:444` 的 `assert!(flags.iter().any(|f| f == &want_flag), "② …**必带**摩擦旗标…")`（`want_flag` 由 `cap.d/ledger.compact.json` 的 `risk` 在 `:424` 现算）。
       **变异怎么变红**：把 `src/gate.rs` 的 `decide` 里那条白名单放行改成 `if false`（白名单主体也走 `AwaitApproval`）。原始输出：`panicked at tests/cli.rs:410: assertion left == right failed: 白名单主体执行不可逆动作必须**放行**（v1 无审批通道，否则该能力是死号）；stderr=[FAIL] ext.world.Gate.AwaitingApproval: 门禁加摩擦：能力 \`ledger.compact\` **不可逆**（verb=do；载体清单声明的风险等级：high），而 \`world://user\` 不在 irreversible_actors 白名单内。` ／ `left: 2` ／ `right: 0` ／ `MUT_RC=101`。
 
@@ -152,7 +152,7 @@
       ⇒ **rc=0，两项全过**。
       **★ 2026-09-28 订正（评审席第十一轮真跑 `openspec archive` 后）**：那是**当时**（本件尚未归档）的读数。
       归档后 `validate --archived` 会变 **4 items**，而**本件必须 tasks 全勾**才不红——
-      仓内口径逐字（`docs/schemas/opsx-swe-gb/schema.yaml:127`）：「**归档门禁要求 tasks 全勾。** 若某条本来就做不完（常设维护项），
+      仓内口径逐字（`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:127`）：「**归档门禁要求 tasks 全勾。** 若某条本来就做不完（常设维护项），
       **不要留在本件里**：它在 `tasks.md` 里会**永久挡住** `openspec validate --archived`。」
       ⇒ 本件归档前已把三条（`1.1`／`3.5`／`5.6`）**逐条结账**（各自的验收已满足，或按验收自带的第二出路**逐字写明去向**），
       **留痕不静默**（照 `fc-2026-001` 的先例）。**归档后的目标读数：`4 passed, 0 failed`，rc=0。**

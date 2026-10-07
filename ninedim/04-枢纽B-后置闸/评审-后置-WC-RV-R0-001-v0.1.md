@@ -1500,9 +1500,9 @@ Get-FileHash $env:TEMP\x -Algorithm SHA256
 | 14 | `docs/S5-测试/WC-TP-001-v0.1.md` | `docs/阶段外-待启用/S5-测试/WC-TP-001-v0.1.md` | `R100` |
 | 15 | `docs/S5-测试/WC-TR-001-v0.1.md` | `docs/阶段外-待启用/S5-测试/WC-TR-001-v0.1.md` | `R100` |
 | 16 | `docs/S5-测试/WC-TS-001-v0.1.md` | `docs/阶段外-待启用/S5-测试/WC-TS-001-v0.1.md` | `R100` |
-| 17 | `docs/demo/软件需求规格说明.md` | `docs/阶段外-待启用/_非本项目样例/软件需求规格说明.md` | `R100` |
-| 18 | `docs/demo/需求追溯矩阵.csv` | `docs/阶段外-待启用/_非本项目样例/需求追溯矩阵.csv` | `R100` |
-| A1 | （新增）`docs/S1-需求/README.md` … `docs/S5-测试/README.md`、`docs/demo/README.md` | **原位指针 README ×6**（写明"已移出／归属阶段／未准出即未授权开工／启用时点／不进入基线"） | `A`（`149c1a3`） |
+| 17 | `ninedim/records/demo/软件需求规格说明.md` | `docs/阶段外-待启用/_非本项目样例/软件需求规格说明.md` | `R100` |
+| 18 | `ninedim/records/demo/需求追溯矩阵.csv` | `docs/阶段外-待启用/_非本项目样例/需求追溯矩阵.csv` | `R100` |
+| A1 | （新增）`docs/S1-需求/README.md` … `docs/S5-测试/README.md`、`ninedim/records/demo/README.md` | **原位指针 README ×6**（写明"已移出／归属阶段／未准出即未授权开工／启用时点／不进入基线"） | `A`（`149c1a3`） |
 | A2 | （新增）`docs/阶段外-待启用/README.md` | 6 子目录目录表 ＋ 性质与纪律 ＋ `_非本项目样例/` 单独说明 | `A`（`149c1a3`） |
 | A3 | （同步）`.github/workflows/world-core-gate.yml`、`tools/{trace_matrix,scope_check,ci_rehearsal}.{py,sh}`、`templates/…` 等 | 路径引用同步：**`dd80ac4` = 13 份文件 / 101 处**（89 ＋ 补 10 ＋ 补 2）；另 `149c1a3` 同步 `tools/trace_matrix.py` 与 `gate.yml` 的默认路径与提示串；`1dd2e57` 再同步 `WC-SCMP-001` §十 与 `G-06` 行的口径 | `M` |
 

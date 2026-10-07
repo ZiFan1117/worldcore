@@ -6,7 +6,7 @@
 > （`98ccb88`／`4a850cb` ＋ 格式规范化 `8f43879`）。
 > 而本 change **判定为 R5**，融合档的硬约定逐字是：
 > 「**R5（框架变更评审）＝ 前置闸**……**未获 R5 批准不得进入实施**」
-> （`docs/schemas/opsx-swe-gb/schema.yaml` 的 `review` instruction）。
+> （`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 的 `review` instruction）。
 >
 > ⇒ **这两件事放在一起，就是"未批先实施"。责任在執行者（本会话的 agent），不在任何人。**
 > 处置**按"追认"路径走**（不回溯删除，理由见下），并**即刻停止实施面**：
@@ -112,7 +112,7 @@
       **验收**：`spec_bridge.py` 判据⑪ `[OK]`（不重跑 ⇒ 它会红）。
 - [ ] 2.8 改过的每份 `.md` 跑 `python scripts/verify/table_width_audit.py <file>`。
       **验收**：无「行宽不符」。
-- [ ] 2.9 在册 `docs/理论/冲突总账.md` **登记一条**：生成器补丁改了什么／为什么／反向验证读数／退化保护。
+- [ ] 2.9 在册 `ninedim/01-意图环/01-策划/策划-冲突总账.md` **登记一条**：生成器补丁改了什么／为什么／反向验证读数／退化保护。
       **验收**：该节逐字含两个反向验证读数（IDENTICAL／CHANGED）。
 
 ## 3. 仓根 Go 退场与连带归位

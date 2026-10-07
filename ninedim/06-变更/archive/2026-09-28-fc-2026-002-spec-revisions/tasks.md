@@ -41,7 +41,7 @@
 
 ## 3. 补断言 · 门禁（含两条 P0 边界）
 
-- [x] 3.1 补一条断言：`world://user`（出厂 `irreversible_actors` 的唯一成员）执行不可逆能力（`ledger.compact`）⇒ **放行**，且账本中**不出现**任何 `gate.*` 通告。**验收**：断言当前为绿；变异（让白名单主体也走 `AwaitApproval`）⇒ 变红。出处：`src/gate.rs:287-293`；`docs/理论/WC-THEORY-DEFECT-001-v0.2.md:55`（`D-20`）。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕　**★ 已转出**（**不是已完成**；去向 `fc-2026-004-assertions`，理由见该件 `proposal.md`）
+- [x] 3.1 补一条断言：`world://user`（出厂 `irreversible_actors` 的唯一成员）执行不可逆能力（`ledger.compact`）⇒ **放行**，且账本中**不出现**任何 `gate.*` 通告。**验收**：断言当前为绿；变异（让白名单主体也走 `AwaitApproval`）⇒ 变红。出处：`src/gate.rs:287-293`；`ninedim/01-意图环/01-策划/WC-THEORY-DEFECT-001-v0.2.md:55`（`D-20`）。 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕　**★ 已转出**（**不是已完成**；去向 `fc-2026-004-assertions`，理由见该件 `proposal.md`）
 - [x] 3.2 补一条断言：保留前缀通告被拒**那条路径**写下的流水也带 `refused`（`fnv1a64:` 前缀）指纹——今天只有不可逆加摩擦路径有该断言（`c23_gate_notice_says_what_it_refused` 走的是 `:1167` 的 `gate.awaiting-approval`）。**验收**：断言存在且会红（删掉 `refused` 字段即红）。　**★ 已转出**（**不是已完成**；去向 `fc-2026-004-assertions`，理由见该件 `proposal.md`）
 - [x] 3.3 补一条断言：`risk` 不参与门禁裁决（同一能力在载体清单标 `risk: high`、在策略标 `reversible: true` ⇒ 门禁按 `reversible` 放行）。**验收**：断言存在；变异（若哪天 `gate.rs` 开始读 `risk`）⇒ 红或据实改规格。　**★ 已转出**（**不是已完成**；去向 `fc-2026-004-assertions`，理由见该件 `proposal.md`）
 - [x] 3.4 补一条断言：载体撤销点（`undo: before-each`）**不**被当作世界可逆的依据。**验收**：断言存在；出处 `src/carrier/mod.rs:32`。　**★ 已转出**（**不是已完成**；去向 `fc-2026-004-assertions`，理由见该件 `proposal.md`）

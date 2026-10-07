@@ -39,7 +39,7 @@
 
 | 项 | 内容 |
 |---|---|
-| **受影响模块** | `M0?` 无——这三个工具**不在模块登记表**（它们是门禁工具，非产品模块）。受影响的**文件**：`scripts/verify/spec_bridge.py`、`scripts/verify/module_graph.py`、`scripts/verify/ci_self_check.py`、`check.sh.new`、`docs/schemas/opsx-swe-gb-atom/{schema.yaml,templates/spec.md}`、`docs/openspec-MAINTENANCE.md`、`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md`、`ninedim/01-意图环/03-设计/设计-WC-MODREG-001-v0.1.md` |
+| **受影响模块** | `M0?` 无——这三个工具**不在模块登记表**（它们是门禁工具，非产品模块）。受影响的**文件**：`scripts/verify/spec_bridge.py`、`scripts/verify/module_graph.py`、`scripts/verify/ci_self_check.py`、`check.sh.new`、`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/{schema.yaml,templates/spec.md}`、`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`、`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md`、`ninedim/01-意图环/03-设计/设计-WC-MODREG-001-v0.1.md` |
 | **受影响需求** | 无直接对应（`REQ-*` 是产品行为）。间接：无 |
 | **需重跑的测试** | `python scripts/verify/spec_bridge.py`（＋`--self-test`）、`python scripts/verify/module_graph.py`（＋`--self-test`）、`python scripts/verify/ci_self_check.py`、`bash check.sh.new`、`openspec validate --all --strict` |
 | **回归范围** | **R-C**（局部）：改动集中在三个工具的判据函数与其自证夹具；**不含**产品行为面 ⇒ 不需要跑 `cargo test`（但 `check.sh` 会跑，作为整体回归） |
@@ -65,7 +65,7 @@
 - **做什么**：四处判据按其"声明"改到"实际可执行"等价；每处新增反例；
   `WC-MODREG-001` §2 的读数栏按实测填真读数。
 - **代价**：判据④ 收紧会让那 10 行**当场变红**（随后由数据侧填真值转绿）；
-  改动触及 `docs/schemas/**` ⇒ 走 R5。
+  改动触及 `ninedim/records/openspec-流程件/schemas/**` ⇒ 走 R5。
 - **结论**：**选**。理由：不修，这四处就是"看起来有闸、其实没有"；而"永远绿的门禁"比"永远红"更坏。
 
 ### 方案乙 · 不改（维持现状，只登记）

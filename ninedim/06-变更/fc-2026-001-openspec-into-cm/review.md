@@ -26,7 +26,7 @@
 **判定归属**：本结论由**独立评审席回件**判定（席·甲：席·乙（代码与规格面）判**可签**（对象 `848d9cf`，限其核过的 4 项，未核清单已列）；席·乙：席·丙（定谳席）判**可签**（对象 `d1e7a28`；其两条必改经回证后由本席自行撤回）），**执行者仅转录，未参与判定**。
 
 **建议 ≠ 是**：批准只对评审席在**冻结对象**上核过的范围成立；**本档不能证明的事**见 §四／§3.1（能力边界）。
-**同轮另一席的情况（如实记录）**：席·甲（流程与文档面，对象 `848d9cf`）判**需改**并列出 3 条必改（§五 validate 读数 10→11；`WC-MODREG-001` §五 表依赖列仍掺说明；档位词两套）——**3 条已全部落地于 `d1e7a28`，并经席·丙 逐条复核确认落地**。另：席·丙 前一条判词里的 2 条必改**已由席·丙 自行撤回**（其错误在方法：`merge-base --is-ancestor` 不能定时点、`-S` 查不出行内更正），撤回原文与复现命令见 `docs/理论/冲突总账.md`。
+**同轮另一席的情况（如实记录）**：席·甲（流程与文档面，对象 `848d9cf`）判**需改**并列出 3 条必改（§五 validate 读数 10→11；`WC-MODREG-001` §五 表依赖列仍掺说明；档位词两套）——**3 条已全部落地于 `d1e7a28`，并经席·丙 逐条复核确认落地**。另：席·丙 前一条判词里的 2 条必改**已由席·丙 自行撤回**（其错误在方法：`merge-base --is-ancestor` 不能定时点、`-S` 查不出行内更正），撤回原文与复现命令见 `ninedim/01-意图环/01-策划/策划-冲突总账.md`。
 
 ## 二、执行者与批准者的分离声明
 
@@ -89,8 +89,8 @@
 | 核什么 | 结果 |
 |---|---|
 | **起点提交** | `fd9a892dbc801ad8ec93d1108fd908168a4b91e7`（`main`，提交总数 5） |
-| **起点工作区** | 2 处已改（`docs/schemas/README.md`、`opsx-swe-gb/schema.yaml`）＋ 3 处未跟踪（`fc-2026-001…/`、`fc-2026-002…/`、`zz-selftest/`〔评审席临时件〕）+ `docs/` **无未提交改动** |
-| **开工前提逐项** | 默认档 `schema: spec-driven`（**待切**）；`spec_bridge.py` **不存在**；`docs/openspec-MAINTENANCE.md`、`generated/BRIDGE.md` **不存在**；`spec-governance` **未进主规格** ⇒ 与 `tasks.md` 的六组任务对得上 |
+| **起点工作区** | 2 处已改（`ninedim/records/openspec-流程件/schemas/README.md`、`opsx-swe-gb/schema.yaml`）＋ 3 处未跟踪（`fc-2026-001…/`、`fc-2026-002…/`、`zz-selftest/`〔评审席临时件〕）+ `docs/` **无未提交改动** |
+| **开工前提逐项** | 默认档 `schema: spec-driven`（**待切**）；`spec_bridge.py` **不存在**；`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`、`generated/BRIDGE.md` **不存在**；`spec-governance` **未进主规格** ⇒ 与 `tasks.md` 的六组任务对得上 |
 | **主机 ↔ VM（核对前）** | `src/`、`tests/`、`tools/`、`ontology.json`、`policy.json`、`check.sh`、`Cargo.*`、`cap.d/`、`templates/`、`deploy/` **全部一致**；**`docs/` 有 21 件分叉**：13 件内容不同、8 件 VM 全无 |
 | **分叉方向（判据：时间戳 ＋ 主机 `docs/` 无未提交改动）** | **VM 落后**，不是带改动。例：`语义世界-序.md` VM `20:30:59` / 主机 `20:56:40`；`第五章` VM `20:32:30` / 主机 `21:03:40`；`清稿待办` VM `20:34:06` / 主机 `20:58:57`。⇒ VM 停在 07 那轮清稿**之前**的文档上 |
 | **处置** | 用本仓自带 `D:\Code\push-vm.ps1`（按字节推送 ＋ 回读 sha256）把 21 件同步到 VM，逐件 `LOCAL = REMOTE` |
@@ -121,14 +121,14 @@
 
 | # | 时点 | 做了什么 | 谁指示 | 为什么先行 | 回退点 |
 |---|---|---|---|---|---|
-| 1 | 2026-09-27 22:12–22:18 | **改融合档文字**：主本 `D:\Code\10-openspec-swe-gb\schemas\` 的 `opsx-swe-gb/schema.yaml`（顶层 `description` ＋ `proposal`／`specs`／`design`／`review` 四条 instruction）与**新建主本 `README.md`**；随后**同步到本仓** `docs/schemas/`。**七件逐文件 sha256 一致** | **项目负责人**（当面对话中指示） | 这份文件是**下一件活的判据**：不改它，下一个 change 会照旧被指示"同一批文件双读、流程侧只留一行指针" | ① 本仓：`git checkout <本轮之前的提交> -- docs/schemas`（旧哈希 `schema.yaml` `E58AF96448B1ABCF`、`README.md` `84A24BE93FB7B0DC`）② **主本无版本控制**（`10-openspec-swe-gb` 不是 git 仓）：`README.md` 原不存在，`schema.yaml` 旧内容可按上述哈希从本仓 git 取回 |
-| 2 | 2026-09-27 22:30–23:00 | **实施第 1–5 组任务**：① `config.yaml` 默认档切 `opsx-swe-gb` ② 造 `scripts/verify/spec_bridge.py`（**当时**五条判据 ＋ `--self-test` 五条反例）③ 接 `check.sh` **第 ⑧ 步** ④ 新增 `generated/BRIDGE.md`（编号桥长期载体）⑤ 新增 `docs/openspec-MAINTENANCE.md`（常设项出口）⑥ 为归档 change 补 `review.md`、把两条常设项移出其 `tasks.md` ⑦ 起草 `cover-unimplemented-capabilities`（保持不归档）⑧ `` 层 56 件同步到 VM | **项目负责人**（当面对话中指示"开始开发"） | 五席评审一致判定：**两道闸今天没有任何执行者**（实测 `review.md` 通篇"待签"而 `apply` 仍 `state=ready`；一个**没有** `review.md` 的 change 用 `archive --yes` 照样 rc=0 归档）——不先补执行者，后面所有改动都是纸面 | `git revert <本轮的提交>`（改动集中在文本 ＋ 一个新脚本；归档件那一步单独一个提交，可分开回退） |
+| 1 | 2026-09-27 22:12–22:18 | **改融合档文字**：主本 `D:\Code\10-openspec-swe-gb\schemas\` 的 `opsx-swe-gb/schema.yaml`（顶层 `description` ＋ `proposal`／`specs`／`design`／`review` 四条 instruction）与**新建主本 `README.md`**；随后**同步到本仓** `ninedim/records/openspec-流程件/schemas/`。**七件逐文件 sha256 一致** | **项目负责人**（当面对话中指示） | 这份文件是**下一件活的判据**：不改它，下一个 change 会照旧被指示"同一批文件双读、流程侧只留一行指针" | ① 本仓：`git checkout <本轮之前的提交> -- docs/schemas`（旧哈希 `schema.yaml` `E58AF96448B1ABCF`、`README.md` `84A24BE93FB7B0DC`）② **主本无版本控制**（`10-openspec-swe-gb` 不是 git 仓）：`README.md` 原不存在，`schema.yaml` 旧内容可按上述哈希从本仓 git 取回 |
+| 2 | 2026-09-27 22:30–23:00 | **实施第 1–5 组任务**：① `config.yaml` 默认档切 `opsx-swe-gb` ② 造 `scripts/verify/spec_bridge.py`（**当时**五条判据 ＋ `--self-test` 五条反例）③ 接 `check.sh` **第 ⑧ 步** ④ 新增 `generated/BRIDGE.md`（编号桥长期载体）⑤ 新增 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（常设项出口）⑥ 为归档 change 补 `review.md`、把两条常设项移出其 `tasks.md` ⑦ 起草 `cover-unimplemented-capabilities`（保持不归档）⑧ `` 层 56 件同步到 VM | **项目负责人**（当面对话中指示"开始开发"） | 五席评审一致判定：**两道闸今天没有任何执行者**（实测 `review.md` 通篇"待签"而 `apply` 仍 `state=ready`；一个**没有** `review.md` 的 change 用 `archive --yes` 照样 rc=0 归档）——不先补执行者，后面所有改动都是纸面 | `git revert <本轮的提交>`（改动集中在文本 ＋ 一个新脚本；归档件那一步单独一个提交，可分开回退） |
 
 ### 7.1 第 2 次施行的**结果**（原始读数）
 
 | 门禁 | 施行前 | 施行后 |
 |---|---|---|
-| `python3 scripts/verify/spec_bridge.py`（本 change 新造的守卫） | **不存在** | **6 通过 / 1 失败，rc=1**（**条数以 `--json` 的 `passed`/`failed` 为准**；失败的是**判据⑥**：归档件的评审未签——那条红是**既存事实**，见 `docs/理论/冲突总账.md`；**本 change 归档前必须先签，签后该条转绿**） |
+| `python3 scripts/verify/spec_bridge.py`（本 change 新造的守卫） | **不存在** | **6 通过 / 1 失败，rc=1**（**条数以 `--json` 的 `passed`/`failed` 为准**；失败的是**判据⑥**：归档件的评审未签——那条红是**既存事实**，见 `ninedim/01-意图环/01-策划/策划-冲突总账.md`；**本 change 归档前必须先签，签后该条转绿**） |
 | ├ 其 `--self-test`（**每条**反例必红） | — | **rc=0**：**每条**反例逐条"已红 OK"，正控全绿（**条数不写死**，以该命令输出为准） |
 | `openspec validate --all --strict` | `9 passed / 1 failed`（红的是空壳 `fc-2026-002`） | **`9 passed / 0 failed`** |
 | `openspec validate --archived` | **`0 passed / 1 failed`**（`✗ 2 incomplete tasks (18/20)`，即 schema 自己预言过的"常设项永久挡住"） | **`1 passed / 0 failed`** |
@@ -168,7 +168,7 @@
 
 > **本节的边界（写明，免得被读成"已解决"）**：本节**只是登记**——**"不合规"这件事本身没有消失**：
 > 它要么被**追认**、要么被**回退**，两条都要**人**落笔（`proposal.md` 逐字「属"谁让"的裁定，**agent 不代选**」）。
-> 该开口同时登记在 `docs/理论/冲突总账.md` §八 第 2 条。
+> 该开口同时登记在 `ninedim/01-意图环/01-策划/策划-冲突总账.md` §八 第 2 条。
 
 ---
 

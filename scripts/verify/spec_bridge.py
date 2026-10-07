@@ -21,7 +21,7 @@ OpenSpec 的 `validate` 只判**形态**（结构、Scenario 个数、delta 语�
 ① 归档硬前置      每个 `ninedim/06-变更/archive/*/` 必须有非空 `review.md`
 ② 证据存在性      `ninedim/01-意图环/04-规格/**/spec.md` **与 delta** 里每条 `- **证据**：<token>` 的
                    `<path>::<fn>` 或 `<path> --self-test` 必须真实存在
-③ 默认档守卫      `docs/openspec-config.yaml` 的 `schema:` 必须为 `opsx-swe-gb`
+③ 默认档守卫      `ninedim/records/openspec-流程件/openspec-config.yaml` 的 `schema:` 必须为 `opsx-swe-gb`
 ④ 编号桥覆盖      `generated/BRIDGE.md` 必须覆盖规格树下**每一条** Requirement（有号或显式标无号）
 ⑤ 覆盖在册        `ninedim/06-变更/cover-*/` 至少有一个**未归档**、且 `tasks.md` 仍有未勾项
 ⑥ 评审已签        归档件的 `review.md` 结论 ∈ {批准,通过,有条件通过}，且批准人栏非空、非占位
@@ -216,7 +216,7 @@ def j2_evidence(repo):
 
 
 def j3_default_schema(repo):
-    cfg = Path(repo) / "docs" / "openspec-config.yaml"
+    cfg = Path(repo) / "ninedim" / "records" / "openspec-流程件" / "openspec-config.yaml"
     if not cfg.is_file():
         return ["%s —— 文件不存在" % rel(repo, cfg)]
     for i, line in enumerate(read_text(cfg).splitlines(), 1):
@@ -313,7 +313,7 @@ def _verdict_cells(review_text):
       · **表格里那格说明文字跳过**（以 `<!--` 开头的模板格），非表格写法里凡**不以**上述取值开头的
         说明也跳过（实测：把真件那句引文单行喂进来 ⇒ `[]`；见 `--self-test` 的对照⑥f）。
       · ⚠ **如实登记本函数抓不到的**：非表格写法只看"`结论` 后紧跟的取值"，**不认那句话在不在 HTML 注释里**。
-        实测：真模板 `docs/schemas/opsx-swe-gb-atom/templates/review.md` 的结论格那条长注释里有
+        实测：真模板 `ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md` 的结论格那条长注释里有
         「只有三种结论：**通过** / 有条件通过（附条件清单与期限）/ 退回」⇒ 会捕到**以 `通过` 开头**的片段，
         被当成"已签"。**这是既有口径，本轮未动**（本轮只把"明确未签"那一档收进来，不许动"认什么"）；
         它今天**不产生读数**，因为判据⑥ 只扫 `ninedim/06-变更/archive/`，而模板不在扫描面内。
@@ -475,8 +475,8 @@ REV_TABLE_RECORD_RE = re.compile(r"([Vv]\d+(?:\.\d+)+|\d{4}-\d{2}-\d{2})")
 #   · `评审`：评审记录里**逐字留存了别人提交的文档**（"并入件"）⇒ 改它＝**篡改记录**（与"书除外"同一个道理）
 #   · `模板`：那是**空白表单**（国标模板），其体例**本来就含"修订记录"栏**——本判据管的是
 #     "**作者写成的文档**正文只写现在是什么"，管不到空白表单的栏目结构（2026-10-07 随
-#     `templates/` → `docs/模板/` 搬迁补入；不补则搬迁当场把 21 份模板判成 21 条红）
-#   **豁免范围只到 `docs/评审/`、`docs/理论/`、`docs/模板/`**；`docs/S0-立项/`…`docs/S4-实现/`、
+#     `templates/` → `ninedim/records/模板/` 搬迁补入；不补则搬迁当场把 21 份模板判成 21 条红）
+#   **豁免范围只到 `docs/评审/`、`ninedim/01-意图环/01-策划/`、`ninedim/records/模板/`**；`docs/S0-立项/`…`docs/S4-实现/`、
 #   `docs/阶段外-待启用/` **一律照判**。
 REV_EXEMPT_TOPDIRS = ("评审", "模板")
 RATIONALE_HEAD_RE = re.compile(r"^> \*\*(改的是哪一类问题|为什么用 ADDED|证据是哪条测试)")
@@ -514,7 +514,7 @@ def j8_no_revision_log_in_docs(repo):
         带**必要条件**：行里得有版本号或日期（否则是"指路"不是记录，见 `REV_TABLE_RECORD_RE`）。
     实盘真实违规**没有一处带 `#`**；三种形态由 `revision_hit()` 一处判定，`--self-test` 每种形态各一个反例。
 
-    **豁免两处**（`REV_EXEMPT_TOPDIRS` ＋ 书）：`docs/理论/`（作者的书）与 `docs/评审/`（评审记录里逐字留存了
+    **豁免两处**（`REV_EXEMPT_TOPDIRS` ＋ 书）：`ninedim/01-意图环/01-策划/`（作者的书）与 `docs/评审/`（评审记录里逐字留存了
     别人的文档，改它＝篡改记录）。其余目录（`S0-立项`…`S4-实现`、`阶段外-待启用`）**一律照判**。
     """
     bad = []
@@ -753,7 +753,7 @@ def j13_secmap_freshness(repo):
     """⑬ `generated/节对齐.md`（41 节对齐图）必须记录**当前**的来源坐标。
 
     为什么单列一条：它是**生成物**（`scripts/gen/gen_secmap.py` 从 `generated/specmap.json`
-    ＋ `docs/理论/落点/*.md` 生成），而**此前没有任何判据核它**——
+    ＋ `ninedim/01-意图环/03-设计/设计-落点/*.md` 生成），而**此前没有任何判据核它**——
     实证（2026-09-28 现取）：图里记的是 `generated/specmap.json` 的 `cf50089c…`，而当时现取 `91045040…`
     ⇒ **图已经过期，没有任何判据发现**（skill §九：闸不在门禁里＝没有闸）。
 
@@ -885,9 +885,9 @@ def j14_judges_all_claimed(repo):
 
     为什么单列一条：`generated/specmap.json` 里的 `judges`（书 §5.6 那 17 行）此前**没有逐行消费者**——
     `rg -n 'judges' --glob '!generated/specmap.json'` 只回生成器自身与 `spec_bridge.py` 的一句叙述
-    ⇒ **某一行在项目侧的账目消失了，没有任何判据会变红**（见 `docs/理论/落点/第五章.md` 记的"三处缺"）。
+    ⇒ **某一行在项目侧的账目消失了，没有任何判据会变红**（见 `ninedim/01-意图环/03-设计/设计-落点/第五章.md` 记的"三处缺"）。
 
-    认领处（三处任一即可）：`docs/理论/落点/第五章.md` ／ `ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md`
+    认领处（三处任一即可）：`ninedim/01-意图环/03-设计/设计-落点/第五章.md` ／ `ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md`
     ／ 在役 `ninedim/06-变更/cover-*/tasks.md`。
 
     **★ 射程（如实写）**：它只核「**这一行有没有人认领**」（按**书行号**在某处出现），
@@ -915,7 +915,7 @@ def j14_judges_all_claimed(repo):
             continue
         if not any(re.search(r"[:：`\s]%s\b" % ln, t) for _, t in texts):
             bad.append("书 §5.6 的 `%s`（合订本 `:%s`）**在仓内没人认领** ⇒ 写进 "
-                       "`docs/理论/落点/第五章.md`（或说明它为何不在本项目范围内）" % (sec, ln))
+                       "`ninedim/01-意图环/03-设计/设计-落点/第五章.md`（或说明它为何不在本项目范围内）" % (sec, ln))
     return bad
 
 
@@ -923,10 +923,10 @@ def j16_retracted_claims(repo):
     """⑯ 书的四件「**已被撤回的说法**」不得被当成主张**写回正文**。
 
     出处：合订本 `:1708` 逐字「**已被撤回的说法** | **不许写回正文**，共四件」，逐字登记在
-    `docs/理论/尺子-理念条目.md` 的「已被撤回的说法（不许写回正文）」四行里。
+    `ninedim/01-意图环/01-策划/策划-尺子-理念条目.md` 的「已被撤回的说法（不许写回正文）」四行里。
 
     **扫描面**＝"正文"：`ninedim/01-意图环/04-规格/**` ＋ `docs/**`。
-    **豁免面**＝登记处与书本身（`docs/理论/**`、`docs/理论/**`、`ninedim/06-变更/**`）——它们**本来就该提到**这些说法。
+    **豁免面**＝登记处与书本身（`ninedim/01-意图环/01-策划/**`、`ninedim/01-意图环/01-策划/**`、`ninedim/06-变更/**`）——它们**本来就该提到**这些说法。
     **放行**＝命中处**带正指标记**（订正／已改／收回／已撤回／属单因论／已删）——那是"**指出它被撤回**"，不是"写回"。
 
     **★ 射程（如实写）**：它是**串匹配**，判的是"这四件的措辞有没有出现在正文里且没被标成已撤回"；
@@ -967,7 +967,7 @@ JUDGMENTS = [
     ("⑥ 归档件的评审已签（结论 ∈ 批准/通过/有条件通过，且批准人非空）", j6_archived_review_signed),
     ("⑦ 让路登记（声明了「谁让」的件必须写全：让哪一条／为什么／谁批的）", j7_waiver_registered),
     ("⑧ 流程文档无修订记录（**修订记录＝git 提交历史**；标题式/加粗式/表格式都拦；"
-     "豁免目录：`docs/评审/`、书 `docs/理论/`）", j8_no_revision_log_in_docs),
+     "豁免目录：`docs/评审/`、书 `ninedim/01-意图环/01-策划/`）", j8_no_revision_log_in_docs),
     ("⑨ 规格正文无改因块（**主规格 ＋ delta**；改因归该 change 的 `design.md`／`audit.md`）", j9_no_rationale_in_specs),
     ("⑩ ADDED 标题不与主规格撞车（撞了该 change 永远归不了档）", j10_delta_added_not_colliding),
     ("⑪ `generated/BRIDGE.md` 与生成器的当前输出逐字节一致（生成物不许手编）", j11_bridge_in_sync_with_generator),
@@ -1007,7 +1007,7 @@ SANDBOX_DELTA = (
     "沙盒：MODIFIED 的标题**本来就该**在主规格里存在 ⇒ 判据⑩ **不许**判它红（对照⑩n）。\n"
 )
 SANDBOX = {
-    "docs/openspec-config.yaml": "schema: %s\n" % SCHEMA_NAME,
+    "ninedim/records/openspec-流程件/openspec-config.yaml": "schema: %s\n" % SCHEMA_NAME,
     "ninedim/01-意图环/04-规格/cap-a/spec.md": (
         "# cap-a Specification\n\n## Purpose\n沙盒用最小规格，只为验证守卫会红。\n\n"
         "## Requirements\n\n### Requirement: REQ-X-001 沙盒需求\n\n"
@@ -1189,7 +1189,7 @@ def self_test():
         sp2.write_text(bak2c, encoding="utf-8", newline="\n")
 
         # 反例 3：把默认档改回 spec-driven
-        cf = Path(tmp) / "docs/openspec-config.yaml"
+        cf = Path(tmp) / "ninedim/records/openspec-流程件/openspec-config.yaml"
         cf.write_text("schema: spec-driven\n", encoding="utf-8", newline="\n")
         _red(2, "③", "默认档改回 spec-driven")
         cf.write_text("schema: %s\n" % SCHEMA_NAME, encoding="utf-8", newline="\n")
@@ -1279,7 +1279,7 @@ def self_test():
         #   ⇒ 旧守卫在真违规上照样报 [OK]（假绿：评审席注入实验照出的正是这一条）。
         #   ⚠ 三条都写在 **`docs/S0-立项/`** 下——这正是"豁免**没**扩大到别处"的证明（豁免只到 `docs/评审/`）。
         print("  ⑧ 的豁免目录：`docs/评审/`（评审记录含别人文档的逐字留存，改它＝篡改记录）、"
-              "书 `docs/理论/`；其余目录（S0-立项…S4-实现、阶段外-待启用）**一律照判**")
+              "书 `ninedim/01-意图环/01-策划/`；其余目录（S0-立项…S4-实现、阶段外-待启用）**一律照判**")
         doc8 = Path(tmp) / "docs/S0-立项/WC-X-001.md"
         doc8.parent.mkdir(parents=True, exist_ok=True)
         for tag, body, why in (
@@ -1412,7 +1412,7 @@ def self_test():
         _green(13, "15n", "三张清单表与实际一致")
 
         # ── 反例 14：把某一行的"认领"抹掉（改掉书行号）⇒ 判据⑭ 必须红 ──
-        j14 = Path(tmp) / "docs/理论/落点/第五章.md"
+        j14 = Path(tmp) / "ninedim/01-意图环/03-设计/设计-落点/第五章.md"
         back14 = j14.read_text(encoding="utf-8")
         j14.write_text(re.sub(r"733", "99999", back14), encoding="utf-8", newline="\n")
         _red(14, "⑭", "某行判据在仓内没人认领（书行号被抹掉）")

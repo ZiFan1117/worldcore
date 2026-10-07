@@ -10,11 +10,11 @@
 
 ### Requirement: 〔无号·待流程侧增补〕默认走融合档
 
-`docs/openspec-config.yaml` 声明的 schema SHALL 为融合档 `opsx-swe-gb`；被改回默认档 `spec-driven` 时，守卫 SHALL 以非零退出码失败。理由：不写死默认档时，"忘了加 `--schema`"会**静默**走回默认档，而静默回退正是这条能力要消灭的东西。
+`ninedim/records/openspec-流程件/openspec-config.yaml` 声明的 schema SHALL 为融合档 `opsx-swe-gb`；被改回默认档 `spec-driven` 时，守卫 SHALL 以非零退出码失败。理由：不写死默认档时，"忘了加 `--schema`"会**静默**走回默认档，而静默回退正是这条能力要消灭的东西。
 
 #### Scenario: 默认档被改回即失败
 
-- **WHEN** 有人把 `docs/openspec-config.yaml` 的 `schema:` 改回 `spec-driven`
+- **WHEN** 有人把 `ninedim/records/openspec-流程件/openspec-config.yaml` 的 `schema:` 改回 `spec-driven`
 - **THEN** `spec_bridge.py` 报出该文件与行号并**非零退出**，且输出里写明"默认档被改回"
 - **证据**：`scripts/verify/spec_bridge.py --self-test`
 

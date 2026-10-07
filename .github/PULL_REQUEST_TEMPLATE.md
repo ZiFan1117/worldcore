@@ -7,7 +7,7 @@
 >
 > **六条必满足，缺一不可**（出处 `06-swe-gb/docs/附件/附件八-责任时间与阶段分解.md` §六——
 > **该件不在本仓**：实测全仓 `附件八*` 0 命中、`../docs/` 不存在。本仓的同类硬约定见
-> `docs/schemas/README.md` §三（R5 前置闸／R4 后置闸）与 `docs/评审/`）：
+> `ninedim/records/openspec-流程件/schemas/README.md` §三（R5 前置闸／R4 后置闸）与 `docs/评审/`）：
 >
 > - [ ] **1. 变更说明写清「不改的后果」**——不是"优化""完善"
 > - [ ] **2. 变更类型正确标注**（下方勾选）
@@ -21,7 +21,7 @@
 > `smoke` / `unit-test` / `gate-self-test` / `traceability` / `scope` /
 > `openspec-validate` / `spec-bridge` / `module-graph`，任一失败不予合入。
 > ⚠️ 其中 `spec-bridge`（判据⑥ 归档件未签）与 `module-graph`（工具在建）今天是**如实红**：
-> 已知状态的台账与处置权见 `docs/理论/冲突总账.md` §五。
+> 已知状态的台账与处置权见 `ninedim/01-意图环/01-策划/策划-冲突总账.md` §五。
 > **不得**用 `continue-on-error`、注释掉步骤、或放宽判据来换绿。
 
 ---

@@ -195,13 +195,13 @@
       **在册**：`git ls-files .agents/skills/worldcore-sdd/SKILL.md` ⇒ `.agents/skills/worldcore-sdd/SKILL.md`（该册其后由 `64f7dc4` 修订，**创建仍是 `1d10ef0`**）。
 - [x] 5.2 守卫加判据⑧（流程文档无修订记录）与⑨（规格正文无改因块），各带反例——`ae57fb7`
       **★ 已满足（2026-09-28 复勾；命令 ＋ 输出 ＋ 对象提交号）**：
-      **对象提交号 `ae57fb7`**——`git show --stat --oneline ae57fb7` 逐字 `ae57fb7 feat(guard): 加判据⑧⑨——把 skill 的两条硬规矩做成机器项（修订记录／改因块）`，文件面含 `docs/openspec-MAINTENANCE.md | 6 +++-` 与 `scripts/verify/spec_bridge.py | 66 +++…`；
+      **对象提交号 `ae57fb7`**——`git show --stat --oneline ae57fb7` 逐字 `ae57fb7 feat(guard): 加判据⑧⑨——把 skill 的两条硬规矩做成机器项（修订记录／改因块）`，文件面含 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md | 6 +++-` 与 `scripts/verify/spec_bridge.py | 66 +++…`；
       **反例会红（不是装饰）**：`python scripts/verify/spec_bridge.py --self-test` ⇒ **rc=0**，末行逐字「**反例覆盖：16/16 条判据各有 >=1 个反例**」＋「=> 自证通过：**每条判据**（16 条）在反例下变红、在正控下全绿」；
       **裸跑现值**：`python scripts/verify/spec_bridge.py` ⇒ `[OK] ⑧ 流程文档无修订记录…`／`[OK] ⑨ 规格正文无改因块…`／`—— 通过 16 / 失败 0 ——`（**条数不以本处复述为准**）。
 - [x] 5.3 `MAINTENANCE` 补规则 13–16
       **★ 已满足（2026-09-28 复勾；命令 ＋ 输出 ＋ 对象提交号）**：
-      **在册且可现取**：`docs/openspec-MAINTENANCE.md` 的规则表逐字含 `| 13 | **流程文档不许有「修订记录」节**（修订记录＝git 提交历史；**书除外**） | 守卫判据⑧；skill §三 |`／`| 14 | **规格正文不许有「改因块」**（改因属该 change 的 `design.md`／`audit.md`） | 守卫判据⑨；…`／`| 15 | **文档集封闭**…|`／`| 16 | **不做「探针」这类额外件**…|`；
-      **对象提交号**：**13–16 四条都是 `ae57fb7` 那一笔补入的**——`git log --oneline -S "文档集封闭" -- docs/openspec-MAINTENANCE.md` 与 `git log --oneline -S "不做「探针」" -- docs/openspec-MAINTENANCE.md` **各只命中 `ae57fb7` 一条**（与上条的 `MAINTENANCE.md | 6 +++-` 相加：2 条判据行 ＋ 4 条规则行）。
+      **在册且可现取**：`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` 的规则表逐字含 `| 13 | **流程文档不许有「修订记录」节**（修订记录＝git 提交历史；**书除外**） | 守卫判据⑧；skill §三 |`／`| 14 | **规格正文不许有「改因块」**（改因属该 change 的 `design.md`／`audit.md`） | 守卫判据⑨；…`／`| 15 | **文档集封闭**…|`／`| 16 | **不做「探针」这类额外件**…|`；
+      **对象提交号**：**13–16 四条都是 `ae57fb7` 那一笔补入的**——`git log --oneline -S "文档集封闭" -- ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` 与 `git log --oneline -S "不做「探针」" -- ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` **各只命中 `ae57fb7` 一条**（与上条的 `MAINTENANCE.md | 6 +++-` 相加：2 条判据行 ＋ 4 条规则行）。
 
 ## 6. 跨组验收（第 1–4 组全勾之后才做）
 
@@ -227,7 +227,7 @@
       · **归档目录（在归档笔上）的树对象 sha**：**`1a536421478327c61296139be94ff00f9f5d128c`**。**复算**：`git rev-parse 558789a636d27431fc553f85d1fe045c64d7332b:ninedim/06-变更/archive/2026-09-28-fc-2026-003-doc-consolidation`。⚠ **它描述的是归档笔上的那一版**；**补入本行之后该目录已不是此值** ⇒ 要"当前"值请现取 `git rev-parse HEAD:<该目录>`（skill §八）。
       · **推送记录**：`git push origin 558789a636d27431fc553f85d1fe045c64d7332b:refs/heads/main` ⇒ 逐字 `a99fe3e..558789a  558789a636d27431fc553f85d1fe045c64d7332b -> main`、**rc=0** —— **`..`（两点）＝ fast-forward**，**未用 `--force`、未 amend**。⚠ **另如实记**：推前实测 `origin/main` **已前进过**（`6b2e77b → a99fe3e`，另一条线所推），而**共用活树上有别条线的在飞修改**（4 件，内容与 `a99fe3e` 逐字节相同）⇒ `git merge --ff-only origin/main` **当场被 git 拒**（逐字 `error: Your local changes to the following files would be overwritten by merge: … Aborting`）⇒ **本笔没有 rebase 到那 4 件上去**，而是用**临时索引 ＋ `commit-tree`** 把归档笔的父直接取成 `a99fe3e`：**只动本条 change 的 12 个路径（6 删 ＋ 6 增），别的一律不入册**。
       · **归档后复核（2026-09-28 现取）**：`openspec validate --archived` ⇒ `✓ change/2026-09-28-fc-2026-003-doc-consolidation` 在列、**`Totals: 5 passed, 0 failed (5 items)`**、**rc=0**（**4 → 5**）；`python scripts/verify/spec_bridge.py` ⇒ **① 与 ⑥ 均 `[OK]`**、`—— 通过 16 / 失败 0 ——`、**rc=0**；`openspec validate --all --strict` ⇒ **rc=0**（在办项**不含**本件；**条数以命令输出为准**）。
-      · **⚠ 一处如实记（"我跑的是哪一棵树"）**：以上读数取自**一棵同时被另一条线改动的活树**——同一时段 `git status` 另有 **6 件非本笔的修改**（`BOOK/冲突总账.md`／`BOOK/节对齐.md`／`docs/openspec-MAINTENANCE.md`／`docs/schemas/README.md`／`docs/schemas/opsx-swe-gb-atom/templates/review.md`／`specmap.json`，**schema 线在管**）⇒ 本笔**一律不碰、不暂存**；若守卫 ⑪／⑫／⑬ 在别的时点变红，**先看是不是那一条线的在飞件**。
+      · **⚠ 一处如实记（"我跑的是哪一棵树"）**：以上读数取自**一棵同时被另一条线改动的活树**——同一时段 `git status` 另有 **6 件非本笔的修改**（`BOOK/冲突总账.md`／`BOOK/节对齐.md`／`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`／`ninedim/records/openspec-流程件/schemas/README.md`／`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md`／`specmap.json`，**schema 线在管**）⇒ 本笔**一律不碰、不暂存**；若守卫 ⑪／⑫／⑬ 在别的时点变红，**先看是不是那一条线的在飞件**。
 
       **★ 已签档的读数复核（2026-09-28，`429155a` 时点，逐项现取）** —— **`review.md` 一个数都没改**（它是评审席核过的对象，事后改它就不一致了）；
       复核结论：**签下的每一个数今天都仍然成立** ✓
@@ -246,12 +246,12 @@
 
 ## 5 之注：这四条**已复勾**（2026-09-28 订正；原句逐字保留在下面）
 
-**原句（2026-09-28 立，逐字保留、不改写）**：「**这四条为什么有意不勾**（与 `cover-remaining-capabilities` 的 `8.x` **同处置**）／让路登记的**文字**已写全（守卫**判据⑦** 当场 `[OK]`），但**追认还没到**——**勾上会被读成"批准已到"** ✗。／⚠ **它对归档的影响（如实记）**：`docs/schemas/opsx-swe-gb/schema.yaml:127` 逐字「**归档门禁要求 tasks 全勾**」⇒ **`6.5`（归档）之前必须先把这四条的处置定下来**（追认／或按规矩留痕移出）。／**两件的同一处置**（`cover-remaining-capabilities` 的 `8.1`–`8.8` 与本件 `5.1`–`5.4`）**要么一起追认、要么一起另办**。」
+**原句（2026-09-28 立，逐字保留、不改写）**：「**这四条为什么有意不勾**（与 `cover-remaining-capabilities` 的 `8.x` **同处置**）／让路登记的**文字**已写全（守卫**判据⑦** 当场 `[OK]`），但**追认还没到**——**勾上会被读成"批准已到"** ✗。／⚠ **它对归档的影响（如实记）**：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:127` 逐字「**归档门禁要求 tasks 全勾**」⇒ **`6.5`（归档）之前必须先把这四条的处置定下来**（追认／或按规矩留痕移出）。／**两件的同一处置**（`cover-remaining-capabilities` 的 `8.1`–`8.8` 与本件 `5.1`–`5.4`）**要么一起追认、要么一起另办**。」
 **★ 订正（2026-09-28，追认与归档当笔）**：**追认已到**（作者 2026-09-28 指示，逐字见上面 `5.3`）⇒ 原句的**前提消失**，本件当时未勾的**四条全部复勾**（前一组 `5.1`／`5.2`／`5.3` ＋ 后一组 `5.4`），**逐条带「命令 ＋ 输出 ＋ 对象提交号」**。
 ⚠ **三条如实记**：
 1. **原句里"这四条"的口径读不出唯一答案**：本 `tasks.md` 有**两个「## 5.」节**（`5. 文档集封口与机器项` 与 `5. 让路登记`），**标号撞车** ⇒ 本笔的处置是**把当时未勾的四条全部复勾**，**不重编号**（重编号会动评审席核过的结构）；**这处标号撞车只登记、不动手**。
 2. **"两件的同一处置"只办了一半** ✗：本笔的委派范围逐字是「把 `fc-2026-003-doc-consolidation` 按次收口并归档」，且**除本件外一律不得代签** ⇒ `cover-remaining-capabilities` 的 `8.1`–`8.8` **仍未勾、仍未追认**，**仍待人**（登记在 `BOOK/冲突总账.md` §八 第 1 行）。**这一半没做，如实留在此处。**
-3. **原句引的 `schema.yaml:127` 行号**：现值以**节名**为准（`docs/schemas/opsx-swe-gb/schema.yaml` 的 `apply` → `tasks` 说明段逐字「**归档门禁要求 tasks 全勾**」）——**行号会烂，故本笔改引节名**（skill §十三）。
+3. **原句引的 `schema.yaml:127` 行号**：现值以**节名**为准（`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 的 `apply` → `tasks` 说明段逐字「**归档门禁要求 tasks 全勾**」）——**行号会烂，故本笔改引节名**（skill §十三）。
 
 ## 5. 让路登记（**规格正文被动过**——与本件 `.openspec.yaml` 的声明不符，必须写全三要素）
 

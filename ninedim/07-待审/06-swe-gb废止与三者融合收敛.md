@@ -2,7 +2,7 @@
 
 > **本件是什么**：一次**跨仓搬迁 ＋ 仓废止 ＋ 引用改写**的动作记录。
 > **它不是规格、不是流程交付物、不是 change**：不进 `ninedim/01-意图环/04-规格/**`、不进任何 change、`spec_bridge.py` 不读它。
-> 归档在 `docs/理论/` 下，理由与同目录的 `冲突总账.md`／`工区-*.md` 相同——该目录已是本仓**过程证据**的落脚处。
+> 归档在 `ninedim/01-意图环/01-策划/` 下，理由与同目录的 `冲突总账.md`／`工区-*.md` 相同——该目录已是本仓**过程证据**的落脚处。
 >
 > **规矩**：本件按本仓 §7.10 的先例写——**改了仓外的件 ⇒ 先备份、再写、把回退办法写进台账**。
 > **历史读数不追改**：本件只写"现在是什么"，历次读数保留在原处。
@@ -77,8 +77,8 @@ git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
 
 | 件 | 性质 | 改法 |
 |---|---|---|
-| `docs/schemas/opsx-swe-gb/templates/review.md`（4 处） | **活引用**：会被逐字抄进每个新 change 的"引用根" | 全部改为仓内相对路径 |
-| `docs/schemas/opsx-swe-gb-atom/templates/review.md`（4 处） | 同上 | 同上 |
+| `ninedim/records/openspec-流程件/schemas/opsx-swe-gb/templates/review.md`（4 处） | **活引用**：会被逐字抄进每个新 change 的"引用根" | 全部改为仓内相对路径 |
+| `ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md`（4 处） | 同上 | 同上 |
 | `ninedim/06-变更/fc-2026-001-openspec-into-cm/boundary.md`（1 处） | **活引用**：分工边界的法源 | 改为仓内相对路径 |
 | 同上 `proposal.md`（1 处） | 活引用（R5 触发条件依据） | 改为仓内相对路径 |
 | 同上 `tasks.md`（1 处） | 活引用（7.6 的验收面） | 改为仓内相对路径 |
@@ -130,7 +130,7 @@ git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
 | # | 项 | 状态 |
 |---|---|---|
 | 1 | `06-swe-gb` **原地归档改名**（不删） | **✅ 已做（2026-09-28）** —— 全量移入 `D:\Code\heavy-archive\06-swe-gb-retired-2026-09-28\`（**29,423 件 / 834.5 MB**，含 `.venv-ocr` 与 `.git`），**空目录已移除 ⇒ `D:\Code\06-swe-gb` 不再存在**；归档侧说明件＝该目录下的 `README-归档说明.md`。⚠ **随动作订正本件 §五 的回退办法**：源处 `docs/`／`templates/` **已删**（不是保留），要退回得从归档取 |
-| 2 | **默认档切 `opsx-swe-gb-atom`**（`docs/openspec-config.yaml` 第 1 行）；`spec_bridge.py` 判据③ 会因此红 ⇒ 须同步改守卫 | **✅ 已做（2026-09-28）** —— **两处同改**：`docs/openspec-config.yaml:1` ＝ `schema: opsx-swe-gb-atom`；`scripts/verify/spec_bridge.py:52` 的 `SCHEMA_NAME` 同步改为 `"opsx-swe-gb-atom"`（判据③ 是直接比对该常量，见 `:208`）。**读数（改后）**：判据③ `[OK]`、`spec_bridge.py` **通过 16 / 失败 0 rc=0**、`--self-test` **16/16 条判据各有 ≥1 反例 rc=0**、`openspec validate --all --strict` **12 passed / 0 failed rc=0**、`openspec validate --archived` **5 passed / 0 failed rc=0**、`schema validate opsx-swe-gb-atom` **✓ valid**。受控面文档同步：`MAINTENANCE.md` 规则 3、`schemas/README.md` §首。⚠ **本项属"改门禁自身"（改判据③ 的比对常量）** ⇒ 按本仓口径**须送独立评审席复核**，本件只登记"已做＋读数"，**不代签** |
+| 2 | **默认档切 `opsx-swe-gb-atom`**（`ninedim/records/openspec-流程件/openspec-config.yaml` 第 1 行）；`spec_bridge.py` 判据③ 会因此红 ⇒ 须同步改守卫 | **✅ 已做（2026-09-28）** —— **两处同改**：`ninedim/records/openspec-流程件/openspec-config.yaml:1` ＝ `schema: opsx-swe-gb-atom`；`scripts/verify/spec_bridge.py:52` 的 `SCHEMA_NAME` 同步改为 `"opsx-swe-gb-atom"`（判据③ 是直接比对该常量，见 `:208`）。**读数（改后）**：判据③ `[OK]`、`spec_bridge.py` **通过 16 / 失败 0 rc=0**、`--self-test` **16/16 条判据各有 ≥1 反例 rc=0**、`openspec validate --all --strict` **12 passed / 0 failed rc=0**、`openspec validate --archived` **5 passed / 0 failed rc=0**、`schema validate opsx-swe-gb-atom` **✓ valid**。受控面文档同步：`MAINTENANCE.md` 规则 3、`schemas/README.md` §首。⚠ **本项属"改门禁自身"（改判据③ 的比对常量）** ⇒ 按本仓口径**须送独立评审席复核**，本件只登记"已做＋读数"，**不代签** |
 | 3 | `opsx-swe-gb` 的**受控面口径**（`schemas/README.md` §五"七件"、`MAINTENANCE.md` 规则 5） | **未做** |
 | 4 | §四 之外**评审意见里的"修改问题"**（处置排序见 `D:\Code\_review-verdicts\五席合并判词.md` §十） | **部分已做**：§四 第 0 项（判据⑪ 的生成链）**已修并转绿**，见 §六 |
 
@@ -201,7 +201,7 @@ Move-Item -LiteralPath 'D:\Code\05-swe-gb-standards\standards' -Destination 'D:\
 
 # ③ 撤销本次对仓内文件的改动（含 §2.4 那处多余的删除）
 git -C 'D:\Code\08-worldcore-openspec' restore -- ninedim/06-变更/fc-2026-001-openspec-into-cm `
-    docs/schemas/opsx-swe-gb/templates/review.md docs/schemas/opsx-swe-gb-atom/templates/review.md `
+    ninedim/records/openspec-流程件/schemas/opsx-swe-gb/templates/review.md ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md `
     "ninedim/01-意图环/01-策划/策划-WC-SDP-001-v0.1.md" "ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md"
 
 # ④ 取消暂存（搬运件）

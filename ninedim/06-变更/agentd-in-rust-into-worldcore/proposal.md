@@ -72,7 +72,7 @@ FC: WC-FC-2026-005
 |---|---|---|
 | **A/B 档** | **B 档** | ① 有第二个人需要交接（评审席与后续执行者）② 有外部交付物与验收责任（`world-core` 的 Rust 模块 ＋ 规格承诺）③ 失效后果不可接受（门禁/审计/完工铃错一个，Agent 就会在无人看管下动手） |
 | **评审档位** | **R5** | 命中敏感路径 `ninedim/01-意图环/04-规格/**`（新增能力）、`.scope-declaration.json`、`.github/workflows/**`、`scripts/**`（`working-directory` 与门禁面）⇒ 框架变更 |
-| **命中的敏感路径** | `ninedim/01-意图环/04-规格/**`（新增 `agent-runtime`）；`.scope-declaration.json`；`.github/workflows/world-core-gate.yml`；`scripts/**`（`check.sh` 与守卫面）；仓根 `check.sh`／`README.md`／`.gitignore` | `docs/openspec-config.yaml` **不动**（默认档不变） |
+| **命中的敏感路径** | `ninedim/01-意图环/04-规格/**`（新增 `agent-runtime`）；`.scope-declaration.json`；`.github/workflows/world-core-gate.yml`；`scripts/**`（`check.sh` 与守卫面）；仓根 `check.sh`／`README.md`／`.gitignore` | `ninedim/records/openspec-流程件/openspec-config.yaml` **不动**（默认档不变） |
 
 **R5 触发条件**：**FC-1**（契约不足）＋ **FC-3**（假设被推翻）。
 
@@ -100,7 +100,7 @@ FC: WC-FC-2026-005
 | 3 | `ninedim/01-意图环/01-策划/策划-WC-SDP-001-v0.1.md` 的「**混语言接口**」风险项（K-03） | 「Go ↔ Rust 混语言」这条风险**随本裁定消失**——实现语言统一为 Rust | **作者**（同上） |
 | 4 | `ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md` 的「**外部依赖（不改）**」（`REF-07-02` 行） | 它已属本项目 ⇒ 不再是外部依赖；版本与接口随本项目走 | **作者**（同上） |
 | 5 | `ninedim/01-意图环/01-策划/策划-WC-SQAP-001-v0.1.md` 的「**明确不覆盖**：`agentd`（Go，独立组件）**的内部质量**」 | 它已并入世界核心 ⇒ 其质量随之纳入本项目质量保证面 | **作者**（同上） |
-| 6 | 册 `docs/理论/冲突总账.md` §7.15 末尾「**仍待人裁的一格**：`agentd` 的**内部实现**是否纳入本项目范围」 | 本件按裁定三把它**纳入**（Rust 实现即内部实现）；**但"是否连 `WC-IC-*` 契约册也逐条展开"仍待人裁**，见 `design.md` 排除清单 | **作者**（裁定三的"必须使用 rust 写"） |
+| 6 | 册 `ninedim/01-意图环/01-策划/策划-冲突总账.md` §7.15 末尾「**仍待人裁的一格**：`agentd` 的**内部实现**是否纳入本项目范围」 | 本件按裁定三把它**纳入**（Rust 实现即内部实现）；**但"是否连 `WC-IC-*` 契约册也逐条展开"仍待人裁**，见 `design.md` 排除清单 | **作者**（裁定三的"必须使用 rust 写"） |
 
 > **书仍然最高**：上表 6 条**没有一条**让的是书。书的依据站在裁定这一边：
 > `2-依据/15-世界核心的组成与职责.md`（散件已退场，原件读 `git show 457c954^:"2-依据/15-世界核心的组成与职责.md"`）

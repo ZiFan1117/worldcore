@@ -12,7 +12,7 @@
 
 > **本节的"有"只算原生那一份。** 实测：原生 `spec-driven` 的产物是**四个**——`proposal`／`specs`／`design`／`tasks`；
 > `review` 不在这四个里面（出处：`openspec schemas --json`，原生那一条的 `"artifacts": ["proposal","specs","design","tasks"]`，
-> `"source": "package"`）。**`review` 是本项目 `docs/schemas/opsx-swe-gb/schema.yaml` 自加的第五件**，
+> `"source": "package"`）。**`review` 是本项目 `ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 自加的第五件**，
 > 故它连同"结论枚举"一起列在 **§2.2**（归流程，载体落在 change 上），**不在本节**。
 
 | 事项 | OpenSpec 的载体 | 说明 |
@@ -28,7 +28,7 @@
 > **本项目的两件自加物**（原生没有，逐条见 §2.2／§2.3）：
 > ① **`review.md`**——第五件产物，评审与签字的载体；
 > ② **Scenario 末尾的证据行** `- **证据**：<path>::<fn>`——规格级的机读栏位，本项目加在 Scenario 上，`validate` 不校验它。
-> 逐字出处：`docs/schemas/opsx-swe-gb/schema.yaml:136-139`（`- id: review` / `generates: review.md`）；
+> 逐字出处：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:136-139`（`- id: review` / `generates: review.md`）；
 > 同一件 `:53-55`（`- **证据**：`path/to/test_file::test_name`（或 `tools/x.py --self-test`）` /
 > `证据行的测试名必须是**真实存在**的。OpenSpec 的 validate 不校验这一点`）。
 
@@ -146,6 +146,6 @@
 
 ## 四、这张表怎么用（三条落地）
 
-1. **改融合档的文字以本表为准**：`docs/schemas/opsx-swe-gb/schema.yaml` 与 `README.md` 里"同一批文件双读：流程侧只留一行指针"这类写法——**删掉**；改成"OpenSpec 那一套是唯一产物；本表里判给流程的那些，作**件内栏位与附表**存在"。**同类还有一处**：把 `review` 或证据行写成"OpenSpec 有的"——按 §一 的实测口径，二者都是**本项目自加件**。
+1. **改融合档的文字以本表为准**：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml` 与 `README.md` 里"同一批文件双读：流程侧只留一行指针"这类写法——**删掉**；改成"OpenSpec 那一套是唯一产物；本表里判给流程的那些，作**件内栏位与附表**存在"。**同类还有一处**：把 `review` 或证据行写成"OpenSpec 有的"——按 §一 的实测口径，二者都是**本项目自加件**。
 2. **`spec_bridge.py` 的各条判据，全部落在"OpenSpec 能机核的那一半"**（**条数以 `--json` 的 `passed`/`failed` 为准，本件不复述总数**）：判据① 归档硬前置、② 证据存在性、③ 默认档、④ 编号桥覆盖、⑤ 覆盖在册、⑥ 归档件已签、⑦ 让路登记（出处 `spec_bridge.py` 的 `--self-test`，实测 rc=0 时逐条打印"反例①—⑦已红 OK"；⚠ 该脚本头部 docstring 仍写"五条判据"，**文档与实现不同步**，以实测为准）。**内容那一半（"断言是否与声明相符"／H-24）机核不了，只能由评审签字承担**——`review.md` 里必须写明这一点，不许含糊。
 3. **以后每遇到一件新事，先查本表**：表里判给 OpenSpec 的，按 OpenSpec 做；判给流程的，按流程做；**两边都有的，形态随 OpenSpec、内容随流程**。

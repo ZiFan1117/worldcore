@@ -36,8 +36,8 @@ CR: WC-FC-2026-006
 | 3 | 「机核读数」格**必须含命令**；指针式填法（`以判据…为准`等）判红 | `scripts/verify/module_graph.py`（新增 `MACHINE_POINTER_MARKERS`／`ATOM_MACHINE_CMD_RE`；判据④ 第⑦步） |
 | 3b | **数据侧**：把该列 10 行换成当场实测读数（**不是把红刷绿**——是把该装读数的格子装上读数） | `ninedim/01-意图环/03-设计/设计-WC-MODREG-001-v0.1.md` §2 |
 | 4 | `REQUIRED_JOBS` 由 5 项补为 **8 项** | `scripts/verify/ci_self_check.py` |
-| 5 | 三处引注／状态订正（判据对、引注假） | `check.sh.new` 第 ⑨ 步；`module_graph.py` 的 `INTENT_MAX_CHARS` 注释；`docs/openspec-MAINTENANCE.md` 规则 10／12 |
-| 6 | 生成链补**中间那一步** `gen_secmap.py` | `docs/schemas/opsx-swe-gb-atom/templates/spec.md` ＋ 同档 `schema.yaml` |
+| 5 | 三处引注／状态订正（判据对、引注假） | `check.sh.new` 第 ⑨ 步；`module_graph.py` 的 `INTENT_MAX_CHARS` 注释；`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` 规则 10／12 |
+| 6 | 生成链补**中间那一步** `gen_secmap.py` | `ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/spec.md` ＋ 同档 `schema.yaml` |
 | 7 | `WC-ATOM-001` §四 状态栏按实改（原写"未建/在建"，而工具已在跑） | `ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md` |
 
 **每一条都补齐了反例（＋正控）**——按本仓口径「**没有反例的判据是装饰**」：
@@ -58,8 +58,8 @@ CR: WC-FC-2026-006
 | 项 | 判定 | 依据 |
 |---|---|---|
 | **A/B 档** | **B 档** | 判据① 命中：有第二个人需要交接（评审席／作者）；判据② 命中：有外部交付物与验收责任。 |
-| **评审档位** | **R5** | 触及**门禁**（`scripts/**`、`check.sh`）与**工作流**（`docs/schemas/**`）⇒ 框架变更。 |
-| **命中的敏感路径** | `scripts/**`（三个守卫）；`docs/schemas/**`（原子档模板与 schema）；`check.sh.new` | 逐条列出。 |
+| **评审档位** | **R5** | 触及**门禁**（`scripts/**`、`check.sh`）与**工作流**（`ninedim/records/openspec-流程件/schemas/**`）⇒ 框架变更。 |
+| **命中的敏感路径** | `scripts/**`（三个守卫）；`ninedim/records/openspec-流程件/schemas/**`（原子档模板与 schema）；`check.sh.new` | 逐条列出。 |
 
 **R5 触发条件**：**FC-4 重复实现**（判据⑥ 的"取第一处"病在「批准人」格已修、在「结论」格未修 ⇒ 同一判据两种实现）
 ＋ **FC-1 契约不足**（判据② 声明的判红规则与实际可执行规则**不等价**）。
@@ -77,8 +77,8 @@ CR: WC-FC-2026-006
 ## Impact
 
 - **代码/工具**：`scripts/{spec_bridge,module_graph,ci_self_check}.py`、`check.sh.new`。
-- **工作流**：`docs/schemas/opsx-swe-gb-atom/{schema.yaml,templates/spec.md}`（原子档＝本仓默认档）。
-- **文档**：`docs/openspec-MAINTENANCE.md`（规则 10／12）、`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md` §四、
+- **工作流**：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/{schema.yaml,templates/spec.md}`（原子档＝本仓默认档）。
+- **文档**：`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（规则 10／12）、`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md` §四、
   `ninedim/01-意图环/03-设计/设计-WC-MODREG-001-v0.1.md` §2。
 - **使用方**：**只有本仓自己**（守卫的受检对象是 `ninedim/01-意图环/04-规格/**`、`changes/**`、`WC-MODREG-001`）。
 - **破坏性变更**：**有一处**——判据④ 第⑦步收紧后，`WC-MODREG-001` §2 那 10 行**当场变红**（本件同步填了真读数）。

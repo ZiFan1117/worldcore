@@ -62,14 +62,14 @@ def main() -> int:
     ap.add_argument("--specmap", default=None)
     ap.add_argument("--ruler", default=None)
     ap.add_argument("--out", default=None)
-    ap.add_argument("--landing-dir", default=None, help="逐节调查数据目录（`docs/理论/落点/`）")
+    ap.add_argument("--landing-dir", default=None, help="逐节调查数据目录（`ninedim/01-意图环/03-设计/设计-落点/`）")
     a = ap.parse_args()
     # ★ 仓根按**脚本自身位置**推（本文件在 `scripts/gen/` ⇒ 上两级）
     repo = HERE.parent.parent.parent
     sm_p = Path(a.specmap) if a.specmap else repo / "generated/specmap.json"
-    ru_p = Path(a.ruler) if a.ruler else repo / "docs/理论/尺子-理念条目.md"
+    ru_p = Path(a.ruler) if a.ruler else repo / "ninedim/01-意图环/01-策划/策划-尺子-理念条目.md"
     out_p = Path(a.out) if a.out else repo / "generated/节对齐.md"
-    land_d = Path(a.landing_dir) if a.landing_dir else repo / "docs/理论/落点"
+    land_d = Path(a.landing_dir) if a.landing_dir else repo / "ninedim/01-意图环/01-策划/落点"
 
     # 逐节调查（**与机抽四源分开**）：从 `节落点/*.md` 里抽每节的 `**判定**：…`
     landing = {}
@@ -121,7 +121,7 @@ def main() -> int:
     L.append("> **这张图是什么**：把《语义世界》六章正文的 **41 节**逐节列出，并写下**今天已登记的落点**。")
     L.append("> **它不做什么**：**不做推断**。四源（能力映射／§5.6 判据／书里要求但规格零落点／尺子的依据栏）都没有的节，")
     L.append("> 一律写「**今天没有任何登记**」——那一列就是「逐项对齐」**还没做**的那一块。")
-    L.append("> **另有一列「逐节调查」**，它来自 `docs/理论/落点/` 的人工/调查结论，**与机抽四源分开**：")
+    L.append("> **另有一列「逐节调查」**，它来自 `ninedim/01-意图环/03-设计/设计-落点/` 的人工/调查结论，**与机抽四源分开**：")
     L.append("> **机抽的归机抽、调查的归调查，两者不许互相冒充**；调查没做的节写「**未调查**」。")
     L.append(">")
     L.append("> **为什么需要它**：目标里点名要「41 节逐项对齐」，而仓里此前**没有任何一件**逐节列出。")
@@ -131,7 +131,7 @@ def main() -> int:
              % (sm_sha[:16], gen_sha[:16]))
     L.append("")
     L.append("| 节 | 这一节只讲一件事（尺子） | 能力映射（`cap_book`） | §5.6 判据（`judges`） | "
-             "书里要求·规格零落点（`book_gaps`） | **逐节调查**（`docs/理论/落点/`） | 依据栏（尺子） |")
+             "书里要求·规格零落点（`book_gaps`） | **逐节调查**（`ninedim/01-意图环/03-设计/设计-落点/`） | 依据栏（尺子） |")
     L.append("|---|---|---|---|---|---|---|")
     none_n = 0
     for _chap, num, title, _line in secs:

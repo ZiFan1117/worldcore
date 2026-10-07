@@ -47,7 +47,7 @@ name: world-core 门禁
 #   module-graph       原子化机核  `scripts/verify/module_graph.py`（WC-ATOM-001 §二 A-1／A-4／A-2）
 #
 # ⚠️ **今天有两条是红的，且不许掩盖**（逐条读数写在各自作业的注释里，实测时点 2026-09-27）：
-#   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `docs/理论/冲突总账.md` §五 裁-1
+#   ① `spec-bridge` 判据⑥「归档件的评审已签」红 —— 台账 `ninedim/01-意图环/01-策划/策划-冲突总账.md` §五 裁-1
 #      （作者指示「评审完结束后签我的名字」⇒ **评审通过后**才签，未过不签）。
 #   ② `module-graph` —— **2026-09-28 已转绿**（三条判据 `通过 3 / 失败 0`；真源码环 `M04↔M09` 已按
 #      「消回边、保留合法方向」改成 DAG：`src/bus/mod.rs` 用窄接口 `RequestSink`，`src/lib.rs` 为 `World` 实现）。
@@ -216,7 +216,7 @@ jobs:
 
   # ══════════════════════════════════════════════════════════════════════
   # 规格层（OpenSpec）：形态门禁 ＋ 规格层守卫
-  #   分工（`docs/schemas/README.md` §1.3）：`openspec validate` 的绿只证明
+  #   分工（`ninedim/records/openspec-流程件/schemas/README.md` §1.3）：`openspec validate` 的绿只证明
   #   **形态对**；「证据指向的测试是否真存在／归档件有没有签」由 `spec_bridge.py` 承担。
   #   两者缺一，规格层的绿就是假绿。
   # ══════════════════════════════════════════════════════════════════════
@@ -242,7 +242,7 @@ jobs:
           python scripts/verify/spec_shape.py
       - name: schema 形态门禁 —— docs/schemas 下的 schema 结构与模板
         # 为什么单列一步（**加在既有的 spec-shape 作业里，不新开作业**）：
-        #   上一步 `validate --all --strict` 管的是 **change 与 spec**，它对 `docs/schemas/**`
+        #   上一步 `validate --all --strict` 管的是 **change 与 spec**，它对 `ninedim/records/openspec-流程件/schemas/**`
         #   **一个字节都不读** ⇒ 新增档 `opsx-swe-gb-atom` 在此之前**没有任何作业在看**：
         #   把它的 `template:` 改坏、或删掉 `templates/*.md`，`validate --all --strict`
         #   照旧 rc=0、`0 failed`（passed 数是**活数**，随 change 数变，**本处不复述**；
@@ -253,14 +253,14 @@ jobs:
         # 版本与上一步的安装**同一行**（`@fission-ai/openspec@1.13.2`）；`npx --yes` 只是取用已装好的那份，
         #   不引入浮动版本。**已实测两种写法等价**（2026-09-28，本机 CLI 1.13.2，仓库根）：
         #   全局 `openspec schema validate opsx-swe-gb-atom` 与 `npx --yes …@1.13.2 schema validate opsx-swe-gb-atom` 同值。
-        # 反例已验过（不是橡皮图章）：在**仓外**沙盒（`docs/schemas/opsx-swe-gb-atom/` 的副本）把
+        # 反例已验过（不是橡皮图章）：在**仓外**沙盒（`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/` 的副本）把
         #   `schema.yaml` 的 `template: proposal.md` 改成指向一个不存在的文件（该占位串在 `schema.yaml` 里**只出现 1 处**），
         #   同一条命令给 **rc=1** 且逐字报：
         #     error: Template file 'no-such-template-file.md' not found for artifact 'proposal'
         #   把改动还原后 **rc=0**（沙盒内 `schema.yaml` 逐字节还原＝回到该次实验开始时的原值，
         #   证明"真改过、真还原"）。**该 sha256 本处不写值**：`schema.yaml` 会被别的线改
         #   （实测：`e8f6a86` 之后 `d0495dd` 又改过它 4 行）⇒ 要核就现取：
-        #   `git rev-parse <sha>:docs/schemas/opsx-swe-gb-atom/schema.yaml` 或直接 sha256sum。
+        #   `git rev-parse <sha>:ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/schema.yaml` 或直接 sha256sum。
         # 正控读数（2026-09-28，本机 CLI 1.13.2，本仓树）：本步 **rc=0**。
         # 上一步的 passed 数**本处不复述**——它随 change 数变（2026-09-28 同日之内就因别的工区
         # 归档了一个 change 而变过），**写死必然过期**。以该命令自己的输出为准。
@@ -289,7 +289,7 @@ jobs:
         # 为什么**不**把它注释掉、**不**加 continue-on-error、**不**放宽判据：
         #   「归档件没签却在账上记成已归档」正是本项目最忌的形态（把未定当已定）；
         #   把已知缺陷藏进绿灯里，比红着更坏。
-        # 台账与处置权：`docs/理论/冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；
+        # 台账与处置权：`ninedim/01-意图环/01-策划/策划-冲突总账.md` §五 裁-1（作者指示：**评审通过后**由执行者签署；
         #   评审未过不签）⇒ 两条出路：① 走完评审并签署 ⇒ 本步自动转绿；② 作者裁定该归档件退出示踪。
         run: python scripts/verify/spec_bridge.py
 

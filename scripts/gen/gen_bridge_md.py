@@ -128,6 +128,7 @@ if _changes_dir.is_dir():
         if not _sd.is_dir():
             continue
         for _capd in sorted(_sd.iterdir()):
+            # ★ 这里是**变更档案盒**里的 delta 规格，仍按 openspec 的 `<能力>/spec.md` 形态
             _sp = _capd / "spec.md"
             if not _sp.is_file():
                 continue
@@ -249,7 +250,7 @@ L.append("| 3 | `WC-RTM-001.csv` 里同模式出现次数 | **%d** | 同上换�
 L.append("| 4 | `docs/` 下 `.md`＋`.csv` 文件数 | **%d** | `Get-ChildItem -Recurse -File docs` 按扩展名过滤 |" % _n_docs)
 L.append("| 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **%d** | 逐文件 `read_text().lower()` 检索 |" % _n_openspec)
 L.append("| 6 | 规格审计查出的差错条数（`audit.md`） | **%d** | 见 `fc-2026-001` 的 `audit.md` |" % _n_findings)
-L.append("| 7 | 规格树下的 Requirement 条数 | **%d** | 逐文件计 `^### Requirement` |" % sum(1 for _sp in (_repo / "ninedim" / "01-意图环" / "04-规格").rglob("spec.md") for _l in _sp.read_text(encoding="utf-8", errors="replace").split(chr(10)) if _l.startswith("### Requirement:")))
+L.append("| 7 | 规格树下的 Requirement 条数 | **%d** | 逐文件计 `^### Requirement` |" % sum(1 for _sp in (_repo / "ninedim" / "01-意图环" / "04-规格").glob("*.spec.md") for _l in _sp.read_text(encoding="utf-8", errors="replace").split(chr(10)) if _l.startswith("### Requirement:")))
 L.append("| 8 | 撞号数／无号数／无人认领需求数 | **%d ／ %d ／ %d** | 见本表 §一／§二／§四 |" % (len(collide), len(unmapped), len(srs_no_req)))
 L.append("")
 L.append("**已作废的旧值（不得再用）**：`378`、`68`（两个都不可复现）。")

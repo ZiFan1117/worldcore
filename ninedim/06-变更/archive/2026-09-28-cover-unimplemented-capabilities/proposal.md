@@ -53,6 +53,6 @@
 ## Impact
 
 - **改动面**：`ninedim/06-变更/cover-unimplemented-capabilities/**`（本件自己的 delta ＋ 任务）。
-- **不动**：`**`、`ninedim/01-意图环/04-规格/**`（既有主规格）、`docs/schemas/**`。
+- **不动**：`**`、`ninedim/01-意图环/04-规格/**`（既有主规格）、`ninedim/records/openspec-流程件/schemas/**`。
 - **落点**：守卫 `spec_bridge.py` 判据⑤ —— 本件存在且未归档、`tasks.md` 有未勾项。
 - **将来**：九件逐条实现（每件各自的 change），实现完成并各有会红的断言后，本件按 delta 合并入主规格并归档。

@@ -2,7 +2,7 @@
 
 FC: WC-FC-2026-002
 
-> **变更号出处**：本号取自上一 change 立项时对框架变更编号段的登记（`ninedim/06-变更/fc-2026-001-openspec-into-cm/boundary.md` §2.1「S7 运维与回归」行把 change 定为运维期变更的载体）；`fc-2026-00N` 段由人在 `fc-2026-001` 命名时开启，本 change 沿序号取 **002**。**agent 不自造号**——若评审席另有裁定，改号即可，`docs/schemas/opsx-swe-gb/schema.yaml:14` 逐字「**号由人给，agent 不自己编号**」。
+> **变更号出处**：本号取自上一 change 立项时对框架变更编号段的登记（`ninedim/06-变更/fc-2026-001-openspec-into-cm/boundary.md` §2.1「S7 运维与回归」行把 change 定为运维期变更的载体）；`fc-2026-00N` 段由人在 `fc-2026-001` 命名时开启，本 change 沿序号取 **002**。**agent 不自造号**——若评审席另有裁定，改号即可，`ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:14` 逐字「**号由人给，agent 不自己编号**」。
 
 ## Why
 
@@ -84,7 +84,7 @@ FC: WC-FC-2026-002
 |---|---|---|
 | **A/B 档** | **B 档** | 三条判据逐条命中：① 有第二个人需要交接——评审席要按 `review.md` 复核 46 条；② 有外部交付物与验收责任——`ninedim/01-意图环/04-规格/**` 是需求内容的机读权威载体（`boundary.md` §一），改它即改对外承诺；③ 失效后果不可接受——把 K-3【高】读成"平滑升级"会让历史账本在升级后锁死。三条全不命中才可 A 档，故 B 档 |
 | **评审档位** | **R5**（框架变更） | 触及敏感路径 `ninedim/01-意图环/04-规格/**`（6 份全中）。按 `schema.yaml:23-24` 判据「触及契约 / 门禁 / 工具 / 工作流 → 框架变更 → R5」 |
-| **命中的敏感路径** | `ninedim/01-意图环/04-规格/**`（6 个能力目录全部）；另**间接**触及 `check.sh.new`（仅作为证据锚点被引用，**不改它**）；`docs/openspec-config.yaml` 未触及；`tools/**` 未触及；`.github/workflows/**` 未触及 | 逐条列出，见上一行 |
+| **命中的敏感路径** | `ninedim/01-意图环/04-规格/**`（6 个能力目录全部）；另**间接**触及 `check.sh.new`（仅作为证据锚点被引用，**不改它**）；`ninedim/records/openspec-流程件/openspec-config.yaml` 未触及；`tools/**` 未触及；`.github/workflows/**` 未触及 | 逐条列出，见上一行 |
 
 **R5 触发条件**：**FC-3（假设被推翻）** 为主，**FC-1（契约不足）** 为辅。
 
@@ -101,9 +101,9 @@ FC: WC-FC-2026-002
 | 1 | FC-3 | `ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md:2537` 逐字「### K-3【高】在 v1（无链）账本上做一次正常 `append` 会把世界锁死 —— 升级路径自杀」；同件 `:2541` 逐字「**后果（EV-11b）**：无链账本 → `check` 警告但 `READY`（**设计意图是兼容**）→ 一次合法 `append` 成功 → 下次打开 `Ledger.MixedChain … 拒绝使用`」 |
 | 2 | FC-3 | `src/gate.rs:287-293` 逐字 `Some(c) if !c.reversible => { if self .irreversible_actors .iter() .any(\|a\| pattern_matches(a, actor)) { Decision::Allow }` ⇒ **白名单主体执行不可逆动作时判 `Allow`、不加摩擦**；而 `ninedim/01-意图环/04-规格/gate-enforcement.spec.md:36` 逐字写「系统 SHALL 对声明为不可逆的能力追加摩擦」 |
 | 3 | FC-3 | `src/project/mod.rs:124-145` 是 `assert_same_source`，其三个不等分支在 `project check` 里**结构上不可达**——`src/main.rs:408-409` 逐字 `let a = language::render(&state, world, vocab);`／`let b = visual::render(&state, world, vocab);` 两份投影**共用同一个 `state` 与 `vocab`** |
-| 4 | FC-1 | `docs/理论/语义世界-理论书-第一版-合订.md:736` 逐字「**绿而无效**。命令跑得通（`world-core project check`），只比头部四项（`src/project/mod.rs` 第 124 行），两份还是它自己渲染的（`src/main.rs` 第 394–397 行，2026-09-27 读）。按"能不能证明"判，这一格是红的」 |
+| 4 | FC-1 | `ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md:736` 逐字「**绿而无效**。命令跑得通（`world-core project check`），只比头部四项（`src/project/mod.rs` 第 124 行），两份还是它自己渲染的（`src/main.rs` 第 394–397 行，2026-09-27 读）。按"能不能证明"判，这一格是红的」 |
 | 5 | FC-1 | `scripts/test/contract.rs:120-123` 逐字 `assert!( msg.contains("MissingField") && msg.contains(field), "删除 \`{field}\` 应被拒且指明字段，实得: {msg}" );`，而 `src/ontology.rs:32` 的错误前缀自带 `ext.world.` ⇒ `field=="world"` 那一轮**恒真** |
-| 6 | FC-3 | 门禁**读不到风险等级**：`src/gate.rs:44-48` 的结构只有 `pub reversible: bool` 一个字段（`docs/理论/语义世界-理论书-第一版-合订.md:721` 逐字「闸读的那份评级里只有一个布尔值」）；而 `cap.d/*.json` 逐项写 `risk`，`risk` 只被 `src/carrier/capd.rs:186` 读 |
+| 6 | FC-3 | 门禁**读不到风险等级**：`src/gate.rs:44-48` 的结构只有 `pub reversible: bool` 一个字段（`ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md:721` 逐字「闸读的那份评级里只有一个布尔值」）；而 `cap.d/*.json` 逐项写 `risk`，`risk` 只被 `src/carrier/capd.rs:186` 读 |
 
 **环境指纹**：本 change 的**起草**在主机 `D:\Code\08-worldcore-openspec`（Windows）完成，
 源码与文档证据逐条用 `read` 工具就地读取；**实施（补断言）与验收只在 VM `world` 内做**，

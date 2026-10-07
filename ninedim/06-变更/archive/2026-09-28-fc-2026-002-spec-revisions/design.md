@@ -10,7 +10,7 @@
 
 1. **本仓的规格树只有描述性标题，没有 REQ 号。** 6 份主规格的全部
    `### Requirement:` 标题（`ninedim/01-意图环/04-规格/*/spec.md`）**无一以 REQ 号开头**；
-   而 `docs/schemas/opsx-swe-gb/schema.yaml:44-47` 要求「每条 `### Requirement:` 的标题必须**以 REQ 号开头**」，
+   而 `ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:44-47` 要求「每条 `### Requirement:` 的标题必须**以 REQ 号开头**」，
    并给了取不到号时的处置：「**取不到号时登记为「无号·待增补」，不许自造、不许拿相近号硬凑。**」
    ⇒ 本 change **不得**靠改标题来"补齐编号"。
 2. **`openspec validate --strict` 对 delta 有两条硬约束**（本轮实测得出，见 §Decisions）：
@@ -257,7 +257,7 @@
 - `scripts/test/system_acceptance.sh:314`／`:342-344` —— ㉔–㉖ 的 `setpriv` 守卫行与 `else` 分支
   （§影响分析只写"缺 `setpriv` 或非 root 时整段不执行"这一事实，未给行号）
 - `scripts/verify/visual_layout_audit.py:17-29` —— 契约表的行号（`audit.md` P6 给的是 `15-32`）
-- `docs/理论/语义世界-理论书-第一版-合订.md:2312` —— 框架 5.2 行（`audit.md` P2 引的是第四章 `:192`）
+- `ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md:2312` —— 框架 5.2 行（`audit.md` P2 引的是第四章 `:192`）
 - `policy.json:38` —— `allow` 表（`audit.md` G2 给的是 `policy.json:32`）
 
 **其余 30 块按"删复述"处置**（每块的同一事实在本 change 的产物里都有落点）：
@@ -300,9 +300,9 @@
 
 | # | 不写入 | 为什么 | 出处 |
 |---|---|---|---|
-| 1 | **需求编号（把 `### Requirement:` 标题改成 `REQ-F-0xx …`）** | ① 6 份主规格的 Requirement **全部无号**（实测：`ninedim/01-意图环/04-规格/*/spec.md` 的 23 条标题无一以 `REQ` 开头）；② 流程侧确有号（`需求-WC-SRS-001-v0.1.md:69-112` 的 `REQ-F-001…REQ-N-008`），但**编号桥两头都在、中间没接**——`audit.md` 单列这条缺口：「有承诺、无流程侧需求号 **5** 条」；③ 补号是**映射工作**（要给 23 条逐条选定 REQ 号并处理"一号多义"，如 `REQ-F-016` 在 `WC-FSR-001` 与 `WC-SRS-001` 同号不同义，见 `需求-WC-SRS-001-v0.1.md:259`），**属另一个变更**；④ 本 change 不补号**不影响 validate**（`is valid` 已实测） | `docs/schemas/opsx-swe-gb/schema.yaml:44-47`（「取不到号时登记为「无号·待增补」，**不许自造、不许拿相近号硬凑**」）；`audit.md:138/142`；`需求-WC-SRS-001-v0.1.md:259` |
+| 1 | **需求编号（把 `### Requirement:` 标题改成 `REQ-F-0xx …`）** | ① 6 份主规格的 Requirement **全部无号**（实测：`ninedim/01-意图环/04-规格/*/spec.md` 的 23 条标题无一以 `REQ` 开头）；② 流程侧确有号（`需求-WC-SRS-001-v0.1.md:69-112` 的 `REQ-F-001…REQ-N-008`），但**编号桥两头都在、中间没接**——`audit.md` 单列这条缺口：「有承诺、无流程侧需求号 **5** 条」；③ 补号是**映射工作**（要给 23 条逐条选定 REQ 号并处理"一号多义"，如 `REQ-F-016` 在 `WC-FSR-001` 与 `WC-SRS-001` 同号不同义，见 `需求-WC-SRS-001-v0.1.md:259`），**属另一个变更**；④ 本 change 不补号**不影响 validate**（`is valid` 已实测） | `ninedim/records/openspec-流程件/schemas/opsx-swe-gb/schema.yaml:44-47`（「取不到号时登记为「无号·待增补」，**不许自造、不许拿相近号硬凑**」）；`audit.md:138/142`；`需求-WC-SRS-001-v0.1.md:259` |
 | 2 | **K-3 的修复**（`append` 尊重 `self.chained`） | 本 change **不改 ``**。K-3 是代码缺陷，修它要改 `src/ledger.rs` 的 `append`；本 change 只把它的**边界**写成条文（`ledger-integrity` 的 ADDED「无链账本的升级路径边界」） | `策划-WC-SCMP-001-v0.1.md:2537`（K-3 定位与最小补丁 `:2544`）；`src/ledger.rs:506`（`chained` 只读不用） |
-| 3 | **门禁摩擦落点的修复**（把摩擦挂到动作的不可逆等级上） | 同上：那是 `src/gate.rs` 的改法，属 R5 框架变更，另立 change | `docs/理论/语义世界-理论书-第一版-合订.md:717`；`src/gate.rs:287-293`；`docs/理论/WC-THEORY-DEFECT-001-v0.2.md:44`（`D-02` 严重） 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕 |
+| 3 | **门禁摩擦落点的修复**（把摩擦挂到动作的不可逆等级上） | 同上：那是 `src/gate.rs` 的改法，属 R5 框架变更，另立 change | `ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md:717`；`src/gate.rs:287-293`；`ninedim/01-意图环/01-策划/WC-THEORY-DEFECT-001-v0.2.md:44`（`D-02` 严重） 〔该件已按作者指示退场；解析根＝`git show bf2eae7:<原路径>`〕 |
 | 4 | **`project check` 的"跨来源比对"实现（含 `IF-003a` 的编号落点）** | ① 实现它要改代码；② 它的编号载体**不属本 change 作者所有**，RTM 明写待人裁定 | `WC-RTM-001.csv:21` 逐字「该用例尚未实现；IF-003a 的编号载体（WC-IC-001）不属本次执行员所有 ⇒ ⚠ 待人工裁定落点。」 |
 | 5 | **`REQ-N-008` 的目标值（走检查点续算 ≤ 全量重算的 1/2、样本 ≥ 20 取 P95）** | ① SRS 记「未实现」，`WC-TP-001-v0.1.md:80` 记「六项目标值仍【候选】⇒ **不得声称达标**；数值由人确认后方可判达标」；② 未定值不得写进规格。本 change 只声明它**在范围外**（`read-model` 的 ADDED） | `需求-WC-SRS-001-v0.1.md:112`；`WC-TP-001-v0.1.md:80` |
 | 6 | **`IF-003a` / `TC-042` 等编号的落点裁定** | 属编号归属的人裁，`audit.md` 与 `WC-RTM-001.csv:21` 均标「待人工裁定」 | `WC-RTM-001.csv:21`；`audit.md:138` |

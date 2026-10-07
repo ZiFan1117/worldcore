@@ -23,7 +23,7 @@
 
 ## 〇、原子表（**原子化设计在本文件里的落点**）
 
-> **栏位口径**照项目工作流的原子表六栏（出处：`docs/schemas/opsx-swe-gb-atom/templates/design.md`
+> **栏位口径**照项目工作流的原子表六栏（出处：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/design.md`
 > 的「原子表」节；约定本身出处 `WC-ATOM-001` §二）。**每个模块一行，逐栏非空**；
 > `intent` 里出现「与／和／及」并列两事 ⇒ 拆。
 >

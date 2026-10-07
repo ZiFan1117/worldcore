@@ -57,7 +57,7 @@
 
 ## 6. 基线之后的维护（**已于 2026-09-27 移出本件**）
 
-> **本节两条常设维护项已移出**，落点：`docs/openspec-MAINTENANCE.md` §一 第 1、2 项。
+> **本节两条常设维护项已移出**，落点：`ninedim/records/openspec-流程件/openspec-MAINTENANCE.md` §一 第 1、2 项。
 > **移出理由**：`tasks.md` 的归档门禁要求**全勾**，而常设项天生做不完 ⇒ 它们让
 > `openspec validate --archived` **永久为红**（实测 `✗ 2 incomplete tasks (18/20 completed)`）。
 > 融合档 `schema.yaml:121-123` 逐字预言过这个形态：「若某条本来就做不完（常设维护项），不要留在本件里……

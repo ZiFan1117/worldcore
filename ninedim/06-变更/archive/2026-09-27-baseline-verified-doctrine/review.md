@@ -68,6 +68,6 @@
 | # | 遗留项 | 责任人 | 期限 |
 |---|---|---|---|
 | 1 | 本基线的 **46 条语义差错** → 由 `fc-2026-002-spec-revisions` 逐条修；其中 **5 条 P0 不得以"已知问题"挂账** | 项目负责人指派 | 待定 |
-| 2 | 本 change `tasks.md` §6 的两条**常设维护项**已移出到 `docs/openspec-MAINTENANCE.md`（见该件），原处留痕 | AI 已办 | 已办 |
+| 2 | 本 change `tasks.md` §6 的两条**常设维护项**已移出到 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（见该件），原处留痕 | AI 已办 | 已办 |
 
 > **签字与责任归属归人，不可代签。** 本件由人填写；agent 只能准备材料、跑门禁、贴原始输出。
