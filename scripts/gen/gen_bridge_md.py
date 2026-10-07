@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""从 generated/specmap.json 生成 generated/BRIDGE.md —— 编号桥映射表（判据④ 的受检对象）。
+"""从 ninedim/records/生成物/specmap.json 生成 ninedim/records/生成物/BRIDGE.md —— 编号桥映射表（判据④ 的受检对象）。
 
-判据④（spec_bridge.py）：generated/BRIDGE.md 必须覆盖规格树下**每一条** Requirement——
+判据④（spec_bridge.py）：ninedim/records/生成物/BRIDGE.md 必须覆盖规格树下**每一条** Requirement——
 有号的挂号，取不到号的显式标「无号」。**未手抄**：数据源是 build_specmap.py 抽出的同一份。
 """
 import json, io
@@ -9,9 +9,9 @@ from collections import defaultdict
 from pathlib import Path
 
 # ⚠ 输入/输出一律**按本脚本位置推导**（仓内受控）；**不读仓外那份**
-#   `D:\Code\_specmap\generated/specmap.json`——两份会分叉（2026-09-27 已明确：**仓内这份为准**）。
-SRC = str(Path(__file__).resolve().parent.parent.parent / "generated/specmap.json")
-OUT = str(Path(__file__).resolve().parent.parent.parent / "generated/BRIDGE.md")
+#   `D:\Code\_specmap\ninedim/records/生成物/specmap.json`——两份会分叉（2026-09-27 已明确：**仓内这份为准**）。
+SRC = str(Path(__file__).resolve().parent.parent.parent / "ninedim/records/生成物/specmap.json")
+OUT = str(Path(__file__).resolve().parent.parent.parent / "ninedim/records/生成物/BRIDGE.md")
 d = json.load(io.open(SRC, encoding="utf-8"))
 srs = {s["id"]: s for s in d["srs"]}
 flag = {"green": "已实现", "half": "部分", "red": "未实现"}
@@ -19,11 +19,11 @@ flag = {"green": "已实现", "half": "部分", "red": "未实现"}
 rows = []
 
 # ── 标题**一律现取规格树**（2026-09-27 修）────────────────────────────────
-# 为什么：此前标题取自 `generated/specmap.json` 的快照，而它的抽取器 `build_specmap.py` **在仓外、且不在版本控制里**
+# 为什么：此前标题取自 `ninedim/records/生成物/specmap.json` 的快照，而它的抽取器 `build_specmap.py` **在仓外、且不在版本控制里**
 # ⇒ **改规格里的标题，BRIDGE 却还是旧标题**（实测：判据④ 报「闸读得到风险等级…不在编号桥映射表里」，
-#   而 `generated/specmap.json` 里仍留着旧标题——**只重跑生成器修不好它**）。
+#   而 `ninedim/records/生成物/specmap.json` 里仍留着旧标题——**只重跑生成器修不好它**）。
 # 规矩：**标题的权威是规格树**（`ninedim/01-意图环/04-规格/<能力>/spec.md` 的 `### Requirement:`）；
-#       `generated/specmap.json` 只负责"**哪个号**"的映射，不再负责"**标题怎么写**"。
+#       `ninedim/records/生成物/specmap.json` 只负责"**哪个号**"的映射，不再负责"**标题怎么写**"。
 # 对不齐时（数量不符）**退回快照并打印告警**——宁可吵，也不静默用错标题。
 def _spec_titles(repo, cap):
     p = Path(repo) / "ninedim" / "01-意图环" / "04-规格" / ("%s.spec.md" % cap)
@@ -62,7 +62,7 @@ GOV = ["默认走融合档", "一个 change 的产物链完整，归档硬前置
 L = []
 L.append("# 编号桥映射表（BRIDGE）")
 L.append("")
-L.append("> **本件是规格层的受控件**，位置固定在 `generated/BRIDGE.md`——守卫 `scripts/verify/spec_bridge.py`")
+L.append("> **本件是规格层的受控件**，位置固定在 `ninedim/records/生成物/BRIDGE.md`——守卫 `scripts/verify/spec_bridge.py`")
 L.append("> 的**判据④** 读它：**规格树下每一条 Requirement，都必须在本表里在册**（有号，或显式标「无号」）。")
 L.append("> 没有本表、或本表漏掉任何一条，守卫**非零退出**。")
 L.append("")
@@ -117,7 +117,7 @@ L.append("")
 # 为什么要有这一节：判据④ 只扫主规格树（`ninedim/01-意图环/04-规格/**/spec.md`），
 #   而 OpenSpec 的规矩是 delta 在 change **归档时**才并入主规格 ⇒ 新能力在归档前
 #   **不在判据④ 的扫描面里**，等于它在编号桥里没有在册面。
-#   generated/BRIDGE.md 是**生成物**（判据⑪ 逐字节核）⇒ 这个在册面必须由生成器**现取**，不许手编。
+#   ninedim/records/生成物/BRIDGE.md 是**生成物**（判据⑪ 逐字节核）⇒ 这个在册面必须由生成器**现取**，不许手编。
 _pending = []
 _changes_dir = _REPO / "ninedim" / "06-变更"
 if _changes_dir.is_dir():
@@ -197,7 +197,7 @@ if _extra:
     L.append("")
 else:
     # ⚠ **空节也要留号**：本节一旦缺号，后面的「数值权威表」就会从 §七 变成 §六，
-    #   而四处引用写的是「`generated/BRIDGE.md` §六 数值权威表」⇒ 节号一跳，那些引用就全指错。
+    #   而四处引用写的是「`ninedim/records/生成物/BRIDGE.md` §六 数值权威表」⇒ 节号一跳，那些引用就全指错。
     #   （2026-09-27 实测：合并进来的 10 条已并入 §一／§二，本节变空、§六 整个消失，
     #     评审席据此报「四处引的 §六 不存在」。）⇒ 永远输出本节，空的就写「本期无」。
     L.append("## 六、规格树下、编号桥来源表里没有的 Requirement（**合并进来的新增条，逐条在册**）")
@@ -259,7 +259,7 @@ L.append("## 八、维护（谁更新、什么时候）")
 L.append("")
 L.append("1. **新增 / 改名 / 删除规格里的 Requirement 时，同一次改动里更新本表**（否则判据④ 变红）。")
 L.append("2. 取到流程侧号时，把 §二 / §三 的「无号」改成号，并在 §一 补行。")
-L.append("3. 本表的**唯一性**：`generated/BRIDGE.md` 一处；change 内的 `mapping.md` 是它的**历史快照**，随该 change 归档，不再是活件。")
+L.append("3. 本表的**唯一性**：`ninedim/records/生成物/BRIDGE.md` 一处；change 内的 `mapping.md` 是它的**历史快照**，随该 change 归档，不再是活件。")
 L.append("")
 
 io.open(OUT, "w", encoding="utf-8", newline="\n").write("\n".join(L))

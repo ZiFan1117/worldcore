@@ -24,7 +24,7 @@ ACTD_RUN=/run/world-actd
 CORE_USER=world-core
 # ★ 2026-10-06：原先这里还有 `PROJ_USER=world-projectd` —— **已删**。它只服务于已退役的
 #   投影单元 `world-core-projectd.service`（见下面 `UNITS` 上方那段定案）；设计要求（独立 uid、
-#   零写权限）仍在 `WC-ARCH-001`／`系统全景图`／`deploy/README.md` §四，属"设计已定·未落地"，
+#   零写权限）仍在 `WC-ARCH-001`／`系统全景图`／`scripts/release/README.md` §四，属"设计已定·未落地"，
 #   **不替它在这台机器上建一个用不上的用户**。
 ACTD_USER=agent
 # ★ 界面（Omarchy）自己的系统身份：它连的是自己的口 `/run/world-core/omarchy.sock`，
@@ -46,7 +46,7 @@ DSH_USER=dsh
 #     ③ 当初"**不许删**"的唯一理由——它是**未跟踪件、没有解析根**——**已消失**：
 #        2026-10-06 的收口提交把它带进了版本控制（`git ls-files` 可核）⇒ 退场合规。
 #   **解析根**：`git show deafbae:deploy/world-core-projectd.service`。
-#   设计要求仍在 `WC-ARCH-001`／`系统全景图`／`deploy/README.md` §四 —— 那三处**不改口径**，
+#   设计要求仍在 `WC-ARCH-001`／`系统全景图`／`scripts/release/README.md` §四 —— 那三处**不改口径**，
 #   "实现未落地"按既有先例（`grant_path_guard.py` 的 G-02 那一族）**登记**。
 #   ⇒ 现状：**在目录里、不在清单里＝未启用**；要启用它，先把 `project serve` 落实现。
 UNITS="world-core.socket world-core.service world-core-actd.service world-core-omarchy.socket world-core-dsh.socket"
@@ -124,7 +124,7 @@ seed_config() {
   #
   # ★ 为什么映射**住在 `/etc`、不住在仓里**（Lead 2026-10-05 钉死）：★**它含本机事实**
   #   （`uid` 每台机不同）⇒ ★**含本机事实的产物，不入版本控制，也不住在仓内路径。**
-  #   （对照：`generated/BRIDGE.md` 是**文档派生量、不含本机事实** ⇒ 它入仓。）
+  #   （对照：`ninedim/records/生成物/BRIDGE.md` 是**文档派生量、不含本机事实** ⇒ 它入仓。）
   UIDS="$CONF_DIR/owner_uid.json"
   GEN="$SRC_DIR/../tools/gen_owner_uid.py"
   RENDER="$SRC_DIR/../tools/render_channel.py"

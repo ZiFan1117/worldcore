@@ -46,7 +46,7 @@ cargo build --locked --release
 | 世界必须怎样 | `ninedim/01-意图环/04-规格/<能力>/spec.md` |
 | 模块的契约（接口、依赖、不变量） | `ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md`（一册） |
 | 模块号与源码的对应 | `ninedim/01-意图环/03-设计/设计-WC-MODREG-001-v0.1.md` |
-| 规格承诺 ↔ 流程侧需求号 | `generated/BRIDGE.md`（数值**现算**） |
+| 规格承诺 ↔ 流程侧需求号 | `ninedim/records/生成物/BRIDGE.md`（数值**现算**） |
 | 这一轮改了什么、谁判的、谁签的 | `ninedim/01-意图环/01-策划/策划-冲突总账.md` |
 
 ## 五、这份文档不覆盖的

@@ -73,3 +73,6 @@ target/
 *.jsonl
 !Cargo.lock
 /demo*
+
+# 料夹改隐藏名（顶层按标准只留 4 个夹；隐藏夹与 `.github`／`.agents` 同级）
+.refs/

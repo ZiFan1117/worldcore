@@ -1,6 +1,6 @@
 # 编号桥映射表（BRIDGE）
 
-> **本件是规格层的受控件**，位置固定在 `generated/BRIDGE.md`——守卫 `scripts/verify/spec_bridge.py`
+> **本件是规格层的受控件**，位置固定在 `ninedim/records/生成物/BRIDGE.md`——守卫 `scripts/verify/spec_bridge.py`
 > 的**判据④** 读它：**规格树下每一条 Requirement，都必须在本表里在册**（有号，或显式标「无号」）。
 > 没有本表、或本表漏掉任何一条，守卫**非零退出**。
 
@@ -179,4 +179,4 @@
 
 1. **新增 / 改名 / 删除规格里的 Requirement 时，同一次改动里更新本表**（否则判据④ 变红）。
 2. 取到流程侧号时，把 §二 / §三 的「无号」改成号，并在 §一 补行。
-3. 本表的**唯一性**：`generated/BRIDGE.md` 一处；change 内的 `mapping.md` 是它的**历史快照**，随该 change 归档，不再是活件。
+3. 本表的**唯一性**：`ninedim/records/生成物/BRIDGE.md` 一处；change 内的 `mapping.md` 是它的**历史快照**，随该 change 归档，不再是活件。

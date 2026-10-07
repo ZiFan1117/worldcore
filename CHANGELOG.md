@@ -4,12 +4,12 @@
 
 ## 2026-10-07 · 目录标准化：整体改挂 NineDim 标准
 
-- 顶层收敛为 NineDim 的九项：`README.md`／`AGENTS.md`／`CHANGELOG.md`／`check.sh`／`docs/`／`src/`／`scripts/`／`ninedim/`／`.github/`（另加 Rust 必需的 `Cargo.toml`、`deploy/`、`generated/`、料夹 `refs/`）。
+- 顶层收敛为 NineDim 的九项：`README.md`／`AGENTS.md`／`CHANGELOG.md`／`check.sh`／`docs/`／`src/`／`scripts/`／`ninedim/`／`.github/`（另加 Rust 必需的 `Cargo.toml`、`deploy/`、`ninedim/records/生成物/`、料夹 `.refs/`）。
 - 产品：`` 的 `Cargo.toml`＋`src/` 提到**仓根**；集成测试 `tests/` → `scripts/test/`（`Cargo.toml` 加显式 `[[test]] path`）。
 - 脚本：`scripts/`（40 件）与 `scripts/gen/`（5 件）按用途分进 `scripts/{verify,gen,test,build,release,report,maintain,collab,bench}/`。
 - 档案：`docs/S0–S7`／评审／证据 → `ninedim/NN-环/NN-阶段/`（件名加阶段前缀）；`ninedim/01-意图环/04-规格/` → `ninedim/01-意图环/04-规格/<能力>.spec.md`；`ninedim/06-变更/` → `ninedim/06-变更/`；`ninedim/07-待审/` → `ninedim/07-待审/`。
-- 人读件：书与对照表、凝练料、模板、系统全景图 → `docs/`；生成物 → `generated/`；部署面 → `deploy/`。
-- 料：`refs/refs/语义世界-架构/`／`refs/refs/omarchy/`／`refs/refs/omarchy-pkgs/`／`refs/refs/_料/`／`_脚本/` → 收进 `refs/`（不入版本控制）。
+- 人读件：书与对照表、凝练料、模板、系统全景图 → `docs/`；生成物 → `ninedim/records/生成物/`；部署面 → `deploy/`。
+- 料：`.refs/.refs/语义世界-架构/`／`.refs/.refs/omarchy/`／`.refs/.refs/omarchy-pkgs/`／`.refs/.refs/_料/`／`_脚本/` → 收进 `.refs/`（不入版本控制）。
 - 新增口径件：`ninedim/config.json`（原子／契约／N-A）、`ninedim/_索引-工程域结构与命名.md`（照搬标准）、`ninedim/01-意图环/03-设计/设计-落位契约.md`（旧→新映射）。
 
 # 变更记录
@@ -51,7 +51,7 @@
 | `06-多OS栈与单机社会.md` | `3-备选路线/03-多OS栈与单机社会.md` | 兼容路线 |
 | `00-总纲.md` | **不变**（`00-总纲.md`） | 决策层 |
 | `README.md` | **不变**（已重写） | 前门 |
-| `agentd/`·`refs/refs/omarchy/`·`refs/refs/omarchy-pkgs/` | **不变** | 资产 |
+| `agentd/`·`.refs/.refs/omarchy/`·`.refs/.refs/omarchy-pkgs/` | **不变** | 资产 |
 
 ### 08-transferor（5 篇改名）
 

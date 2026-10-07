@@ -6,7 +6,7 @@
 落成 `scripts/gen/bfo-terms.json` —— 供 **U8** 判「`class ∈ 类集`」。
 
 ## 为什么是"派生"而不是"下载"
-整包（`refs/bfo-2020/`）**由 `refs/` 的写主落**（那是一件独立活，`refs/` 不入版本控制）；
+整包（`.refs/bfo-2020/`）**由 `.refs/` 的写主落**（那是一件独立活，`.refs/` 不入版本控制）；
 本件只做**薄层**：**读本地件 → 抽类集 → 落一个 JSON**。⇒ 两件分开，各有一个权威载体。
 
 ## 正源（**为什么不是那份 `bfo-2020-terms.csv`**）
@@ -62,7 +62,7 @@ RDFS = "{http://www.w3.org/2000/01/rdf-schema#}"
 
 # 正源（**本地整包**里的那一个文件）。上游料库不入版本控制 ⇒ 它是外部料、不是交付物。
 # ★ 2026-10-06：上游料库已**搬出仓库**（作者指示：这些夹子挡在代码旁边很突兀、且无用）
-#   —— `refs/` 现落 `D:\Code\heavy-archive\worldcore-上游料-2026-10-06\refs\`。
+#   —— `.refs/` 现落 `D:\Code\heavy-archive\worldcore-上游料-2026-10-06\refs\`。
 #   本常量随之改为**归档里的绝对位置**；`--owl` 仍可覆盖（例如你把整包放回仓内时）。
 DEFAULT_OWL_ABS = os.path.join(
     r"D:\Code\heavy-archive\worldcore-上游料-2026-10-06",
@@ -70,7 +70,7 @@ DEFAULT_OWL_ABS = os.path.join(
 # 兼容旧写法：仓内相对路径（若整包被放回仓内，这个仍然指得到）。
 DEFAULT_OWL_REL = os.path.join("refs", "bfo-2020", "21838-2", "owl", "bfo-core.owl")
 # 整包的上游（★逐字记进生成物：这是"这个字节从哪来"的那一半）。
-UPSTREAM_URL = "https://codeload.github.com/BFO-ontology/BFO-2020/tar.gz/refs/heads/master"
+UPSTREAM_URL = "https://codeload.github.com/BFO-ontology/BFO-2020/tar.gz/.refs/heads/master"
 # 交叉核对用的镜像（OLS4）。★它不是正源：正源是本地件（可算 sha）；它是**第二坐标**。
 OLS4_URL = "https://www.ebi.ac.uk/ols4/api/ontologies/bfo/terms?size=500&page=0"
 
@@ -185,7 +185,7 @@ def main():
     ap = argparse.ArgumentParser(description="生成 BFO 类集薄层（bfo-terms.json）")
     ap.add_argument("--repo", default=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                     help="仓库根（默认：本文件的上两级目录）")
-    ap.add_argument("--owl", default=None, help="正源 owl 文件（缺省：先看仓内 refs/…，再看归档 worldcore-上游料-2026-10-06/refs/…）")
+    ap.add_argument("--owl", default=None, help="正源 owl 文件（缺省：先看仓内 .refs/…，再看归档 worldcore-上游料-2026-10-06/.refs/…）")
     ap.add_argument("--out", default=None, help="生成物路径（默认 scripts/gen/bfo-terms.json）")
     ap.add_argument("--no-network", action="store_true", help="跳过 OLS4 交叉核对（如实记'未做'）")
     a = ap.parse_args()
@@ -198,7 +198,7 @@ def main():
 
     if not os.path.isfile(owl):
         print("[FAIL] 正源不存在：%s" % owl, file=sys.stderr)
-        print("       处置：先让 `refs/` 的写主落整包（本件只做薄层，不下载）。", file=sys.stderr)
+        print("       处置：先让 `.refs/` 的写主落整包（本件只做薄层，不下载）。", file=sys.stderr)
         return 2
     try:
         by_iri, props = parse_owl(owl)
@@ -247,7 +247,7 @@ def main():
         "schema": "bfo-terms/1",
         "generated_at": datetime.datetime.now().astimezone().isoformat(),
         "generator": "scripts/gen/fetch_bfo_terms.py",
-        "taken_from": "本地整包 refs/bfo-2020/21838-2/owl/bfo-core.owl@%s" % sha256_file(owl)[:12],
+        "taken_from": "本地整包 .refs/bfo-2020/21838-2/owl/bfo-core.owl@%s" % sha256_file(owl)[:12],
         "source": {
             "kind": "local_package",
             "path": safe_rel(owl, repo),

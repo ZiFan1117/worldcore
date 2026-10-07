@@ -1,7 +1,7 @@
 # 审计登记册 · 六条能力逐条核对（46 条）
 
 > **本件是 `fc-2026-001` 的附件，不是 OpenSpec 的内置产物**：融合档的五件产物之外，本 change 另带这一份，用途是让评审席**不依赖任何对话记录**就能逐条复核。
-> **怎么产生的**：由 `D:\Code\_specmap\build_specmap.py` 从 `generated/specmap.json` 生成，数据源是六路逐条审计的原始结论（每条带文件路径＋行号＋逐字引文＋实跑命令与 rc）。**未手抄**。
+> **怎么产生的**：由 `D:\Code\_specmap\build_specmap.py` 从 `ninedim/records/生成物/specmap.json` 生成，数据源是六路逐条审计的原始结论（每条带文件路径＋行号＋逐字引文＋实跑命令与 rc）。**未手抄**。
 > **证据环境**：VM `world`（Arch Linux，cargo 1.98.1，`/root/world/world-core`）。主机与 VM 的被核文件逐文件 sha256 一致；出厂门禁 `bash check.sh` **rc=0 全通过**。
 
 ## 一句话结论

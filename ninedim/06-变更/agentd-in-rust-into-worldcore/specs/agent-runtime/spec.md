@@ -23,7 +23,7 @@
 > 流程侧今天没有对应需求 ⇒ **逐条登记为「无号·待流程侧增补」**，**不造号、不拿相近号硬凑**。
 >
 > **在册面**：本 change 尚未归档 ⇒ 按 OpenSpec 的规矩，这份 delta 在**归档时**才并入主规格。
-> 归档之前，本能力的 Requirement 逐条登记在 `generated/BRIDGE.md` 的
+> 归档之前，本能力的 Requirement 逐条登记在 `ninedim/records/生成物/BRIDGE.md` 的
 > 「在办 change 引入的能力承诺」那一节（由生成器现取；判据④ 只扫主规格树，故那一节是它的补丁）。
 
 ## ADDED Requirements

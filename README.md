@@ -2,7 +2,7 @@
 >
 > **事情是什么**：原先**单独一份**的 `github.com/ZiFan1117/software-engineering-gb`
 > （仓根 README 曾以 `# worldcore` 开头，内容＝worldcore 的 S0–S7 流程物）**已由作者指示废止**：
-> 它的流程侧原文**搬进本仓受控面** → `refs/refs/_料/process-source/06-swe-gb/`；
+> 它的流程侧原文**搬进本仓受控面** → `.refs/.refs/_料/process-source/06-swe-gb/`；
 > 标准原文因版权/密级**留在仓外不进 git** → `D:\Code\05-swe-gb-standards\standards\`；
 > 其余（`.git`／`tools`／`.venv-ocr` 等）**全量归档** → `D:\Code\heavy-archive\06-swe-gb-retired-2026-09-28\`。
 > **旧仓的公开面（`software-engineering-gb` 的 `main`）已被覆盖为"三者融合版"**，
@@ -20,7 +20,7 @@
 >
 > **搬迁的完整记录**（完整性判据、改了什么与没改什么、**回退命令**）在
 > `ninedim/07-待审/06-swe-gb废止与三者融合收敛.md`；
-> 搬迁件自己的说明在 `refs/refs/_料/process-source/06-swe-gb/README.md`。
+> 搬迁件自己的说明在 `.refs/.refs/_料/process-source/06-swe-gb/README.md`。
 >
 > **标准原文不在本仓**：`standards/`（17 份 PDF ＋ 16 份转好的 MD，共 230.73 MB）
 > 因**版权与密级**原因**不进任何 git**。仓根 `.gitignore` 已补 `standards/*` 与 `*.pdf` 兜底规则
@@ -64,15 +64,15 @@
 | 我想找 | 去哪（一条就够） |
 |---|---|
 | **世界核心的实现代码** | `src/`——总装 `lib.rs`／`main.rs`；账本 `ledger.rs`；门禁 `gate.rs`；本体执行者 `ontology.rs`；读模型 `readmodel.rs`；信封 `event.rs`；通道 `channel.rs`；投递 `delivery.rs`；检查点 `checkpoint.rs`；**Agent 运行时** `agent/`；**载体适配** `carrier/`；**投影** `project/` |
-| **某个能力的对外承诺** | `ninedim/01-意图环/04-规格/<能力>/spec.md`（**能力数现取**：`openspec list --specs`；`Requirement` 条数以 `generated/BRIDGE.md` 为准） |
+| **某个能力的对外承诺** | `ninedim/01-意图环/04-规格/<能力>/spec.md`（**能力数现取**：`openspec list --specs`；`Requirement` 条数以 `ninedim/records/生成物/BRIDGE.md` 为准） |
 | **某条承诺的证据（哪个测试在作证）** | `ninedim/01-意图环/04-规格/**` 里的 `- **证据**：<path>::<fn>` 行 → 直接落到 `scripts/test/<file>.rs`；**改名即失锚**，由 `tools/spec_bridge.py` 判据② 盯着 |
 | **接口契约（模块之间怎么说话）** | `ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md`（**一册**，每模块一节；依赖列逐边与模块登记表一致） |
 | **跑测试／跑门禁** | 在 VM 上 `bash check.sh.new`（21 步、阻断式）；仓根 `./check.sh` 是它的**转发入口**。⚠️ 宿主（Windows）没有 cargo/bash，跑不了 |
 | **代码结构是否合规（原子化）** | `python scripts/verify/module_graph.py`——单意图／`deps == import` 且无环／四件同夹；它同时是 `check.sh` 的第 ⑨ 步 |
 | **流程文档（谁在什么时候按什么规矩做的）** | `docs/S0-立项/` → `S1-需求/` → `S2-设计/` → `S3-骨架/` → `S4-实现/` → `S5-测试/` → `S6-验收/`（阶段号就是目录号） |
 | **书的原文（上位标准）** | `ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md`（**唯一正件**；书 ＞ 规格 ＞ 流程） |
-| **设计／评审／规程／研究料** | **在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）→ 仓根 `refs/refs/语义世界-架构/`（76 篇顶层文档 ＋ 研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。它是**退役料**（只读；精华见 `ninedim/records/理论-来源/`） |
-| **上游供料（只读素材）** | **在仓内留档、不入库** → 仓根 `refs/`（36 个上游标准料目录＋`_standards-PROVENANCE.md`）、`refs/refs/omarchy/`、`refs/refs/omarchy-pkgs/`；`.gitignore`（`:2-4`）挡在版外 |
+| **设计／评审／规程／研究料** | **在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）→ 仓根 `.refs/.refs/语义世界-架构/`（76 篇顶层文档 ＋ 研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。它是**退役料**（只读；精华见 `ninedim/records/理论-来源/`） |
+| **上游供料（只读素材）** | **在仓内留档、不入库** → 仓根 `.refs/`（36 个上游标准料目录＋`_standards-PROVENANCE.md`）、`.refs/.refs/omarchy/`、`.refs/.refs/omarchy-pkgs/`；`.gitignore`（`:2-4`）挡在版外 |
 
 **三步走（从"一句话需求"到"一行代码"）**：
 1. **承诺**：先按能力名去 `ninedim/01-意图环/04-规格/` 找到那条 `Requirement`；
@@ -91,19 +91,19 @@
 | 一层条目 | 一句话 | 入库件数（实测） |
 |---|---|---|
 | **``** | **世界核心**：Rust 实现（`src/`＝9 个模块夹＋`lib.rs`／`main.rs`；`tests/`）＋**法律**（`src/ontology_definition/ontology.json`、`src/gate/policy.json`；随原子走）＋**流程文档**（`docs/`）＋**门禁工具**（`tools/`）＋**部署面**（`deploy/`：`units/`＋`install.sh`＋`README.md`）＋出厂门禁 `check.sh` | — |
-| **``** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档）＋`schemas/`（融合档）＋`gen/`（生成器）＋`generated/`（生成物：`BRIDGE.md`／`specmap.json`／`节对齐.md`）＋`work/`（工作区）＋`README.md`（目录分工）／`MAINTENANCE.md`／`config.yaml`。**书与对照表不在这**：在 `ninedim/01-意图环/01-策划/`（正件＋`落点/`＋`尺子-理念条目.md`＋`冲突总账.md`） | — |
+| **``** | **规格层**：`specs/`（对外承诺）＋`changes/`（在办与归档）＋`schemas/`（融合档）＋`gen/`（生成器）＋`ninedim/records/生成物/`（生成物：`BRIDGE.md`／`specmap.json`／`节对齐.md`）＋`work/`（工作区）＋`README.md`（目录分工）／`MAINTENANCE.md`／`config.yaml`。**书与对照表不在这**：在 `ninedim/01-意图环/01-策划/`（正件＋`落点/`＋`尺子-理念条目.md`＋`冲突总账.md`） | — |
 | **`.github/`** | **门禁自身**：`workflows/world-core-gate.yml`（CI 八作业）＋`PULL_REQUEST_TEMPLATE.md`（PR＝一次正式评审的记录） | 2 |
-| `refs/refs/语义世界-架构/` | **退役料，在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）：设计／评审／规程／研究料（76 篇顶层文档＋研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。★ 它是 `scripts/verify/kind_guard.py` 的扫描面：**现取 184 篇／红 0／`STATUS=PASS`**（`check.sh` ⑦b）。**精华**见 `ninedim/records/理论-来源/` | **0**（不入库；在工作树） |
+| `.refs/.refs/语义世界-架构/` | **退役料，在仓内留档、不入库**（作者 2026-10-07：「我们所有内容都放在自己的 08 这个仓里」）：设计／评审／规程／研究料（76 篇顶层文档＋研究料，共 93 MB／2 608 件）；`.gitignore` 挡在版外。★ 它是 `scripts/verify/kind_guard.py` 的扫描面：**现取 184 篇／红 0／`STATUS=PASS`**（`check.sh` ⑦b）。**精华**见 `ninedim/records/理论-来源/` | **0**（不入库；在工作树） |
 | ~~`agentd/`~~ | **已退场（2026-10-06）**：Go 参考实现（28 件）按作者裁定移除工作树 —— `WC-FC-2026-005` §3.1「不再作独立组件」；能力面已由 **Rust 版**接替（`src/agent/` 4 件 ＋ `scripts/test/agent_*.rs` 4 件，读数见该 change）。**旧件仍在 git 历史**：`git show deafbae:agentd/cmd/agentd/main.go` | **0**（已移出工作树） |
-| `refs/refs/omarchy/` | 上游源码快照（73 MB）：**在仓内留档、不入库**（`.gitignore:2-4`） | **0**（不入库；在工作树） |
-| `refs/refs/omarchy-pkgs/` | 同上，包构建那一半（9 MB）：**在仓内留档、不入库** | **0**（不入库；在工作树） |
-| `refs/` | 上游**标准料库**——36 个子目录（`bfo-2020`／`iao`／`in-toto`／`rekor`／`opa`／`c2sp`／`w3c-trace-context`／`skos`／`prov-o`…）＋`_standards-PROVENANCE.md`，**1.18 GB／63 648 件**（本仓磁盘占用的大头）：**在仓内留档、不入库**。★ 运行时输入：`scripts/gen/fetch_bfo_terms.py` 的缺省 `--owl` 先看仓内 | **0**（不入库；在工作树） |
+| `.refs/.refs/omarchy/` | 上游源码快照（73 MB）：**在仓内留档、不入库**（`.gitignore:2-4`） | **0**（不入库；在工作树） |
+| `.refs/.refs/omarchy-pkgs/` | 同上，包构建那一半（9 MB）：**在仓内留档、不入库** | **0**（不入库；在工作树） |
+| `.refs/` | 上游**标准料库**——36 个子目录（`bfo-2020`／`iao`／`in-toto`／`rekor`／`opa`／`c2sp`／`w3c-trace-context`／`skos`／`prov-o`…）＋`_standards-PROVENANCE.md`，**1.18 GB／63 648 件**（本仓磁盘占用的大头）：**在仓内留档、不入库**。★ 运行时输入：`scripts/gen/fetch_bfo_terms.py` 的缺省 `--owl` 先看仓内 | **0**（不入库；在工作树） |
 | `.agents/` | **AI 侧工作流技能**：`worldcore-sdd`／`openspec-swe-gb-fusion` 两篇 `SKILL.md` | 8 |
 | `README.md` | 本件（前门，含 **§〇「代码在哪」**） | — |
 | `check.sh` | **仓根唯一入口**：**转发**到 `check.sh.new`（出厂门禁 **22 步**）。⚠️ 它**自己什么也不跑** —— 只把这一次调用交出去；入口断链时 rc=2，**不报绿** | — |
 | `变更记录.md` | 2026-09-25 那次目录重排的**旧编号对照表**；它描述的正是**已退场**的布局（实测 41 处旧路径引用），保留作史料 | — |
 | `.gitattributes` | 行尾与 BOM 纪律：`.sh/.rs/.json/.yml/.yaml/.py/.csv/.md` 等一律 `eol=lf`（`:8`、`:16-23`、`:33`）；`*.ps1` **必须带 UTF-8 BOM**（`:24-28`） | — |
-| `.gitignore` | **挡在版外但留在工作树**：`refs/refs/omarchy/`、`refs/refs/omarchy-pkgs/`、`refs/`（`:2-4`）、`refs/refs/语义世界-架构/`（`:10`）、`refs/refs/_料/`（`:59-60`＝上游过程料）、`_脚本/`（过程脚本）——按作者 2026-10-07 口径「**东西都在 08 里**」，由本件决定入不入库 | — |
+| `.gitignore` | **挡在版外但留在工作树**：`.refs/.refs/omarchy/`、`.refs/.refs/omarchy-pkgs/`、`.refs/`（`:2-4`）、`.refs/.refs/语义世界-架构/`（`:10`）、`.refs/.refs/_料/`（`:59-60`＝上游过程料）、`_脚本/`（过程脚本）——按作者 2026-10-07 口径「**东西都在 08 里**」，由本件决定入不入库 | — |
 
 > **`` 再深一层**（本件用到的三处）：`docs/`＝流程文档、`tools/`＝门禁工具与守卫、
 > `src/`＋`tests/`＝Rust 实现与测试；另有 `cap.d/`（能力声明样本）、`deploy/`、`templates/`（七类模板）、
@@ -160,7 +160,7 @@
 | ① | 归档硬前置 | 每个 `ninedim/06-变更/archive/*/` 必须有非空 `review.md` |
 | ② | 证据存在性 | 规格里 `- **证据**：<path>::<fn>` 的函数／脚本必须真实存在（改名即失锚） |
 | ③ | 默认档守卫 | `ninedim/records/openspec-流程件/openspec-config.yaml` 的 `schema:` 必须是 `opsx-swe-gb-atom`（被改回默认档即失败） |
-| ④ | 编号桥覆盖 | `generated/BRIDGE.md` 必须覆盖规格树下**每一条** `Requirement`（有号或显式标「无号」） |
+| ④ | 编号桥覆盖 | `ninedim/records/生成物/BRIDGE.md` 必须覆盖规格树下**每一条** `Requirement`（有号或显式标「无号」） |
 | ⑤ | 覆盖在册 | 至少一个 `cover-*` change **未归档**且 `tasks.md` 仍有未勾项（未实现的能力要有落点） |
 | ⑥ | 归档件的评审已签 | 结论 ∈ 批准／通过／有条件通过，且批准人非空、非占位 |
 | ⑦ | 让路登记 | 声明了「谁让」的件必须写全：让哪一条／为什么让／谁批的 |
@@ -211,7 +211,7 @@
 `bf2eae7` = `bf2eae72b0df52f5aec0ce276a0826feac35ef13`（2026-09-27，「fix(book): 书名副其实——书不搬进来，只指原址」）。
 同一口径另见 `ninedim/records/openspec-流程件/schemas/README.md:38-40` 与 `ninedim/01-意图环/01-策划/策划-冲突总账.md:172`。
 
-**仍留在文本里的旧引用怎么办**：它们不改写，按上面的解析根去取。实测（`rg`，排除 `refs/`、`omarchy*/`、
+**仍留在文本里的旧引用怎么办**：它们不改写，按上面的解析根去取。实测（`rg`，排除 `.refs/`、`omarchy*/`、
 `.git/` 与本件）：今天有 **33 个文本件、共 467 处**（`rg -o` 计数）仍在引用退场路径，最多的是
 `ninedim/01-意图环/01-策划/…合订.md`（94 处）、`变更记录.md`（41 处，它是那次重排的对照表）、
 `ninedim/01-意图环/01-策划/策划-WC-FSR-001-v0.1.md`（32 处）。
@@ -231,7 +231,7 @@
 |---|---|
 | 想知道"这一层应当是什么" | 书：`ninedim/01-意图环/01-策划/策划-理论书-第一版-合订.md` |
 | 想按条目核对、或判一处冲突 | 尺子 `ninedim/01-意图环/01-策划/策划-尺子-理念条目.md` ＋ 台账 `ninedim/01-意图环/01-策划/策划-冲突总账.md` |
-| 想知道这台东西对外承诺什么 | `ninedim/01-意图环/04-规格/`（能力数现取：`openspec list --specs`）与 `generated/BRIDGE.md`（承诺 ↔ 流程侧需求号） |
+| 想知道这台东西对外承诺什么 | `ninedim/01-意图环/04-规格/`（能力数现取：`openspec list --specs`）与 `ninedim/records/生成物/BRIDGE.md`（承诺 ↔ 流程侧需求号） |
 | 想看正在改什么 | `ninedim/06-变更/`：在办 3 件（`cover-unimplemented-capabilities` 未勾 26／`fc-2026-001-openspec-into-cm` 未勾 16·已勾 18／`fc-2026-002-spec-revisions` 未勾 42）＋归档 1 件（`2026-09-27-baseline-verified-doctrine`） |
 | 想看开发形态要求 | `ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md`（原子化编程：六条约定＋机核清单） |
 | 想知道规矩怎么定的 | `ninedim/records/openspec-流程件/schemas/README.md`（融合档：谁管什么、产物链、评审档位）与 `ninedim/records/openspec-流程件/openspec-MAINTENANCE.md`（规格层维护清单） |

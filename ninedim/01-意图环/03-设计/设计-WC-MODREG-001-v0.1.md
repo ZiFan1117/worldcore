@@ -76,7 +76,7 @@
 | `src/common/event.rs` | **不占号** | 属 `M01` 的机制面（信封与信纸构造） | 附录 A §二「共同模块（不占模块号）」；文件内 `pub const WORLD_VERSION: u64 = 1;`（`src/common/event.rs:16`）、`pub fn new_event(...)`（`src/common/event.rs:26`） |
 | `src/common/mod.rs` | **不占号** | 公共模块的**面件**（协议与契约封装的入口：`delivery`／`error`／`event`／`pairing` 四个机制同住一夹，件件仍是**一件**） | 2026-10-07 随结构迁移新增（本件 §2.1 登记） |
 | `src/ontology_instance/mod.rs` | **不占号** | **实例面的面件**（内装 `readmodel`＝`M03`、`checkpoint`＝`M08`）；实例**不是另存的料**，是从账本算出来的 | 2026-10-07 随结构迁移新增（本件 §2.1 登记） |
-| `deploy/`（`units/` ＋ `install.sh` ＋ `README.md`） | **不占号** | **部署面**：把「三进程三身份一条总线」落成 systemd 单元 ＋ 装机脚本；`README.md` 是本面的**契约文档** | 判据＝`scripts/verify/carrier_contract.py`（`check.sh` ⑥c 载体契约）；测试＝`scripts/test/carrier_boundary.rs`（换掉载体、说法不变）；依据＝`WC-ARCH-001` 「进程拓扑与部署形态」＋ `deploy/README.md` |
+| `deploy/`（`units/` ＋ `install.sh` ＋ `README.md`） | **不占号** | **部署面**：把「三进程三身份一条总线」落成 systemd 单元 ＋ 装机脚本；`README.md` 是本面的**契约文档** | 判据＝`scripts/verify/carrier_contract.py`（`check.sh` ⑥c 载体契约）；测试＝`scripts/test/carrier_boundary.rs`（换掉载体、说法不变）；依据＝`WC-ARCH-001` 「进程拓扑与部署形态」＋ `scripts/release/README.md` |
 | `src/gui_projection/mod.rs` | **不占号** | 横跨 `M06`/`M07`（同源判定：`header_line`、`parse_header`、`assert_same_source`，`src/gui_projection/mod.rs:77/86/124`） | 同上 |
 | `src/common/delivery.rs` | **不占号** | 横跨 `M04`（`World::commit_requested`：经它把 `to` 写进信封）与 `M06`/`M07`/`M09`（三个出口读同一个判据）：**一条记录给谁**——带 `to` 只送该收件人、无 `to`（或空）＝广播。**只读派生**，不给 `World` 加字段、不写盘 | 本体 `ontology.json:18`（`"to": "string  # 目的地；空 = 广播"`）；书 §4.6；`ninedim/06-变更/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
 | `src/common/pairing.rs` | **不占号** | 属 `M02` 的机制面（**账本里的事后核对**），并由 `M10` 复用其中"什么算一次 `act` 的结果"这一条判据：**请求与应答的配对**——配对键 `request_id` ＋因果 `trace`。`M10` 因此对 `M02` 有一条真实依赖边（登记见 §2 `M10` 行） | 本体 `ontology.json:33`（`act` 必填 `request_id`）、`:19`（`trace`）；书 §4.6；`ninedim/06-变更/cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:11` |
@@ -174,7 +174,7 @@
 | **A-2 四件同夹** | §2「**源码路径**」列＝实现件；「**四件同夹证据**」列＝该模块的原子级用例（`tests/…::fn`）；「**契约锚点（WC-IC-001）**」列＝契约件 | 判据③：实现文件在盘上存在、`tests/` 里有用例能指到它、`WC-IC-001` 里有含该模块号的标题；判据④：证据列每个 token **必须是真存在的 `#[test]`**、锚点列每个 `IF-0xx` **必须在 `WC-IC-001` 里真出现** | **机核** |
 | **A-3 契约字段齐** | §2 末六列即本模块的 `intent`／`deps`／契约锚点／四件同夹证据／`side_effects`／机核读数 | 判据④：**逐行逐栏**非空；`intent` 非占位、无并列；`side_effects` 允许写"无"但**不许留空** | **机核**（**但 `side_effects` 那句内容对不对，机器读不出 ⇒ 只有人核**） |
 | **A-4 `deps == import` 且无环** | §2「**依赖模块**」列＝声明的出边集；「**deps 机核**」列点名判它的工具 | 判据②：**声明集 ≡ 代码里真实 import 的兄弟模块集**（逐模块逐边相等），且真实边与「声明∪真实」两条线**各自无环**（按强连通分量逐条打印环路径） | **机核** |
-| **A-5 生成物不许手编** | **本表不是生成物**——详见本节下方那条口径更正 | 本表**没有** A-5 的判据；A-5 的判据在 `generated/BRIDGE.md` 那一族生成物上（`scripts/verify/spec_bridge.py` 判据⑪⑫⑬） | **本表不适用** |
+| **A-5 生成物不许手编** | **本表不是生成物**——详见本节下方那条口径更正 | 本表**没有** A-5 的判据；A-5 的判据在 `ninedim/records/生成物/BRIDGE.md` 那一族生成物上（`scripts/verify/spec_bridge.py` 判据⑪⑫⑬） | **本表不适用** |
 | **A-6 UTF-8 无 BOM** | 本文件自身 | `python scripts/verify/plain_text_audit.py <本文件>`（BOM／非法 UTF-8／NUL 判红，`--self-test` 含 BOM 反例） | **机核** |
 
 **本表承担不了的三件事（如实登记，不许读成"已覆盖"）**：
@@ -195,11 +195,11 @@
 > **正确的分工是**：本表是**机器回读的输入**、不是生成物——
 > `module_graph.py` 判据①②③④ 与 `ic_books_check.py` 都**读本表**；
 > 而**该由生成器产出、且「改了输入必须重跑生成器」由判据管着**的那一族是
-> `generated/BRIDGE.md`、`generated/specmap.json`、`generated/节对齐.md`（判据⑪⑫⑬）。
+> `ninedim/records/生成物/BRIDGE.md`、`ninedim/records/生成物/specmap.json`、`ninedim/records/生成物/节对齐.md`（判据⑪⑫⑬）。
 >
 > **★ 两句容易被读成互相顶撞的话，口径在此钉死（两件不同的事）**：
 > ① **本表与本表**：本表**不是生成物**，故 A-5「不许手编」**管不到本表**（本节上表那一行写的「本表不适用」就是这个意思）；
-> ② **A-5 这条约定本身**：它的**可执行落点**（会红的判据）**只有** `generated/BRIDGE.md` 那一族生成物，
+> ② **A-5 这条约定本身**：它的**可执行落点**（会红的判据）**只有** `ninedim/records/生成物/BRIDGE.md` 那一族生成物，
 >    由 `scripts/verify/spec_bridge.py` 判据⑪⑫⑬ 承担。
 > ⇒ **「本表不适用 A-5」与「A-5 的真实落点只有 BRIDGE 那一族」是同一件事的两面，不是两种说法**。
 > `module_graph.py` 文件头与 `WC-ATOM-001` §五 都按 ② 写；本行按 ① 写。**两处引用同一口径。**

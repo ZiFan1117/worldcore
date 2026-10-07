@@ -225,7 +225,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | **S-3** | **一个模块要能指出四件落点**：实现文件、原子级用例（`tests/…::fn`）、契约（`WC-IC-001` 里含该模块号的节）、副作用 | 同上（判据③ 判前三件在盘上/在册里真的存在；判据④ 判 §2 的「四件同夹证据」「契约锚点」「`side_effects`」三栏填了且**取值回源为真**） | **机核** |
 | **S-4** | **`deps` 必须等于真实 import**，且依赖图**无环** | 同上（判据②；**声明集 ≡ 代码真实 import 集**逐模块逐边相等） | **机核** |
 | **S-5** | **口径一致**：`WC-MODREG-001` §2 的「`intent（一句话）`」列与「职责（一句话）」列**逐字相同**；`WC-HLD-001` §3 表的「职责」列**与 `WC-MODREG-001` 同源**（本文档只引用、不复写） | 前者同上（判据④）；**后者没有机核判据** | **S-5 前半＝机核；后半＝只有人核** |
-| **S-6** | **生成物不许手编** | 本条**不落在模块划分上**：它管的是 `generated/BRIDGE.md`／`generated/specmap.json`／`generated/节对齐.md` 那一族生成物（`scripts/verify/spec_bridge.py` 判据⑪⑫⑬）。`WC-MODREG-001` **不是**生成物（口径见该件 §3.1） | 机核（**在那一族生成物上**） |
+| **S-6** | **生成物不许手编** | 本条**不落在模块划分上**：它管的是 `ninedim/records/生成物/BRIDGE.md`／`ninedim/records/生成物/specmap.json`／`ninedim/records/生成物/节对齐.md` 那一族生成物（`scripts/verify/spec_bridge.py` 判据⑪⑫⑬）。`WC-MODREG-001` **不是**生成物（口径见该件 §3.1） | 机核（**在那一族生成物上**） |
 
 **本节承担不了的三件事（如实登记，不许读成"划分已经全自动"）**：
 

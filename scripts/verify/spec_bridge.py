@@ -12,7 +12,7 @@ OpenSpec 的 `validate` 只判**形态**（结构、Scenario 个数、delta 语�
   · 承载覆盖缺口的 change 还在不在（未归档）
   · 归档件签没签字、件里有没有掺修订记录／改因块
   · delta 的 ADDED 标题是否与主规格撞车（撞了就**永远归不了档**）
-  · 生成物 `generated/BRIDGE.md` 与它的生成器是否还同步
+  · 生成物 `ninedim/records/生成物/BRIDGE.md` 与它的生成器是否还同步
 而这些恰恰是 `opsx-swe-gb` 的文字里承诺过的。**一个从不失败的检查不是装饰，是假证。**
 本脚本就是它们的**执行者**：任一条不成立即非零退出。
 
@@ -22,14 +22,14 @@ OpenSpec 的 `validate` 只判**形态**（结构、Scenario 个数、delta 语�
 ② 证据存在性      `ninedim/01-意图环/04-规格/**/spec.md` **与 delta** 里每条 `- **证据**：<token>` 的
                    `<path>::<fn>` 或 `<path> --self-test` 必须真实存在
 ③ 默认档守卫      `ninedim/records/openspec-流程件/openspec-config.yaml` 的 `schema:` 必须为 `opsx-swe-gb`
-④ 编号桥覆盖      `generated/BRIDGE.md` 必须覆盖规格树下**每一条** Requirement（有号或显式标无号）
+④ 编号桥覆盖      `ninedim/records/生成物/BRIDGE.md` 必须覆盖规格树下**每一条** Requirement（有号或显式标无号）
 ⑤ 覆盖在册        `ninedim/06-变更/cover-*/` 至少有一个**未归档**、且 `tasks.md` 仍有未勾项
 ⑥ 评审已签        归档件的 `review.md` 结论 ∈ {批准,通过,有条件通过}，且批准人栏非空、非占位
 ⑦ 让路登记        件里声明了「谁让」，三要素就必须写全（让的是哪一条／为什么要让／谁批的）
 ⑧ 无修订记录      `docs/**`（书除外）不许有修订记录节——**标题式／加粗式／表格式都拦**
 ⑨ 无改因块        规格正文（**主规格 ＋ delta**）不许有 `> **改的是哪一类问题**…` 这类块
 ⑩ ADDED 不撞车    未归档 change 的 **ADDED** 标题不许与主规格逐字相同（撞了归档必被拒）
-⑪ 生成物同步      `generated/BRIDGE.md` 必须与 `scripts/gen/gen_bridge_md.py` 的当前输出逐字节一致
+⑪ 生成物同步      `ninedim/records/生成物/BRIDGE.md` 必须与 `scripts/gen/gen_bridge_md.py` 的当前输出逐字节一致
 
 用法
 ----
@@ -240,7 +240,7 @@ def iter_requirement_titles(repo):
 
 
 def j4_bridge_coverage(repo):
-    bridge = Path(repo) / "generated" / "BRIDGE.md"
+    bridge = Path(repo) / "ninedim" / "records" / "生成物" / "BRIDGE.md"
     if not bridge.is_file():
         return ["%s —— 编号桥映射表不存在（规格树下每条 Requirement 都必须在此在册）" % rel(repo, bridge)]
     text = read_text(bridge)
@@ -625,7 +625,7 @@ def j10_delta_added_not_colliding(repo):
 
 
 # ⑪ 用：生成物与它的生成器（都在仓内受控；**闸必须在仓内**，见 skill §九）
-BRIDGE_REL = "generated/BRIDGE.md"
+BRIDGE_REL = "ninedim/records/生成物/BRIDGE.md"
 BRIDGE_GEN_REL = "scripts/gen/gen_bridge_md.py"
 MIRROR_SKIP = (".git", "target", "node_modules", "__pycache__")
 
@@ -637,7 +637,7 @@ def _bridge_from_generator(repo, tmp_root):
     且它在**模块级**就写文件 ⇒ 在真仓跑它＝**改真仓的生成物**（门禁不许改被检对象）。
     ⇒ 把 `` 与 `` 复制进临时目录，再 `exec` **镜像里那份**生成器
     （`__file__` 指向镜像 ⇒ `SRC`／`OUT` 一并落在镜像内），比对镜像产出与仓内文件的**字节**。
-    依赖仓内**任何**被生成器读到的输入（今天：`generated/specmap.json`、`ninedim/01-意图环/04-规格/**`、
+    依赖仓内**任何**被生成器读到的输入（今天：`ninedim/records/生成物/specmap.json`、`ninedim/01-意图环/04-规格/**`、
     `docs/**`、`ninedim/06-变更/fc-2026-001-*/audit.md`）都随整树复制 ⇒ 生成器日后
     加了新输入也不必改这里。失败一律返回 `(None, 原因)`，由调用方**判红**（读不到＝失败，不是"没有该项"）。
     """
@@ -664,9 +664,9 @@ def _bridge_from_generator(repo, tmp_root):
                  {"__file__": str(gdst), "__name__": "_spec_bridge_gen_probe"})
     except Exception as e:
         return None, "在镜像里跑生成器抛异常：%r" % (e,)
-    out = mirror / "generated" / "BRIDGE.md"
+    out = mirror / "ninedim" / "records" / "生成物" / "BRIDGE.md"
     if not out.is_file():
-        return None, "生成器跑完却没有产出 `generated/BRIDGE.md`"
+        return None, "生成器跑完却没有产出 `ninedim/records/生成物/BRIDGE.md`"
     return out.read_bytes(), ""
 
 
@@ -688,15 +688,15 @@ def _bridge_diff_hint(want, got):
 
 
 def j11_bridge_in_sync_with_generator(repo):
-    """⑪ `generated/BRIDGE.md` 必须与它的生成器**当前输出**逐字节一致。
+    """⑪ `ninedim/records/生成物/BRIDGE.md` 必须与它的生成器**当前输出**逐字节一致。
 
     为什么单列一条：同一个病**复发过两次**——建表那次提交上就错了两个数（写 `133` 实测 `56`、
     写 `0 命中` 实测 `1`）；2026-09-27 评审席重跑生成器又报"提交里是旧值"。
-    而 `generated/BRIDGE.md` 被 `review.md`／`proposal.md`／`design.md` 四处援引为**数值唯一权威**。
+    而 `ninedim/records/生成物/BRIDGE.md` 被 `review.md`／`proposal.md`／`design.md` 四处援引为**数值唯一权威**。
     skill §九：**生成物不许手编；生成链必须在仓内；"闸在版本控制之外"等于没有闸**——
     但今天没有执行者 ⇒ 本条就是那个执行者（判据④ 只判"覆不覆盖"，**判不出数对不对**）。
     """
-    out = Path(repo) / "generated" / "BRIDGE.md"
+    out = Path(repo) / "ninedim" / "records" / "生成物" / "BRIDGE.md"
     if not out.is_file():
         return ["%s —— 文件不存在（生成物缺件；覆盖与否另有判据④）" % BRIDGE_REL]
     try:
@@ -715,10 +715,10 @@ def j11_bridge_in_sync_with_generator(repo):
 
 
 def j12_specmap_generator_hash(repo):
-    """⑫ `generated/specmap.json` 必须记录**它自己生成器的当前内容哈希**。
+    """⑫ `ninedim/records/生成物/specmap.json` 必须记录**它自己生成器的当前内容哈希**。
 
-    为什么单列一条：skill §九「生成物不许手编」——`generated/BRIDGE.md` 有判据⑪ 盯着（重跑生成器逐字节比），
-    而 `generated/specmap.json`（**149 KB、被 8 处引用**）**此前没有任何判据**；实测它的生成链原本在**仓外**、
+    为什么单列一条：skill §九「生成物不许手编」——`ninedim/records/生成物/BRIDGE.md` 有判据⑪ 盯着（重跑生成器逐字节比），
+    而 `ninedim/records/生成物/specmap.json`（**149 KB、被 8 处引用**）**此前没有任何判据**；实测它的生成链原本在**仓外**、
     产物还写在仓外，搬进仓内后一度与生成器脱节（`chapters` 7→1、`judges` 17→0 的**静默退化**）。
     ⇒ 本条是它今天的执行者。
 
@@ -728,59 +728,59 @@ def j12_specmap_generator_hash(repo):
     在 `--self-test` 的沙盒里供不齐、且解析器在最小输入上不保证不崩。
     ⇒ 强形态**登记为后续可加强项**（生成器已支持 `SPECMAP_OUT`，把产物写临时目录即可比对），**今天不做，且不冒充做了**。
     """
-    art = Path(repo) / "generated" / "specmap.json"
+    art = Path(repo) / "ninedim" / "records" / "生成物" / "specmap.json"
     gen = Path(repo) / "scripts" / "gen" / "gen_specmap.py"
     if not art.is_file():
-        return ["generated/specmap.json —— 文件不存在（生成物缺件）"]
+        return ["ninedim/records/生成物/specmap.json —— 文件不存在（生成物缺件）"]
     if not gen.is_file():
         return ["scripts/gen/gen_specmap.py —— 生成器不在仓内（skill §九：**「闸在版本控制之外」等于没有闸**）"]
     try:
         doc = json.loads(art.read_text(encoding="utf-8"))
     except Exception as e:
-        return ["generated/specmap.json —— 读不出 JSON（%r）；**读不到＝失败**" % e]
+        return ["ninedim/records/生成物/specmap.json —— 读不出 JSON（%r）；**读不到＝失败**" % e]
     want = hashlib.sha256(gen.read_bytes()).hexdigest()
     got = doc.get("_generator_sha256")
     if not got:
-        return ["generated/specmap.json —— 没记录 `_generator_sha256` ⇒ **无法判定它是不是当前生成器的输出**；"
+        return ["ninedim/records/生成物/specmap.json —— 没记录 `_generator_sha256` ⇒ **无法判定它是不是当前生成器的输出**；"
                 "跑 `python scripts/gen/gen_specmap.py` 重生成（**它是生成物，不许手改**）"]
     if got != want:
-        return ["generated/specmap.json —— 记录的生成器哈希 `%s…` 与当前 `scripts/gen/gen_specmap.py` 的 `%s…` **不一致** ⇒ "
+        return ["ninedim/records/生成物/specmap.json —— 记录的生成器哈希 `%s…` 与当前 `scripts/gen/gen_specmap.py` 的 `%s…` **不一致** ⇒ "
                 "**生成器改过而产物没重生成**；跑 `python scripts/gen/gen_specmap.py` 重生成" % (got[:12], want[:12])]
     return []
 
 
 def j13_secmap_freshness(repo):
-    """⑬ `generated/节对齐.md`（41 节对齐图）必须记录**当前**的来源坐标。
+    """⑬ `ninedim/records/生成物/节对齐.md`（41 节对齐图）必须记录**当前**的来源坐标。
 
-    为什么单列一条：它是**生成物**（`scripts/gen/gen_secmap.py` 从 `generated/specmap.json`
+    为什么单列一条：它是**生成物**（`scripts/gen/gen_secmap.py` 从 `ninedim/records/生成物/specmap.json`
     ＋ `ninedim/01-意图环/03-设计/设计-落点/*.md` 生成），而**此前没有任何判据核它**——
-    实证（2026-09-28 现取）：图里记的是 `generated/specmap.json` 的 `cf50089c…`，而当时现取 `91045040…`
+    实证（2026-09-28 现取）：图里记的是 `ninedim/records/生成物/specmap.json` 的 `cf50089c…`，而当时现取 `91045040…`
     ⇒ **图已经过期，没有任何判据发现**（skill §九：闸不在门禁里＝没有闸）。
 
     **★ 本判据的射程（如实写，不假装管得更多）**：它抓的是「**来源变了而图没重生成**」
     （核产物首部记的两个哈希 vs 当前两个文件）。**它抓不到**「图的数据被手工改过」——
-    那需要重跑生成器逐字节比对（生成器读 `generated/specmap.json` ＋ `节落点/*.md`，在沙盒里供得起，
+    那需要重跑生成器逐字节比对（生成器读 `ninedim/records/生成物/specmap.json` ＋ `节落点/*.md`，在沙盒里供得起，
     **列为可加强项**；今天不做，也不冒充做了）。
     """
-    art = Path(repo) / "generated" / "节对齐.md"
+    art = Path(repo) / "ninedim" / "records" / "生成物" / "节对齐.md"
     if not art.is_file():
-        return ["generated/节对齐.md —— 文件不存在（41 节对齐图缺件；跑 `python scripts/gen/gen_secmap.py` 生成）"]
+        return ["ninedim/records/生成物/节对齐.md —— 文件不存在（41 节对齐图缺件；跑 `python scripts/gen/gen_secmap.py` 生成）"]
     text = art.read_text(encoding="utf-8")
     bad = []
-    for label, rel, pat in (("`generated/specmap.json`", "generated/specmap.json", r"`generated/specmap\.json` 的 sha256 `([0-9a-f]+)…`"),
+    for label, rel, pat in (("`ninedim/records/生成物/specmap.json`", "ninedim/records/生成物/specmap.json", r"`ninedim/records/生成物/specmap\.json` 的 sha256 `([0-9a-f]+)…`"),
                             ("生成器 `gen_secmap.py`", "scripts/gen/gen_secmap.py",
                              r"生成器 `scripts/gen/gen_secmap\.py` 的 sha256 `([0-9a-f]+)…`")):
         m = re.search(pat, text)
         if not m:
-            bad.append("generated/节对齐.md —— 首部没记 %s 的哈希 ⇒ **无法判定它是不是当前生成物的输出**" % label)
+            bad.append("ninedim/records/生成物/节对齐.md —— 首部没记 %s 的哈希 ⇒ **无法判定它是不是当前生成物的输出**" % label)
             continue
         p = Path(repo) / rel
         if not p.is_file():
-            bad.append("generated/节对齐.md —— 首部引的 %s 不在仓内" % rel)
+            bad.append("ninedim/records/生成物/节对齐.md —— 首部引的 %s 不在仓内" % rel)
             continue
         want = hashlib.sha256(p.read_bytes()).hexdigest()
         if not want.startswith(m.group(1)):
-            bad.append("generated/节对齐.md —— 首部记的 %s 哈希 `%s…` 与当前 `%s…` **不一致** ⇒ "
+            bad.append("ninedim/records/生成物/节对齐.md —— 首部记的 %s 哈希 `%s…` 与当前 `%s…` **不一致** ⇒ "
                        "**来源变了而图没重生成**；跑 `python scripts/gen/gen_secmap.py` 重生成"
                        % (label, m.group(1)[:12], want[:12]))
     return bad
@@ -883,8 +883,8 @@ def j15_doc_lists_match_reality(repo):
 def j14_judges_all_claimed(repo):
     """⑭ 书 §5.6 的**每一行判据**都必须在仓内**有人认领**。
 
-    为什么单列一条：`generated/specmap.json` 里的 `judges`（书 §5.6 那 17 行）此前**没有逐行消费者**——
-    `rg -n 'judges' --glob '!generated/specmap.json'` 只回生成器自身与 `spec_bridge.py` 的一句叙述
+    为什么单列一条：`ninedim/records/生成物/specmap.json` 里的 `judges`（书 §5.6 那 17 行）此前**没有逐行消费者**——
+    `rg -n 'judges' --glob '!ninedim/records/生成物/specmap.json'` 只回生成器自身与 `spec_bridge.py` 的一句叙述
     ⇒ **某一行在项目侧的账目消失了，没有任何判据会变红**（见 `ninedim/01-意图环/03-设计/设计-落点/第五章.md` 记的"三处缺"）。
 
     认领处（三处任一即可）：`ninedim/01-意图环/03-设计/设计-落点/第五章.md` ／ `ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md`
@@ -893,13 +893,13 @@ def j14_judges_all_claimed(repo):
     **★ 射程（如实写）**：它只核「**这一行有没有人认领**」（按**书行号**在某处出现），
     **不核**「认领的内容对不对、落点是不是真的」——那要人读。**别把它读成"5.6 已逐项对齐"**。
     """
-    sm = Path(repo) / "generated" / "specmap.json"
+    sm = Path(repo) / "ninedim" / "records" / "生成物" / "specmap.json"
     if not sm.is_file():
-        return ["generated/specmap.json —— 文件不存在（判据⑫ 已管，此处不重复报）"]
+        return ["ninedim/records/生成物/specmap.json —— 文件不存在（判据⑫ 已管，此处不重复报）"]
     try:
         doc = json.loads(sm.read_text(encoding="utf-8"))
     except Exception as e:
-        return ["generated/specmap.json —— 读不出 JSON（%r）" % e]
+        return ["ninedim/records/生成物/specmap.json —— 读不出 JSON（%r）" % e]
     claims = [Path(repo) / "docs" / "理论" / "落点" / "第五章.md",
               Path(repo) / "docs" / "S1-需求" / "需求-WC-SRS-001-v0.1.md"]
     claims += sorted((Path(repo) / "ninedim" / "06-变更").glob("cover-*/tasks.md"))
@@ -962,7 +962,7 @@ JUDGMENTS = [
     ("① 归档硬前置（归档目录必须有 review.md）", j1_archive_review),
     ("② 证据存在性（证据行的函数/脚本必须真实存在）", j2_evidence),
     ("③ 默认档守卫（config.yaml 必须为 %s）" % SCHEMA_NAME, j3_default_schema),
-    ("④ 编号桥覆盖（generated/BRIDGE.md 必须覆盖规格树下每条 Requirement）", j4_bridge_coverage),
+    ("④ 编号桥覆盖（ninedim/records/生成物/BRIDGE.md 必须覆盖规格树下每条 Requirement）", j4_bridge_coverage),
     ("⑤ 覆盖在册（cover-* change 未归档且 tasks 有未勾项）", j5_coverage_change),
     ("⑥ 归档件的评审已签（结论 ∈ 批准/通过/有条件通过，且批准人非空）", j6_archived_review_signed),
     ("⑦ 让路登记（声明了「谁让」的件必须写全：让哪一条／为什么／谁批的）", j7_waiver_registered),
@@ -970,8 +970,8 @@ JUDGMENTS = [
      "豁免目录：`docs/评审/`、书 `ninedim/01-意图环/01-策划/`）", j8_no_revision_log_in_docs),
     ("⑨ 规格正文无改因块（**主规格 ＋ delta**；改因归该 change 的 `design.md`／`audit.md`）", j9_no_rationale_in_specs),
     ("⑩ ADDED 标题不与主规格撞车（撞了该 change 永远归不了档）", j10_delta_added_not_colliding),
-    ("⑪ `generated/BRIDGE.md` 与生成器的当前输出逐字节一致（生成物不许手编）", j11_bridge_in_sync_with_generator),
-    ("⑫ `generated/specmap.json` 记录了当前生成器的内容哈希（生成物不许手编）", j12_specmap_generator_hash),
+    ("⑪ `ninedim/records/生成物/BRIDGE.md` 与生成器的当前输出逐字节一致（生成物不许手编）", j11_bridge_in_sync_with_generator),
+    ("⑫ `ninedim/records/生成物/specmap.json` 记录了当前生成器的内容哈希（生成物不许手编）", j12_specmap_generator_hash),
     ("⑬ `节对齐.md` 记录了当前来源坐标（生成物不许手编）", j13_secmap_freshness),
     ("⑮ 两份文档的三张「清单表」≡ 实际（双向）", j15_doc_lists_match_reality),
     ("⑭ 书 §5.6 的每一行判据都有人认领", j14_judges_all_claimed),
@@ -1031,15 +1031,15 @@ SANDBOX = {
     # 未归档 change 的 delta 规格：判据②（证据存在性）与⑨（无改因块）**都扫 delta**、
     # 判据⑩ 也读它 ⇒ 正控里它必须干净。
     "ninedim/06-变更/cover-gap/specs/cap-a/spec.md": SANDBOX_DELTA,
-    "generated/BRIDGE.md": SANDBOX_BRIDGE,
-    # 沙盒用的**最小生成器**：判据⑪ 拿"它的当前输出"比对 `generated/BRIDGE.md`。
+    "ninedim/records/生成物/BRIDGE.md": SANDBOX_BRIDGE,
+    # 沙盒用的**最小生成器**：判据⑪ 拿"它的当前输出"比对 `ninedim/records/生成物/BRIDGE.md`。
     # 它刻意照抄真生成器的取径方式（`__file__` → 上一级目录），因为⑪ 的实现正是靠这一点
     # 把镜像里的 `OUT` 关在临时目录内。产出必须与 `SANDBOX_BRIDGE` 逐字节相同（正控绿）。
     "scripts/gen/gen_bridge_md.py": (
         "# -*- coding: utf-8 -*-\n"
         "# 沙盒最小生成器：只证明判据⑪「生成物与生成器不同步即红」真的会红。\n"
         "from pathlib import Path\n"
-        "OUT = str(Path(__file__).resolve().parent.parent / 'generated/BRIDGE.md')\n"
+        "OUT = str(Path(__file__).resolve().parent.parent / 'ninedim/records/生成物/BRIDGE.md')\n"
         "open(OUT, 'w', encoding='utf-8', newline='\\n').write(" + repr(SANDBOX_BRIDGE) + ")\n"
     ),
     "scripts/test/t.rs": "fn the_test() {}\n",
@@ -1051,7 +1051,7 @@ def build_sandbox(root):
         p = Path(root) / relp
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8", newline="\n")
-    # ★ 判据⑫ 的沙盒件：把**仓内真生成器**字节复制进去，并造一份「已同步」的 `generated/specmap.json`
+    # ★ 判据⑫ 的沙盒件：把**仓内真生成器**字节复制进去，并造一份「已同步」的 `ninedim/records/生成物/specmap.json`
     #   （哈希＝沙盒里那份生成器的真实哈希 ⇒ 正控应当全绿）
     #   路径：本文件在 `scripts/` ⇒ 仓根＝上两级；生成器在 `<仓根>/scripts/gen/gen_specmap.py`
     _repo = Path(__file__).resolve().parent.parent.parent
@@ -1090,22 +1090,22 @@ def build_sandbox(root):
     _j14.parent.mkdir(parents=True, exist_ok=True)
     _j14.write_text("| 行 | 认领 |\n|---|---|\n| 733 | 沙盒 |\n| 734 | 沙盒 |\n",
                     encoding="utf-8", newline="\n")
-    _art = Path(root) / "generated" / "specmap.json"
+    _art = Path(root) / "ninedim" / "records" / "生成物" / "specmap.json"
     _art.write_text(json.dumps({"caps": [], "_generator_sha256": _sha,
                                # ★ 判据⑭ 要查 `judges` ⇒ 沙盒这份必须带（且与"认领表"的行号配套）
                                "judges": [{"sec": "5.1", "line": 733}, {"sec": "5.2", "line": 734}]},
                               ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
     # ★ 判据⑬ 的沙盒件（SANDBOX 节对齐）：一份"来源坐标对得上"的 41 节图 ⇒ 正控应绿
-    _sm = Path(root) / "generated" / "specmap.json"
+    _sm = Path(root) / "ninedim" / "records" / "生成物" / "specmap.json"
     _sm_sha = hashlib.sha256(_sm.read_bytes()).hexdigest()
     # 判据⑬ 要的是 `gen_secmap.py`（不是 `gen_specmap.py`）⇒ 也要字节复制进去，哈希才对得上。
     _gen2_src = Path(__file__).resolve().parent.parent.parent / "scripts" / "gen" / "gen_secmap.py"
     _gen2_dst = Path(root) / "scripts" / "gen" / "gen_secmap.py"
     _gen2_dst.write_bytes(_gen2_src.read_bytes())
     _sha2 = hashlib.sha256(_gen2_dst.read_bytes()).hexdigest()
-    _sec = Path(root) / "generated" / "节对齐.md"
+    _sec = Path(root) / "ninedim" / "records" / "生成物" / "节对齐.md"
     _sec.parent.mkdir(parents=True, exist_ok=True)
-    _sec.write_text("# 41 节对齐图（沙盒）\n\n**来源与坐标**：`generated/specmap.json` 的 sha256 `%s…`｜"
+    _sec.write_text("# 41 节对齐图（沙盒）\n\n**来源与坐标**：`ninedim/records/生成物/specmap.json` 的 sha256 `%s…`｜"
                     "生成器 `scripts/gen/gen_secmap.py` 的 sha256 `%s…`\n" % (_sm_sha[:16], _sha2[:16]),
                     encoding="utf-8", newline="\n")
 
@@ -1194,8 +1194,8 @@ def self_test():
         _red(2, "③", "默认档改回 spec-driven")
         cf.write_text("schema: %s\n" % SCHEMA_NAME, encoding="utf-8", newline="\n")
 
-        # 反例 4：把 generated/BRIDGE.md 里那条 Requirement 抹掉
-        br = Path(tmp) / "generated/BRIDGE.md"
+        # 反例 4：把 ninedim/records/生成物/BRIDGE.md 里那条 Requirement 抹掉
+        br = Path(tmp) / "ninedim/records/生成物/BRIDGE.md"
         backup = br.read_text(encoding="utf-8")
         br.write_text("# 编号桥\n\n（空）\n", encoding="utf-8", newline="\n")
         _red(3, "④", "映射表不覆盖")
@@ -1352,15 +1352,15 @@ def self_test():
         _green(9, "10n", "`MODIFIED` 标题与主规格相同（本来就该相同）")
         d10.write_text(backup10, encoding="utf-8", newline="\n")
 
-        # ── 反例 11：手编生成物——往 `generated/BRIDGE.md` 里加一行（生成器不会产出它） ──
-        br11 = Path(tmp) / "generated/BRIDGE.md"
+        # ── 反例 11：手编生成物——往 `ninedim/records/生成物/BRIDGE.md` 里加一行（生成器不会产出它） ──
+        br11 = Path(tmp) / "ninedim/records/生成物/BRIDGE.md"
         backup11 = br11.read_text(encoding="utf-8")
         br11.write_text(backup11 + "\n（手编：这一行不是生成器产出的）\n", encoding="utf-8", newline="\n")
-        _red(10, "⑪", "`generated/BRIDGE.md` 被手编（与生成器当前输出不同）")
+        _red(10, "⑪", "`ninedim/records/生成物/BRIDGE.md` 被手编（与生成器当前输出不同）")
         br11.write_text(backup11, encoding="utf-8", newline="\n")
 
         # ── 反例 12：生成器改了、产物没重生成 —— 把产物里记录的生成器哈希改掉 ──
-        sp12 = Path(tmp) / "generated/specmap.json"
+        sp12 = Path(tmp) / "ninedim/records/生成物/specmap.json"
         backup12 = sp12.read_text(encoding="utf-8")
         _d12 = json.loads(backup12)
         _d12["_generator_sha256"] = "0" * 64
@@ -1372,11 +1372,11 @@ def self_test():
         _green(11, "12n", "产物与生成器同步（哈希一致）")
 
         # ── 反例 13：来源变了而图没重生成 —— 把图首部记的 specmap 哈希改掉 ──
-        sec13 = Path(tmp) / "generated/节对齐.md"
+        sec13 = Path(tmp) / "ninedim/records/生成物/节对齐.md"
         backup13 = sec13.read_text(encoding="utf-8")
-        sec13.write_text(re.sub(r"(`generated/specmap\.json` 的 sha256 `)[0-9a-f]+",
+        sec13.write_text(re.sub(r"(`ninedim/records/生成物/specmap\.json` 的 sha256 `)[0-9a-f]+",
                                 r"\g<1>" + "0" * 16, backup13), encoding="utf-8", newline="\n")
-        _red(12, "⑬", "图首部记的来源哈希与当前 `generated/specmap.json` 不一致（＝来源变了没重生成）")
+        _red(12, "⑬", "图首部记的来源哈希与当前 `ninedim/records/生成物/specmap.json` 不一致（＝来源变了没重生成）")
         sec13.write_text(backup13, encoding="utf-8", newline="\n")
 
         # 对照 13n：**不该红的** —— 沙盒里那份图的坐标与来源是对得上的

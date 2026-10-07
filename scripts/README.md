@@ -71,9 +71,9 @@
 
 | 件 | 生成什么 | 谁跑它（现取） |
 |---|---|---|
-| `gen_owner_uid.py` | 部署面映射：`owner`（名字）→ `uid`（数字） | `deploy/install.sh` |
-| `render_channel.py` | 渲染链：在册表（法律）＋部署面 uid ⇒ `channel.json` | `deploy/install.sh` |
-| `fetch_bfo_terms.py` | BFO 术语薄层：读本地整包 → `bfo-terms.json` | **手工**（缺省输入现落在归档 `worldcore-上游料-2026-10-06/refs/`） |
+| `gen_owner_uid.py` | 部署面映射：`owner`（名字）→ `uid`（数字） | `scripts/release/install.sh` |
+| `render_channel.py` | 渲染链：在册表（法律）＋部署面 uid ⇒ `channel.json` | `scripts/release/install.sh` |
+| `fetch_bfo_terms.py` | BFO 术语薄层：读本地整包 → `bfo-terms.json` | **手工**（缺省输入现落在归档 `worldcore-上游料-2026-10-06/.refs/`） |
 
 ## 三、数据与生成物（**不是代码**）
 
@@ -103,7 +103,7 @@
 
 | 子夹 | 是什么 |
 |---|---|
-| `refs/refs/omarchy/` | 界面（Omarchy）那侧的单独一件（现取：1 件） |
+| `.refs/.refs/omarchy/` | 界面（Omarchy）那侧的单独一件（现取：1 件） |
 | ~~`__pycache__/`~~ | **已清并挡在版外**（2026-10-06：`.gitignore` 增 `__pycache__/`、`*.pyc`；此前它没被挡，`git add -A` 会把 17 件字节码一起收进来） |
 
 ---
@@ -112,7 +112,7 @@
 
 ```bash
 # 每件有没有执行体（把 <件名> 换成你要查的）
-grep -n '<件名>' check.sh.new .github/workflows/world-core-gate.yml deploy/install.sh
+grep -n '<件名>' check.sh.new .github/workflows/world-core-gate.yml scripts/release/install.sh
 # 这一夹现有几件（条数不写死）
 ls tools | wc -l
 ```

@@ -2,7 +2,7 @@
 '''生成「书 41 节 ↔ 本项目落点」对齐图（**仓外试跑版**；解冻后搬进 `scripts/gen/gen_secmap.py`）。
 
 为什么要有这张图：目标里点名要「**41 节**逐项对齐」，但仓里今天**没有任何一件**把 41 节逐节列出来——
-`generated/specmap.json` 的 `srs`（41 条）是**SRS 需求**、与书的 41 节是巧合；`judges` 只落 6 节、`book_gaps` 6 节、`cap_book` 16 节。
+`ninedim/records/生成物/specmap.json` 的 `srs`（41 条）是**SRS 需求**、与书的 41 节是巧合；`judges` 只落 6 节、`book_gaps` 6 节、`cap_book` 16 节。
 
 **口径（重要，写在图里）**：本图**只机抽四个已登记来源**，一处都不编：
  ① `cap_book`（能力 ↔ 节）② `judges`（§5.6 那张表的判据与颜色）③ `book_gaps`（书里要求、规格零落点）④ `理念条目.md` 的节题与依据栏。
@@ -66,9 +66,9 @@ def main() -> int:
     a = ap.parse_args()
     # ★ 仓根按**脚本自身位置**推（本文件在 `scripts/gen/` ⇒ 上两级）
     repo = HERE.parent.parent.parent
-    sm_p = Path(a.specmap) if a.specmap else repo / "generated/specmap.json"
+    sm_p = Path(a.specmap) if a.specmap else repo / "ninedim/records/生成物/specmap.json"
     ru_p = Path(a.ruler) if a.ruler else repo / "ninedim/01-意图环/01-策划/策划-尺子-理念条目.md"
-    out_p = Path(a.out) if a.out else repo / "generated/节对齐.md"
+    out_p = Path(a.out) if a.out else repo / "ninedim/records/生成物/节对齐.md"
     land_d = Path(a.landing_dir) if a.landing_dir else repo / "ninedim/01-意图环/01-策划/落点"
 
     # 逐节调查（**与机抽四源分开**）：从 `节落点/*.md` 里抽每节的 `**判定**：…`
@@ -125,9 +125,9 @@ def main() -> int:
     L.append("> **机抽的归机抽、调查的归调查，两者不许互相冒充**；调查没做的节写「**未调查**」。")
     L.append(">")
     L.append("> **为什么需要它**：目标里点名要「41 节逐项对齐」，而仓里此前**没有任何一件**逐节列出。")
-    L.append("> `generated/specmap.json` 的 `srs`（41 条）是 **SRS 需求**、与书的 41 节是**巧合**；`judges` 落 6 节、`book_gaps` 6 节、`cap_book` 16 节。")
+    L.append("> `ninedim/records/生成物/specmap.json` 的 `srs`（41 条）是 **SRS 需求**、与书的 41 节是**巧合**；`judges` 落 6 节、`book_gaps` 6 节、`cap_book` 16 节。")
     L.append("")
-    L.append("**来源与坐标**：`generated/specmap.json` 的 sha256 `%s…`｜生成器 `scripts/gen/gen_secmap.py` 的 sha256 `%s…`"
+    L.append("**来源与坐标**：`ninedim/records/生成物/specmap.json` 的 sha256 `%s…`｜生成器 `scripts/gen/gen_secmap.py` 的 sha256 `%s…`"
              % (sm_sha[:16], gen_sha[:16]))
     L.append("")
     L.append("| 节 | 这一节只讲一件事（尺子） | 能力映射（`cap_book`） | §5.6 判据（`judges`） | "

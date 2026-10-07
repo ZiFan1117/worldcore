@@ -133,7 +133,7 @@
       **读数四要素**：命令 ＋ 原始输出 ＋ 时点 ＋ 对象（提交号）。
       ⚠ 跑度量前**先读件里记的那条命令**（本组第 4.1 条就是它），不要按惯用命令另跑一遍——实测那条会出 8 倍差。
 - [ ] 4.2 VM 上跑 `bash check.sh`（既有 13 步），逐条读数入档。
-- [ ] 4.3 本机三条门禁：`python scripts/verify/spec_bridge.py`、`npx --yes @fission-ai/openspec@1.13.2 validate --all --strict`、`python scripts/verify/table_width_audit.py <改过的 .md>`；另跑 `python scripts/gen/gen_specmap.py` 后的 `generated/specmap.json` 未变（证明我没改规格树）。
+- [ ] 4.3 本机三条门禁：`python scripts/verify/spec_bridge.py`、`npx --yes @fission-ai/openspec@1.13.2 validate --all --strict`、`python scripts/verify/table_width_audit.py <改过的 .md>`；另跑 `python scripts/gen/gen_specmap.py` 后的 `ninedim/records/生成物/specmap.json` 未变（证明我没改规格树）。
 - [ ] 4.4 归档后复跑 `npx --yes @fission-ai/openspec@1.13.2 validate --archived` 与 `python scripts/verify/spec_bridge.py`。
 - [ ] 4.5 **独立评审席**：另派一个子智能体（要求它独立复跑、用 `git show <sha>:<path>` 读件而不读工作区、给**可逐字转录**的判定语、并列出"未核"与它自己的错）。
       **验收**：`review.md` 里逐字记下它的判定语与它列出的"未核"清单。

@@ -28,7 +28,7 @@
 | ⑤b | 需求追溯矩阵（RTM：需求 → 设计模块 → 测试用例，双向；含判定器自证） | rc=0 |
 | ⑥ | 系统级验收（真实二进制端到端） | rc=0 |
 | ⑥b | 载体适配器系统级验收（M10：真实二进制／真实内核／真实账本；`tools/carrier_acceptance.sh`，C-01…C-09b） | rc=0；★ **非 root 或缺 `runuser` ⇒ 本步打 ⏭「未校验」、不阻断**（C-09 组要 `runuser -u agent`；缺它时脚本自身走 `bad(...)`⇒汇总 rc=1，**不是** SKIP ⇒ 故由本步显式分岔：既不把"没跑"读成绿、也不把"这一步没跑成"读成红） |
-| ⑥c | 载体契约（`tools/carrier_contract.py`：`deploy/` 的六份单元 ≡ 设计（`deploy/README.md`）＋法律（`policy.json`）——单元 ⊆ 清单／清单 ⊆ 目录／`User=` 不许 root／`SocketMode` 不许 0666／`ExecStart` 不许带 `--confirm`／单元 ∧ 法律 `listeners`／渲染物 ⊆ 法律／owner→uid 映射对账，共 12 条） | rc=0；★ 该守卫自带 `STATUS=SKIP`：宿主机缺 POSIX 元数据或部署件（`/etc/world-core/owner_uid.json`／`channel.json`）⇒ 它**显式打印"未校验"并 rc=0** ⇒ `run_tail` 认这一行，本步正确显示 **⏭**（未校验 ≠ 通过）。⚠ **本步在 VM 上的颜色 2026-10-06 未取到**（VM 连接超时）；宿主机现取＝绿（红 0 条）＋ 5 条未校验 |
+| ⑥c | 载体契约（`tools/carrier_contract.py`：`deploy/` 的六份单元 ≡ 设计（`scripts/release/README.md`）＋法律（`policy.json`）——单元 ⊆ 清单／清单 ⊆ 目录／`User=` 不许 root／`SocketMode` 不许 0666／`ExecStart` 不许带 `--confirm`／单元 ∧ 法律 `listeners`／渲染物 ⊆ 法律／owner→uid 映射对账，共 12 条） | rc=0；★ 该守卫自带 `STATUS=SKIP`：宿主机缺 POSIX 元数据或部署件（`/etc/world-core/owner_uid.json`／`channel.json`）⇒ 它**显式打印"未校验"并 rc=0** ⇒ `run_tail` 认这一行，本步正确显示 **⏭**（未校验 ≠ 通过）。⚠ **本步在 VM 上的颜色 2026-10-06 未取到**（VM 连接超时）；宿主机现取＝绿（红 0 条）＋ 5 条未校验 |
 | ⑦ | S1 需求验证面补建（两轮 `TC-0xx`） | rc=0 |
 | ⑦b | kind 守卫（`tools/kind_guard.py`：架构件里"三类话 vs 帧上方法名"，判据三条） | rc=0；**扫描根是仓外的架构夹** ⇒ 根不在时本步以 `--allow-missing` 打印"未校验"、rc=0（那是"没跑"，不是"通过"） |
 | ⑦c | 两件一致性守卫·跨件对账（`tools/cross_contract.py --set cross`：`ontology.json` × `policy.json` 的 **C-01…C-07**——反向能力集／动作两层三样／许可条文的键／`writes` 与 `subjects.allow`／`listeners` 与 `subjects.allow`） | rc=0（**判得了** ⇒ 该步配 ✅）。★ 本步的 ✅ 是「**判过且对**」，**不是**「没人判」：七条各有反例证明**它会红**（`--self-test`），现跑 0 红 |
@@ -57,7 +57,7 @@
 | 单次改动的评审与准出 | `ninedim/06-变更/<change>/review.md`（结论／批准人／日期三栏**由人签**） |
 | 已归档的评审 | `ninedim/06-变更/archive/<日期>-<change>/review.md` |
 | 逐轮的判词、必改、撤回与留痕 | `ninedim/01-意图环/01-策划/策划-冲突总账.md` |
-| 数值与它们的复算命令 | `generated/BRIDGE.md` §七（**现算**） |
+| 数值与它们的复算命令 | `ninedim/records/生成物/BRIDGE.md` §七（**现算**） |
 
 ## 五、这份文档不覆盖的
 

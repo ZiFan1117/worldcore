@@ -2,13 +2,13 @@
   "schema": "bfo-terms/1",
   "generated_at": "2026-10-05T14:27:13.762900+08:00",
   "generator": "scripts/gen/fetch_bfo_terms.py",
-  "taken_from": "本地整包 refs/bfo-2020/21838-2/owl/bfo-core.owl@b65c817a7a25",
+  "taken_from": "本地整包 .refs/bfo-2020/21838-2/owl/bfo-core.owl@b65c817a7a25",
   "source": {
     "kind": "local_package",
-    "path": "refs/bfo-2020/21838-2/owl/bfo-core.owl",
+    "path": ".refs/bfo-2020/21838-2/owl/bfo-core.owl",
     "bytes": 98418,
     "sha256": "b65c817a7a25501499d287981aea972f2ce33146dcfb855915a459f6a051718d",
-    "upstream_url": "https://codeload.github.com/BFO-ontology/BFO-2020/tar.gz/refs/heads/master",
+    "upstream_url": "https://codeload.github.com/BFO-ontology/BFO-2020/tar.gz/.refs/heads/master",
     "why_this_source": "选 `bfo-core.owl` 作正源：它是 BFO 2020 的**核心类集**（具名 `owl:Class`，只有类、没有关系）。",
     "the_other_candidate": "另一处 `21838-2/owl/profiles/temporal extensions/temporalized relations/documentation/bfo-2020-terms.csv`（37268 B／122 行／121 个 distinct term）是【分册】的文档表，**类与关系混在一起**（56 个像关系的 term：`is a`／`continuant part of`／…）。★★ 更正（2026-10-05）：本席**曾据【大小写敏感】的搜索**误判它『`Site`/`Quality`/… 各 0 命中』——**那句是错的**：该表里的 term 是**全小写**（`site`/`quality`/`disposition`/`role`/`process` 都在）。⇒ 两种源是**两个不同的宇宙**（36 个纯类 ↔ 122 行类＋关系），**取哪个必须声明**。"
   },

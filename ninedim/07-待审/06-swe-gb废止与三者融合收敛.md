@@ -25,12 +25,12 @@
 
 | 内容 | 从 | 到 | 件数／体积 | 完整性判据 |
 |---|---|---|---|---|
-| 流程侧法源（`docs/` ＋ `templates/`） | `D:\Code\06-swe-gb\` | **`refs/refs/_料/process-source/06-swe-gb/`**（**本仓内，纳入版本控制**） | **48 件 / 1.09 MB** | **逐文件 sha256 对账：47/47 一致、0 缺失、0 不一致**（第 48 件是本件新增的 `README.md`） |
+| 流程侧法源（`docs/` ＋ `templates/`） | `D:\Code\06-swe-gb\` | **`.refs/.refs/_料/process-source/06-swe-gb/`**（**本仓内，纳入版本控制**） | **48 件 / 1.09 MB** | **逐文件 sha256 对账：47/47 一致、0 缺失、0 不一致**（第 48 件是本件新增的 `README.md`） |
 | 标准原文法源（`standards/`） | `D:\Code\06-swe-gb\standards\` | **`D:\Code\05-swe-gb-standards\standards\`**（**仓外，不进任何 git**） | **94 件 / 230.73 MB** | **搬迁前后逐文件 sha256 集合一致**（`Move-Item`，非复制 ⇒ 无副本） |
 
 **两处落点各自的说明件**（本件之外的出处登记）：
 
-- 本仓内：`refs/refs/_料/process-source/06-swe-gb/README.md`
+- 本仓内：`.refs/.refs/_料/process-source/06-swe-gb/README.md`
 - 仓外：`D:\Code\05-swe-gb-standards\README.md`
 
 ### 1.1 为什么"标准原文"必须出仓
@@ -100,7 +100,7 @@ git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
 ### 2.4 ★ 一处**执行者自己造成的**副作用（如实登记）
 
 改 `fc-2026-001/proposal.md:82` 时，执行者除了把绝对路径换成仓内相对路径，**还顺手删掉了 `:61-68` 这个行号**。
-**核后确认：那个行号本来是对的**——`refs/refs/_料/process-source/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md:61` 是 FC 词表表头、`:68` 是 `FC-6` 行。
+**核后确认：那个行号本来是对的**——`.refs/.refs/_料/process-source/06-swe-gb/docs/01-流程与阶段/框架与模块共演化.md:61` 是 FC 词表表头、`:68` 是 `FC-6` 行。
 ⇒ 属**删除正确信息**。方向与该仓"引用不写行号"那条规矩一致，但**那条规矩的理由是"行号会烂"，而此处行号没有烂** ⇒
 **这一处是执行者没有依据的改动**，如实登记。回退办法见 §五。
 
@@ -139,7 +139,7 @@ git -C D:\Code\06-swe-gb ls-files --others --exclude-standard   ⇒ 22 件
 ## 六、顺手修掉的一处**真红**（不是本动作引入的，但被本动作暴露）
 
 **发现过程**：取基线读数时（本动作开始前）`spec_bridge.py` 已是 **通过 15 / 失败 1**，
-唯一红项＝**判据⑪**（`generated/BRIDGE.md` 与生成器输出不一致）。
+唯一红项＝**判据⑪**（`ninedim/records/生成物/BRIDGE.md` 与生成器输出不一致）。
 
 **红的原因（逐字取自守卫输出）**：
 
@@ -165,11 +165,11 @@ python scripts/gen/gen_bridge_md.py → rc=0；rows=49 unmapped=31 gov=5 srs_no_
 
 | 件 | 跑前 | 跑后 | 判定 |
 |---|---|---|---|
-| `generated/BRIDGE.md` | 18952 B sha `0e37bf5089b5` | **18953 B sha `307cf8d5aaa8`** | **变**（正是判据⑪ 要的） |
-| `generated/specmap.json` | 157026 B sha `bcb31c99ab85` | **157026 B sha `bcb31c99ab85`** | **未变**（逐字节） |
-| `generated/节对齐.md` | 13366 B sha `7ad32c7bf532` | **13366 B sha `7ad32c7bf532`** | **未变**（逐字节） |
+| `ninedim/records/生成物/BRIDGE.md` | 18952 B sha `0e37bf5089b5` | **18953 B sha `307cf8d5aaa8`** | **变**（正是判据⑪ 要的） |
+| `ninedim/records/生成物/specmap.json` | 157026 B sha `bcb31c99ab85` | **157026 B sha `bcb31c99ab85`** | **未变**（逐字节） |
+| `ninedim/records/生成物/节对齐.md` | 13366 B sha `7ad32c7bf532` | **13366 B sha `7ad32c7bf532`** | **未变**（逐字节） |
 
-**`generated/BRIDGE.md` 的实际 diff（只有一行）**：
+**`ninedim/records/生成物/BRIDGE.md` 的实际 diff（只有一行）**：
 
 ```
 - | 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **9** | 逐文件 `read_text().lower()` 检索 |
@@ -180,10 +180,10 @@ python scripts/gen/gen_bridge_md.py → rc=0；rows=49 unmapped=31 gov=5 srs_no_
 
 > ★ **顺带证伪了一处自认（重要）**：`scripts/gen/gen_specmap.py:10-15` 的文件头逐字写着
 > 「**2026-09-28 实测：本生成器当前跑不出仓里那份产物**（149,314 B → 103,243 B）……已加 fail loud」。
-> **本次实跑：它跑通了、rc=0，且产物 `generated/specmap.json` 与仓内那份逐字节一致** ⇒
+> **本次实跑：它跑通了、rc=0，且产物 `ninedim/records/生成物/specmap.json` 与仓内那份逐字节一致** ⇒
 > **那句自认今天已不成立**（那两处输入随书合并消失的问题，显然已被其它动作修好）。
 > **本件只登记这个事实与读数，不代改 `gen_specmap.py` 的注释**（它属工具面，改它要走 R5）。
-> **回退点**：改前的三份件已备份在 `D:\Code\_backup-2026-09-28-fix\`（`generated/BRIDGE.md.before` 等）。
+> **回退点**：改前的三份件已备份在 `D:\Code\_backup-2026-09-28-fix\`（`ninedim/records/生成物/BRIDGE.md.before` 等）。
 | 5 | 本件之外的**两份仓外说明件**是否要纳入某处登记 | **未做** |
 
 ---
@@ -205,7 +205,7 @@ git -C 'D:\Code\08-worldcore-openspec' restore -- ninedim/06-变更/fc-2026-001-
     "ninedim/01-意图环/01-策划/策划-WC-SDP-001-v0.1.md" "ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md"
 
 # ④ 取消暂存（搬运件）
-git -C 'D:\Code\08-worldcore-openspec' restore --staged -- refs/refs/_料/process-source
+git -C 'D:\Code\08-worldcore-openspec' restore --staged -- .refs/.refs/_料/process-source
 ```
 
 ⚠ **搬迁 `docs/` 与 `templates/` 用的是 Copy**（源处保留），**`standards/` 用的是 Move**（源处已空）。

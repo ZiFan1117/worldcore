@@ -3,8 +3,8 @@
 import json, os, re, io, sys
 
 # ★ 2026-09-28 搬进仓内（skill §九「生成链必须在仓内」）：原来在 `D:\Code\_specmap\build_specmap.py`，
-#   既读仓外、又把产物写到仓外（`D:\Code\_specmap\generated/specmap.json`）⇒ **"闸在版本控制之外"**。
-#   现在：**仓根按脚本自身位置推**（本文件在 `scripts/gen/` 下 ⇒ 仓根 = 上两级），产物**落回仓内** `generated/specmap.json`。
+#   既读仓外、又把产物写到仓外（`D:\Code\_specmap\ninedim/records/生成物/specmap.json`）⇒ **"闸在版本控制之外"**。
+#   现在：**仓根按脚本自身位置推**（本文件在 `scripts/gen/` 下 ⇒ 仓根 = 上两级），产物**落回仓内** `ninedim/records/生成物/specmap.json`。
 #   **生成逻辑一行未改**，只改了"它怎么找到仓、把产物写哪"。
 #
 # ⚠ **2026-09-28 实测：本生成器当前跑不出仓里那份产物**（149,314 B → 103,243 B），原因是**两处输入随书合并而消失**：

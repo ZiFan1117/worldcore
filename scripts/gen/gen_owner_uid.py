@@ -8,7 +8,7 @@
 
 - **唯一载体**：`deploy/listener_uids.json`（形状由渲染器 `tools/render_channel.py` 定死）
   `{"channel":1,"uids":{"<socket 绝对路径>":<uid 整数或 null>, ...}}`
-- **生产者**（本件）／**消费者**（`render_channel.py`，只读）／**安装**（`deploy/install.sh` 调本件）。
+- **生产者**（本件）／**消费者**（`render_channel.py`，只读）／**安装**（`scripts/release/install.sh` 调本件）。
 - ★**为什么必须有一个映射件**：法律（`policy.json.listeners`）写的是 `owner`＝**名字**
   （`world-core`／`dsh`／`omarchy`…），而受理要的是 `uid`＝**数字**
   （`channel.rs::bind()` 用 `chown`，套接字 0600 ⇒ **只有那个 uid 连得上**）。

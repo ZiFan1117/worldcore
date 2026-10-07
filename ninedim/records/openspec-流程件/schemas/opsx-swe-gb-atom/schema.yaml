@@ -146,10 +146,10 @@ artifacts:
 
       **改规格之后的连带动作**（经验 §八）：改了规格树或生成输入，**必须重跑生成链**
       `python scripts/gen/gen_specmap.py` → `python scripts/gen/gen_secmap.py` → `python scripts/gen/gen_bridge_md.py`
-      （**三步、顺序不能错**；⚠ 中间那步 `gen_secmap.py` 不许省——判据⑬ 核 `generated/节对齐.md`
-      首部记下的 `generated/specmap.json` 哈希是否＝当前值，「specmap 重跑过、secmap 没跟着重跑」一律红，
+      （**三步、顺序不能错**；⚠ 中间那步 `gen_secmap.py` 不许省——判据⑬ 核 `ninedim/records/生成物/节对齐.md`
+      首部记下的 `ninedim/records/生成物/specmap.json` 哈希是否＝当前值，「specmap 重跑过、secmap 没跟着重跑」一律红，
       且**只补跑 bridge 不消除它**）；
-      新能力的 Requirement 还要在 `generated/BRIDGE.md` 的「在册」面里出现
+      新能力的 Requirement 还要在 `ninedim/records/生成物/BRIDGE.md` 的「在册」面里出现
       （判据④ 按**标题逐字**核规格树下的每一条——**漏一条即红**）。
     requires:
       - proposal
