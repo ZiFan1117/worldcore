@@ -9,18 +9,18 @@
 #      在那之前，本脚本是唯一的"门禁预演"证据。
 #
 # ⚠️ 本脚本**不替代** CI：它是同一批命令的本地副本。作业名与
-#    `.github/workflows/world-core-gate.yml`（**仓库根**）一一对应，
+#    `.github/workflows/gate.yml`（**仓库根**）一一对应，
 #    若两者不一致，以工作流为准并回来改本脚本（这是一处必须人工保持同步的耦合）。
 #
 # 用法（在 VM 内， 目录下）：
-#   bash tools/ci_rehearsal.sh                 # 全部作业；scope 作业用 HEAD~1 当基线
-#   bash tools/ci_rehearsal.sh --base origin/main
-#   bash tools/ci_rehearsal.sh --only smoke,unit-test
+#   bash scripts/test/ci_rehearsal.sh                 # 全部作业；scope 作业用 HEAD~1 当基线
+#   bash scripts/test/ci_rehearsal.sh --base origin/main
+#   bash scripts/test/ci_rehearsal.sh --only smoke,unit-test
 #
 #   # VM 的签出区是 **work-tree-only**（post-receive 用 --git-dir/--work-tree 签出，
 #   # 不带 .git），而 CI 的 actions/checkout 是**真仓库**。所以要在本地预演 scope
 #   # 作业，必须显式告诉它仓库在哪：
-#   bash tools/ci_rehearsal.sh --git-dir /root/world.git --base HEAD~1
+#   bash scripts/test/ci_rehearsal.sh --git-dir /root/world.git --base HEAD~1
 #
 # 退出码：0 = 全部预演通过；1 = 至少一个作业失败（与 CI 同为阻断式）。
 set -uo pipefail
@@ -47,7 +47,11 @@ fi
 # 显式 git 目录：让"无 .git 的签出区"也能预演 scope 作业
 if [ -n "$GITDIR" ]; then
   export GIT_DIR="$GITDIR"
-  export GIT_WORK_TREE="$(cd .. && pwd)"
+  # ⚠ 2026-10-08 修（现取病灶，**同一类随迁漏搬**）：本件随 `world-core/tools/` → `scripts/test/`
+  #   改动后，"crate 根"已**就是**仓根（见上面 `Cargo.toml` 的前置检查，`落位契约` §三 3）。
+  #   旧写法 `cd ..` 是"crate 根在仓根下一级"时代的算法 ⇒ 今天它指到**仓根的上一级**。
+  #   工作区＝当前目录（本脚本的前置已保证 cwd 含 `Cargo.toml`）。
+  export GIT_WORK_TREE="$(pwd)"
   echo "[预演] 显式 git 目录：GIT_DIR=$GIT_DIR"
   echo "       GIT_WORK_TREE=$GIT_WORK_TREE"
   echo "       （VM 签出区无 .git；CI 的 actions/checkout 是真仓库，故这只影响本地预演）"
@@ -104,8 +108,8 @@ if should_run "smoke"; then
   cargo run --quiet -- --ledger ci-smoke.jsonl --require-chain check >/dev/null 2>&1; rc_req=$?
   echo "  摘要链 rc=$rc_chain / --require-chain rc=$rc_req"
   # ── 系统级验收（TC-037–TC-040）：先自证判定器会红，再跑端到端 ──
-  bash tools/system_acceptance.sh --self-test >/dev/null 2>&1; rc_selftest=$?
-  bash tools/system_acceptance.sh 2>&1 | tail -4
+  bash scripts/test/system_acceptance.sh --self-test >/dev/null 2>&1; rc_selftest=$?
+  bash scripts/test/system_acceptance.sh 2>&1 | tail -4
   rc_sysacc=${PIPESTATUS[0]}
   echo "  系统级验收 自证 rc=$rc_selftest / 端到端 rc=$rc_sysacc"
   rm -f ci-smoke.jsonl ledger.lock
@@ -137,14 +141,14 @@ if should_run "gate-self-test"; then
     verdict "gate-self-test" 1
   else
     echo "  解释器：$PY ($($PY --version 2>&1))"
-    "$PY" tools/ci_self_check.py; rc1=$?
+    "$PY" scripts/verify/ci_self_check.py; rc1=$?
     "$PY" -c "import json,sys; d=json.load(open('.scope-declaration.json',encoding='utf-8')); sys.exit(0 if d.get('allowed') else 1)"; rc2=$?
     echo "  范围声明 JSON 断言 rc=$rc2"
     # --sample = **显式**索取非本项目样例数据做"工具链是否可用"的自证
     #（与 gate.yml 的 gate-self-test 作业逐字一致；样例数据不得作为默认输入，
     #  未显式 --sample 而把输入指到样例目录 ⇒ 工具**直接判不通过**）。
-    "$PY" tools/trace_matrix.py --sample; rc3=$?
-    "$PY" tools/scope_check.py --demo >/dev/null; rc4=$?
+    "$PY" scripts/verify/trace_matrix.py --sample; rc3=$?
+    "$PY" scripts/verify/scope_check.py --demo >/dev/null; rc4=$?
     echo "  scope_check --demo rc=$rc4"
     rc=0
     [ $rc1 -ne 0 ] && rc=1
@@ -158,14 +162,18 @@ fi
 # ── J4 traceability（与 gate.yml 同一套分支逻辑）──────────────────────
 if should_run "traceability"; then
   job_header "traceability（RTM 追溯门禁：S1/S5/S6）"
-  SRS="docs/S1-需求/需求-WC-SRS-001-v0.1.md"
-  RTM="docs/S1-需求/WC-RTM-001.csv"
+# ⚠ 2026-10-08 修（同一类随迁漏搬）：`docs/` 已于 `a7bb4fe` 删除、内容并进 `ninedim/`
+#   ⇒ 旧值 `docs/S1-需求/...` 现取不存在（本件在仓外副本上预演时，这两条会把 J4 判成红）。
+  SRS="ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md"
+  RTM="ninedim/01-意图环/02-需求/WC-RTM-001.csv"
 
   # 阶段开关**从工作流本身读取**，不在这里另写一份。
   # 教训（2026-09-26 实测踩到）：本脚本原先把 --strict 硬编码在 J4 里，
   # 工作流改成阶段开关 RTM_STRICT 后本脚本没跟着改 —— 于是**预演红、CI 绿**，
   # 预演脚本自己变成了"说两种话"的那一个。凡是"同一个判定"，就必须只有一个来源。
-  WF="../.github/workflows/world-core-gate.yml"
+  # ⚠ 2026-10-08 修（同一类随迁漏搬）：`../.github/` 是"crate 根在仓根下一级"时代的算法
+  #   ⇒ 今天 cwd 已是仓根，工作流就在 `.github/`（旧值指到**仓根的上一级**）。
+  WF=".github/workflows/gate.yml"
   RTM_STRICT=$(grep -E '^[[:space:]]*RTM_STRICT:' "$WF" 2>/dev/null | head -1 |
                sed -E 's/.*RTM_STRICT:[[:space:]]*"?([A-Za-z]+)"?.*/\1/')
   if [ -z "$RTM_STRICT" ]; then
@@ -180,7 +188,7 @@ if should_run "traceability"; then
   if [ -z "$PY" ]; then
     verdict "traceability" 1
   elif [ -f "$RTM" ]; then
-    "$PY" tools/trace_matrix.py --matrix "$RTM" --srs "$SRS" $STRICT; rc=$?
+    "$PY" scripts/verify/trace_matrix.py --matrix "$RTM" --srs "$SRS" $STRICT; rc=$?
     verdict "traceability" $rc
   elif [ -f "$SRS" ]; then
     echo "::error::SRS 已存在但 RTM 缺失 —— S1 未完成，追溯门禁不通过"
@@ -199,7 +207,7 @@ if should_run "scope"; then
   if [ -z "$PY" ]; then
     verdict "scope" 1
   else
-    "$PY" tools/scope_check.py --base "$BASE" --scope .scope-declaration.json; rc=$?
+    "$PY" scripts/verify/scope_check.py --base "$BASE" --scope .scope-declaration.json; rc=$?
     if [ $rc -eq 2 ] && [ -z "$GITDIR" ]; then
       echo
       echo "  提示：rc=2 表示 *未能校验*（不是通过）。此目录没有 .git，"

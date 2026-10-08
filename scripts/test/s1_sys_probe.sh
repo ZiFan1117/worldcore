@@ -18,7 +18,7 @@
 # | `TC-048` | `REQ-F-029` 未知旗标必须忽略 | 含**未知旗标**的合法事件**必须被接受**；**经公开写入入口**（`append … --flag`）落笔并原样保留；对偶：未知 `kind` **必须被拒绝** |
 # | `TC-049` | `REQ-F-030` 极小核心 + 命名空间扩展 | ① 核心面**逐项可枚举**；② 扩展项与核心字段**重名 ⇒ 加载被拒**；③ 只加扩展 ⇒ 折叠结果不变 |
 # | `TC-050` | `REQ-N-006` 投影质量目标 | **跨进程**两份投影同源头（`world`/`vocab`/`last_seq`/`state`）**逐字节相同**；**反例**：换词表 ⇒ 词表 hash 必变 |
-# | `TC-051` | `REQ-F-019` 排版可审计 | 调 `tools/visual_layout_audit.py`（**独立于** `visual::parse()` 的第二份解析器），三样本：普通值 / 含换行·控制字符的值 / 空状态 |
+# | `TC-051` | `REQ-F-019` 排版可审计 | 调 `scripts/verify/visual_layout_audit.py`（**独立于** `visual::parse()` 的第二份解析器），三样本：普通值 / 含换行·控制字符的值 / 空状态 |
 # | `TC-052` | `REQ-F-031` `trace` 字段 | 判据 (4a)(4b)：带 `trace`（指向不存在的 `id`）与不带 `trace` 两本账 ⇒ **都必须被接受**，且 `state` 与两投影结论**逐字节相同** |
 #
 # **不在本脚本内的用例**（如实登记，不假装）：`TC-024`／`TC-043`／`TC-045`——
@@ -41,12 +41,16 @@
 # - 自带 `--self-test`：先证明**本脚本的判定会红**（"一个从不失败的检查不是检查，是装饰"）；
 # - 不依赖网络、不依赖时钟、不依赖执行顺序。
 #
-# 用法：`bash tools/s1_sys_probe.sh`
-#       `bash tools/s1_sys_probe.sh --self-test`
+# 用法：`bash scripts/test/s1_sys_probe.sh`
+#       `bash scripts/test/s1_sys_probe.sh --self-test`
 # 退出码：0 = 断言全通过；1 = 有断言失败；2 = 前置条件不满足（缺二进制且构建失败）
 set -uo pipefail
 
-cd "$(dirname "$0")/.." || exit 2
+# ⚠ 2026-10-08 修（现取病灶，**同一类随迁漏搬**）：本件随 `world-core/tools/` → `scripts/test/`
+#   的改名（`7f70003` R099）只搬了件、**没搬这一行的深度** ⇒ 旧位置 `tools/` 的上一级是 crate 根，
+#   落到 `scripts/test/` 后上一级成了 `scripts/` ⇒ `BIN=target/debug/world-core` 与 `src/**` 指空。
+#   仓根＝本件的上两级（同 `scripts/test/system_acceptance.sh:42` 那一处）。
+cd "$(dirname "$0")/../.." || exit 2
 BIN="${CARGO_TARGET_DIR:-target}"/debug/world-core
 
 PASS=0
@@ -484,8 +488,8 @@ assert_ne "⑦ 样本量必须写明（否则「比例」没有口径）——�
 echo
 echo "── TC-051 · REQ-F-019 排版字节级样本（独立于 visual::parse() 的第二份解析器）──"
 
-if [ ! -f tools/visual_layout_audit.py ]; then
-  bad "① 缺 tools/visual_layout_audit.py（独立审计脚本）——用例不可执行"
+if [ ! -f scripts/verify/visual_layout_audit.py ]; then
+  bad "① 缺 scripts/verify/visual_layout_audit.py（独立审计脚本）——用例不可执行"
 else
   W project visual >"$SB/sample_normal.txt" 2>/dev/null
   # ── ★ 本行**本批被反转**（判据加强，不是改松）───────────────────────────────
@@ -512,17 +516,17 @@ else
   assert_eq "② 三样本齐备（普通值 / 含换行·控制字符的值 / 空状态）" "3" "$(ls "$SB"/sample_*.txt | wc -l | tr -d ' ')"
 
   for S in normal newline empty; do
-    OUT="$(python3 tools/visual_layout_audit.py --file "$SB/sample_$S.txt" 2>&1)"; RC=$?
+    OUT="$(python3 scripts/verify/visual_layout_audit.py --file "$SB/sample_$S.txt" 2>&1)"; RC=$?
     assert_rc "③ 样本 [$S]：**独立解析器**判定通过（rc=0）" 0 "$RC"
     if [ "$RC" -ne 0 ]; then printf '%s\n' "$OUT" | head -6 | sed 's/^/      /'; fi
   done
 
   # 反假④：把渲染输出**改坏一处**（字段行缩进由 6 空格改 5）⇒ 独立审计器**必须**报红
   sed 's/^      /     /' "$SB/sample_normal.txt" >"$SB/sample_mutated.txt"
-  python3 tools/visual_layout_audit.py --file "$SB/sample_mutated.txt" >/dev/null 2>&1
+  python3 scripts/verify/visual_layout_audit.py --file "$SB/sample_mutated.txt" >/dev/null 2>&1
   assert_rc "④ 反假：把字段行缩进改坏 ⇒ 独立审计器**必须**报红（rc=1）" 1 "$?"
 
-  ST="$(python3 tools/visual_layout_audit.py --self-test 2>&1)"; SRC=$?
+  ST="$(python3 scripts/verify/visual_layout_audit.py --self-test 2>&1)"; SRC=$?
   assert_rc "⑤ 独立审计脚本自带 --self-test：判定器会红、三份期望样本全绿" 0 "$SRC"
   assert_has "⑥ --self-test 覆盖了 >= 12 个变异样本" "$ST" '12 个变异'
 fi

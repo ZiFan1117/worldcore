@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 """载体契约门禁：把「生成关系」做成会红的判据。
 
-判的是：`deploy/` 里的四份单元 **是不是**从设计（`scripts/release/README.md` 的声明 + `policy.json` 的法律）生成出来的，
+★ **落点订正（2026-10-08）**：本件抬头原写 `deploy/`——那个夹已随布局迁移搬到
+  **`scripts/release/`**（装机面；单元在 `scripts/release/units/`），盘上 `deploy/` **不存在**。
+  代码取径**一直**是现落点（见下方 `DEPLOY = ROOT/scripts/release`），这里只是把**抬头**补上：
+  按仓内纪律「改名字 ≠ 修引用」，读者照抬头去找会找空（复核 F-09）。
+
+判的是：`scripts/release/units/` 里的单元 **是不是**从设计（`scripts/release/README.md` 的声明 + `policy.json` 的法律）生成出来的，
 以及"唯一写者 / 默认拒绝 / 单一身份"这三条不可让的约束有没有被单元文件违背。
+★ 单元**件数不写死**（写死过一次："四份"已是过期数）：以 `install.sh` 的 `UNITS=` 现取为准。
 
 判据（每条都配反例，见 --self-test）：
   ① 四份单元存在且非空；README 声明的套接字路径与 socket 单元里的 `ListenStream=` 一致
@@ -22,7 +28,7 @@
      法律在册**不等于**世界会受理；这一行专治"把在册读成已上线"。缺渲染物时与 ⑧ 一起未校验。
 
 ★**射程（如实声明，不假装更宽）**：
-  - 本工具判的是**纸面之间**的一致性（`deploy/` 单元 ↔ `policy.json` ↔ 渲染物）；
+  - 本工具判的是**纸面之间**的一致性（`scripts/release/units/` 单元 ↔ `policy.json` ↔ 渲染物）；
   - **它不判运行时**：**"实际监听 ⊆ 在册"那一段的执行体在 `world-core` 二进制里**，今天
     **尚未实现**（`policy.json` 的 `_listeners_note` 自述）。⇒ 本工具绿，**不等于**"实际监听 ⊆ 在册"成立。
   - **覆盖哪几件，以 `install.sh` 的 `UNITS=` 为准**（`grep -n '^UNITS=' scripts/release/install.sh`）——
@@ -347,7 +353,7 @@ def judge(deploy_dir, policy_path, readme_path, channel_path=None):
              for l in (listeners if isinstance(listeners, list) else []) if isinstance(l, dict)]
     if not up or not os.path.isfile(up):
         report('⑩', 'owner→uid 映射对账（法律 ↔ 部署面映射）', 'SKIP',
-               '映射件不存在（%s）⇒ **未校验**；它由 `install.sh` 跑 `tools/gen_owner_uid.py` 生成'
+               '映射件不存在（%s）⇒ **未校验**；它由 `install.sh` 跑 `scripts/gen/gen_owner_uid.py` 生成'
                '（★生成物，不入版本控制）' % (up or '路径取不到'))
     else:
         try:
@@ -412,7 +418,7 @@ def render(rows, reds, title):
     print('=' * 78)
     print(title)
     print('时点 = %s' % time.strftime('%Y-%m-%dT%H:%M:%S'))
-    print('命令 = python tools/carrier_contract.py %s' % ' '.join(sys.argv[1:]))
+    print('命令 = python scripts/verify/carrier_contract.py %s' % ' '.join(sys.argv[1:]))
     print('-' * 78)
     for no, name, verdict, detail in rows:
         print('  [%-4s] %-4s %-34s %s' % (verdict, no, name, detail))
@@ -636,12 +642,12 @@ def parse_args(argv):
         a = argv[i]
         if a == '--channel':
             if i + 1 >= len(argv):
-                print('用法：python tools/carrier_contract.py [--channel <渲染物路径>]', file=sys.stderr)
+                print('用法：python scripts/verify/carrier_contract.py [--channel <渲染物路径>]', file=sys.stderr)
                 return None, 2
             chan = argv[i + 1]
             i += 2
             continue
-        print('未知参数：%s\n用法：python tools/carrier_contract.py [--channel <渲染物路径>]' % a,
+        print('未知参数：%s\n用法：python scripts/verify/carrier_contract.py [--channel <渲染物路径>]' % a,
               file=sys.stderr)
         return None, 2
     return chan, 0
@@ -654,7 +660,7 @@ def main():
     if rc:
         return rc
     rows, reds = judge(DEPLOY, POLICY, README, chan)
-    return render(rows, reds, '载体契约门禁（deploy/ ↔ 法律 ↔ 渲染物）')
+    return render(rows, reds, '载体契约门禁（scripts/release/units/ ↔ 法律 ↔ 渲染物）')
 
 
 if __name__ == '__main__':

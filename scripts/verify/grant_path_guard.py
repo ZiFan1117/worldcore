@@ -22,8 +22,8 @@
   - 理由：一处事实只有一个权威载体（书 §八）。
 
 ## 用法
-    python3 tools/grant_path_guard.py            # 判定（以  为根）
-    python3 tools/grant_path_guard.py --self-test # 自证：反例必红、正控必绿
+    python3 scripts/verify/grant_path_guard.py            # 判定（以仓根为根）
+    python3 scripts/verify/grant_path_guard.py --self-test # 自证：反例必红、正控必绿
 
 ## 退出码
     0 = 全绿或 SKIP（SKIP 会显式打印，不算绿）
@@ -35,7 +35,10 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent          # 
+# ★ 2026-10-07 修（现取病灶）：本文件在 `scripts/verify/` ⇒ 仓根＝**上三级**。
+#   原来只上溯两级（`parent.parent`）= `scripts/` ⇒ `ONT`／`SRC` 全指到 `scripts/src/…`（不存在）
+#   ⇒ 裸跑恒返 **rc=2「输入缺失」**（本仓口径：读不到＝不是通过），接进 `check.sh` 会让那一步永远 ⏸/阻断。
+ROOT = pathlib.Path(__file__).resolve().parent.parent.parent    # 仓根
 ONT = ROOT / "src" / "ontology_definition" / "ontology.json"
 SRC = ROOT / "src"
 

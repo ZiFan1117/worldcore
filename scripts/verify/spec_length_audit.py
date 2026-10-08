@@ -27,8 +27,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SPECS = ROOT / 'openspec' / 'specs'
-SNAPSHOT = ROOT / 'openspec' / 'changes' / 'fc-2026-003-doc-consolidation' / 'spec-counts-before.json'
+# ★ 2026-10-07 修（现取病灶）：两处输入面还是**布局迁移前**的 `openspec/…`
+#   ——主规格已改成平铺的 `ninedim/01-意图环/04-规格/<能力>.spec.md`
+#   （权威：`ninedim/_索引-工程域结构与命名.md` §二；`spec_shape.py:69` 同一口径）。
+#   原来 `rglob('spec.md')` **一份都命中不到** ⇒ 合计恒 0 行（本件是"审计表、恒 rc=0"，
+#   于是这个 0 从来不会有人发现 —— 空集与静默是一对）。
+SPECS = ROOT / 'ninedim' / '01-意图环' / '04-规格'
+SNAPSHOT = ROOT / 'ninedim' / '06-变更' / 'archive' / '2026-09-28-fc-2026-003-doc-consolidation' / 'spec-counts-before.json'
 
 COLS = ('Requirement', 'Scenario', '证据行', '长Requirement(>500字)')
 THREE = COLS[:3]          # `1.3` 只管这三列
@@ -47,8 +52,19 @@ def count_in(text: str) -> dict:
 
 
 def measure(specs_dir: Path = SPECS) -> dict:
-    return {p.parent.name: count_in(io.open(p, encoding='utf-8').read())
-            for p in sorted(specs_dir.rglob('spec.md'))}
+    """逐能力计数：平铺 `<能力>.spec.md` ∪ 老形态 `<能力>/spec.md`；键＝**能力名**。
+
+    ★ 2026-10-07 修：原来只 `rglob('spec.md')` 且用 `p.parent.name` 当键——平铺形态下
+    两处都不成立（命中 0 份；就算命中，键也会全挤成 `04-规格` 一个）。
+    """
+    if not specs_dir.is_dir():
+        return {}
+    files = sorted(list(specs_dir.glob('*.spec.md')) + list(specs_dir.rglob('spec.md')))
+    out = {}
+    for p in files:
+        cap = p.name[: -len('.spec.md')] if p.name.endswith('.spec.md') else p.parent.name
+        out[cap] = count_in(io.open(p, encoding='utf-8').read())
+    return out
 
 
 def self_test() -> int:

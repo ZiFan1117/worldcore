@@ -32,7 +32,7 @@ r"""接口契约门禁：**模块节齐否 · 每节要点齐否 · 与模块登
      并册后逐册表**没有对应物**，故改为**比并册书的宿主字节**，基线 = 被并入 11 册的字节**之和**
      （`19795`；来源与算法逐条写在 `MERGED_BOOK_BASELINE_BYTES` 的注释里，**不是展示数据**）。
 
-用法：`python3 tools/ic_books_check.py [--repo-root .]`；
+用法：`python3 scripts/verify/ic_books_check.py [--repo-root .]`；
 `--self-test` 自证（**删掉某一模块的契约节必红**、恢复必绿，另附 ④⑤⑥ 三条各自的反例）。
 """
 import io
@@ -52,9 +52,12 @@ PROCESS_MARK = "本册不设修订记录"
 FREEZE_IN_SECTION = "生效即冻结"
 
 #: 接口契约书（一册）相对仓库根的路径。
-BOOK_REL = os.path.join("docs", "S2-设计", "设计-WC-IC-001-v0.1.md")
+#: ★ 2026-10-07 修（现取病灶）：原来是**布局迁移前**的 `docs/S2-设计/…`——`docs/` 已整树搬进
+#:   工程域 `ninedim/`（权威：`ninedim/_索引-工程域结构与命名.md`）⇒ `find_root()` 找不到书、
+#:   判据落进"材料缺失"分支而**判不了**（假红／空转）。现取真身路径。
+BOOK_REL = os.path.join("ninedim", "01-意图环", "03-设计", "设计-WC-IC-001-v0.1.md")
 #: 模块登记表相对仓库根的路径。
-REG_REL = os.path.join("docs", "S2-设计", "设计-WC-MODREG-001-v0.1.md")
+REG_REL = os.path.join("ninedim", "01-意图环", "03-设计", "设计-WC-MODREG-001-v0.1.md")
 
 #: **并册书宿主字节的基线**（`W-07` 补偿判据的基准，不是展示数据）。
 #: 算法：被并入的 **11 册**在并册前一刻的字节数**之和**（`git cat-file -s`，提交 `1d10ef0`，逐条可复算）：
@@ -252,10 +255,13 @@ def _drop_section(text, mid):
 def self_test():
     """自证：删掉某一模块的契约节必红、恢复必绿；④⑤⑥ 各一条反例。"""
     here = os.path.dirname(os.path.abspath(__file__))
-    src_root = os.path.dirname(here)                       # ``
+    # ★ 2026-10-07 修（现取病灶）：本文件在 `scripts/verify/` ⇒ 仓根＝**上两级**；
+    #   原来只上溯一级（得到 `scripts/`）⇒ 自证读不到材料、直接走"材料缺失"分支（自证从未真正跑过）。
+    src_root = os.path.dirname(os.path.dirname(here))       # 仓根
     failures = []
     with tempfile.TemporaryDirectory() as tmp:
-        d = os.path.join(tmp, "docs", "S2-设计")
+        # ★ 夹具目录必须与 `BOOK_REL`／`REG_REL` **同形**（否则自证读的是"材料缺失"那条岔路）
+        d = os.path.join(tmp, os.path.dirname(BOOK_REL))
         os.makedirs(d)
         for rel in (BOOK_REL, REG_REL):
             s = os.path.join(src_root, rel)

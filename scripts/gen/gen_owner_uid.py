@@ -6,7 +6,7 @@
 
 ## 一个事实一个载体
 
-- **唯一载体**：`deploy/listener_uids.json`（形状由渲染器 `tools/render_channel.py` 定死）
+- **唯一载体**：`deploy/listener_uids.json`（形状由渲染器 `scripts/gen/render_channel.py` 定死）
   `{"channel":1,"uids":{"<socket 绝对路径>":<uid 整数或 null>, ...}}`
 - **生产者**（本件）／**消费者**（`render_channel.py`，只读）／**安装**（`scripts/release/install.sh` 调本件）。
 - ★**为什么必须有一个映射件**：法律（`policy.json.listeners`）写的是 `owner`＝**名字**
@@ -25,9 +25,9 @@
 ## 用法
 
 ```text
-python3 tools/gen_owner_uid.py --out deploy/listener_uids.json [--policy policy.json]   # 生成
-python3 tools/gen_owner_uid.py --check [--out …] [--policy …]                            # 只核对，不写
-python3 tools/gen_owner_uid.py --self-test                                               # 自证：反例必红
+python3 scripts/gen/gen_owner_uid.py --out deploy/listener_uids.json [--policy policy.json]   # 生成
+python3 scripts/gen/gen_owner_uid.py --check [--out …] [--policy …]                            # 只核对，不写
+python3 scripts/gen/gen_owner_uid.py --self-test                                               # 自证：反例必红
 ```
 
 退出码：`0` 通过 ／ `1` 核对失败（多口／缺行／uid 不符）／ `2` 输入不可用（法律读不到）。
@@ -166,7 +166,7 @@ def cmd_check(policy_path, out_path):
         print('映射件 %s 不存在 ⇒ **未校验**（不是通过）' % out_path)
         return 2
     reds, notes = compare(want, out_path)
-    print('命令 = python tools/gen_owner_uid.py --check --policy %s --out %s' % (policy_path, out_path))
+    print('命令 = python scripts/gen/gen_owner_uid.py --check --policy %s --out %s' % (policy_path, out_path))
     print('法律在册 %d 条；映射件 %s' % (len(want['uids']), out_path))
     for n in notes:
         print('  [报告] %s' % n)
@@ -263,7 +263,7 @@ def parse(argv):
             mode = 'check'; i += 1; continue
         if a == '--build':
             mode = 'build'; i += 1; continue
-        print('未知参数：%s\n用法：python3 tools/gen_owner_uid.py [--build|--check] '
+        print('未知参数：%s\n用法：python3 scripts/gen/gen_owner_uid.py [--build|--check] '
               '[--policy <path>] [--out <path>] | --self-test' % a, file=sys.stderr)
         return None, None, None
     return pol, out, mode

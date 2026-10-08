@@ -19,7 +19,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 打开世界并连续提交 3 条 `change`
 - **THEN** 按序读回得到 3 条事件，`seq` 从 1 连续递增，信封带词表版本，各条 `kind` 与 `body.before` 正确
-- **证据**：`tests/acceptance.rs::t1_append_then_read_back`（由 `check.sh.new` 第 ③ 步执行）
+- **证据**：`scripts/test/acceptance.rs::t1_append_then_read_back`（由 `check.sh.new` 第 ③ 步执行）
       —— **⚠ 本证据今天只到"字段抽样比对"**：`actor`／`id`／`at`／`flags`／`body.subject`／
       `body.path`／`body.after` 未被断言（`scripts/test/acceptance.rs:69-80`）
       ⇒ "逐字段一致"要成立 ⇒ 需补断言（列进 tasks）。
@@ -28,7 +28,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 写入若干事件后结束写入方，再打开同一本账
 - **THEN** 先前写入的事件全部可读回，条数与内容不变
-- **证据**：`tests/acceptance.rs::t2_events_survive_restart`（由 `check.sh.new` 第 ③ 步执行）
+- **证据**：`scripts/test/acceptance.rs::t2_events_survive_restart`（由 `check.sh.new` 第 ③ 步执行）
       —— **⚠ 本证据是"同进程 drop + reopen"，不是"新进程"**（`scripts/test/acceptance.rs:85-104`）；
       "新进程"这一层由 `scripts/test/s1_sys_probe2.sh` 的 `TC-070` 承担
       （由 `check.sh.new` **第 ⑥ 步**执行——**写步骤名、不写行号**：行号会烂）。
@@ -48,19 +48,19 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 已经有一个写者打开了某本账，再用同一本体与策略打开同一本账
 - **THEN** 打开失败，错误串包含 `Ledger.Locked` 与"单写者"
-- **证据**：`tests/contract.rs::c07_second_writer_is_refused`（由 `check.sh.new` 第 ③b 步执行）
+- **证据**：`scripts/test/contract.rs::c07_second_writer_is_refused`（由 `check.sh.new` 第 ③b 步执行）
 
 #### Scenario: 锁随第一个写者退出而释放
 
 - **WHEN** 释放第一个写者（Drop）后再次打开同一本账
 - **THEN** 打开成功
-- **证据**：`tests/contract.rs::c07_second_writer_is_refused`
+- **证据**：`scripts/test/contract.rs::c07_second_writer_is_refused`
 
 #### Scenario: 陈旧锁被回收且锁文件记录新持有者
 
 - **WHEN** 锁文件内容是一个不存在的 pid（伪造崩溃遗留），再打开该账本
 - **THEN** 打开成功，`last_seq` 为 0，且锁文件内容被改写为当前进程 pid
-- **证据**：`tests/contract.rs::c08_stale_lock_is_reclaimed`
+- **证据**：`scripts/test/contract.rs::c08_stale_lock_is_reclaimed`
 
 ### Requirement: 残缺的尾部被丢弃，`seq` 空洞拒绝启动
 
@@ -75,7 +75,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 账本最后一行是残缺的 JSON（或末尾换行缺失）
 - **THEN** 该行被截掉，其余事件正常读回
-- **证据**：`tests/acceptance.rs::t3_partial_line_is_discarded`
+- **证据**：`scripts/test/acceptance.rs::t3_partial_line_is_discarded`
       —— **⚠ 实测判据是"截到最后一个 `\n`"**（`src/ledger/mod.rs:276-279`），
       **不看该行能否解析** ⇒ "完整事件因末尾换行缺失被静默删除"这一形态 ⇒ 需补断言（列进 tasks）。
 
@@ -83,7 +83,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 账本中存在 `seq` 不连续的事件
 - **THEN** 打开失败并报出 `SeqGap`
-- **证据**：`tests/acceptance.rs::t4_seq_gap_refuses_to_start`
+- **证据**：`scripts/test/acceptance.rs::t4_seq_gap_refuses_to_start`
       —— **⚠ 本条在生产路径上由账本层更早拦截**：`src/ledger/mod.rs:304` 逐字
       `if seq != last + 1 {` ⇒ 本断言**不构成**端到端证明（防线冗余，非缺陷）。
 
@@ -96,7 +96,7 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 任意次提交之后检查账本文件的最后一个字节
 - **THEN** 最后一个字节是换行符，不存在"半行挂在末尾"的中间态
-- **证据**：`tests/contract.rs::c22_file_always_ends_on_a_line_boundary`
+- **证据**：`scripts/test/contract.rs::c22_file_always_ends_on_a_line_boundary`
       （由 **`check.sh.new`** 第 ③b 步执行——仓根另有一个同名 `check.sh`，它不涉及 `world-core`）
 
 ### Requirement: 摘要链检出局部篡改，并如实声明其边界
@@ -116,32 +116,32 @@ SHALL NOT 以"同进程内 drop 后 reopen"充当跨进程证据。
 
 - **WHEN** 对一条合法链分别做三种操作：改中间某条的内容、交换相邻两条、按攻击者算好的链插入一条
 - **THEN** 三种情形都报 `ChainMismatch`
-- **证据**：`tests/contract.rs::c16_chain_detects_local_tampering`
+- **证据**：`scripts/test/contract.rs::c16_chain_detects_local_tampering`
 
 #### Scenario: 无链与混用被显式区分，不得静默通过
 
 - **WHEN** 对一份完全无链的账本、以及一份部分带链的账本做核验
 - **THEN** 无链报 `NoChain` 并说明"不可检出"；混用报 `MixedChain` 并说明"比无链更危险"
-- **证据**：`tests/contract.rs::c17_chain_distinguishes_absent_and_mixed`
+- **证据**：`scripts/test/contract.rs::c17_chain_distinguishes_absent_and_mixed`
 
 #### Scenario: 篡改一行即拒绝启动
 
 - **WHEN** 直接改写账本中间一行的 `body.after` 而保留原 `chain`，再打开世界
 - **THEN** 打开失败，错误串包含 `ChainMismatch`，且理由提到"唯一真相"
-- **证据**：`tests/contract.rs::c20_startup_refuses_a_tampered_ledger`
+- **证据**：`scripts/test/contract.rs::c20_startup_refuses_a_tampered_ledger`
 
 #### Scenario: 整本重写按设计检不出（边界固定）
 
 - **WHEN** 攻击者改写一条事件的值，并把链整条重算（知道算法与创世种子）
 - **THEN** 核验**通过**——这是无密钥链的极限，本断言证明的是边界而不是实现缺陷；
       同时不重算链的局部篡改仍必须被检出
-- **证据**：`tests/contract.rs::c18_chain_cannot_detect_a_full_rewrite`
+- **证据**：`scripts/test/contract.rs::c18_chain_cannot_detect_a_full_rewrite`
 
 #### Scenario: 链状态位如实反映账本现实
 
 - **WHEN** 分别对"新写入的带链账本""空账本""手工造的无链账本"读取链状态
 - **THEN** 依次为 true / false / false，且**无链账本可以被打开**
-- **证据**：`tests/contract.rs::c21_is_chained_reflects_reality`
+- **证据**：`scripts/test/contract.rs::c21_is_chained_reflects_reality`
       —— **⚠ 原文括注"（v1 兼容）"已删**：本证据只到"能打开"为止
       （`scripts/test/contract.rs:1026`），它**不**断言"打开后还能正常写下去"；
       该边界见下一条 `## ADDED` 里的 `K-3` 条文。
@@ -158,7 +158,7 @@ SHALL NOT 修改或删除已经写下的事件。
 
 - **WHEN** 提交一条 `change` 后对其执行回滚（即再提交一条互换新旧值的 `change`）
 - **THEN** 账本中同时存在原事件与补偿事件，没有任何一条被改写或删除，且状态回到原处
-- **证据**：`tests/acceptance.rs::t17_rollback_is_an_appended_compensating_event`
+- **证据**：`scripts/test/acceptance.rs::t17_rollback_is_an_appended_compensating_event`
       —— **⚠ 回滚动作由该测试自己提交，不是系统命令**；载体侧的"撤销"是另一件事：
       `src/carrier/mod.rs:32` 逐字
       `| **载体撤销**（本模块） | 文件系统的字节 | **不是世界状态**；只作工程兜底，**不得**用于满足"坏了能回滚" |`。
@@ -251,12 +251,12 @@ SHALL NOT 修改或删除已经写下的事件。
 - **逐格现状（2026-09-28 执行者现取；与书 §2.9 `:361` 自述的格位现状逐条对齐）**：
   | # | 问题 | 落点 | 现状 |
   |---|---|---|---|
-  | ① | 谁做的 | 信封 `actor` | **有位置**：`tests/acceptance.rs::t1` 断言三条事件的 `actor` 且**要求它们互不相同**（防"actor 是常量"） |
+  | ① | 谁做的 | 信封 `actor` | **有位置**：`scripts/test/acceptance.rs::t1` 断言三条事件的 `actor` 且**要求它们互不相同**（防"actor 是常量"） |
   | ② | 对什么做的 | 信纸 `body.subject`／`body.path` | **有位置**：同上，`t1` 逐条断言 |
   | ③ | 从什么变成什么 | 信纸 `body.before`／`body.after` | **有位置**：`t1` 断言 `after`；`before` 由 `change` 家族的信封形状钉住 |
-  | ④ | 因为什么才发生 | 信封 `trace` | **有位置、但今天不校验**（与书 §2.9 自述一致）：`tests/trace_notice.rs::f61`–`f66`；其中 `f65` 按"**会失败的检查**"写——实现若开始拒绝悬空 `id`，该条即红 |
-  | ⑤ | 排在第几位 | 信封 `seq` | **有位置**（★ 2026-09-28 补：原写"由 `tests/contract.rs` 的账本域用例钉住"——**只给"域"、不点名**，与 ①–④⑥ 的写法不一致，调查员把它记为弱处）：`tests/acceptance.rs::t4_seq_gap_refuses_to_start`（缺号 ⇒ 拒启）；`tests/contract.rs` 的 `c15`（`:926` 逐字断言 `ext.world.Ledger.SeqGap`）；`c22_file_always_ends_on_a_line_boundary`（行边界）；`c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused`（末行半行被截 ＋ `seq` 复用）。**实现侧**：`src/ledger/mod.rs` 的 `if seq != last + 1` |
-  | ⑥ | 谁允许的 | 门禁裁决的流水（`gate.*` 旗标与通告） | **有位置、但今天不校验**（与书 §2.9 自述一致）：`tests/cli.rs::cli09` 断言不可逆动作**必带** `gate.friction:<等级>`；`tests/trace_notice.rs::f71` 断言被拒的通告**留流水** |
+  | ④ | 因为什么才发生 | 信封 `trace` | **有位置、但今天不校验**（与书 §2.9 自述一致）：`scripts/test/trace_notice.rs::f61`–`f66`；其中 `f65` 按"**会失败的检查**"写——实现若开始拒绝悬空 `id`，该条即红 |
+  | ⑤ | 排在第几位 | 信封 `seq` | **有位置**（★ 2026-09-28 补：原写"由 `scripts/test/contract.rs` 的账本域用例钉住"——**只给"域"、不点名**，与 ①–④⑥ 的写法不一致，调查员把它记为弱处）：`scripts/test/acceptance.rs::t4_seq_gap_refuses_to_start`（缺号 ⇒ 拒启）；`scripts/test/contract.rs` 的 `c15`（`:926` 逐字断言 `ext.world.Ledger.SeqGap`）；`c22_file_always_ends_on_a_line_boundary`（行边界）；`c32_last_line_without_trailing_newline_is_cut_and_seq_is_reused`（末行半行被截 ＋ `seq` 复用）。**实现侧**：`src/ledger/mod.rs` 的 `if seq != last + 1` |
+  | ⑥ | 谁允许的 | 门禁裁决的流水（`gate.*` 旗标与通告） | **有位置、但今天不校验**（与书 §2.9 自述一致）：`scripts/test/cli.rs::cli09` 断言不可逆动作**必带** `gate.friction:<等级>`；`scripts/test/trace_notice.rs::f71` 断言被拒的通告**留流水** |
   | ⑦ | 什么单位 | **无字段** | **今天没有位置可填**（与书 §2.9 自述一致）——**如实标缺格，不许含糊成"已答"** |
 - **并且**（书 §2.9 `:363` 的边界，**照抄不并轨**）：这七个问题**另有一套"八问"的问法**，两套**名目不同、条数不同、合成不了一套**，**并轨这件事今天还没有结论** ⇒ 本要求 SHALL NOT 被读成"已经把两套并成一套"。
 - **证据**：`scripts/test/acceptance.rs`（`t1` 的逐格断言）、`scripts/test/trace_notice.rs`（第 ④⑥ 格）、`scripts/test/cli.rs`（第 ⑥ 格）；缺格的如实登记见 `ninedim/06-变更/archive/2026-09-28-cover-unimplemented-capabilities/tasks.md` 第 11 组。

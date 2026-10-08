@@ -13,7 +13,7 @@
     所以要用一个脚本盯住它。
 
 用法：
-    python tools/ci_self_check.py        # 退出码 0 = 通过
+    python scripts/verify/ci_self_check.py        # 退出码 0 = 通过
 
 退出码：0 = 通过；1 = 发现问题。
 
@@ -30,7 +30,7 @@
   `.github/workflows/`。也就是说，CI **不是"没跑过"，而是"结构上不可能跑"**。
 
   同一个根因（把"项目 == 仓库根"当成前提）在本项目已经出现过三次：
-  `tools/scope_check.py` 的路径口径（WC-SCMP-001 §8.4 G-09）、
+  `scripts/verify/scope_check.py` 的路径口径（WC-SCMP-001 §8.4 G-09）、
   本文档所述的**工作流位置**（G-11）、以及 PR 模板的位置（同 G-11）。
 
 处置：工作流与 PR 模板移到**仓库根** `.github/`；本脚本改为**向上定位仓库根**
@@ -80,12 +80,18 @@ make_console_encoding_safe()
 #: `make_console_encoding_safe()` 修掉；这里补的是**父子进程间的编码契约**。
 CHILD_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ★ 2026-10-07 修（现取病灶）：本文件在 `scripts/verify/` ⇒ 仓根＝**上三级**。
+#   原来 `dirname(dirname(...))` 只上溯两级 = `scripts/` ⇒ 三条检查全打在 `scripts/` 底下：
+#     ① 找 `scripts/.scope-declaration.json`（真件在仓根）⇒ 假报「缺少」；
+#     ② 找 `scripts/Cargo.toml`（crate 在仓根）⇒ 假报「找不到」；
+#     ③ 找 `scripts/scripts/verify/admission_evidence.py` ⇒ 假报「判据不存在」。
+#   ⇒ 裸跑 rc=1，且**每一条都是假红**（判据在、只是根算错了一层）。
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # 仓根
 SCOPE_JSON = os.path.join(ROOT, ".scope-declaration.json")
 
 # 必须存在的作业（少一个都意味着某道门禁没了）
 # ★ 2026-09-28 补三个：本清单原为 5 项（`smoke/unit-test/gate-self-test/traceability/scope`），
-#   而 `world-core-gate.yml` 在 2026-09-27 另加了三个门禁作业
+#   而 `gate.yml` 在 2026-09-27 另加了三个门禁作业
 #   （`openspec-validate` 形态门禁 / `spec-bridge` 规格层守卫 / `module-graph` 原子化机核）。
 #   ⇒ **原来的清单看不见它们**：`check_jobs` 的规则是"含必需作业的文件必须含全部必需作业"，
 #   于是**整个 `spec-bridge` 作业被删掉，本检查也不报错**（＝那三道门禁在 CI 层没有守卫）。
@@ -225,7 +231,7 @@ def check_ps1_bom(repo_root: str) -> list[str]:
     为什么这条属于"门禁自检"而不是编码风格：**本机默认 shell 是 Windows
     PowerShell 5.1**，它对无 BOM 的 .ps1 按系统 ANSI 代码页解码；含中文注释的
     脚本会被解成乱码字节并**解析失败**，而报错行号会指向正则字面量之类的地方——
-    "错误信息指向错误的地方"。2026-09-26 实测踩到（`tools/rustfmt.ps1`）。
+    "错误信息指向错误的地方"。2026-09-26 实测踩到（`scripts/build/rustfmt.ps1`）。
 
     该纪律只针对 .ps1：`.sh` / `.py` 是 UTF-8 原生，且 `bash` 会把 BOM 当命令。
 
@@ -235,11 +241,20 @@ def check_ps1_bom(repo_root: str) -> list[str]:
     会捞出一堆**不属于本项目**的 .ps1 并全部报错——在 CI 里它们根本不存在，
     于是本地红、CI 绿，门禁又开始说两种话。
     **门禁的扫描范围必须与它的管辖区一致。**
+
+    ★ 2026-10-07 补（同一句话的第二次适用）：料夹 **`.refs/`** 也必须挡在外面。
+    它是**上游源码快照／标准料库**（`AGENTS.md`：料统一住 `.refs/`，**不入版本控制**），
+    里面成百件上游 `.ps1` 本来就没有 BOM，也**不是本项目的件**——不挡就会在宿主上
+    一次报出 5+ 条"缺少 UTF-8 BOM"，全是**假红**（在 CI 里 `.refs/` 根本不存在）。
+    这与上一条「扫描范围必须与管辖区一致」是同一条规矩，不是放宽判据：
+    **本项目自己的 `.ps1`（今天：`scripts/build/rustfmt.ps1`）照判，一条不减。**
     """
     problems: list[str] = []
     bom = b"\xef\xbb\xbf"
     for dirpath, dirnames, filenames in os.walk(repo_root):
-        dirnames[:] = [d for d in dirnames if d not in (".git", "target", "node_modules")]
+        # `.refs`＝料夹（不入版本控制）；`refs`＝它的旧名（迁移前的残名，一并挡）
+        dirnames[:] = [d for d in dirnames
+                       if d not in (".git", ".refs", "refs", "target", "node_modules", "__pycache__")]
         for name in sorted(filenames):
             if not name.endswith(".ps1"):
                 continue
@@ -361,7 +376,7 @@ def check_declared_dependencies(root: str) -> list[str]:
 def check_admission_evidence(root: str) -> list[str]:
     """S0 准出证据准入隔离（**同时验证判定器自身会红**）。
 
-    依据：`06-swe-gb/docs/评审类/01-阶段评审记录.md` **铁律一**——"没有准出结论，
+    依据：`.refs/_料/process-source/06-swe-gb/docs/评审类/01-阶段评审记录.md` **铁律一**——"没有准出结论，
     不进入下一阶段；……下一阶段的一切工作都属于未授权开工，**其产出不进入基线**"。
 
     两件事一起做，缺一不可：

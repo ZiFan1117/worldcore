@@ -30,8 +30,8 @@
 
 ## 用法
 
-    python3 tools/value_shape_guard.py --ontology <path> --ledger <path> [--limit N]
-    python3 tools/value_shape_guard.py --self-test
+    python3 scripts/verify/value_shape_guard.py --ontology <path> --ledger <path> [--limit N]
+    python3 scripts/verify/value_shape_guard.py --self-test
 
 ## 退出码
     0 = 全绿或 SKIP（SKIP 显式打印 `STATUS=SKIP`，**不算绿**）／1 = 有红／2 = 输入缺失（**不是通过**）

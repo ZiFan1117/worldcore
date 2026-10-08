@@ -42,11 +42,15 @@
 # - 自带 --self-test：先证明**本脚本的判定会红**；
 # - **登记项**（⛔）＝ 现状为红、如实记录、**不计入退出码**，但**每轮必须复算**。
 #
-# 用法：bash tools/s1_sys_probe2.sh ／ bash tools/s1_sys_probe2.sh --self-test
+# 用法：bash scripts/test/s1_sys_probe2.sh ／ bash scripts/test/s1_sys_probe2.sh --self-test
 # 退出码：0 = 断言全通过；1 = 有断言失败；2 = 前置条件不满足
 set -uo pipefail
 
-cd "$(dirname "$0")/.." || exit 2
+# ⚠ 2026-10-08 修（现取病灶，**同一类随迁漏搬**）：本件随 `world-core/tools/` → `scripts/test/`
+#   的改名（`7f70003` R099）只搬了件、**没搬这一行的深度** ⇒ 旧位置 `tools/` 的上一级是 crate 根，
+#   落到 `scripts/test/` 后上一级成了 `scripts/` ⇒ `BIN=target/debug/world-core` 与 `src/**` 指空。
+#   仓根＝本件的上两级（同 `scripts/test/system_acceptance.sh:42` 那一处）。
+cd "$(dirname "$0")/../.." || exit 2
 BIN="${CARGO_TARGET_DIR:-target}"/debug/world-core
 
 PASS=0
@@ -379,8 +383,8 @@ assert_eq "④ 投影**不含历史**（行数 = 主体数 + 1 首行）" "3" "$
 echo; echo "── TC-067 · REQ-F-019 视觉投影渲染出口 ──"
 W project visual >"$SB/v_nonempty.txt" 2>/dev/null
 WE project visual >"$SB/v_empty.txt" 2>/dev/null
-assert_eq "① 非空状态：渲染成功且独立审计器判定通过" 0 "$(python3 tools/visual_layout_audit.py --file "$SB/v_nonempty.txt" >/dev/null 2>&1; echo $?)"
-assert_eq "② 空状态：渲染成功且独立审计器判定通过（空态行 + 4 行）" 0 "$(python3 tools/visual_layout_audit.py --file "$SB/v_empty.txt" >/dev/null 2>&1; echo $?)"
+assert_eq "① 非空状态：渲染成功且独立审计器判定通过" 0 "$(python3 scripts/verify/visual_layout_audit.py --file "$SB/v_nonempty.txt" >/dev/null 2>&1; echo $?)"
+assert_eq "② 空状态：渲染成功且独立审计器判定通过（空态行 + 4 行）" 0 "$(python3 scripts/verify/visual_layout_audit.py --file "$SB/v_empty.txt" >/dev/null 2>&1; echo $?)"
 assert_eq "③ 空状态**不得**输出任何主体行" "0" "$(grep -c '^  world://' "$SB/v_empty.txt" | tr -d ' ')"
 assert_has "④ 非空状态含主体行与字段行" "$(cat "$SB/v_nonempty.txt")" '(^|\n)  world://'
 
@@ -429,15 +433,15 @@ print("OK" if s==list(range(1,len(s)+1)) else "GAP %s"%s)')"
 
 # ══ TC-071 · REQ-N-001 语言无关（纯文本）═════════════════════════════
 echo; echo "── TC-071 · REQ-N-001 账本/词表/策略均为纯文本 ──"
-assert_rc "① plain_text_audit.py 对三份真实文件 rc=0" 0 "$(python3 tools/plain_text_audit.py "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json" "$L" >/dev/null 2>&1; echo $?)"
-assert_rc "② 审计器自带 --self-test（判定器会红）" 0 "$(python3 tools/plain_text_audit.py --self-test >/dev/null 2>&1; echo $?)"
+assert_rc "① plain_text_audit.py 对三份真实文件 rc=0" 0 "$(python3 scripts/verify/plain_text_audit.py "$SB/src/ontology_definition/ontology.json" "$SB/src/gate/policy.json" "$L" >/dev/null 2>&1; echo $?)"
+assert_rc "② 审计器自带 --self-test（判定器会红）" 0 "$(python3 scripts/verify/plain_text_audit.py --self-test >/dev/null 2>&1; echo $?)"
 python3 - "$L" "$SB/with_nul.jsonl" <<'PY'
 import sys
 d = open(sys.argv[1], "rb").read()
 open(sys.argv[2], "wb").write(d + b"\x00\x01\x02\n")
 PY
 chmod 600 "$SB/with_nul.jsonl"
-AUD="$(python3 tools/plain_text_audit.py "$SB/with_nul.jsonl" 2>&1)"; AR=$?
+AUD="$(python3 scripts/verify/plain_text_audit.py "$SB/with_nul.jsonl" 2>&1)"; AR=$?
 if [ "$AR" -ne 0 ]; then ok "③ **反例**：注入 NUL/控制字节的账本 ⇒ 审计**必须**报红（rc=$AR）"; else bad "③ 反例未红：含 NUL 的账本被审计器放过 ⇒ 判不通过"; fi
 
 # ══ TC-072 · REQ-N-002 零外部依赖纪律 ═════════════════════════════════
@@ -452,7 +456,7 @@ print(",".join(sorted(names)))
 PY
 )"
 assert_eq "① [dependencies] 直接依赖**恰为** serde_json" "serde_json" "$DEPS"
-assert_rc "② tools/ci_self_check.py（含依赖清单检查）rc=0" 0 "$(python3 tools/ci_self_check.py >/dev/null 2>&1; echo $?)"
+assert_rc "② scripts/verify/ci_self_check.py（含依赖清单检查）rc=0" 0 "$(python3 scripts/verify/ci_self_check.py >/dev/null 2>&1; echo $?)"
 cp Cargo.toml "$SB/Cargo.toml.bak"
 python3 - "$SB/Cargo_probe" <<'PY'
 import io, os, re, shutil, sys
@@ -550,7 +554,10 @@ assert_rc "⑥ 对照：白名单内主体 ⇒ rc=0（防恒红）" 0 "$(ARC cha
 
 # ══ TC-075 · REQ-N-005 可度量的质量目标（三列齐备机器可核）═══════════
 echo; echo "── TC-075 · REQ-N-005/007/008 质量目标三列齐备（**按表头名取列** ＋ **行数断言** ＋ 自身反例）──"
-SQ="docs/S0-立项/策划-WC-SQAP-001-v0.1.md"
+# ⚠ 2026-10-08 修（同一类随迁漏搬）：`docs/` 已于 `a7bb4fe` 删除、内容并进 `ninedim/`
+#   ⇒ 旧值 `docs/S0-立项/策划-WC-SQAP-001-v0.1.md` 现取**不存在**，`cp` 失败（`set -e` 未开，
+#   脚本继续）⇒ 下面 5 项断言全拿空值判红（`ROWS=`／`COLS=`／`MISSING=` 实得皆空）。
+SQ="ninedim/01-意图环/01-策划/策划-WC-SQAP-001-v0.1.md"
 cp "$SQ" "$SB/sqap_orig.md"; chmod 600 "$SB/sqap_orig.md"
 cat >"$SB/qg_check.py" <<'PY'
 import io, re, sys
@@ -663,7 +670,7 @@ H="$(W --help 2>&1)"
 #   作者逐字：「**好的，我你所有需要我批的，我都批。**……**烟囱式的需要我审批的，都批都批，
 #   你都代批了就行**」——而"`serve`（读继承 fd）＋ `WATCHDOG`"正是作者点名要加的第一件。
 #   ⇒ 「v1 不提供顶层 `serve`」**已被作者指示取代**（**不是执行者自行翻案**）。
-#   变更落点：本行 ＋ `docs/证据/证据-EV-009.md`（**SRS 一字未动**，按红线）。
+#   变更落点：本行 ＋ `ninedim/03-执行环/05-验证证据/证据-EV-009.md`（**SRS 一字未动**，按红线）。
 assert_has "① **提供**顶层 serve 子命令（作者 2026-10-03 指示：读继承 fd ＋ WATCHDOG）——据 --help 实测" "$H" '^  serve'
 # ★ **反向验证（本判据必须会红）**：把 `serve` 那一行从 `--help` 里抹掉 ⇒ 同一条**正向**断言必须失败。
 #   为什么要有这一步：`assert_has` 若哪天被改成恒真（或 `--help` 被改成永远输出它），

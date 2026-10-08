@@ -10,10 +10,10 @@
   交叉  引用的模块号必须在模块登记表中存在
 
 用法：
-    python tools/trace_matrix.py                                   # 校验**本项目真实产物**（默认输入）
-    python tools/trace_matrix.py --matrix <RTM.csv> --srs <SRS.md>
-    python tools/trace_matrix.py --matrix <RTM.csv> --srs <SRS.md> --strict
-    python tools/trace_matrix.py --sample                          # **仅**工具可用性自证（非本项目样例）
+    python scripts/verify/trace_matrix.py                          # 校验**本项目真实产物**（默认输入）
+    python scripts/verify/trace_matrix.py --matrix <RTM.csv> --srs <SRS.md>
+    python scripts/verify/trace_matrix.py --matrix <RTM.csv> --srs <SRS.md> --strict
+    python scripts/verify/trace_matrix.py --sample                    # **仅**工具可用性自证（非本项目样例）
 
 退出码：0 = 通过；1 = 未通过（门禁不通过；**真实输入缺失**同样为 1）。
 """
@@ -72,16 +72,27 @@ def make_console_encoding_safe() -> None:
 #   ② 真实输入缺失 ⇒ **显式判不通过（rc=1）并打印 `真实输入缺失：<路径>`**，**不得回落样例**；
 #   ③ 样例数据**只能被显式索取**（`--sample`），其结论**不得**写成「覆盖率 100%」；
 #      未显式索取而输入落在样例目录内 ⇒ **直接判不通过**（"悄悄顶替"这条路封死）。
-PROJECT_MATRIX = os.path.join("docs", "S1-需求", "WC-RTM-001.csv")
-PROJECT_SRS = os.path.join("docs", "S1-需求", "需求-WC-SRS-001-v0.1.md")
-SAMPLE_DIR = os.path.join("docs", "阶段外-待启用", "_非本项目样例")
+# ★ 2026-10-07 修（现取病灶）：四条默认路径全是**布局迁移前**的 `docs/…`——`docs/` 已随
+#   顶层收敛（`5d4566b`）整树搬进工程域 `ninedim/`（权威：`ninedim/_索引-工程域结构与命名.md`）
+#   ⇒ 裸跑 `trace_matrix.py` 会打进"真实输入缺失"分支（rc=1），而**真件就在**工程域里。
+#   现在：件名与目录一律按工程域的真身取（下方每条都附现取路径）。
+PROJECT_MATRIX = os.path.join("ninedim", "01-意图环", "02-需求", "WC-RTM-001.csv")
+PROJECT_SRS = os.path.join("ninedim", "01-意图环", "02-需求", "需求-WC-SRS-001-v0.1.md")
+SAMPLE_DIR = os.path.join("ninedim", "07-待审", "_非本项目样例")
 SAMPLE_MATRIX = os.path.join(SAMPLE_DIR, "需求追溯矩阵.csv")
 SAMPLE_SRS = os.path.join(SAMPLE_DIR, "软件需求规格说明.md")
-# 模块登记表所在目录（S2 产物；批次六整体移入阶段外暂存区，路径随之同步）
-#: 2026-09-27 **纠偏**（R2 席 S2-02／S2-06 实测：原常量指向 `docs/阶段外-待启用/S2-设计`，该目录内已无 `WC-MODREG-*`，
+# 模块登记表所在目录（S2 产物；迁移后按工程域命名规矩住 `ninedim/01-意图环/03-设计/`，
+# 真件＝`设计-WC-MODREG-001-v0.1.md`）。
+#: 2026-09-27 **纠偏**（R2 席 S2-02／S2-06 实测：原常量指向一份已空置的目录，该目录内已无 `WC-MODREG-*`，
     #: 使模块号存在性校验**静默失效**、门禁在「模块登记表: 尚未建立」时仍打印「通过」）。
+    #: 2026-10-07 **再次纠偏**：目录一并按现布局改成 `ninedim/01-意图环/03-设计`（真件在）。
 #: 本改动是**缺陷纠偏**（把工具指向它自述要读的文件），不是门禁强度提升；强度仍为默认（`--strict` 未默认开启）。
-PROJECT_MODREG_DIR = os.path.join("docs", "S2-设计")
+PROJECT_MODREG_DIR = os.path.join("ninedim", "01-意图环", "03-设计")
+#: 登记表件名匹配：命名规矩是 `<类>-<名>.md`（`ninedim/_索引-工程域结构与命名.md` §二）
+#: ⇒ 真件叫 `设计-WC-MODREG-001-v0.1.md`，**不是** `WC-MODREG-*.md`。原来按后者取 ⇒ 一份都取不到、
+#: `known_modules` 恒空 ⇒ 模块号存在性校验**整条不触发**（这就是 2026-09-27 那次"静默失效"的复发形态）。
+def _is_modreg_file(name: str) -> bool:
+    return name.endswith(".md") and "WC-MODREG-" in name
 
 REQUIRED_COLUMNS: Sequence[str] = (
     "需求编号",
@@ -176,10 +187,10 @@ def load_known_modules(repo_root: str) -> Set[str]:
     """从**本项目的模块登记表**中提取已登记的模块号。
 
     ⚠️ 2026-09-26 修正（WC-SCMP-001 §8.4 G-13）——原实现读的是
-    `templates/03-设计类/02-模块清单与模块号登记表.md`，那是**上游通用模板**，
+    `ninedim/records/模板/03-设计类/02-模块清单与模块号登记表.md`，那是**上游通用模板**，
     里面全是**示例与分层区间占位**（`<M01>`、`M20`–`M39`…），后果有两个，
     方向相反、都不好：**假通过**（示例号被点头）与**假失败**（本项目真实模块号被判"不存在"）。
-    故改为只认本项目 S2 产出物 `docs/阶段外-待启用/S2-设计/WC-MODREG-*.md`。
+    故改为只认本项目 S2 产出物 `ninedim/01-意图环/03-设计/设计-WC-MODREG-*.md`。
 
     ⚠️ 2026-09-26 再修正（G-15）——**只认表格行里的模块号**：
     原实现用 `\\bM\\d{2}\\b` 扫**全文**，于是文件里任何位置出现的别人的 M 号
@@ -194,7 +205,7 @@ def load_known_modules(repo_root: str) -> Set[str]:
         registry_files = sorted(
             os.path.join(design_dir, name)
             for name in os.listdir(design_dir)
-            if name.startswith("WC-MODREG-") and name.endswith(".md")
+            if _is_modreg_file(name)
         )
     # 表格行：`| **M01** | …` 或 `| M01 | …`
     row_pattern = re.compile(r"^\|\s*\**\s*(M\d{2})\s*\**\s*\|", re.MULTILINE)
@@ -211,7 +222,7 @@ def registry_status(repo_root: str) -> str:
         found = [
             name
             for name in os.listdir(design_dir)
-            if name.startswith("WC-MODREG-") and name.endswith(".md")
+            if _is_modreg_file(name)
         ]
         if found:
             return "已建立（" + "、".join(sorted(found)) + "）"
@@ -537,13 +548,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--no-registry",
         action="store_true",
-        help="跳过模块号存在性校验（用于**工具可用性自证**：`docs/阶段外-待启用/_非本项目样例/` 的示例数据"
+        help="跳过模块号存在性校验（用于**工具可用性自证**：`ninedim/07-待审/_非本项目样例/` 的示例数据"
         "不属于本项目，不得拿本项目的模块登记表去判它）",
     )
     parser.add_argument(
         "--sample",
         action="store_true",
-        help="**【自证模式】显式使用非本项目样例数据**（`docs/阶段外-待启用/_非本项目样例/`）"
+        help="**【自证模式】显式使用非本项目样例数据**（`ninedim/07-待审/_非本项目样例/`）"
         "验证工具链可用；本模式的结论**不构成**本项目的追溯门禁结论，"
         "输出**不会**出现「门禁结论：通过……覆盖率 100%%」",
     )

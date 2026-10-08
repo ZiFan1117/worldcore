@@ -402,7 +402,7 @@ fn cli08_channel_bind_refuses_socket_not_in_identity_map() {
 ///
 /// ① **没有**任何 `gate.*` 通告（没被拒、也没被"加摩擦到拒绝"）；
 /// ② 那条 `act` 事件**必带** `gate.friction:<等级>` 旗标，等级取自
-///    载体清单 `cap.d/ledger.compact.json` 的 `risk`（出厂写的是 `high`）。
+///    载体清单 `src/carrier/cap.d/ledger.compact.json` 的 `risk`（出厂写的是 `high`）。
 ///
 /// ## 为什么把「必带摩擦」也写进来（这一半是**实现改过之后**的口径）
 ///

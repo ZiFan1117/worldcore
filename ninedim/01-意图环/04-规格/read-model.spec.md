@@ -68,7 +68,7 @@
 
 - **WHEN** 对同一批事件分别做增量应用与全量折叠
 - **THEN** 两者结果相同
-- **证据**：`tests/contract.rs::c06_incremental_apply_equals_full_fold`（由 `check.sh.new` 第 ③b 步执行）
+- **证据**：`scripts/test/contract.rs::c06_incremental_apply_equals_full_fold`（由 `check.sh.new` 第 ③b 步执行）
       —— **⚠ 本条是防线冗余的**：生产路径上缺号由账本层 `src/ledger/mod.rs:304` 先拒，
       故本断言**不构成**端到端证明。
 
@@ -91,13 +91,13 @@
 
 - **WHEN** 生成检查点后再丢弃它，由账本重新重放
 - **THEN** 结果与使用检查点时一致
-- **证据**：`tests/contract.rs::c12_checkpoint_is_a_cache_and_disposable`
+- **证据**：`scripts/test/contract.rs::c12_checkpoint_is_a_cache_and_disposable`
 
 #### Scenario: 坏检查点被拒
 
 - **WHEN** 检查点内容被破坏
 - **THEN** 被拒绝
-- **证据**：`tests/contract.rs::c13_bad_checkpoints_are_refused`
+- **证据**：`scripts/test/contract.rs::c13_bad_checkpoints_are_refused`
       —— **⚠ 其覆盖面不含"格式版本不符"这一分支**（`src/ontology_instance/checkpoint.rs:94-99`）
       ⇒ 需补断言（列进 tasks）。
 

@@ -20,7 +20,7 @@
 //! ## 这条判据为什么落 `tests/` 而**不**落 `src/carrier/**`
 //!
 //! `src/carrier/**` 里 `use crate::agent::completion` 会**新增一条模块边**，而 `WC-ATOM-001` §二 A-4
-//! 要求 `deps == import` 且图**无环**（`tools/module_graph.py` 判）⇒ 一旦 `agent` 反过来 import
+//! 要求 `deps == import` 且图**无环**（`scripts/verify/module_graph.py` 判）⇒ 一旦 `agent` 反过来 import
 //! `carrier`，当场成环。放 `tests/`（L3 集成测试）**不产生模块边**，而 `check.sh` 第 ④ 步跑的
 //! `cargo test --locked` 会**自动把它带进闸** ⇒ 既"会红"，又不碰原子化那张图。
 //! （"判据放哪"不是风格问题，是**它会挪动哪张表**的问题。）

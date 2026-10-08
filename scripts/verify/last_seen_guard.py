@@ -21,8 +21,8 @@
   没有 ⇒ **红**（"名册里有人，账本里没有"）。
 
 ## 用法
-    python3 tools/last_seen_guard.py --ledger <账本路径> --presence <presence list 输出文件>
-    python3 tools/last_seen_guard.py --self-test
+    python3 scripts/verify/last_seen_guard.py --ledger <账本路径> --presence <presence list 输出文件>
+    python3 scripts/verify/last_seen_guard.py --self-test
 
 ## 退出码
     0 = 全绿或 SKIP（SKIP 显式打印，**不算绿**）／1 = 有红／2 = 输入缺失（**不是通过**）

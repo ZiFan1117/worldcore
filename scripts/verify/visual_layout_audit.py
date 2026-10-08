@@ -32,9 +32,9 @@
 它只回答一个问题：**这份渲染输出的排版，是否严格符合 `REQ-F-019` 逐字声明的那份契约**。
 
 用法：
-  `python3 tools/visual_layout_audit.py --file <渲染输出>`
-  `python3 tools/visual_layout_audit.py --stdin`
-  `python3 tools/visual_layout_audit.py --self-test`   # 先证明判定器会红
+  `python3 scripts/verify/visual_layout_audit.py --file <渲染输出>`
+  `python3 scripts/verify/visual_layout_audit.py --stdin`
+  `python3 scripts/verify/visual_layout_audit.py --self-test`   # 先证明判定器会红
 退出码：0 = 无违反；1 = 有违反；2 = 用法错误。
 """
 

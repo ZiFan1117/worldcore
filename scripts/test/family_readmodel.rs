@@ -6,7 +6,7 @@
 //! （仅"版本不符即拒收"已实现并由 TC-040 断言③覆盖；**演进与向前兼容的判据无实现、无用例**）」。
 //! 书第五章 5.6 表 5.2 行（合订本 `:737`）逐字：「读的那一份每个格子都有人读得到 ｜
 //! 每个已声明的字段至少有一份读法可读，缺格就报错 ｜ 缺格即报错 ｜ **红**。未实现」。
-//! `tools/s1_sys_probe.sh` 的 `TC-047` ⑨ 把"缺格"那一格的现状登记成（逐字）：
+//! `scripts/test/s1_sys_probe.sh` 的 `TC-047` ⑨ 把"缺格"那一格的现状登记成（逐字）：
 //! 「缺必填信封字段 actor 竟**被接受**（rc=$R）：**必填字段**校验只在写入路径（本体校验）上，
 //! 折叠层不校验 —— REQ-F-028 判据② 对本字段**不成立**」。
 //!
@@ -29,7 +29,7 @@
 //! | `h02` | `readmodel::State::apply` 的 `other => Err(ReadModel.UnknownKind)` 改成静默跳过 ⇒ `h02` 红（`e03`／`acceptance::t8` 同时红——同一条判据的三处载体） |
 //! | `h03` | `readmodel::State::apply_change` 把信纸上**它不认识的格**也收进状态 ⇒ `h03` 红 |
 //! | `h04` | `DeclaredCells::missing_cell` 的必填格核对恒不报（`if !obj.contains_key(f)` 改成 `if false`）⇒ `h04` 红、`h06` 仍绿；只把 [`MissingCell`] 的**点名**去掉 ⇒ **只** `h04` 的"点名那一格"断言红 |
-//! | `h05` | 把 `src/lib.rs::read_model` 换回**无法律**的 `State::fold`（那一行就是接线点）⇒ `h05` 红，且 `tools/s1_sys_probe.sh` 的 `TC-047` ⑨ 一起红 |
+//! | `h05` | 把 `src/lib.rs::read_model` 换回**无法律**的 `State::fold`（那一行就是接线点）⇒ `h05` 红，且 `scripts/test/s1_sys_probe.sh` 的 `TC-047` ⑨ 一起红 |
 //! | `h06` | `State::apply_declared` 的空表拒绝改成默默放行 ⇒ `h06` 红 |
 //! | `h07` | `Ontology::family_required` 把 `optional` 也并进"必填格" ⇒ `h07` 红；`ontology.json` 被就地改动 ⇒ `h07` 的**词表身份**断言红 |
 //!
@@ -50,7 +50,7 @@
 //!
 //! - **命令这一级也接上了**（2026-09-28）：装配处（`src/lib.rs::read_model`）把"已声明格"
 //!   以**纯数据**递给读模型 ⇒ `state --json` 对缺格行 `rc=2` 并点名那一格（`h05` 端到端断言；
-//!   系统级同一条在 `tools/s1_sys_probe.sh` 的 `TC-047` ⑨）。依赖方向留在装配处，
+//!   系统级同一条在 `scripts/test/s1_sys_probe.sh` 的 `TC-047` ⑨）。依赖方向留在装配处，
 //!   读模型仍**零生产出边**（`WC-MODREG-001` §2 给 `M03` 的口径）。
 //! - 读模型**不渲染**信封的 `id`／`at`／`actor`／`world`／`flags`：书那句"每个已声明的字段
 //!   至少有一份读法可读"在**必填格**这一半成立（缺了即拒），另一半（每格都**读得出来**）**仍未成立**。
@@ -119,7 +119,7 @@ fn write_ontology(dir: &Path, name: &str, edit: impl FnOnce(&mut Value)) -> Path
 }
 
 /// 「只加扩展」= **纯加法**：新增一个家族 ＋ 在同一个名下新增一个概念
-/// （与 `tools/s1_sys_probe.sh` 的 `ontology-ext.json`、`scripts/test/ontology_ext.rs` 的夹具同形态）。
+/// （与 `scripts/test/s1_sys_probe.sh` 的 `ontology-ext.json`、`scripts/test/ontology_ext.rs` 的夹具同形态）。
 fn add_pure_extension(v: &mut Value) {
     v["families"]["audit"] = json!({
         "_comment": "纯加法扩展家族：不得影响既有三家族的语义",
@@ -164,7 +164,7 @@ fn base_ledger(dir: &Path) -> Vec<Value> {
 ///
 /// ⚠️ **去掉 `chain`**：改一个字节而留着摘要，账本会以 `ext.world.Ledger.ChainMismatch` 拒开——
 /// 那拒的是"摘要不符"，不是本文件要判的那件事；拿它当红会**判错病因**
-/// （与 `tools/s1_sys_probe.sh` 的 `mk_bad` 同口径）。
+/// （与 `scripts/test/s1_sys_probe.sh` 的 `mk_bad` 同口径）。
 fn write_ledger(p: &Path, lines: &[Value]) {
     let mut out = lines.to_vec();
     for ev in &mut out {
@@ -505,7 +505,7 @@ fn h04_a_missing_declared_cell_is_refused_with_that_cell_named() {
 /// ⇒ 该断言**如期变红**，于是按登记时的处置改成**端到端断言**——
 /// 登记项不是用来长期挂着的：合上它的那次改动会打红它，就是它存在的全部意义。
 ///
-/// 系统级同一条：`tools/s1_sys_probe.sh` 的 `TC-047` ⑨（它此前正是把这一格登记成
+/// 系统级同一条：`scripts/test/s1_sys_probe.sh` 的 `TC-047` ⑨（它此前正是把这一格登记成
 /// 「缺必填信封字段 `actor` 竟**被接受**（rc=$R）：必填字段校验只在写入路径（本体校验）上，
 /// 折叠层不校验」）。
 #[test]

@@ -321,7 +321,7 @@ echo "  ✅ 账本/词表/策略均为纯文本（UTF-8、无 NUL、无可疑控
 echo
 echo
 step "⑤b 需求追溯矩阵（RTM：需求 → 设计模块 → 测试用例，双向）"
-# 为什么放这里：这一步量的是**文档面的一致性**（`docs/S1-需求/WC-RTM-001.csv` ↔ `WC-SRS-001` ↔ 模块登记表），
+# 为什么放这里：这一步量的是**文档面的一致性**（`ninedim/01-意图环/02-需求/WC-RTM-001.csv` ↔ `WC-SRS-001` ↔ 模块登记表），
 # 与 ⑤ 同族（都是"纸面"层面的门禁）；它**不碰**代码与账本，故放在 ⑥（真实二进制）之前。
 run_tail 6 "追溯矩阵判定器自证（造一对坏的/好的输入，**反例必红、正控必绿**）" python3 scripts/verify/trace_matrix.py --self-test
 run_tail 12 "需求追溯矩阵（RTM）" python3 scripts/verify/trace_matrix.py
@@ -386,7 +386,7 @@ run_tail 8 "契约分册门禁（九册齐·要点齐·依赖列逐边一致）"
 # **本来就正确**的行报成「体行行窄」（R1 三轮席 S-07 的 `G-20` 即此类误报；本轮 8 处复算 = 0）。
 # 该行**不过滤退出码**：真有不符 ⇒ 本步直接失败（既防误报、也防漏报）。
 run_tail 1 "表块行宽审计判定器自证" python3 scripts/verify/table_width_audit.py --self-test
-run_tail 20 "表块行宽审计（转义感知）" python3 scripts/verify/table_width_audit.py "docs/S1-需求/需求-WC-IRS-001-v0.1.md" "docs/S1-需求/需求-WC-SRS-001-v0.1.md" "docs/评审/评审-前置-WC-RV-R1-001-v0.1.md"
+run_tail 20 "表块行宽审计（转义感知）" python3 scripts/verify/table_width_audit.py "ninedim/01-意图环/02-需求/需求-WC-IRS-001-v0.1.md" "ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md" "ninedim/02-枢纽A-前置闸/评审-前置-WC-RV-R1-001-v0.1.md"
 
 echo
 step "⑦b kind 守卫（架构件里的三类话 vs 帧上方法名）"
@@ -509,6 +509,86 @@ else
 fi
 
 echo
+step "⑦h 双环四种循环（L1–L4 七条判据）＋ 两枢纽签字面"
+# 为什么放在这里：⑧ 是规格层（承诺面），⑦h 是**运转面**——标准《双环与四种循环》§三/§五 的
+# 四条回环（L1 返工／L2 澄清／L3 分流／L4 轮次）与两枢纽（A 未批不许动手／B 未签不进 archive）；
+# 另含"九维都有活体"一条（《实现-九维怎么搭配》§一 的"工件×九维"表）。
+# 为什么 ⑦h 走 run_registered：今天它的红是【机制缺口·未落地】（四类痕迹本仓从来没有），
+# 与 ⑦e/⑦f/⑦g 同例 ⇒ 该红要被看见、但不阻断全闸；rc=2（用法错／仓根不在）仍阻断。
+# ★ 2026-10-08 订正（复核 F-08）：本行原写"九维活体**缺 5 维**"——那是**把两个口径混成一个数**：
+#   判据⑧ 自己印的是「齐 N 维」与「完全无红 M 维」**两个不同的数**（"缺"只能由前者推），
+#   而那个 5 是后者的值、不是"缺"的数。⇒ **本处不复述任何数**，一律以 `check_loops.py` 当场输出为准。
+run_tail 1 "双环判据自证（八条判据各造反例，反例必红）" python3 scripts/verify/check_loops.py --self-test
+run_registered 16 "双环四种循环（L1–L4 七条判据 ＋ 九维活体）" python3 scripts/verify/check_loops.py
+run_tail 1 "两枢纽签字面自证（未签却有下游产物必红）" python3 scripts/verify/signoff_guard.py --self-test
+run_tail 12 "两枢纽签字面（A 未批不许动手／B 未签不进 archive）" python3 scripts/verify/signoff_guard.py
+
+echo
+step "⑦i 并入件原文章节仍在（doc_integrity.py）"
+# 为什么放在这里：它管的是"**并入件的原文章节逐行仍在宿主文件内**"（订正额度内）——
+#   此前是「有守卫·无执行体」（`scripts/README.md` §二），按 §九「闸不在门禁里等于没有闸」接进来。
+# ★★ **接法是显式分岔，不是 run_tail 裸跑**（2026-10-08 实测，与接线清单的写法**有意不同**）：
+#   本件按纪律 **fail-closed**——**没有 `.git` 工作树**时它判**rc=1**（"未能校验 ≠ 通过"，
+#   实测：仓外无 `.git` 副本上 `doc_integrity.py` ⇒ rc=1、逐字"本门禁的全部逐行判据未能校验"）。
+#   而 **VM 镜像 `/root/world` 恰恰没有 `.git`**（`D:\Code\sync-vm.ps1:22` 把 `\.git\` 列进排除项）
+#   ⇒ 若照 `run_tail` 裸跑，**全闸会当场停在 ⑦i**（`exit 1`）——那是"环境缺件"被读成"谁改坏了"。
+#   ⇒ 取 ⑦g／⑥b 同款处置：**有 git 工作树才真跑（阻断式）；没有 ⇒ 显式打 ⏭ 并写明"未校验"**。
+#   ★ 两条路都不许把"没跑"读成"过了"：前者红了打 ❌ 并阻断；后者打 ⏭。**只有 rc=0 才是 ✅**。
+run_tail 1 "并入件完整性判据自证（反例必红；不依赖 .git）" python3 scripts/verify/doc_integrity.py --self-test
+if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  run_tail 8 "并入件原文章节仍在（订正额度内）" python3 scripts/verify/doc_integrity.py
+else
+  echo "  $MARK_SKIP 并入件原文章节仍在（订正额度内）—— **未校验**：本树没有可用的 git 工作树（VM 镜像按 sync-vm.ps1 排除 `.git`）⇒ 本件按纪律 fail-closed，本步**没跑**"
+  echo "  （★ **未校验 ≠ 通过**。有 `.git` 的工作副本上它会真跑，红了打 ❌ 并阻断全闸）"
+  if [ "$CUR_STEP" -ge 0 ]; then STEP_KIND[$CUR_STEP]="SKIP"; fi
+fi
+
+echo
+step "⑦j S0 准出证据准入隔离（不许拿阶段外产物当准出依据）"
+# 为什么放在这里：`WC-SV-*` 那条罚则（"没有准出结论 ⇒ 产出不进基线"）此前只有文字、没有执行体。
+# ★★ 本步**故意用阻断式 `run_tail`**：该件 2026-10-08 起是 **fail-closed**——
+#   **扫描面 0 份 ⇒ rc=2**（"未能校验"），`run_tail` 会**当场阻断全闸**。
+#   这正是 `WC-RV-R0-001` **C-04** 那条判据要的形态：「缺输入 ⇒ rc≠0」；
+#   被扫件在盘上时才给结论。★ 不许为了让它"好看"而改回 `run_registered`（那会把 rc=2 折成 ⚠️）。
+run_tail 1 "S0 准出证据准入隔离自证（缺输入必 rc≠0；反例全中）" python3 scripts/verify/admission_evidence.py --self-test
+run_tail 12 "S0 准出证据准入隔离（阶段外产物不得当 S0 准出依据；**缺输入 ⇒ rc=2 阻断**）" python3 scripts/verify/admission_evidence.py
+
+echo
+step "⑦k 界面＝世界的投影（P1–P10，projection_guard.py）"
+# 为什么放在这里：与 ⑦e／⑦f／⑦g／⑦h 同族——都判"**纸上写的与机器上做的**一不一致"。
+# ★★ 接法是【**登记型**】（`run_registered`，**不是** `run_tail`）：现取红 1 条 = P10
+#   「`scripts/release/world-projection.sh` 登记 `same` 而仓内 sha ≠ 表里 VM 值」——
+#   这是【**该更新部署清单**】的读数，不是"谁改坏了" ⇒ 该红、该被看见，但不阻断全闸。
+#   ★ 口径同 ⑦e：`0` 绿／SKIP（显式打印，不算绿）／`1` ⇒ 折算为登记型红／**`2` 输入缺失仍阻断**。
+run_tail 1 "投影面判据自证（20 例：正控 1 ＋ 反例 19）" python3 scripts/verify/projection_guard.py --self-test
+run_registered 14 "界面＝世界的投影（P1–P10；现取红在 P10＝部署清单过期）" python3 scripts/verify/projection_guard.py
+
+echo
+step "⑦l 落地 chown 必带 +（仓内面；盘上面要 VM）"
+# 为什么放在这里：它盯的是"**`chown` 不带 `+` ⇒ 被递归 chown 静默盖回**，服务仍报 success"。
+# ★★ 接法同为【登记型】。★ `--repo .` 只判**仓内面**（P-01 有 `+`／P-04 点名具体口）；
+#   盘上面（P-02／P-03，比"仓内 ↔ 盘上"）要 root ＋ 宿主 systemd 目录 ⇒ 现取**自报 `STATUS=SKIP`**
+#   ⇒ 两种助手都会正确把它显示成 ⏭（**未校验 ≠ 通过**）。
+run_tail 1 "落地 chown 判据自证（八个假命题都被判对）" python3 scripts/verify/chown_plus_guard.py --self-test
+run_registered 8 "落地 chown 必带 +（仓内面；盘上面要 VM ⇒ 现取 SKIP）" python3 scripts/verify/chown_plus_guard.py --repo .
+
+echo
+step "⑦m presence 的 last_seen 有账本出处（last_seen_guard.py）"
+# 为什么放在这里：`presence list` 印的 `last_seen` 必须有【账本出处】，否则"被见过"是凭空印的。
+# ★ 照 **⑦g 的两岔写法**接（两种助手都不许把"没跑"读成"过了"）：
+#   账本（`/var/lib/world-core/ledger.jsonl`）与 `presence list` 的输出落盘件**都在** ⇒ 真跑（登记型）；
+#   缺任一面 ⇒ **显式打 ⏭ 并写明"未校验"**，不阻断。
+#   ★ 本件 rc 约定（工具自述）：`0` 绿／SKIP（显式打印，不算绿）／`1` 有红／**`2` 输入缺失＝不是通过**。
+run_tail 1 "last_seen 判据自证（七个假命题都被判对）" python3 scripts/verify/last_seen_guard.py --self-test
+if [ -r /var/lib/world-core/ledger.jsonl ] && [ -r /run/world-core/presence-list.txt ]; then
+  run_registered 12 "presence 的 last_seen 有账本出处（L-01…L-04）" python3 scripts/verify/last_seen_guard.py --ledger /var/lib/world-core/ledger.jsonl --presence /run/world-core/presence-list.txt
+else
+  echo "  $MARK_SKIP presence 的 last_seen 有账本出处 —— **未校验**：本机没有 /var/lib/world-core/ledger.jsonl 或 /run/world-core/presence-list.txt（后者＝`presence list` 的输出落盘件）"
+  echo "  （★ 这一步**没跑**；★ **未校验 ≠ 通过**。有真账本的机器上它会真跑，红了打 ⚠️、不阻断）"
+  if [ "$CUR_STEP" -ge 0 ]; then STEP_KIND[$CUR_STEP]="SKIP"; fi
+fi
+
+echo
 step "⑧ 规格层守卫（OpenSpec 层）"
 # 为什么放在这里：`openspec validate` 只判**形态**（结构、每个 Scenario 恰好 4 个 `#`、delta 语法），
 # 它**不查**那几件核心的事：证据行指向的测试是否真的存在（改名即失锚，且不会变红）、归档目录有没有
@@ -557,7 +637,7 @@ echo
 # 结论行原来对每一步都打 `✅`——**SKIP 的步因此在结论里也长成绿的**（2026-10-03 实测的假证）。
 # 现在：标记由 `STEP_KIND` 现取（`step_marker.py` 渲染），**只有 PASS 配打 ✅**；
 #   ⏭ 的步如实带一句"**未校验**"。
-# ⚠ 首行文案**不改**（`docs/证据/证据-EV-009.md` 等件逐字抄过它；改了那些抄件当场过期）——
+# ⚠ 首行文案**不改**（`ninedim/03-执行环/05-验证证据/证据-EV-009.md` 等件逐字抄过它；改了那些抄件当场过期）——
 #   与既有步的判据/文案"一字不动"同一条纪律；**新增的信息一律另起一行**。
 echo "== 结论：全通过（本脚本实跑的步骤，逐条如下）=="
 _skipped=0

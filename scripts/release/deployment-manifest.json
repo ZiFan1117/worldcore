@@ -1,11 +1,11 @@
 {
   "_comment": "界面层**部署清单**：哪一件应当与 VM 逐字节相同（`same`），哪一件是**有意改动、尚未上线**（`pending`）。★ 这张表是『收进仓 ≠ 上线』的**读数**载体：不写它，那句话就永远只是一句话。",
   "_how": "逐件：`host`＝仓内路径；`vm`＝VM 上的路径；`mode`＝`same`（应与 VM 逐字节同）／`pending`（有意不同、待部署）；`vm_sha256`／`vm_bytes`＝在 VM 只读窗口里**现取**的读数（带 `vm_read_at`）。",
-  "_recheck": "① 仓内自洽：`python3 tools/projection_guard.py`（判据 P10 逐条比 `sha256(host)` 与表中值）；② VM 侧现取：在只读窗口里 `sha256sum <vm>` ＋ `wc -c <vm>`，与本表逐字比（这一步**必须**在窗口里做，判据件读不到 VM）。",
+  "_recheck": "① 仓内自洽：`python3 scripts/verify/projection_guard.py`（判据 P10 逐条比 `sha256(host)` 与表中值）；② VM 侧现取：在只读窗口里 `sha256sum <vm>` ＋ `wc -c <vm>`，与本表逐字比（这一步**必须**在窗口里做，判据件读不到 VM）。",
   "_read_by": "2026-10-05 T9 只读窗口（宿主钟 02:30–02:31），命令：`sha256sum /usr/local/bin/world-projection /usr/local/bin/world-toggle-mute /usr/local/lib/world-ui/wc_submit.py` ＋ `wc -c`。",
   "files": [
     {
-      "host": "tools/world-projection.sh",
+      "host": "scripts/release/world-projection.sh",
       "vm": "/usr/local/bin/world-projection",
       "mode": "same",
       "vm_sha256": "a10b5abf283e806c55b2ce47e54aa5209d1482be3a863b5206843173c2645a2c",
@@ -13,7 +13,7 @@
       "note": "读侧＝收进真件（逐字节相同，只多半后缀 .sh：`.gitattributes` 的 eol=lf 纪律）"
     },
     {
-      "host": "tools/wc_submit.py",
+      "host": "scripts/collab/wc_submit.py",
       "vm": "/usr/local/lib/world-ui/wc_submit.py",
       "mode": "pending",
       "vm_sha256": "3920d7eb1410290b9898165bf45d862e3f1fa6a86a76782a2bf4fdb52acff083",
@@ -21,7 +21,7 @@
       "note": "有意改动＝缺省口由 `world.sock` 改成 `omarchy.sock`（作者不再是 world://core）⇒ 待部署"
     },
     {
-      "host": "tools/world-toggle-mute.sh",
+      "host": "scripts/release/world-toggle-mute.sh",
       "vm": "/usr/local/bin/world-toggle-mute",
       "mode": "pending",
       "vm_sha256": "20b0866da26c2bfb9a11fb64a29fd3a3b2391c8c99cfe15cba19617864c5aa05",

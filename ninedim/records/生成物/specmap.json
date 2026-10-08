@@ -1,7 +1,1598 @@
 {
- "_generator_sha256": "692d7447a3adc2a4ce3b297f6f01be5907c47d0ef54c54444bb8d484b9a04cf0",
+ "_generator_sha256": "49db24741135ed7a415fdf1fddd3fcfceb6e6b1d5f2013b2fa6acb5196937826",
  "generated": "2026-09-27",
- "caps": [],
+ "caps": [
+  {
+   "cap": "channel-identity",
+   "file": "ninedim\\01-意图环\\04-规格\\channel-identity.spec.md",
+   "purpose": "规定\"谁在说话由系统给出，不由请求自称\"这一层对外可核的行为。身份如果可以由请求方自己声明， 门禁、审计与归责三件事同时失效，因此这一条是 `管` 的前置条件。",
+   "reqs": [
+    {
+     "title": "身份取自内核而非请求自称",
+     "line": 9,
+     "text": [
+      "通道 SHALL 使请求方身份由**套接字绑定**决定：每个监听套接字在创建时绑定到一个身份，",
+      "只有该身份能连上；系统 SHALL NOT 从连接元数据、对端凭证或请求正文取得身份。",
+      "请求正文里自称的身份与套接字绑定的身份不一致时，系统 SHALL 拒绝该请求且 SHALL NOT 落笔。",
+      "未被身份映射登记的套接字 SHALL 被默认拒绝，而不是降级为匿名。"
+     ],
+     "scenarios": [
+      {
+       "title": "请求自称的身份不生效",
+       "line": 16,
+       "when": "一个请求在正文里声明一个与内核给出的身份不同的主体",
+       "then": "该请求被**拒绝且不落笔**，错误串含 `Impersonation`，账本 `last_seq` 在拒绝前后不变",
+       "ev": [
+        "scripts/test/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "通道身份的实际保证与它的边界",
+     "line": 24,
+     "text": [
+      "通道身份 SHALL 由套接字文件的属主与权限保证：只有套接字属主能够连接，连接即代表该身份。",
+      "该系统 SHALL NOT 区分连接方是哪一进程，SHALL NOT 约束超级用户的行为。",
+      "已知边界 SHALL 被如实声明，且此边界是**能力的正式条文**而不是注意事项：",
+      "当套接字属主为 `root` 时，**任何** root 进程连接该套接字都取得该套接字的身份。",
+      "该边界由\"套接字不可被他人写\"这一层承担，**不由连接受理层承担**；",
+      "故\"身份取自内核\"这一说法 SHALL NOT 被读成\"任何越权连接都会被识别出来\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "别的 uid 连不上（权限即身份）",
+       "line": 34,
+       "when": "在一个\"祖先目录也不可被他人写\"的位置建套接字（0600 + chown 到配置 uid），",
+       "then": "连接被内核拒绝（非零退出），且输出里不出现 `CONNECTED`",
+       "ev": [
+        "scripts/test/system_acceptance.sh",
+        "check.sh.new"
+       ]
+      },
+      {
+       "title": "未核实机制时的如实登记",
+       "line": 42,
+       "when": "运行环境缺 `setpriv` 或当前不是 root，使跨 uid 反例无法执行",
+       "then": "该步打印「未能校验」，**不得**记为通过，也**不得**使整体退出码变绿",
+       "ev": [
+        "scripts/test/system_acceptance.sh"
+       ]
+      },
+      {
+       "title": "超级用户连接受理层不设防（边界固定）",
+       "line": 48,
+       "when": "由套接字属主以外的 root 进程连接该套接字",
+       "then": "连接成立并取得该套接字的身份——本断言证明的是**边界**而不是实现缺陷；",
+       "ev": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "delivery-and-resources",
+   "file": "ninedim\\01-意图环\\04-规格\\delivery-and-resources.spec.md",
+   "purpose": "规定\"话怎么送到、以及送到时的资源边界\"：一条记录要能指定收件人、请求要能与应答配对，通道要有一组可核的资源上限而不是无限受理。这一层今天在 OpenSpec 里没有任何落点，本 delta 把它建档——**在断言补上之前，不得声称已成立。**",
+   "reqs": [
+    {
+     "title": "REQ-F-023 投递、应答与收件人",
+     "line": 8,
+     "text": [
+      "事件 SHALL 支持指定收件人：带 `to` 时只送该收件人，不带 `to` 时按广播处理；`act` 的应答 SHALL 能通过 `request_id` 追回它的请求。",
+      "（★ 2026-09-28 订正：本括注原写「今天：通道身份与一行应答已实现并实测，但 **`to` 的投递与请求/应答配对字段未实现**」——**那两个字段今天都落地了**：`to` 的投递＝`src/common/delivery.rs`（断言 `scripts/test/delivery.rs` 的 `d01`–`d08`，含正控 `d04`）；请求—应答配对＝`src/common/pairing.rs`（断言 `scripts/test/trace_notice.rs` 的 `f61`–`f65`）。**上一轮我只改了本 Requirement 的另外两条证据行、漏了这个括注**；⚠ 仍记在案的是：跨进程通道线格式的**端到端观测面不可达**（v1 CLI 无 `serve`）。）"
+     ],
+     "scenarios": [
+      {
+       "title": "带收件人的事件只出现在该收件人的出口上",
+       "line": 13,
+       "when": "写入一条带 `to` 的事件，再分别用两个收件人的读法取账本",
+       "then": "该事件只出现在 `to` 指定的那一份读法里，另一份里没有它；不带 `to` 的事件两份都在",
+       "ev": [
+        "scripts/test/delivery.rs",
+        "d01",
+        "d08",
+        "d04",
+        "to",
+        "TC-073",
+        "scripts/test/s1_sys_probe2.sh",
+        "75dc0d6",
+        "cargo test --locked",
+        "wc -l",
+        "cargo test --locked --test delivery",
+        "rc=0"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "REQ-F-026 通道资源边界",
+     "line": 19,
+     "text": [
+      "通道 SHALL 有四个可核的上限：**并发连接数、单条消息字节数、每秒消息数、空闲超时**；超限的请求 SHALL 被拒，且拒绝理由可读。",
+      "（今天：四个边界一个都没有；四个数值仍为【候选】，须人工确认后用例才可实现。）"
+     ],
+     "scenarios": [
+      {
+       "title": "超限请求被拒",
+       "line": 24,
+       "when": "逐项造出超过四个上限的请求",
+       "then": "每一项都被拒，错误里能读出**是哪一个上限**、当前值是多少",
+       "ev": [
+        "scripts/test/channel_bounds.rs",
+        "l01",
+        "l06",
+        "src/gate/policy.json",
+        "channel_limits",
+        "TC-076",
+        "CT-08"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "envelope-validation",
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md",
+   "purpose": "规定\"一件事写下来只有一种形式\"这一层对外可核的行为：信封的必填字段被逐字段强制、 三类话之外一律被拒、法律（本体与策略）损坏时拒绝启动而不是带病运行。 这一能力服务\"只固定意思的形式\"这条边界——它校验形状，不校验含义。",
+   "reqs": [
+    {
+     "title": "信封的必填字段被逐字段强制",
+     "line": 10,
+     "text": [
+      "系统 SHALL 对每一条写入事件逐字段校验信封必填项 `world` / `kind` / `id` / `seq` / `at` /",
+      "`actor` / `flags` / `body`；任一字段缺失时 SHALL 拒绝该事件。",
+      "系统 SHALL 另外明确声明该断言的边界：错误信息 **SHALL** 报出缺失字段名这一要求，",
+      "今天只对 `kind` / `id` / `seq` / `at` / `actor` / `flags` / `body` **七个字段**成立；",
+      "`world` 一轮由错误码前缀 `ext.world.` 满足了\"含该字段名\"的判据，",
+      "SHALL NOT 被读成\"`world` 缺失也被指名报出\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "八个必填字段逐字段被拦",
+       "line": 20,
+       "when": "依次构造 8 条事件，每条分别删掉一个必填字段",
+       "then": "每条都被校验拒绝",
+       "ev": [
+        "scripts/test/contract.rs::c02_every_required_envelope_field_is_enforced"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "信封字段的类型按本体的声明判（**读路径也判**）",
+     "line": 28,
+     "text": [
+      "系统 SHALL 按本体 `envelope.fields` 的**声明**校验信封字段的**类型**（声明串**首词即类型**：",
+      "`integer` / `number` / `string` / `array` / `object` / `bool`）；不符即拒，码 SHALL 为",
+      "`ext.world.Ontology.BadFieldType`，并 SHALL **点名那一格**。",
+      "本条 SHALL NOT 被读成\"形状已查全\"：只判**声明过且值在场**的**信封**字段——",
+      "**缺格**另有其主（读侧 `ext.world.ReadModel.MissingCell`、`seq` 由 `ext.world.Ledger.MissingSeq`）、",
+      "**枚举值**另有其主（家族查找报 `ext.world.Ontology.UnknownKind` 并点名）、",
+      "`body` **内部**字段不属本条。",
+      "两条边界：① **不认得的声明词一律放行**（不替本体发明类型系统）；",
+      "② **`null` 算\"在场\"**⇒ 判类型不符（与\"键不写\"不是一回事）。"
+     ],
+     "scenarios": [
+      {
+       "title": "读路径上类型不符的信封被拒且点名那一格",
+       "line": 42,
+       "when": "打开一份账本，其中的事件把某一格写成与声明不符的类型（`world` 写成字符串、`actor` 写成整数）",
+       "then": "打开被拒，错误码为 `ext.world.Ontology.BadFieldType`，且**点名那一格**；同形但类型合规的账本必须打得开（正控）",
+       "ev": [
+        "scripts/test/contract.rs::c34_envelope_field_types_are_checked_on_the_read_path"
+       ]
+      },
+      {
+       "title": "声明之外的词一律放行（边界固定）",
+       "line": 50,
+       "when": "本体把某格的类型声明改成一个**不认得的词**（如 `weird`），而事件里该格的值类型不符",
+       "then": "不判类型、放行 —— 本判据**不替本体发明类型系统**",
+       "ev": []
+      }
+     ]
+    },
+    {
+     "title": "三类话之外一律被拒",
+     "line": 59,
+     "text": [
+      "系统 SHALL 只接受本体声明的三个家族（变更 / 请求与结果 / 通告）；出现未知家族时 SHALL 拒绝，",
+      "SHALL NOT 猜测其含义，SHALL NOT 落笔该事件，且 SHALL NOT 改动世界状态。"
+     ],
+     "scenarios": [
+      {
+       "title": "不认识的事件家族被拒",
+       "line": 64,
+       "when": "以本体未声明的 `kind` 提交事件",
+       "then": "提交失败，错误串含 `UnknownKind`，且不落笔该事件（账本 `last_seq` 不前进）",
+       "ev": [
+        "scripts/test/acceptance.rs::t5_law_rejects_and_does_not_write"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "法律损坏或指向别处时拒绝启动",
+     "line": 73,
+     "text": [
+      "本体与门禁策略 SHALL 在世界打开时装载并校验；文件缺失、家族为空、能力表为空、白名单为空、",
+      "`writes` 段缺失时 SHALL 拒绝启动；法律文件是**符号链接**时 SHALL 拒绝启动，",
+      "以免\"检查的\"与\"真正读的\"不是同一个文件。",
+      "系统 SHALL 明确声明该要求的覆盖边界：本规格 SHALL NOT 声称\"不存在静默接受一个畸形策略的路径\"",
+      "——**未知键与多余键一律被忽略**是设计选择，不是畸形。"
+     ],
+     "scenarios": [
+      {
+       "title": "坏本体拒绝启动",
+       "line": 82,
+       "when": "本体文件内容损坏",
+       "then": "打开失败",
+       "ev": [
+        "scripts/test/acceptance.rs::t6_bad_ontology_refuses_to_start"
+       ]
+      },
+      {
+       "title": "本体缺失与家族为空被拒",
+       "line": 88,
+       "when": "本体文件不存在，或 `families` 为空",
+       "then": "装载失败（`ReadFail` / `NoFamilies`）",
+       "ev": [
+        "scripts/test/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families"
+       ]
+      },
+      {
+       "title": "策略的每一类畸形形状都被拒",
+       "line": 94,
+       "when": "以 5 类畸形形状分别装载门禁策略（坏 JSON／缺 `policy`／能力表为空／白名单为空／缺 `writes`）",
+       "then": "每一类都被拒；**对照**：合法策略必须能加载",
+       "ev": [
+        "scripts/test/contract.rs::c03_policy_load_rejects_every_malformed_shape"
+       ]
+      },
+      {
+       "title": "策略为符号链接时拒绝启动，而真实文件不被误拒",
+       "line": 104,
+       "when": "以指向别处的软链作为策略路径打开世界；对照组用真实文件",
+       "then": "软链被拒且错误信息含\"符号链接\"；真实文件正常打开",
+       "ev": [
+        "scripts/test/contract.rs::c09_symlinked_law_is_refused"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "事件身份在进程内唯一",
+     "line": 111,
+     "text": [
+      "系统 SHALL 保证同一进程内分配的事件 `id` 不重复。",
+      "系统 SHALL NOT 声称跨进程或跨重启的 `id` 唯一性由本机制保证。"
+     ],
+     "scenarios": [
+      {
+       "title": "连续提交的事件 id 各不相同",
+       "line": 116,
+       "when": "在同一进程内连续提交多条事件",
+       "then": "所有事件的 `id` 互不相同",
+       "ev": [
+        "scripts/test/contract.rs::c05_event_ids_are_unique_within_a_process"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "错误携带机器可读的错误码",
+     "line": 122,
+     "text": [
+      "系统 SHALL 在失败路径上给出机器可读的错误码（如 `ext.world.*`），使调用方按码判定，",
+      "SHALL NOT 要求调用方去匹配中文散文措辞。",
+      "系统 SHALL 明确声明本条的范围边界：**并非所有失败出口今天都带码**；",
+      "已知的无码出口 SHALL 被逐条登记，SHALL NOT 被\"凡失败路径都带码\"这类全称句遮住。"
+     ],
+     "scenarios": [
+      {
+       "title": "各类失败路径的错误码可枚举",
+       "line": 130,
+       "when": "触发布局类（本体形状）、门禁类、法律类、通道类、读模型类失败路径",
+       "then": "每条错误都带稳定的错误码 `ext.world.<域>.<原因>`，且错误码区分度 ≥ 6",
+       "ev": [
+        "scripts/test/contract.rs::c15_errors_carry_machine_readable_codes"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "错误码契约的已知边界",
+     "line": 138,
+     "text": [
+      "系统 SHALL 逐条登记**已知的无码失败出口**，使\"凡失败路径都带码\"这一全称句不成立：",
+      "- 静态墙的三条断言：拒绝符号链接、拒绝 group/other 可写（文件与目录）、属主断言未通过；",
+      "- 门禁策略版本不支持（`policy != 1`）。",
+      "上述出口报的是中文散文，**不带 `ext.world.` 前缀**。",
+      "系统 SHALL NOT 把本能力的覆盖声明写成\"所有失败路径都已带码\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "静态墙三条断言无错误码（边界固定）",
+       "line": 148,
+       "when": "以符号链接作为法律路径、或以对 group/other 可写的文件作为法律路径打开世界",
+       "then": "拒绝启动，但错误串**不含** `ext.world.` 码——本断言证明的是**边界**而不是实现缺陷",
+       "ev": [
+        "scripts/test/contract.rs",
+        "c24",
+        "src/gate/guard.rs",
+        "assert_not_symlink",
+        "assert_not_other_writable",
+        "assert_owned_by",
+        "ext.world.",
+        "src/gate/guard.rs::assert_not_other_writable"
+       ]
+      },
+      {
+       "title": "策略版本不符出口无错误码（边界固定）",
+       "line": 156,
+       "when": "以 `policy` 版本号不为 1 的策略打开世界",
+       "then": "拒绝启动，错误串为散文，**不含** `ext.world.` 码",
+       "ev": [
+        "scripts/test/contract.rs",
+        "c24",
+        "src/gate/mod.rs",
+        "Policy",
+        "load",
+        ":1504",
+        "policy",
+        ":1516",
+        "src/gate/mod.rs"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "REQ-F-027 家族演进与向前兼容",
+     "line": 162,
+     "text": [
+      "事件一旦追加**不可改**，故演进 SHALL 是**加法**：`world` 声明词表版本，**只加 `flags`、永不改这个数的含义**；",
+      "新家族／新字段的引入 SHALL NOT 让旧事件读不懂。家族演进的形态 SHALL 逐层写死为下面三条：",
+      "1. **新家族怎么加**：SHALL 只**新增** `families.<名>` 与同名 `concepts.<名>`；SHALL NOT 删改既有家族的必填格、",
+      "SHALL NOT 改信封字段。既有家族与信封的必填格**一格未变**，是\"纯加法\"的判据；",
+      "2. **旧读法怎么读新账本**：账本只用旧家族的格 ⇒ SHALL 照读；账本若出现读法**没有语义**的家族 ⇒ SHALL **拒**，",
+      "并**点名**那个家族（写入侧 `ext.world.Ontology.UnknownKind`、折叠侧 `ext.world.ReadModel.UnknownKind`），",
+      "SHALL NOT 静默跳过——**不认识的语义拒绝**（与本 change `REQ-F-029` 对偶）；",
+      "3. **新读法怎么读旧账本**：同一本旧账本在新旧两套法律与读法下，折叠结果 SHALL **逐字节相同**",
+      "。",
+      "已知家族里新增一格时，两半 SHALL 分开判，SHALL NOT 合成一句\"加法演进\"：",
+      "- 加**可选**格 ⇒ 旧账本 SHALL 照读、折叠结果 SHALL 逐字节不变（不认识的**附加信息**忽略）；",
+      "- 加**必填**格 ⇒ 旧账本行 SHALL 读不过去，且**点名**缺的那一格（把某一格加成必填是**破坏性**的）。",
+      "**边界（SHALL NOT 被读成全称成立）**：读法认得哪些家族，今天是**编译进读模型**的三家族；",
+      "只往本体里加家族而不动读法时，读模型 SHALL 拒（上面第 2 条即此）。把家族表也变成数据是另一件事，本条不含。"
+     ],
+     "scenarios": [
+      {
+       "title": "新家族按加法加，新读法照读旧账本",
+       "line": 183,
+       "when": "取一份只新增家族与同名概念的新本体，与出厂本体分别读**同一本旧账本**",
+       "then": "词表身份**改变**（\"换本体\"确实发生）、既有三家族的必填格一格未变、旧账本每一行仍合法，",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h01_a_new_family_is_added_by_addition_and_the_new_reader_reads_the_old_ledger"
+       ]
+      },
+      {
+       "title": "读法没有语义的家族被拒且点名",
+       "line": 190,
+       "when": "账本里出现一条**新家族**的行",
+       "then": "写入侧与折叠侧两处都**拒**、各自**点名**那个家族；把那一行去掉后，新旧两套读法**都照读**",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h02_a_reader_refuses_a_ledger_that_uses_a_family_it_does_not_know"
+       ]
+      },
+      {
+       "title": "加可选格无害、加必填格破坏性",
+       "line": 196,
+       "when": "给**已知家族**加一格可选、再把它加成必填，两次都读同一本旧账本",
+       "then": "前者照读且折叠结果逐字节不变；后者读不过去并点名那一格（写入侧与折叠侧各报一次）",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h03_a_new_optional_cell_is_ignored_while_a_new_required_cell_is_refused"
+       ]
+      },
+      {
+       "title": "两个方向各有一条会红的断言",
+       "line": 202,
+       "when": "分别造出\"不认识的家族\"与\"不认识的旗标\"两条事件",
+       "then": "前者被**拒**且不落笔；后者被**接受**、落笔，且不影响后续折叠",
+       "ev": [
+        "scripts/test/ontology_ext.rs::e02_a_landed_ledger_line_with_unknown_flags_folds_byte_identically"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "REQ-F-029 未知旗标必须忽略",
+     "line": 209,
+     "text": [
+      "系统 SHALL 忽略任何不认识的旗标，并按它认得的那些继续处理；SHALL NOT 因为出现未知旗标而拒收。",
+      "（依据逐字：出厂本体 `src/ontology_definition/ontology.json:20` —— `\"flags\": \"array  # 能力旗标；未知旗标必须忽略\"`。）",
+      "本条与「未知**家族** SHALL 被拒」**对偶**，两条 SHALL NOT 互相冒充：分界线是",
+      "**不认识的语义拒绝，不认识的附加信息忽略**。「这条事件带着我不认得的旗标」SHALL NOT 被读成",
+      "「这个家族我不认识」；「这个家族我不认识」SHALL NOT 被读成「有旗标不认识」。",
+      "**第三情形**另立条文，SHALL NOT 被并入本条、也 SHALL NOT 被并入家族那一条：",
+      "扩展项与**核心字段重名** ⇒ SHALL 被拒（见本 change 的 `REQ-F-030`）——",
+      "它不属于「未知」那一类，而属于「与核心冲突」那一类。"
+     ],
+     "scenarios": [
+      {
+       "title": "未知旗标不影响受理",
+       "line": 221,
+       "when": "提交一条带未知旗标的事件",
+       "then": "该事件被接受、落笔，读回的 `flags` 保留原值；同一账本的折叠结果与不带该旗标时**相同**",
+       "ev": [
+        "scripts/test/ontology_ext.rs::e02_a_landed_ledger_line_with_unknown_flags_folds_byte_identically"
+       ]
+      },
+      {
+       "title": "未知旗标与未知家族不许互相冒充",
+       "line": 227,
+       "when": "取同一条合法事件，分别只把它的 `flags` 换成未知旗标、只把它的 `kind` 换成未知家族",
+       "then": "前者被接受、落笔、折叠结果逐字节不变；后者被拒且**不落笔**——写入侧（`UnknownKind`）与折叠侧（`ReadModel.UnknownKind`）**两处都拒**，且各自点名那个家族",
+       "ev": [
+        "scripts/test/ontology_ext.rs::e03_unknown_family_is_refused_on_both_sides_of_the_dual"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "gate-enforcement",
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md",
+   "purpose": "规定\"谁可以做什么\"这一层对外可核的行为：每一个写动作都要过门禁、被拒的动作不能靠另一类话偷渡、 拒绝本身也要留下说清理由的流水。 **摩擦挂在动作的不可逆等级上，不挂在执行者的身份上**（书第五章 5.5 要的正是这一条；身份只决定白名单外的主体加摩擦到拒绝）， 书第五章 5.5 判红的三件事（闸读不到风险等级／两处出厂配置无互校／摩擦挂在执行者身份上）在本能力已逐条落地， 落点与断言见本能力\"闸读得到风险等级…\"与\"不可逆动作只允许白名单主体并加摩擦\"两条 Requirement； **仍在册的缺口**（通告的闸：通告按主体收窄授权）登记在 `ninedim/06-变更/archive/2026-09-28-cover-unimplemented-capabilities/`。 这一能力服务 `管`，判据是\"一个越界声明能否被拦下，并留下一条人能读懂的流水\"。",
+   "reqs": [
+    {
+     "title": "每一个写动作都过门禁",
+     "line": 14,
+     "text": [
+      "系统 SHALL 在落笔之前对每一条写入做门禁裁决；未在策略中声明的能力 SHALL 被拒绝，",
+      "且拒绝 SHALL 作为一条通告落账，而不是仅返回错误。"
+     ],
+     "scenarios": [
+      {
+       "title": "未声明的能力被拒且留下流水",
+       "line": 19,
+       "when": "以未在策略中声明的能力提交一条 `act`",
+       "then": "提交被拒，账本中新增一条说明该次拒绝的通告",
+       "ev": [
+        "scripts/test/acceptance.rs::t9_gate_rejects_undeclared_capability_and_records_notice"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "`act` 的效果不能靠 `change` 偷渡",
+     "line": 26,
+     "text": [
+      "系统 SHALL 对 `change` 同样执行写权限裁决；当某一主体无权执行某动作时，",
+      "它 SHALL NOT 能通过提交一条 `change` 达到同等效果。"
+     ],
+     "scenarios": [
+      {
+       "title": "越权者用 change 达成静音效果被拒",
+       "line": 31,
+       "when": "主人先成功写入一条 `change`；随后一个不在白名单的主体提交一条效果相同（静音）",
+       "then": "第二次提交被拒（错误含\"门禁拒绝写入\"），状态仍为原值，",
+       "ev": [
+        "scripts/test/contract.rs::c01_change_is_gated_and_cannot_smuggle_an_act"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "不可逆动作只允许白名单主体并加摩擦",
+     "line": 40,
+     "text": [
+      "对声明为不可逆（`reversible: false`）的能力，系统 SHALL 执行以下口径，且该口径 SHALL 被如实声明：",
+      "- 可逆动作 ⇒ 免检（`Allow`），不带摩擦旗标，但 `act` SHALL 落账（免检 ≠ 不记）；",
+      "- 不可逆、主体**在** `irreversible_actors` 内 ⇒ 放行，**且事件 SHALL 带摩擦旗标**",
+      "（`gate.friction:<等级>`，等级取自载体清单 `risk`，无清单取 `unlisted`），旗标随事件落账；",
+      "- 不可逆、主体**不在**该白名单内 ⇒ `AwaitApproval`（加摩擦到拒绝执行）：SHALL 落一条",
+      "`gate.awaiting-approval` 通告，理由 SHALL 明说 v1 **没有审批通道**、不要等批准，并写出风险等级。",
+      "摩擦的落点是**动作的不可逆等级**，不是执行者身份：`friction` 只看能力是否可逆，**与请求者是谁无关**；",
+      "身份只在下一步决定后果（放行并留旗标／拒绝执行）。**本口径 SHALL NOT 被读成\"有审批环节\"。**"
+     ],
+     "scenarios": [
+      {
+       "title": "不可逆能力触发摩擦",
+       "line": 53,
+       "when": "一个**不在** `irreversible_actors` 内的主体提交一个不可逆能力",
+       "then": "门禁加摩擦路径被触发，落一条 `gate.awaiting-approval` 通告，理由明说 v1 无审批通道",
+       "ev": [
+        "scripts/test/acceptance.rs::t10_gate_adds_friction_for_irreversible_capability"
+       ]
+      },
+      {
+       "title": "同一个主体对不可逆动作必加摩擦",
+       "line": 64,
+       "when": "**同一个在册主体**（`world://user`，出厂不可逆白名单里唯一那一个）分别提交一件可逆动作与一件不可逆动作",
+       "then": "可逆动作免检且事件不带摩擦旗标（但照样落账）；不可逆动作放行且事件带 `gate.friction:high`，",
+       "ev": [
+        "scripts/test/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction"
+       ]
+      },
+      {
+       "title": "拒绝流水必须说清它拒绝了什么",
+       "line": 72,
+       "when": "一个**不在允许名单**的主体提交带保留前缀的通告",
+       "then": "被拒，且门禁写下的通告里含被拒内容的指纹字段",
+       "ev": [
+        "scripts/test/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders",
+        "scripts/test/contract.rs:1291",
+        "c23_notice_with_reserved_prefix_is_refused_for_outsiders",
+        ":1316",
+        "refused",
+        ":1322-1332",
+        ".expect(\"保留前缀拒绝流水同样必须带 ",
+        " 字段（D-14）\")",
+        "assert!(refused.starts_with(\"fnv1a64:\"), …)",
+        "fc-2026-004",
+        "refused"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "门禁配置在被管者不可写的域",
+     "line": 92,
+     "text": [
+      "系统 SHALL 在启动时检查**法律与账本文件的权限 mode 位及其所在目录的权限**；",
+      "当法律可被 group/other 写、或账本可被 group/other 写（含其所在目录）时 SHALL 拒绝启动。",
+      "同一道静态墙 SHALL 覆盖**载体侧执行清单**（`cap.d/` 目录及其下每份清单文件）：",
+      "它们今天参与\"拒启\"这个决定（两处互校），故与策略同权——被管者不得能改",
+      "（否则改清单就能把世界弄成起不来，或把互校糊过去）；可被 group/other 写时 SHALL 拒绝启动。",
+      "系统 SHALL NOT 声称启动时会自动检查**属主**：属主断言是**部署方自证工具**，",
+      "只在显式传入 `--owner-uid` 时运行，不传即不运行。"
+     ],
+     "scenarios": [
+      {
+       "title": "法律可被他人写时拒绝启动",
+       "line": 104,
+       "when": "本体文件的权限使他人可写",
+       "then": "世界拒绝启动",
+       "ev": [
+        "scripts/test/acceptance.rs::t11_world_refuses_to_start_when_law_is_writable_by_others"
+       ]
+      },
+      {
+       "title": "账本可被他人写时拒绝启动",
+       "line": 110,
+       "when": "账本文件的权限使他人可写",
+       "then": "世界拒绝启动",
+       "ev": [
+        "scripts/test/acceptance.rs::t12_world_refuses_start_when_ledger_is_writable_by_others"
+       ]
+      },
+      {
+       "title": "属主断言能识别错误属主",
+       "line": 116,
+       "when": "显式以与预期不符的属主运行属主断言",
+       "then": "断言报错而不是放行",
+       "ev": [
+        "scripts/test/contract.rs::c10_owner_assertion_detects_wrong_owner"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "运行中的世界不重读策略",
+     "line": 124,
+     "text": [
+      "系统 SHALL 在启动时装载一次策略；运行期间 SHALL NOT 重新读取策略文件，",
+      "使\"这一次裁决依据的是哪一版法律\"是确定的。"
+     ],
+     "scenarios": [
+      {
+       "title": "运行中改动策略文件不影响本次运行",
+       "line": 129,
+       "when": "世界运行期间改动策略文件，再提交一个该改动本应影响的动作",
+       "then": "裁决结果与启动时装载的策略一致",
+       "ev": [
+        "scripts/test/acceptance.rs::t13_running_world_does_not_reread_policy"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "闸读得到风险等级，且载体可逆与世界可逆互校（不一致即拒启）",
+     "line": 136,
+     "text": [
+      "闸 SHALL **读得到**风险等级（`risk`），取自载体执行清单（与策略同目录的 `cap.d/*.json`），",
+      "并 SHALL 用在**摩擦的轻重与拒绝流水**上（`gate.friction:low`/`:medium`/`:high`；无清单 ⇒ `:unlisted`）。",
+      "`risk` SHALL NOT 单独决定\"准不准做\"（仍由 `reversible` 与 `irreversible_actors` 裁决）⇒ 此边界",
+      "SHALL NOT 被读成\"风险等级不参与门禁\"。",
+      "两处出厂配置 SHALL **互校**：载体侧可逆性由 `risk: high` **或** `confirm: required` 导出，世界侧由",
+      "`capabilities.<能力>.reversible` 给出。两处各说各话时 SHALL 拒绝启动、点名该能力、写出两处各写了什么，",
+      "且 SHALL NOT 落笔建账本；互校 SHALL 在装载策略时自动发生（不新增命令行参数）。边界 SHALL 如实声明：",
+      "- **没有 `cap.d` 目录不是错误**：载体侧什么都没声明，就没有\"两处\"可比，互校跳过；该能力的 `risk`",
+      "读为**未声明**（`None`），SHALL NOT 被当成 `low`。代价如实写出：**这些能力的风险等级，闸读不到**；",
+      "- 互校只对**两处都声明了**的能力生效；",
+      "- **`undo` 不参与互校**：它撤的是文件系统上的字节（只作工程兜底），与世界状态退不退得回来是两个轴，",
+      "谁也不能推出谁（`src/carrier/mod.rs`）；拿它互校会把正常形态误判成冲突。",
+      "⇒ 本边界 SHALL NOT 被读成\"留了撤销点的能力在世界里也可逆\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "两处配置互校冲突 ⇒ 拒绝启动且不落笔",
+       "line": 154,
+       "when": "同一能力在世界侧声明 `reversible: false`、在载体执行清单里声明 `risk: low`、`confirm: never`",
+       "then": "拒绝启动，拒绝理由含 `ext.world.Gate.ReversibilityMismatch` 并点名该能力、",
+       "ev": [
+        "scripts/test/atom_reversibility.rs::a01_conflicting_reversibility_refuses_to_start"
+       ]
+      },
+      {
+       "title": "两处一致即正常启动，且闸读得到等级",
+       "line": 164,
+       "when": "两处对同一能力同向声明（可逆 ↔ `risk: low`/`confirm: never`；不可逆 ↔ `risk: high`/`confirm: required`），",
+       "then": "世界正常启动；闸读到的等级与该能力清单里写的 `risk` 一致；**留撤销点不使启动被拒**",
+       "ev": [
+        "scripts/test/atom_reversibility.rs::a02_consistent_reversibility_starts_normally"
+       ]
+      },
+      {
+       "title": "载体可逆不等于世界可逆",
+       "line": 175,
+       "when": "一项能力在载体侧留了撤销点（`undo: before-each`），而世界侧标 `reversible: false`",
+       "then": "门禁按\"世界不可逆\"处置（该动作必带摩擦：白名单内放行并留旗标、白名单外加摩擦到拒绝执行），",
+       "ev": [
+        "scripts/test/atom_reversibility.rs::a02_consistent_reversibility_starts_normally"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "通告的闸，以及门禁不可绕过的部分实现边界",
+     "line": 187,
+     "text": [
+      "通告 SHALL 过闸，两条纪律各自可单独判真假：",
+      "① 带保留前缀（`gate.`）的通告类型 SHALL 只许内核自己写，外部提交一律拒；",
+      "② 非保留前缀的通告，其 `actor` SHALL 已在主体白名单内。",
+      "门禁不可绕过 SHALL 只声明**已实测的范围**：进程内唯一写入口、静态墙（mode 位）、",
+      "以及**两处出厂配置的互校**（互校判\"拒启\"，它成立的前提是策略与执行清单同样落在被管者写不到的域）",
+      "已在跨 uid 形态下实测；",
+      "**祖先链遍历、通道层与 Landlock 自缚在 v1 未做**，此边界 SHALL 被如实声明，",
+      "SHALL NOT 被读成\"门禁在所有路径上不可绕过\"。",
+      "已知的不对称 SHALL 被登记：非保留前缀的通告**不检查 `writes` 授权表**、只检查主体白名单。"
+     ],
+     "scenarios": [
+      {
+       "title": "保留前缀通告只许内核自己写",
+       "line": 201,
+       "when": "一个外部主体提交 `type` 以 `gate.` 开头的通告",
+       "then": "被拒，错误串含 `ext.world.Gate.NoticeNotAllowed`，且伪造通告不落笔",
+       "ev": [
+        "scripts/test/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders"
+       ]
+      },
+      {
+       "title": "不在册主体不得写普通通告，在册主体必须能写",
+       "line": 207,
+       "when": "一个不在白名单的主体提交普通通告；对照组由在册主体提交同样形状的通告",
+       "then": "前者被拒（`ext.world.Gate.NoticeRejected`），后者通过",
+       "ev": [
+        "scripts/test/contract.rs::c23_notice_from_unlisted_actor_is_refused"
+       ]
+      },
+      {
+       "title": "门禁不可绕过的未做部分被如实声明",
+       "line": 213,
+       "when": "查阅本能力的覆盖声明",
+       "then": "祖先链遍历、通道层与 Landlock 自缚三项标为**未做**",
+       "ev": [
+        "ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕通告的闸",
+     "line": 220,
+     "text": [
+      "**通告 SHALL 与变更、动作一样过门禁**：主体只能发它被允许发的通告；不该由它发的通告 SHALL 被拒，拒绝 SHALL 留下可核的流水。",
+      "（两条纪律已在实现里落地：① 带保留前缀（`gate.`）的通告类型只许内核自己写；② 非保留前缀的通告，其 `actor` 必须在主体白名单内——执行者是 `src/lib.rs::adjudicate_notice`。）",
+      "**仍在册的缺口**：非保留前缀的通告**不检查 `writes` 授权表**、只检查主体白名单（通告按主体收窄授权属门禁强度变更，须人裁）。"
+     ],
+     "scenarios": [
+      {
+       "title": "越权通告被拒且留痕",
+       "line": 226,
+       "when": "一个未被允许的主体提交一条本不该由它发的通告",
+       "then": "提交被拒、不落笔，且账本里留下一条说明**拒绝了什么**的流水",
+       "ev": [
+        "scripts/test/contract.rs::c23_notice_from_unlisted_actor_is_refused"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕可逆性判定与出厂配置互校",
+     "line": 238,
+     "text": [
+      "闸 SHALL 读得到动作的风险等级，并按**动作的不可逆等级**决定是否加摩擦；载体层的撤销点与世界状态的可逆性 SHALL **各自成立且互不冒充**，两处出厂配置冲突时 SHALL 拒绝启动。"
+     ],
+     "scenarios": [
+      {
+       "title": "同一个主体对不可逆动作必加摩擦",
+       "line": 242,
+       "when": "白名单内的主体对一件声明为不可逆的动作提交请求",
+       "then": "**加摩擦**（在账本上留下可核痕迹：事件带 `gate.friction:<等级>` 旗标）；对可逆动作则免检但留痕",
+       "ev": [
+        "scripts/test/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "ledger-integrity",
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md",
+   "purpose": "规定\"一本账\"对外可核的行为：所有事实落在同一处、只往后加、不回头改；同一本账同时只有一个写者； 历史可被检出被改过，且如实声明检出的边界在哪里。这一能力服务 `存`，是\"可复盘\"的底座—— 它不主张结果正确，只主张\"当时写的是什么\"可以核。",
+   "reqs": [
+    {
+     "title": "事件按序落账并可跨进程读回",
+     "line": 10,
+     "text": [
+      "系统 SHALL 把每一条语义事件按 `seq` 升序追加进同一本账，且该账 SHALL 以纯文本 JSON Lines 落盘，",
+      "使事件在写入进程退出后仍然可读。",
+      "**跨进程**读回 SHALL 由**独立进程**的证据承担，",
+      "SHALL NOT 以\"同进程内 drop 后 reopen\"充当跨进程证据。"
+     ],
+     "scenarios": [
+      {
+       "title": "追加后按序读回",
+       "line": 18,
+       "when": "打开世界并连续提交 3 条 `change`",
+       "then": "按序读回得到 3 条事件，`seq` 从 1 连续递增，信封带词表版本，各条 `kind` 与 `body.before` 正确",
+       "ev": [
+        "scripts/test/acceptance.rs::t1_append_then_read_back",
+        "check.sh.new"
+       ]
+      },
+      {
+       "title": "事件在新进程里仍存在",
+       "line": 27,
+       "when": "写入若干事件后结束写入方，再打开同一本账",
+       "then": "先前写入的事件全部可读回，条数与内容不变",
+       "ev": [
+        "scripts/test/acceptance.rs::t2_events_survive_restart",
+        "check.sh.new"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "同一本账同时只有一个写者",
+     "line": 36,
+     "text": [
+      "系统 SHALL 拒绝第二个写者打开同一本账，且拒绝理由 SHALL 说明这是\"单写者\"约束；",
+      "持锁进程正常退出后锁 SHALL 被释放；持有者已不存在的陈旧锁 SHALL 被自动回收。",
+      "已知前提 SHALL 被如实声明：锁文件**只记录持有者的 pid 号**，其\"是否存活\"的判据是",
+      "`/proc/<pid>` 是否存在 ⇒ 本机制的正确性**依赖**：同机、同一 PID 命名空间、`/proc` 可读。",
+      "在共享存储或独立 PID 命名空间下，存活写者的锁会被当作陈旧锁回收，从而出现两个写者；",
+      "反之 pid 号被复用时持有者已不存在却不会被回收（假锁死）。",
+      "此边界 SHALL NOT 被读成\"锁在所有形态下成立\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "第二个写者被拒且理由说清单写者",
+       "line": 47,
+       "when": "已经有一个写者打开了某本账，再用同一本体与策略打开同一本账",
+       "then": "打开失败，错误串包含 `Ledger.Locked` 与\"单写者\"",
+       "ev": [
+        "scripts/test/contract.rs::c07_second_writer_is_refused",
+        "check.sh.new"
+       ]
+      },
+      {
+       "title": "锁随第一个写者退出而释放",
+       "line": 53,
+       "when": "释放第一个写者（Drop）后再次打开同一本账",
+       "then": "打开成功",
+       "ev": [
+        "scripts/test/contract.rs::c07_second_writer_is_refused"
+       ]
+      },
+      {
+       "title": "陈旧锁被回收且锁文件记录新持有者",
+       "line": 59,
+       "when": "锁文件内容是一个不存在的 pid（伪造崩溃遗留），再打开该账本",
+       "then": "打开成功，`last_seq` 为 0，且锁文件内容被改写为当前进程 pid",
+       "ev": [
+        "scripts/test/contract.rs::c08_stale_lock_is_reclaimed"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "残缺的尾部被丢弃，`seq` 空洞拒绝启动",
+     "line": 65,
+     "text": [
+      "系统 SHALL 在启动读账本时把文件**截到最后一个换行符**（只追加模型下唯一可能残缺的位置），",
+      "且当 `seq` 出现空洞时 SHALL 拒绝启动，而不是静默接受。",
+      "**边界 SHALL 被如实声明**：本判据是\"**截到最后一个换行**\"，**不是**\"丢弃解析失败的最后一行\"。",
+      "一条内容完整、合法的 JSON 事件，只要其末尾换行缺失，就会被一并截掉并在下次写入时被物理删除、",
+      "其 `seq` 被复用。此边界 SHALL NOT 被读成\"只丢残缺的半行\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "半行被丢弃",
+       "line": 74,
+       "when": "账本最后一行是残缺的 JSON（或末尾换行缺失）",
+       "then": "该行被截掉，其余事件正常读回",
+       "ev": [
+        "scripts/test/acceptance.rs::t3_partial_line_is_discarded"
+       ]
+      },
+      {
+       "title": "`seq` 有空洞时拒绝启动",
+       "line": 82,
+       "when": "账本中存在 `seq` 不连续的事件",
+       "then": "打开失败并报出 `SeqGap`",
+       "ev": [
+        "scripts/test/acceptance.rs::t4_seq_gap_refuses_to_start"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "账本文件恒以行边界收尾",
+     "line": 90,
+     "text": [
+      "系统 SHALL 保证写出的账本文件始终以换行符结束，",
+      "使\"每行一条事件\"这一分帧约定在任何时刻都成立。"
+     ],
+     "scenarios": [
+      {
+       "title": "每次写入后文件都以换行收尾",
+       "line": 95,
+       "when": "任意次提交之后检查账本文件的最后一个字节",
+       "then": "最后一个字节是换行符，不存在\"半行挂在末尾\"的中间态",
+       "ev": [
+        "scripts/test/contract.rs::c22_file_always_ends_on_a_line_boundary"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "摘要链检出局部篡改，并如实声明其边界",
+     "line": 102,
+     "text": [
+      "系统 SHALL 为每条写出的事件带上摘要链，并把链的核验接在**启动路径**上：",
+      "账本被局部改写、重排或插入时 SHALL 拒绝启动。",
+      "系统 SHALL 明确声明第一条边界：无密钥的链**不能**检出\"整文件重写并重算链\"，",
+      "此边界 SHALL 被测试固定，不得被表述为\"防篡改\"。",
+      "系统 SHALL 另外明确声明第二条边界：**无链（v1）账本不具备平滑升级路径**。",
+      "`append` **无条件**把 `chain` 插进事件，而 `load_chain` 对无链账本返回 `false` 后",
+      "**不改变写入行为** ⇒ 无链账本上做**一次合法 `append`** 即产生\"部分有链、部分没有\"的账本，",
+      "下次打开判 `MixedChain` 并拒绝使用。此边界 SHALL NOT 被表述为\"v1 兼容\"或\"可平滑升级\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "改写、重排、插入中间事件均被检出",
+       "line": 115,
+       "when": "对一条合法链分别做三种操作：改中间某条的内容、交换相邻两条、按攻击者算好的链插入一条",
+       "then": "三种情形都报 `ChainMismatch`",
+       "ev": [
+        "scripts/test/contract.rs::c16_chain_detects_local_tampering"
+       ]
+      },
+      {
+       "title": "无链与混用被显式区分，不得静默通过",
+       "line": 121,
+       "when": "对一份完全无链的账本、以及一份部分带链的账本做核验",
+       "then": "无链报 `NoChain` 并说明\"不可检出\"；混用报 `MixedChain` 并说明\"比无链更危险\"",
+       "ev": [
+        "scripts/test/contract.rs::c17_chain_distinguishes_absent_and_mixed"
+       ]
+      },
+      {
+       "title": "篡改一行即拒绝启动",
+       "line": 127,
+       "when": "直接改写账本中间一行的 `body.after` 而保留原 `chain`，再打开世界",
+       "then": "打开失败，错误串包含 `ChainMismatch`，且理由提到\"唯一真相\"",
+       "ev": [
+        "scripts/test/contract.rs::c20_startup_refuses_a_tampered_ledger"
+       ]
+      },
+      {
+       "title": "整本重写按设计检不出（边界固定）",
+       "line": 133,
+       "when": "攻击者改写一条事件的值，并把链整条重算（知道算法与创世种子）",
+       "then": "核验**通过**——这是无密钥链的极限，本断言证明的是边界而不是实现缺陷；",
+       "ev": [
+        "scripts/test/contract.rs::c18_chain_cannot_detect_a_full_rewrite"
+       ]
+      },
+      {
+       "title": "链状态位如实反映账本现实",
+       "line": 140,
+       "when": "分别对\"新写入的带链账本\"\"空账本\"\"手工造的无链账本\"读取链状态",
+       "then": "依次为 true / false / false，且**无链账本可以被打开**",
+       "ev": [
+        "scripts/test/contract.rs::c21_is_chained_reflects_reality"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "回滚是追加补偿事件，不是改写历史",
+     "line": 149,
+     "text": [
+      "系统 SHALL 以\"追加一条补偿事件\"的方式实现回滚，",
+      "SHALL NOT 修改或删除已经写下的事件。",
+      "系统 SHALL NOT 声称提供\"回滚操作\"或\"回滚子命令\"：v1 没有回滚 API，",
+      "回滚由调用方**再提交一条普通 `change`** 完成。"
+     ],
+     "scenarios": [
+      {
+       "title": "回滚后历史里两条都在",
+       "line": 157,
+       "when": "提交一条 `change` 后对其执行回滚（即再提交一条互换新旧值的 `change`）",
+       "then": "账本中同时存在原事件与补偿事件，没有任何一条被改写或删除，且状态回到原处",
+       "ev": [
+        "scripts/test/acceptance.rs::t17_rollback_is_an_appended_compensating_event"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "无链账本的升级路径边界",
+     "line": 166,
+     "text": [
+      "系统 SHALL 保证：在**无链（v1）账本**上做一次合法 `append` 之后，",
+      "该账本 SHALL 仍可被打开——即\"整本无链\"是一个**稳定态**，",
+      "或者启动时即拒写并给出迁移指引。",
+      "系统 SHALL NOT 使\"无链账本 → 一次合法 `append` → 下次打开被 `MixedChain` 拒绝\"成为可能。",
+      "在此之前，系统 SHALL 在规格里**不声称**无链账本可平滑升级：",
+      "\"v1 兼容\"这一说法 SHALL 被限定为\"**只读兼容**\"。",
+      "此边界 SHALL 被测试固定，SHALL NOT 被表述为实现缺陷或注意事项。"
+     ],
+     "scenarios": [
+      {
+       "title": "无链账本上一次合法 append 后仍可打开（升级路径不自锁）",
+       "line": 177,
+       "when": "对一份无链（v1）账本做一次合法 `append`，再重新打开该账本",
+       "then": "打开成功，`last_seq` 为 2，且账本未变成\"部分有链、部分没有\"",
+       "ev": []
+      },
+      {
+       "title": "v1 兼容只到只读为止（边界固定）",
+       "line": 186,
+       "when": "在修复落地之前，对一份无链账本做一次合法 `append` 后再打开",
+       "then": "打开失败并报 `MixedChain` —— 本断言证明的是**边界的真实形状**，不是实现缺陷；",
+       "ev": [
+        "scripts/test/contract.rs:1648",
+        "c30_k3_boundary_chainless_ledger_plus_one_append_reports_mixed_chain",
+        "#[test]",
+        "ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "承诺与证据的绑定强度",
+     "line": 193,
+     "text": [
+      "本规格的每一条 Scenario 末尾的证据行 SHALL 指向**真实存在**的测试函数。",
+      "系统 SHALL 明确声明的边界：**证据行只到\"测试名存在\"这一级**，",
+      "它 SHALL NOT 被读成\"该测试断言的正是本 Scenario 那句话\"。",
+      "后者的判定 SHALL 由评审承担并留下签字，SHALL NOT 由机械门禁冒充。"
+     ],
+     "scenarios": [
+      {
+       "title": "证据行的存在性可机核、内容相符性不可机核",
+       "line": 201,
+       "when": "核对某条 Scenario 的证据行所指向的测试函数是否存在",
+       "then": "可机械判定；而当该测试函数的断言与 Scenario 说的不是同一件事时，",
+       "ev": [
+        "scripts/verify/spec_bridge.py"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕这本账的能力上限（三句，逐句判）",
+     "line": 212,
+     "text": [
+      "这一层 SHALL 按三句上限**逐句**对外声明它管到什么为止：**能消灭\"查无此申请\"**；**消灭不了\"查无此后果\"**；**消灭不了\"查无此人可担此责\"**。三句 SHALL 各自可判（各有一个能被检验的标的），且 SHALL NOT 被合并成一句笼统的\"可追责\"。",
+      "（书 §5.1 逐字：「把『没有记录』变成『有记录』，**能消灭『查无此申请』，消灭不了『查无此后果』，也消灭不了『查无此人可担此责』**。这三句话是这一层的天花板，逐句判。」）"
+     ],
+     "scenarios": [
+      {
+       "title": "三句各自可判，且不许互相冒充",
+       "line": 217,
+       "when": "逐句核这三条上限的标的：① 唯一写入路径 ＋ 只追加账本能否答出\"谁在何时改了哪个字段、前值是什么、因为哪一条\"；② **世界外面**产生的效果能否被世界里再写一条记录撤回；③ 出事之后能否指出一个**可担此责的人**",
+       "then": "①的标的**存在且可核**；②的标的**今天不存在**（没有第二本账、没有对账表）；③的标的**今天不存在**（没有归责与损失机制）；三句**各判各的**，任何一句为绿 SHALL NOT 被用来支持另一句",
+       "ev": [
+        "src/lib.rs",
+        "compile_fail"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕一个说法要回答的七个问题（同一份记录上的七个位置）",
+     "line": 238,
+     "text": [
+      "写下一件事 SHALL 能回答七个问题：**① 谁做的；② 对什么做的；③ 从什么变成什么；④ 因为什么才发生；⑤ 排在第几位；⑥ 谁允许的；⑦ 什么单位。**",
+      "三条口径 SHALL 同时成立（**逐条都是判据，不是修辞**）：",
+      "1. **判据是读的人的**：一条记录写得全不全，判据是\"**别人能不能不问当事人就读出来**\"——\"写的人自己是否清楚\"**不作数**；",
+      "2. **七个位置在**同一份记录上**，不是七份材料**：它们 SHALL 一次答在同一处，SHALL NOT 分散在不同件里让读者自己去凑；",
+      "3. **一处缺格即认缺**：SHALL NOT 用\"其余六格都在\"来含混——缺格要**如实标出来**。"
+     ],
+     "scenarios": [
+      {
+       "title": "逐格核七个位置（哪几格有位置、哪几格没有）",
+       "line": 247,
+       "when": "对着一条真实记录逐格核这七个位置",
+       "then": "每格**要么**给出\"位置在哪、由什么钉住\"**要么**如实写\"今天没有位置\"，SHALL NOT 把缺格写成有格",
+       "ev": [
+        "scripts/test/acceptance.rs",
+        "t1",
+        "scripts/test/trace_notice.rs",
+        "scripts/test/cli.rs",
+        "ninedim/06-变更/archive/2026-09-28-cover-unimplemented-capabilities/tasks.md"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "ontology-extensibility",
+   "file": "ninedim\\01-意图环\\04-规格\\ontology-extensibility.spec.md",
+   "purpose": "规定\"本体怎么长大而不把核心改坏\"：出厂本体是极小核心，扩展只能经命名空间加入，核心字段的含义永不因扩展而变；信封里的 `trace` 作为因果字段保留并可在入口写入。这一层今天只有草稿、没有实现，本 delta 把它建档。",
+   "reqs": [
+    {
+     "title": "REQ-F-030 本体：极小核心 ＋ 命名空间扩展",
+     "line": 8,
+     "text": [
+      "本体 SHALL 采用**极小核心 ＋ 命名空间扩展**的结构：出厂本体只定义三家族信封与最小概念集；扩展项 SHALL 落在命名空间内，**SHALL NOT 与核心字段重名**；换一份**只加扩展**的本体，同一账本的折叠结果 SHALL 不变。",
+      "（核心字段 = `envelope.required` ∪ `envelope.optional`；重名在**装载期**即拒启并点名撞上的那一项——",
+      "重名是\"法律自相矛盾\"，与 `load` 的其余错误同一处置。）",
+      "往上长的方式**只有加法**，本条 SHALL 按此**双向**声明：① 核心之外 SHALL 只经命名空间**加**（已在上段）；",
+      "② **核心之内 SHALL NOT 取交集、SHALL NOT 做删减**——即**任何扩展都不得改写、收缩或重定义核心字段的含义**。",
+      "（这一句此前**只有正向那一半**落进规格：正向＝\"扩展走命名空间\"，反向＝\"核心不许被改\"**没有明文**；",
+      "它的可核形态就是上段的\"重名即拒 ＋ 只加扩展则折叠逐字节不变\"两条 Scenario——**含义被改，折叠必变**。）"
+     ],
+     "scenarios": [
+      {
+       "title": "扩展与核心字段重名必须被拒",
+       "line": 19,
+       "when": "造一份\"扩展项与核心字段重名\"（例如扩展里再叫 `body`）的本体",
+       "then": "加载**被拒**（错误码 `ext.world.Ontology.CoreCollision`）并指出重名的那一项；",
+       "ev": [
+        "scripts/test/ontology_ext.rs::x01_an_extension_item_colliding_with_a_core_field_is_refused_at_load"
+       ]
+      },
+      {
+       "title": "换一份只加扩展的本体，同一账本的折叠结果不变",
+       "line": 26,
+       "when": "用同一份账本，分别以出厂本体与\"只加扩展\"的本体读（过法律 + 折叠）",
+       "then": "两次折叠结果**逐字节相同**，且词表身份**必须已变**（否则\"换本体\"没发生，相等是同义反复）；",
+       "ev": [
+        "scripts/test/ontology_ext.rs::x02_a_pure_extension_keeps_the_fold_byte_identical"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "REQ-F-031 `trace`（信封因果字段）",
+     "line": 33,
+     "text": [
+      "信封的 `trace` SHALL 保留为需求：一条事件 SHALL 能声明\"它由哪一条事件引起\"，且该字段 SHALL 能从**写入入口**给出。",
+      "（**2026-09-28 起端到端可执行验证面已在**：库侧 `World::commit_requested` 一直有 `trace`；命令行这一级由",
+      "`append … [--trace <id>] [--flag <名>]...` 补上——原文\"`World::commit` 与 CLI `append` 都没有 `trace` 参数\"**已过期**。）"
+     ],
+     "scenarios": [
+      {
+       "title": "带 trace 的事件可写可读",
+       "line": 39,
+       "when": "从写入入口提交一条带 `trace` 的事件，再读回",
+       "then": "`trace` 原样落账且可读回；`trace` 指向一条不存在的事件时，行为有明文规定（接受或拒绝，二者择一并写死）",
+       "ev": [
+        "scripts/test/trace_notice.rs::f61_append_with_trace_lands_and_reads_back_byte_for_byte"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "projections",
+   "file": "ninedim\\01-意图环\\04-规格\\projections.spec.md",
+   "purpose": "规定\"同一份账，各按自己要用的方式读\"这一层对外可核的行为：语言投影与视觉投影必须同源、 同源核对必须接在出厂命令上、词表变更必须能被检出、投影只能省略不能添加。 **同源核对只证\"同源\"，证不了\"两份记录说的是同一件事\"**——书第五章（合订本 `:659`）逐字：这一格的**当日结果**是\"绿而无效\"， 而**按\"能不能证明两份记录说的是同一件事\"来判，这一格是红的**；书同时把\"当日结果与结论色压在一列\"**点名为缺陷**（合订本 `:1819` M-12）。 书的**通过条件**是「**判定能看内容，且两份由不同一方生成**」（合订本 `:736`）；**今天只做到\"头部四项一致\"**（`src/gui_projection/mod.rs:124` 的 `assert_same_source`；书自己也写「第 124 行」）， 即书判红的那一半。今天的实测边界见 `ninedim/06-变更/archive/2026-09-28-cover-unimplemented-capabilities/` 与本 change 的 `audit.md` P1／P2 两条。 这一能力服务 `显`。",
+   "reqs": [
+    {
+     "title": "两份读法同源且可当场核对",
+     "line": 14,
+     "text": [
+      "系统 SHALL 提供语言投影（给程序读）与视觉投影（给人看）两份读法；",
+      "两者 SHALL 由**同一读模型与同一词表**派生；",
+      "系统 SHALL 提供一条出厂命令当场核对两者首行的**头部四项**一致",
+      "（`world` / `vocab` / `last_seq` / `state` 指纹）。",
+      "系统 SHALL NOT 把该命令表述为\"能证明两份记录说的是同一件事\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "`project check` 报同源",
+       "line": 23,
+       "when": "在出厂状态下运行 `world-core project check`",
+       "then": "退出码为 0，stdout 含「同源」与「✅」",
+       "ev": [
+        "scripts/test/cli.rs::cli05_project_check_reports_same_source"
+       ]
+      },
+      {
+       "title": "换词表能被检出",
+       "line": 35,
+       "when": "在词表变更后比对两份投影",
+       "then": "同源核对能报出不同源（错误串含\"词表不同\"）",
+       "ev": [
+        "scripts/test/acceptance.rs::t16_two_projections_are_same_source_and_vocab_change_is_detected"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "语言投影与读模型逐项相等",
+     "line": 43,
+     "text": [
+      "语言投影 SHALL 由读模型派生；把投影逐行解析出的三元组集合与读模型逐项比对，",
+      "两者 SHALL **完全相等**（既不得添加状态源里没有的事实，也不得省略状态源里已有的事实）。"
+     ],
+     "scenarios": [
+      {
+       "title": "投影与读模型逐项相等",
+       "line": 48,
+       "when": "把语言投影逐行解析为 `(主体, 路径, 值)` 三元组，与读模型 `entries()` 比对",
+       "then": "两个集合完全相等",
+       "ev": [
+        "scripts/test/acceptance.rs::t14_language_projection_matches_read_model"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "视觉投影的排版是可审计契约",
+     "line": 54,
+     "text": [
+      "视觉投影 SHALL 采用**固定排版契约**（不只是缩进两条），该契约 SHALL 至少包含下列 11 条，",
+      "且该契约 SHALL 有**独立于渲染实现本身**的审计器逐条检验：",
+      "1. 首行是同源头，严格匹配 `^#world-core projection=visual world=<int> vocab=<tok> last_seq=<int> state=<tok>$`（无多余空格）；",
+      "2. 第 2 行是标题，逐字 `世界状态（视觉投影）`；",
+      "3. 分隔线只由 `U+2500` 组成且长度 **= 44**；",
+      "4. 摘要行格式固定；空状态时为固定的一句话；",
+      "5. 收尾分隔线同为 44 个 `U+2500`，**空状态只有 4 行**（无收尾线）；",
+      "6. 主体行为**恰好 2 个空格** ＋ `world://…`；",
+      "7. 字段行为**恰好 6 个空格** ＋ `路径 = JSON值`，且值必须能被 `json.loads`；",
+      "8. **任何字段行不得出现在首个主体行之前**；",
+      "9. 全部行**必须被分类**（未分类行数 = 0）；",
+      "10. 正文不得含裸控制字符；含换行的值必须被转义；",
+      "11. 文件以 **LF** 结尾且无 CR。"
+     ],
+     "scenarios": [
+      {
+       "title": "排版审计对变异必报红、对期望样本必常绿",
+       "line": 71,
+       "when": "用独立审计器检验 3 份字节级期望样本，并施加 12 个变异",
+       "then": "3 份样本全部通过，12 个变异全部报红",
+       "ev": [
+        "scripts/verify/visual_layout_audit.py --self-test",
+        "check.sh.new"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "出厂同源命令的判据边界",
+     "line": 77,
+     "text": [
+      "出厂同源命令 `world-core project check` 的判据边界 SHALL 被如实声明为**正式条文**：",
+      "① 该命令**自己渲染两份再自己比**——两份投影由**同一个读模型、同一个词表**派生",
+      "⇒ `assert_same_source` 的三个不等分支在该命令路径上**结构上不可达**，对任何输入只会报绿；",
+      "② 它**只比较头部四项**（`world` / `vocab` / `last_seq` / `state` 指纹），**不比较内容**；",
+      "③ 它**从未比过两份由不同一方独立生成的投影**。",
+      "系统 SHALL NOT 把该命令表述为\"能证明两份记录说的是同一件事\"。",
+      "跨来源比对（两份由不同一方独立生成）SHALL 被列为**尚未实现**，",
+      "其落点 SHALL 由人裁定，SHALL NOT 由本 change 自造编号。"
+     ],
+     "scenarios": [
+      {
+       "title": "出厂命令的判据只有头部四项（边界固定）",
+       "line": 90,
+       "when": "让两份投影在**内容**上不一致（例如一方少渲一半主体）、而头部四项相同",
+       "then": "`project check` **仍然报绿** —— 本断言证明的是**边界**而不是实现缺陷；",
+       "ev": [
+        "scripts/test/cli.rs",
+        "cli13_project_check_criterion_reads_only_the_header",
+        "src/gui_projection/mod.rs"
+       ]
+      },
+      {
+       "title": "该命令的三个不等分支在命令路径上不可达（边界固定）",
+       "line": 98,
+       "when": "检查 `src/main.rs` 的 `project check` 分支如何构造两份投影",
+       "then": "两份投影取自**同一个 `state` 与同一个 `vocab`** ⇒ 命令路径上不可能出现\"世界版本不同／",
+       "ev": [
+        "scripts/test/cli.rs",
+        "cli14_project_check_feeds_both_projections_the_same_state_and_vocab",
+        "src/main.rs:408-410",
+        "cmd_project",
+        "open_readonly",
+        "read_model",
+        "vocab_hash",
+        "src/main.rs"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "视觉投影与读模型逐项相等",
+     "line": 106,
+     "text": [
+      "视觉投影 SHALL 由读模型派生；把视觉投影解析出的 `(主体, 路径, 值)` 三元组集合与读模型逐项比对，",
+      "两者 SHALL **完全相等**（视觉投影只能改变画法，不得增删世界状态里的事实）。"
+     ],
+     "scenarios": [
+      {
+       "title": "视觉投影与读模型逐项相等",
+       "line": 111,
+       "when": "把视觉投影解析为 `(主体, 路径, 值)` 三元组，与读模型 `entries()` 比对",
+       "then": "两个集合完全相等",
+       "ev": [
+        "scripts/test/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕读法是叶子：几份读法之间不互相调用、不持有状态",
+     "line": 119,
+     "text": [
+      "几份读法之间 SHALL NOT 互相调用——没有一份要问另一份\"你那里是什么\"，也没有一份可以把自己的输出当作另一份的输入；读法 SHALL NOT 持有自己那一份状态（显示偏好不算状态）。",
+      "（书 §4.4 逐字：「不互相调用的意思是，没有一份要问另一份『你那里是什么』，也没有一份可以把自己的输出当作另一份的输入。它们都是账本的读法。**读法是叶子，只负责往外给。**」／「**读法不持有状态。** 读法可以有自己的显示偏好，比如排序、折叠、配色，这些偏好不影响它摆出来的内容；读法一旦开始记自己那一份状态，它就有了自己的说法，而这一层只允许一份说法。」）"
+     ],
+     "scenarios": [
+      {
+       "title": "拔掉一份读法，另一份照常工作",
+       "line": 124,
+       "when": "让其中一份读法**不可用**（或让它落后若干个事件）",
+       "then": "另一份读法**不受影响**（不因对方缺席而失败、也不去问对方要数据）；两份读法各自的产出**只依赖账本**",
+       "ev": [
+        "scripts/test/projection_leaf.rs::p01_language_alone_is_complete_and_the_other_reading_never_runs",
+        "scripts/test/projection_leaf.rs::p02_visual_alone_is_complete_and_the_other_reading_never_runs",
+        "scripts/test/projection_leaf.rs::p03_same_ledger_same_bytes_twice_and_no_state_kept_anywhere",
+        "scripts/test/projection_leaf.rs::p04_ledger_grows_so_does_each_reading",
+        "last_seq",
+        "scripts/test/projection_leaf.rs::p05_a_lagging_reading_neither_breaks_nor_bleeds_into_the_other",
+        "scripts/test/projection_leaf.rs::p06_the_two_exits_do_not_carry_each_others_shapes"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "read-model",
+   "file": "ninedim\\01-意图环\\04-规格\\read-model.spec.md",
+   "purpose": "规定\"读法可以有若干份，但说法只有一份\"这一层对外可核的行为：读模型必须能由账本百分之百重算、 检查点只是缓存可以随时丢弃。**它不是\"唯一\"的自动化检验面**——另有**摘要链**一条独立检验 （`scripts/test/contract.rs` 的 `c19`／`c20`／`c21`，由 `check.sh` 整跑 `--test contract` 执行）。 ⚠ **不把\"投影同源\"算作这一层的检验面**：它**只证同源、证不了同一件事**（见 `projections` 能力，书第五章判它红）。 ⚠ **措辞出处**：「**唯一**自动化检验」这句原出自**流程侧** `策划-WC-SQAP-001-v0.1.md:536`，**不是书的原话** （书里检索 `一个真相`／`检验面` 均 0 命中）；本能力的更正依据是 `fc-2026-002-spec-revisions` 里**待并入**的条文。 **信封各格的\"读得到\"与\"不进状态\"**（`1.1` 的裁定落点；与上面那条 Requirement 的边界同口径）： **逐格说清\"不进状态\"与\"读得到\"**（两件事一起说，否则读者会把\"不进状态\"读成\"没人读得到\"）： | 信封格 | 为什么**不进** `state` | 它的**可读面**（读得到的那个读法） | |---|---|---| | `world` | 法律级**常量**（词表版本），不属于世界状态的任何一格 | **投影头部**（`world=`） | | `id` | **逐事件**的身份；状态按 `(主体, 路径)` 折叠 ⇒ 没有处置放它 | **逐条读事件**（CLI `read` 的 JSON Lines） | | `at` | **逐事件**的辅助量（顺序由 `seq` 决定，`at` 只作辅助）⇒ 放进状态会诱人拿它当顺序 | 同上 | | `actor` | **逐事件**身份——\"谁做的\"是**账本级**的事实，不是某一格的值 | 同上 | | `flags` | **能力旗标**：未知旗标必须**忽略** ⇒ 它不改状态 | 同上 | - **另 5 格同样如此**：`kind`／`seq`／`body`／`to`／`trace` **不进** `state`，它们的可读面同样是**逐条读事件**—— 上表只列 `1.1` 点名的那 5 格；**判据本身不按这张表**（`c36` 的清单**从本体派生**：`required ∪ optional`，新加一格自动进判据）。 - **证据**：`scripts/test/contract.rs::c36_every_declared_envelope_cell_is_readable_from_some_read_view` （逐格断言\"某一读法读得到\"＋同时断言\"`state` 里读不到\"；**两条反向验证**：把头部 `world=` 拿掉 ⇒ 该用例红； 把 `actor` 混进状态 ⇒ 该用例红）。",
+   "reqs": [
+    {
+     "title": "读模型是可丢弃的缓存",
+     "line": 32,
+     "text": [
+      "\"现在是什么样\" SHALL 由账本重算得出，SHALL NOT 作为与账本并行的第二份原件存在。",
+      "删掉读模型（及其持久形态）之后 SHALL 能从账本重算出完全一致的结果。",
+      "系统 SHALL NOT 声称\"账本内容损坏一律拒绝产出\"这一全称命题。",
+      "已实测的拒绝面 SHALL 被逐类写明：① 序号断裂、② 旧值说谎（`change` 的 `before` 与当前值不符）、",
+      "③ 未知事件家族。",
+      "**边界 SHALL 被如实声明**：末尾半行在进入折叠**之前**就已被账本层截掉",
+      "（`src/ledger/mod.rs:276-289`），故它**不是**读模型的拒绝面；",
+      "读模型对\"解析失败的行\"不承担拒绝责任。"
+     ],
+     "scenarios": [
+      {
+       "title": "删掉读模型后重算结果一致",
+       "line": 44,
+       "when": "记录当前读模型，删除其持久形态，再由账本重算",
+       "then": "重算结果与删除前逐项一致",
+       "ev": [
+        "scripts/test/acceptance.rs::t7_read_model_is_disposable_and_reproducible"
+       ]
+      },
+      {
+       "title": "坏账本不得产出\"看起来正常\"的读模型",
+       "line": 55,
+       "when": "账本内容损坏（序号断裂／旧值说谎／未知事件家族）",
+       "then": "读模型拒绝产出，而不是给出部分结果",
+       "ev": [
+        "scripts/test/acceptance.rs::t8_read_model_refuses_broken_ledger"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "增量折叠等价于全量折叠",
+     "line": 62,
+     "text": [
+      "系统 SHALL 保证\"逐条增量应用\"与\"从头全量折叠\"得到同一个结果，",
+      "否则读模型就成了一本会漂移的第二本账。"
+     ],
+     "scenarios": [
+      {
+       "title": "增量与全量结果相同",
+       "line": 67,
+       "when": "对同一批事件分别做增量应用与全量折叠",
+       "then": "两者结果相同",
+       "ev": [
+        "scripts/test/contract.rs::c06_incremental_apply_equals_full_fold",
+        "check.sh.new"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "检查点是缓存，可丢弃且必须自洽",
+     "line": 75,
+     "text": [
+      "检查点 SHALL 只作为重放的加速形态存在；它 SHALL 可被丢弃而不影响正确性；",
+      "坏检查点 SHALL 被拒绝而不是被静默采用。",
+      "系统 SHALL 明确声明\"自洽\"的可判定含义，SHALL NOT 留作未定义词：",
+      "检查点的**核验**判据只有两项——① 快照自称的 `base_seq` 能对上账本前若干条；",
+      "② 用账本重算前 `base_seq` 条得到的指纹等于快照自称的 `digest`。",
+      "系统 SHALL 另外声明：CLI 的 `checkpoint resume` 走的是**未核验**续算路径，",
+      "其\"缓存未成为第二真相\"由**事后**的\"续算 ≡ 全量\"逐字节比对承担",
+      "（不一致即 `ResumeMismatch` 拒用），**不是**由使用前的 `verify` 承担。",
+      "检查点格式版本不符时 SHALL 拒绝使用；该约束 SHALL 有断言。"
+     ],
+     "scenarios": [
+      {
+       "title": "检查点可丢弃",
+       "line": 90,
+       "when": "生成检查点后再丢弃它，由账本重新重放",
+       "then": "结果与使用检查点时一致",
+       "ev": [
+        "scripts/test/contract.rs::c12_checkpoint_is_a_cache_and_disposable"
+       ]
+      },
+      {
+       "title": "坏检查点被拒",
+       "line": 96,
+       "when": "检查点内容被破坏",
+       "then": "被拒绝",
+       "ev": [
+        "scripts/test/contract.rs::c13_bad_checkpoints_are_refused"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "读模型是\"一个真相\"的检验面之一",
+     "line": 104,
+     "text": [
+      "读模型 SHALL 是可丢弃的缓存，\"现在是什么样\"由账本重算得出。",
+      "本能力 SHALL NOT 被表述为\"一个真相\"这条纪律的**唯一**自动化检验面：",
+      "同仓另有**摘要链核验**一条独立检验（`c19`/`c20`/`c21`/`cli02`）。",
+      "⚠ **投影同源核对（`t16`）不计入本能力的检验面**：它属 `projections` 能力，且**只证同源、证不了\"两份记录说的是同一件事\"**（书第五章判它红）。",
+      "系统 SHALL 声明检查点路径**已接入生产 CLI**（`checkpoint write|verify|resume`），",
+      "SHALL NOT 被表述为\"v1 CLI 从不读快照\"。",
+      "证据链的机械门禁 SHALL 声明其覆盖边界：`scripts/verify/doc_integrity.py` 的受控清单里",
+      "`**` **零命中**，故\"改一个测试名，规格不会变红\"。",
+      "该缺口 SHALL 由 `spec_bridge.py` 的对应检查承担，SHALL NOT 被读成\"证据链已被机核\"。"
+     ],
+     "scenarios": [
+      {
+       "title": "检查点路径已接入生产 CLI",
+       "line": 119,
+       "when": "查阅 CLI 的用法串与分发分支",
+       "then": "其中列出 `checkpoint write` / `checkpoint verify` / `checkpoint resume` 三条子命令，",
+       "ev": [
+        "scripts/test/cli.rs:615",
+        "cli15_usage_lists_three_checkpoint_subcommands",
+        "src/ontology_instance/checkpoint.rs",
+        "W-03",
+        "P-09",
+        "src/main.rs",
+        "src/main.rs"
+       ]
+      },
+      {
+       "title": "证据链的机械门禁不覆盖 openspec",
+       "line": 128,
+       "when": "改动 `ninedim/01-意图环/04-规格/` 下某条 Scenario 的证据行所指的测试名",
+       "then": "受控文档一致性脚本**不会变红**（`openspec` 在其受控清单里零命中）；",
+       "ev": [
+        "scripts/verify/spec_bridge.py"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "带检查点路径的性能目标不在本基线的承诺范围内",
+     "line": 138,
+     "text": [
+      "系统 SHALL 明确声明**范围外**事项，SHALL NOT 被读成已成立：",
+      "带检查点路径的性能目标（`REQ-N-008`：走检查点续算 ≤ 全量重算的 1/2，样本 ≥ 20 次取 P95）",
+      "在本基线内**未实现、无断言**；`scripts/test/perf.rs` 的全部用例默认 `#[ignore]`，",
+      "只在显式度量时运行。"
+     ],
+     "scenarios": [
+      {
+       "title": "性能目标不在本基线的承诺范围内",
+       "line": 145,
+       "when": "查阅本能力的覆盖声明",
+       "then": "写明 `REQ-N-008` 未实现、无断言，且 `scripts/test/perf.rs` 三条用例默认不跑",
+       "ev": [
+        "ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕声明以外的字段不许落账",
+     "line": 152,
+     "text": [
+      "写入侧 SHALL 按出厂本体 `ontology.json` 的 `concepts` 校验实体与字段：**未声明的实体**与**未声明的字段** SHALL 被拒；读模型侧 SHALL 对缺格报错，SHALL NOT 静默接受。",
+      "**读模型侧的缺格**（`REQ-F-032` 判据②「缺格即报错」，书第五章 5.6 表 5.2 行逐字",
+      "「每个已声明的字段至少有一份读法可读，缺格就报错」）SHALL 逐格可判：",
+      "- **\"已声明\"可机械枚举**：`envelope.required`／`envelope.optional`／三家族各自的 `required`／`concepts`，",
+      "逐项从本体原文现取（条数由该文件现算，本处不复述）；",
+      "- **缺格即报错**：一行账本少了**已声明的必填格** ⇒ 读法 SHALL 拒，错误里 SHALL 读出**哪一层**的**哪一格**",
+      "（`ext.world.ReadModel.MissingCell`），以及该层已声明的必填格清单；补回那一格后结论 SHALL 与基线**逐字节相同**；",
+      "- **可选格不是缺格**：`to`／`trace`／`params`／`payload` 没写是这份法律允许的形态，SHALL NOT 报缺格；",
+      "- **空清单不是\"检查通过\"**：读法拿不到\"已声明格\"清单时 SHALL 拒（`ext.world.ReadModel.NoDeclaredCells`）——",
+      "\"一个格都没查\"与\"每个格都查过了\"在读数上一样、在结论上相反；",
+      "- **缺格与\"未知家族\" SHALL NOT 互相冒充**：不认识的家族报 `ext.world.ReadModel.UnknownKind` 并点名那个家族",
+      "（与本 change `REQ-F-029` 对偶），它的错误里 SHALL NOT 出现\"缺格\"的说法。",
+      "**边界（SHALL NOT 被读成全称成立）**：读模型**不渲染**信封的 `id`／`at`／`actor`／`world`／`flags`——",
+      "它们今天**被读**（缺了即拒，就是上面那条判据），但**不进入状态**（`state --json` 里读不到它们）；",
+      "读法认得哪些家族，今天是**编译进读模型**的三家族（`REQ-F-027` 的边界同此）。",
+      "- **指针（动线）**：本条**逐格**的\"为什么不进 `state`／它的可读面是哪个读法\"与**证据行**，见**本册 `Purpose`** 的「信封各格的\"读得到\"与\"不进状态\"」一节——从本条出发找不到证据就是动线断，故留这一行。",
+      "系统 SHALL 如实声明本条的两处边界，SHALL NOT 被读成全称成立：",
+      "- **裸主体不受约束**：`world://<名字>`（没有实体／实例那一段）今天**照样能落账**——留下它不是口径而是代价",
+      "（既有出厂用例以这种形态写槽位，一律拒绝会把它们打红）。⇒ 书 §5.3 的\"世界的边界由声明定\"",
+      "在**实体引用**这一半成立，在**裸主体**那一半**仍未成立**；",
+      "- **本段只管 `change`**：三家族里只有 `change` 改状态，`act` / `notice` 的信纸由家族必填项管；",
+      "`notice.subject` 的语义是\"这条通告关于谁\"，不是\"改了哪一格\"，拿字段表去查它是查错了对象。"
+     ],
+     "scenarios": [
+      {
+       "title": "已声明的格可机械枚举，且与本体原文逐字一致",
+       "line": 183,
+       "when": "直读出厂本体的信封与三家族声明，与读法侧的清单逐项比对",
+       "then": "信封必填／可选、三家族必填、`concepts` 的实体与字段逐项相同，且本体身份（内容寻址）与出厂值一致",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h07_the_declared_inventory_is_mechanically_enumerable"
+       ]
+      },
+      {
+       "title": "缺格即报错，且点名缺的那一格",
+       "line": 189,
+       "when": "把账本某一行**已声明必填**的那一格删掉（信封的 `actor`，或家族信纸的 `request_id`）",
+       "then": "折叠被拒，错误码是 `ext.world.ReadModel.MissingCell`，错误里读出**哪一层**、**哪一格**、该层该有哪些格；",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h04_a_missing_declared_cell_is_refused_with_that_cell_named"
+       ]
+      },
+      {
+       "title": "空清单不许被读成宽松",
+       "line": 196,
+       "when": "读法收到一份空的\"已声明格\"清单",
+       "then": "拒绝折叠并给出 `ext.world.ReadModel.NoDeclaredCells`，SHALL NOT 默默放行",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h06_an_empty_declared_cell_list_is_not_read_as_lenient"
+       ]
+      },
+      {
+       "title": "命令这一级也拒（缺格即报错的可执行形态）",
+       "line": 202,
+       "when": "用一本删掉必填字段 `actor` 的账本跑 `state --json`",
+       "then": "`rc=2`，错误里读出 `ext.world.ReadModel.MissingCell` 并**点名** `actor`；把那一格补回去后 `rc=0`",
+       "ev": [
+        "scripts/test/family_readmodel.rs::h05_the_cli_read_path_refuses_a_missing_declared_cell_end_to_end"
+       ]
+      },
+      {
+       "title": "未声明的实体与字段都被拒",
+       "line": 209,
+       "when": "分别写入一个未声明的实体、一个未声明的字段",
+       "then": "两次都被拒、都不落笔，且错误里能读出**是哪个实体 / 哪个字段**没有声明",
+       "ev": [
+        "scripts/test/atom_declared_only.rs::b01_undeclared_entity_is_refused_and_nothing_lands"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cap": "write-side-adaptation",
+   "file": "ninedim\\01-意图环\\04-规格\\write-side-adaptation.spec.md",
+   "purpose": "规定\"世界外面的事怎么变成一条消息\"这一层对外可核的行为：**写侧只写、不裁决**，前值必须带上，翻不出来就报错，且这只手**以被管者身份运行、对账本与规则都没有写权限**。这一层原来在 OpenSpec 里**零落点**（书 §4.5 整节没有对应规格），本 delta 把它建档；覆盖面见下表。 **本 delta 覆盖书 §4.5 的哪三条、不覆盖哪一条**（不覆盖的也写在这里，免得被读成\"整节已落\"）： | 书 §4.5 的那一段 | 本 delta | |---|---| | `:585` 只写不裁决（准不准问 4.2 那道闸） | **覆盖**（第一条 Requirement；`act` 那一半的既有落点见 `WC-IRS-001` §3.12 的 `IF-011-R01`／`R08`） | | `:595`／`:597` 前值必须带上；翻不出来就报错、不许猜 | **覆盖**（第二条 Requirement；这一格此前**零落点**） | | `:601` 以被管者身份运行，对账本与规则都没有写权限 | **覆盖**（第三条 Requirement；静态墙的既有落点在 `src/gate/guard.rs`，跨 uid 实测在 `scripts/test/con01-no-bypass.sh`） | | `:599` 大对象不进主干道，主干道上只留一个内容指纹 | **不覆盖**：**货运道与内容指纹**今天**零落点**（既没有那条并行通道，也没有\"以内容引用当字段值\"的实现与断言）。⚠️ 同句的前半「主干道上的每一条记录都短」**另有落点**（`policy.json` 的 `channel_limits.max_line_bytes`，见 `src/bus/mod.rs` 的 `Limits::from_policy`）——那是通道的单行上限，不是货运道，两者不得互相冒充 |",
+   "reqs": [
+    {
+     "title": "〔无号·待流程侧增补〕写侧只写，不裁决",
+     "line": 17,
+     "text": [
+      "写侧 SHALL 只负责把世界外面发生的事翻成一条消息；**准不准做 SHALL 一律交给门禁判定**，写侧 SHALL NOT 自行裁决。",
+      "（书 §4.5 逐字：「它们与世界要的形式之间隔着一只手，这只手在写侧，它的纪律只有一条：只写，不裁决。准不准做，一律问 4.2 那道闸。」）",
+      "写侧的\"不裁决\"在实现里是**结构**，不是措辞，三处可逐字核：",
+      "- `src/carrier/run.rs`：`act` 那一半的顺序不可交换（先问内核 → 内核说不行就一次都不动 → 才执行 → 结果带因果回写）；",
+      "- `src/carrier/providers.rs`：执行序列**只能拒绝，永远不能放行**（放行只发生在\"问过门禁之后\"）；",
+      "- `src/carrier/writeside.rs`：`change` 那一半的提交**原样**交给内核，内核说拒就照原话转述（`Submitted::Refused`），写侧不重判。"
+     ],
+     "scenarios": [
+      {
+       "title": "写侧不放过、也不拦下任何一条",
+       "line": 28,
+       "when": "向写侧提交一件按出厂策略**不该放行**的事",
+       "then": "写侧**原样提交**、由**门禁**拒绝并留下流水；写侧自己**不做**放行或拦截的判定",
+       "ev": [
+        "scripts/test/write_side.rs::w01_the_write_side_submits_verbatim_and_never_adjudicates",
+        "scripts/test/write_side.rs::w02_a_gate_refusal_leaves_a_trail_and_nothing_lands"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕前值必须带上；翻不出来就报错、不许猜",
+     "line": 40,
+     "text": [
+      "写侧 SHALL 把\"外面的一处变化\"翻成\"**某个对象的某个字段从旧值变成新值**\"，**前值 SHALL 随记录带上**；写侧 SHALL NOT 在翻不出来时猜一个近似的字段名填上去，**翻不出来 SHALL 报错并拒绝写入**。",
+      "两条口径各有可核的落点（`src/carrier/translate.rs`）：",
+      "- **前值**：外部变化里的前值是 `Option<Value>`；`None`（外部系统给不出旧值）⇒ 报错 `ext.world.Carrier.NoPreviousValue`。**没有兜底分支**——不拿 `null`、也不拿新值顶上。⚠️ 显式的 `null` 前值是**合法**的前值（「没有前值」与「前值是空」是两件事）。",
+      "- **名字**：只认**逐字相等**的 (主体, 字段)，由声明回答（`Declared` 窄接口）；不在声明里 ⇒ 报错 `ext.world.Carrier.UnmappableField`。近似名（`mute` 之于 `muted`）**同样拒绝**。",
+      "⚠️ **本条今天证明到哪一步（如实声明，不许被读成全称成立）**：",
+      "- **库层已落成、有断言**：`src/carrier/translate.rs` 与 `src/carrier/writeside.rs`；",
+      "- **装配接线待补**：声明面由 `impl Declared for Ontology`（一行）提供，落点是 M04 的装配点 `src/lib.rs`，而 `src/lib.rs` 与 `src/main.rs` **不在本工区的文件面内** ⇒ 今天**没有 CLI 子命令**从命令行走到这条路上；断言走的是库接口。"
+     ],
+     "scenarios": [
+      {
+       "title": "翻不出来的输入被拒，且账本没有多出一条",
+       "line": 54,
+       "when": "给写侧一件**无法映射**到已声明字段的外部变化",
+       "then": "写侧**报错并拒绝**；读回账本，**条数不变**；错误信息里能读出**是哪一处**翻不出来",
+       "ev": [
+        "scripts/test/write_side.rs::w04_a_change_without_a_previous_value_is_refused_and_the_ledger_does_not_grow",
+        "scripts/test/write_side.rs::w05_an_undeclared_field_is_refused_and_never_guessed",
+        "scripts/test/write_side.rs::w06_a_similar_field_name_never_reaches_the_kernel"
+       ]
+      }
+     ]
+    },
+    {
+     "title": "〔无号·待流程侧增补〕写侧以被管者身份运行，且对账本与规则没有写权限",
+     "line": 68,
+     "text": [
+      "写侧 SHALL 以**被管者身份**运行在自己的进程里，**SHALL NOT** 对账本与出厂规则有任何写权限；它要写世界，SHALL 经通道提交请求，走**与任何其他主体完全相同**的那条路（校验、过闸、落笔）。",
+      "本条的两半各有归属，SHALL NOT 互相冒充：",
+      "- **\"对这些路径写不写得到\"（文件系统上的事实）**：`src/carrier/boundary.rs::assert_managed_cannot_write` —— 四条判据：不是符号链接、属主不是被管者、文件对 group/other 不可写、**所在目录**对 group/other 不可写且其属主不是被管者。它与 `src/gate/guard.rs` 的静态墙**同一纪律、方向相反**（guard 的 `assert_owned_by` 要求属主**是**核心 uid——那一条要部署方显式传 `--owner-uid` 才运行；本处要求属主**不是**被管者），且刻意**不复用** `guard`：`M05 → M10` 已有一条真实 import 边，反向再连即**成环**（`WC-ATOM-001` §二 A-4）。",
+      "- **\"本进程现在到底是谁\"**：由部署保证（`src/bus/mod.rs` 的 `bind` 一类的\"权限即身份\"、`runuser`／systemd `User=`），并由**跨 uid 实测**核；本模块不靠自称来证明身份。",
+      "⚠️ **本条今天证明到哪一步（如实声明）**：静态墙（`src/gate/guard.rs`）与跨 uid 实拒**早已存在**（`scripts/test/con01-no-bypass.sh`：以 `agent` 身份改配置／替换配置／直写账本三组全被拒，且断言 uid 自证与拒绝原因）；**新补的是写侧自己的那一半**——\"对这个被管者 uid，账本与规则写不写得到\"的可判函数 ＋ 会红的断言，以及**以被管者身份跑载体自己**的那条系统级实测（C-09）。"
+     ],
+     "scenarios": [
+      {
+       "title": "写侧手里的权限不足以绕过闸",
+       "line": 79,
+       "when": "让写侧进程**直接**尝试写账本或改出厂规则",
+       "then": "两次尝试**都被拒**（权限不足），写侧唯一能走通的路是**经通道提交**",
+       "ev": [
+        "scripts/test/carrier_acceptance.sh"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
  "srs": [
   {
    "id": "REQ-F-001",
@@ -232,7 +1823,7 @@
    "title": "语言无关（纯文本）",
    "pri": "P0",
    "status": "green",
-   "raw": "已实现（审计脚本 tools/plain_text_audit.py，正反例自证 + CI 执行）。⚠ 模块归属缺口：本条在 WC-RTM-001.csv 的 REQ-N-001 行（第 24 行）与 WC-HLD-001 中只登记 M02（账本），而\"词表必须纯文本\"应由 M01（本体） 承担 ⇒ 该子项在模块层无人认领（须在 RTM 的设计模块号列补 M01，该文件不属本次改动范围；见 §6 未决项 10）"
+   "raw": "已实现（审计脚本 scripts/verify/plain_text_audit.py，正反例自证 + CI 执行）。⚠ 模块归属缺口：本条在 WC-RTM-001.csv 的 REQ-N-001 行（第 24 行）与 WC-HLD-001 中只登记 M02（账本），而\"词表必须纯文本\"应由 M01（本体） 承担 ⇒ 该子项在模块层无人认领（须在 RTM 的设计模块号列补 M01，该文件不属本次改动范围；见 §6 未决项 10）"
   },
   {
    "id": "REQ-N-002",
@@ -728,7 +2319,7 @@
   }
  ],
  "tests": {
-  "tests/acceptance.rs": [
+  "scripts/test/acceptance.rs": [
    "tmpdir",
    "ontology",
    "policy",
@@ -752,7 +2343,7 @@
    "t15_visual_projection_is_human_readable_yet_auditable",
    "t16_two_projections_are_same_source_and_vocab_change_is_detected"
   ],
-  "tests/agent_audit.rs": [
+  "scripts/test/agent_audit.rs": [
    "tmpdir",
    "record",
    "g01_newline_in_value_does_not_split_the_frame",
@@ -760,7 +2351,7 @@
    "g03_multi_sink_isolates_failures",
    "g04_field_names_come_from_the_fixed_set"
   ],
-  "tests/agent_completion.rs": [
+  "scripts/test/agent_completion.rs": [
    "tmpdir",
    "ontology",
    "policy",
@@ -769,13 +2360,13 @@
    "j03_pending_comes_from_the_ledger_not_a_registry",
    "j04_reading_completion_is_idempotent"
   ],
-  "tests/agent_protocol.rs": [
+  "scripts/test/agent_protocol.rs": [
    "handler",
    "p01_one_request_one_response_in_order",
    "p02_bad_bytes_do_not_swallow_the_next_request",
    "p03_refusals_are_structured_not_prose"
   ],
-  "tests/agent_undo.rs": [
+  "scripts/test/agent_undo.rs": [
    "name",
    "capabilities",
    "call",
@@ -787,7 +2378,7 @@
    "u03_no_undo_policy_means_zero_undo_calls",
    "u04_carrier_undo_is_not_world_rollback"
   ],
-  "tests/atom_declared_only.rs": [
+  "scripts/test/atom_declared_only.rs": [
    "tmpdir",
    "manifest_dir",
    "factory_ontology",
@@ -800,7 +2391,7 @@
    "b05_cli_append_of_an_undeclared_entity_is_refused",
    "b06_concepts_gate_only_the_change_family"
   ],
-  "tests/atom_reversibility.rs": [
+  "scripts/test/atom_reversibility.rs": [
    "tmpdir",
    "manifest_dir",
    "factory_ontology",
@@ -818,7 +2409,7 @@
    "a07_carrier_undo_is_neither_cross_checked_nor_a_proof_of_world_reversibility",
    "undo_of"
   ],
-  "tests/carrier_boundary.rs": [
+  "scripts/test/carrier_boundary.rs": [
    "tmpdir",
    "manifest_dir",
    "deploy_dir",
@@ -834,7 +2425,7 @@
    "walk",
    "c04_socket_permission_directives_belong_only_to_socket_units"
   ],
-  "tests/carrier_serve.rs": [
+  "scripts/test/carrier_serve.rs": [
    "tmpdir",
    "run_serve",
    "s01_serve_without_listen_fds_is_refused_and_names_the_code",
@@ -843,7 +2434,7 @@
    "s04_serve_with_an_unusable_fd3_is_refused",
    "s05_a_bad_notify_socket_does_not_mask_the_listen_fds_refusal"
   ],
-  "tests/channel_bounds.rs": [
+  "scripts/test/channel_bounds.rs": [
    "commit_requested",
    "tmpdir",
    "bind_in",
@@ -865,7 +2456,7 @@
    "l07_the_render_is_checked_against_the_law_before_it_is_used",
    "l08_the_factory_law_really_declares_every_rendered_identity"
   ],
-  "tests/cli.rs": [
+  "scripts/test/cli.rs": [
    "libc_uid",
    "tmpdir",
    "manifest",
@@ -890,7 +2481,7 @@
    "presence_list",
    "cli18_presence_list_is_the_world_roster_not_the_carrier_inventory"
   ],
-  "tests/contract.rs": [
+  "scripts/test/contract.rs": [
    "tmpdir",
    "ontology",
    "policy",
@@ -938,7 +2529,7 @@
    "c35_the_ledger_alone_reproduces_the_same_state_elsewhere",
    "c36_every_declared_envelope_cell_is_readable_from_some_read_view"
   ],
-  "tests/delivery.rs": [
+  "scripts/test/delivery.rs": [
    "tmpdir",
    "manifest_dir",
    "open_world",
@@ -953,7 +2544,7 @@
    "d07_an_explicit_empty_to_in_the_raw_ledger_is_also_a_broadcast",
    "d08_registered_boundaries_of_delivery_today"
   ],
-  "tests/family_readmodel.rs": [
+  "scripts/test/family_readmodel.rs": [
    "tmpdir",
    "chmod600",
    "chmod600",
@@ -990,7 +2581,7 @@
    "r05_a_retracted_effect_is_not_replayed_as_the_current_value",
    "r06_retraction_does_not_change_the_world_now_and_stays_out_of_the_canonical_form"
   ],
-  "tests/ontology_elements.rs": [
+  "scripts/test/ontology_elements.rs": [
    "tmpdir",
    "manifest_dir",
    "factory_ontology",
@@ -1033,7 +2624,7 @@
    "m23_capability_scope_names_concrete_subjects_not_a_wildcard",
    "m24_link_cardinality_only_executed_values_or_nothing"
   ],
-  "tests/ontology_ext.rs": [
+  "scripts/test/ontology_ext.rs": [
    "tmpdir",
    "chmod600",
    "chmod600",
@@ -1053,7 +2644,7 @@
    "x01_an_extension_item_colliding_with_a_core_field_is_refused_at_load",
    "x02_a_pure_extension_keeps_the_fold_byte_identical"
   ],
-  "tests/ontology_instance.rs": [
+  "scripts/test/ontology_instance.rs": [
    "tmpdir",
    "chmod600",
    "chmod600",
@@ -1078,7 +2669,7 @@
    "i13_a_declared_presence_instance_must_have_visible_cells",
    "i14_every_declared_projection_must_be_reachable"
   ],
-  "tests/perf.rs": [
+  "scripts/test/perf.rs": [
    "env_usize",
    "ontology",
    "policy",
@@ -1091,7 +2682,7 @@
    "qg02_crash_recovery_with_a_torn_tail",
    "qg01_append_10k_without_loss_or_duplication"
   ],
-  "tests/projection_leaf.rs": [
+  "scripts/test/projection_leaf.rs": [
    "manifest",
    "tmpdir",
    "text",
@@ -1115,7 +2706,7 @@
    "p05_a_lagging_reading_neither_breaks_nor_bleeds_into_the_other",
    "p06_the_two_exits_do_not_carry_each_others_shapes"
   ],
-  "tests/projection_surface.rs": [
+  "scripts/test/projection_surface.rs": [
    "chg",
    "st",
    "one_surface_one_cell",
@@ -1123,7 +2714,7 @@
    "s02_carries_a_position",
    "s03_the_three_readings_are_same_source"
   ],
-  "tests/return_vocabulary.rs": [
+  "scripts/test/return_vocabulary.rs": [
    "world_accepts",
    "kernel_reserved",
    "unreadable",
@@ -1135,7 +2726,7 @@
    "short_circuited",
    "rv04_gutting_the_criterion_moves_the_verdict"
   ],
-  "tests/trace_notice.rs": [
+  "scripts/test/trace_notice.rs": [
    "tmpdir",
    "manifest",
    "run",
@@ -1157,7 +2748,7 @@
    "f71_notices_that_must_not_be_sent_are_refused_and_leave_a_flow",
    "f72_the_two_notice_refusal_paths_do_not_impersonate_each_other"
   ],
-  "tests/write_side.rs": [
+  "scripts/test/write_side.rs": [
    "tmpdir",
    "manifest",
    "this_uid",
@@ -1421,7 +3012,7 @@
    "sev": "重要",
    "n": "L4",
    "title": "t2 证据层级错位：规格写「新进程」，测试是同进程 drop + reopen",
-   "detail": "spec:23 写「以新进程打开」；acceptance.rs:88-104 实为同进程 drop 后 reopen。全仓只有 cli.rs:20/39 起新进程。真正合格的证据（TC-070，tools/s1_sys_probe2.sh:379-384「两次独立进程读回的事件序列逐字节相同」）没被引用。"
+   "detail": "spec:23 写「以新进程打开」；acceptance.rs:88-104 实为同进程 drop 后 reopen。全仓只有 cli.rs:20/39 起新进程。真正合格的证据（TC-070，scripts/test/s1_sys_probe2.sh:379-384「两次独立进程读回的事件序列逐字节相同」）没被引用。"
   },
   {
    "cap": "ledger-integrity",
@@ -1484,7 +3075,7 @@
    "sev": "重要",
    "n": "C4",
    "title": "被引证据绕过了它要验证的机制本身",
-   "detail": "contract.rs:642 用 std UnixListener::bind，没走 channel::bind（main.rs:578-581 自述这一绕过）；真正执行该机制的是 tools/system_acceptance.sh:301-351（㉒–㉖），由 check.sh 步骤⑦执行——而规格引的是步骤③b。"
+   "detail": "contract.rs:642 用 std UnixListener::bind，没走 channel::bind（main.rs:578-581 自述这一绕过）；真正执行该机制的是 scripts/test/system_acceptance.sh:301-351（㉒–㉖），由 check.sh 步骤⑦执行——而规格引的是步骤③b。"
   },
   {
    "cap": "channel-identity",
@@ -1652,7 +3243,7 @@
    "sev": "提示",
    "n": "R9",
    "title": "证据链无机械门禁：改一个测试名，规格不会变红",
-   "detail": "tools/doc_integrity.py 的受控清单里 openspec 零命中——正是本 change 要补的 spec_bridge.py 那一条。"
+   "detail": "scripts/verify/doc_integrity.py 的受控清单里 openspec 零命中——正是本 change 要补的 spec_bridge.py 那一条。"
   },
   {
    "cap": "read-model",
@@ -1662,7 +3253,194 @@
    "detail": "账本层 ledger.rs:304 更早拦截；不是缺陷，是防线冗余，但读者会误以为是端到端验证。"
   }
  ],
- "gaps_missing_req": [],
+ "gaps_missing_req": [
+  {
+   "cap": "channel-identity",
+   "req": "通道身份的实际保证与它的边界",
+   "line": 24,
+   "file": "ninedim\\01-意图环\\04-规格\\channel-identity.spec.md"
+  },
+  {
+   "cap": "delivery-and-resources",
+   "req": "REQ-F-023 投递、应答与收件人",
+   "line": 8,
+   "file": "ninedim\\01-意图环\\04-规格\\delivery-and-resources.spec.md"
+  },
+  {
+   "cap": "delivery-and-resources",
+   "req": "REQ-F-026 通道资源边界",
+   "line": 19,
+   "file": "ninedim\\01-意图环\\04-规格\\delivery-and-resources.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "信封字段的类型按本体的声明判（**读路径也判**）",
+   "line": 28,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "事件身份在进程内唯一",
+   "line": 111,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "错误携带机器可读的错误码",
+   "line": 122,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "错误码契约的已知边界",
+   "line": 138,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "REQ-F-027 家族演进与向前兼容",
+   "line": 162,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "envelope-validation",
+   "req": "REQ-F-029 未知旗标必须忽略",
+   "line": 209,
+   "file": "ninedim\\01-意图环\\04-规格\\envelope-validation.spec.md"
+  },
+  {
+   "cap": "gate-enforcement",
+   "req": "运行中的世界不重读策略",
+   "line": 124,
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md"
+  },
+  {
+   "cap": "gate-enforcement",
+   "req": "闸读得到风险等级，且载体可逆与世界可逆互校（不一致即拒启）",
+   "line": 136,
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md"
+  },
+  {
+   "cap": "gate-enforcement",
+   "req": "通告的闸，以及门禁不可绕过的部分实现边界",
+   "line": 187,
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md"
+  },
+  {
+   "cap": "gate-enforcement",
+   "req": "〔无号·待流程侧增补〕通告的闸",
+   "line": 220,
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md"
+  },
+  {
+   "cap": "gate-enforcement",
+   "req": "〔无号·待流程侧增补〕可逆性判定与出厂配置互校",
+   "line": 238,
+   "file": "ninedim\\01-意图环\\04-规格\\gate-enforcement.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "同一本账同时只有一个写者",
+   "line": 36,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "摘要链检出局部篡改，并如实声明其边界",
+   "line": 102,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "无链账本的升级路径边界",
+   "line": 166,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "承诺与证据的绑定强度",
+   "line": 193,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "〔无号·待流程侧增补〕这本账的能力上限（三句，逐句判）",
+   "line": 212,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ledger-integrity",
+   "req": "〔无号·待流程侧增补〕一个说法要回答的七个问题（同一份记录上的七个位置）",
+   "line": 238,
+   "file": "ninedim\\01-意图环\\04-规格\\ledger-integrity.spec.md"
+  },
+  {
+   "cap": "ontology-extensibility",
+   "req": "REQ-F-030 本体：极小核心 ＋ 命名空间扩展",
+   "line": 8,
+   "file": "ninedim\\01-意图环\\04-规格\\ontology-extensibility.spec.md"
+  },
+  {
+   "cap": "ontology-extensibility",
+   "req": "REQ-F-031 `trace`（信封因果字段）",
+   "line": 33,
+   "file": "ninedim\\01-意图环\\04-规格\\ontology-extensibility.spec.md"
+  },
+  {
+   "cap": "projections",
+   "req": "出厂同源命令的判据边界",
+   "line": 77,
+   "file": "ninedim\\01-意图环\\04-规格\\projections.spec.md"
+  },
+  {
+   "cap": "projections",
+   "req": "视觉投影与读模型逐项相等",
+   "line": 106,
+   "file": "ninedim\\01-意图环\\04-规格\\projections.spec.md"
+  },
+  {
+   "cap": "projections",
+   "req": "〔无号·待流程侧增补〕读法是叶子：几份读法之间不互相调用、不持有状态",
+   "line": 119,
+   "file": "ninedim\\01-意图环\\04-规格\\projections.spec.md"
+  },
+  {
+   "cap": "read-model",
+   "req": "读模型是\"一个真相\"的检验面之一",
+   "line": 104,
+   "file": "ninedim\\01-意图环\\04-规格\\read-model.spec.md"
+  },
+  {
+   "cap": "read-model",
+   "req": "带检查点路径的性能目标不在本基线的承诺范围内",
+   "line": 138,
+   "file": "ninedim\\01-意图环\\04-规格\\read-model.spec.md"
+  },
+  {
+   "cap": "read-model",
+   "req": "〔无号·待流程侧增补〕声明以外的字段不许落账",
+   "line": 152,
+   "file": "ninedim\\01-意图环\\04-规格\\read-model.spec.md"
+  },
+  {
+   "cap": "write-side-adaptation",
+   "req": "〔无号·待流程侧增补〕写侧只写，不裁决",
+   "line": 17,
+   "file": "ninedim\\01-意图环\\04-规格\\write-side-adaptation.spec.md"
+  },
+  {
+   "cap": "write-side-adaptation",
+   "req": "〔无号·待流程侧增补〕前值必须带上；翻不出来就报错、不许猜",
+   "line": 40,
+   "file": "ninedim\\01-意图环\\04-规格\\write-side-adaptation.spec.md"
+  },
+  {
+   "cap": "write-side-adaptation",
+   "req": "〔无号·待流程侧增补〕写侧以被管者身份运行，且对账本与规则没有写权限",
+   "line": 68,
+   "file": "ninedim\\01-意图环\\04-规格\\write-side-adaptation.spec.md"
+  }
+ ],
  "gaps_uncovered_srs": [
   {
    "id": "REQ-F-023",
@@ -1743,10 +3521,10 @@
   }
  ],
  "counts": {
-  "caps": 0,
-  "reqs": 0,
-  "scns": 0,
-  "evs": 0,
+  "caps": 9,
+  "reqs": 49,
+  "scns": 87,
+  "evs": 164,
   "srs": 41,
   "judges": 17,
   "booksecs": 46

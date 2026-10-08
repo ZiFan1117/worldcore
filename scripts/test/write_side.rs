@@ -22,7 +22,7 @@
 //!
 //! ⚠️ 本文件的判据全部落在 **Unix 权限位与 Unix 套接字**上。本项目构建与运行都在
 //! Linux（`src/gate/guard.rs:35` 逐字「本项目构建与运行都在 Linux VM 内」），CI 也是
-//! `ubuntu-latest`（`.github/workflows/world-core-gate.yml:136`）⇒ 本文件按 `cfg(unix)` 整文件门控。
+//! `ubuntu-latest`（`.github/workflows/gate.yml:136`）⇒ 本文件按 `cfg(unix)` 整文件门控。
 //! 这不是"静默跳过"：非 Unix 上这些能力**根本不存在**（`src/carrier/kernel.rs:166-175`
 //! 逐字「通道只在 Unix 上可用（v1 局限），**不假装可用**」），在那里判"通过"才是假证。
 #![cfg(unix)]
@@ -299,7 +299,7 @@ fn a_misnamed_change() -> ExternalChange {
 /// 它的纪律只有一条：只写，不裁决。准不准做，一律问 4.2 那道闸。」；
 /// `:601` 逐字「它要写世界，只能经通道提交请求，走的是和别的任何主体完全相同的那条路」。
 ///
-/// 与既有落点的分工：`tools/carrier_acceptance.sh` 的 C-04／C-04b 在**真实二进制**上
+/// 与既有落点的分工：`scripts/test/carrier_acceptance.sh` 的 C-04／C-04b 在**真实二进制**上
 /// 断言"门禁不放行 ⇒ 一次都没动 ＋ 留痕"；本条补的是**写侧交出去的那一行本身**——
 /// 字段一个不差、信封里**没有身份**、判词逐字来自内核。
 #[test]
@@ -556,8 +556,8 @@ fn w06_a_similar_field_name_never_reaches_the_kernel() {
 ///
 /// ⚠️ **本条证明的是哪一半**：文件系统上的**事实**（属主、mode 位、所在目录）——
 /// 它可判、会红、与环境无关。**"以被管者身份真去写、真被拒"**那一半由系统级实测承担：
-/// `tools/con01-no-bypass.sh`（跨 uid，含 uid 自证与拒绝原因断言）与
-/// `tools/carrier_acceptance.sh` 的 C-09（同一台机器上以被管者身份跑**载体自己**去写）。
+/// `scripts/test/con01-no-bypass.sh`（跨 uid，含 uid 自证与拒绝原因断言）与
+/// `scripts/test/carrier_acceptance.sh` 的 C-09（同一台机器上以被管者身份跑**载体自己**去写）。
 /// 两半不互相冒充：少任何一半，"写侧写不到法律与真相"都不算立住。
 #[test]
 fn w07_the_write_side_boundary_holds_only_when_the_facts_hold() {

@@ -21,7 +21,7 @@ SHALL NOT 被读成"`world` 缺失也被指名报出"。
 
 - **WHEN** 依次构造 8 条事件，每条分别删掉一个必填字段
 - **THEN** 每条都被校验拒绝
-- **证据**：`tests/contract.rs::c02_every_required_envelope_field_is_enforced`
+- **证据**：`scripts/test/contract.rs::c02_every_required_envelope_field_is_enforced`
       —— **⚠ `world` 一轮的"报出字段名"是恒真断言**（`src/ontology_definition/mod.rs:32` 的前缀自带 `world`）
       ⇒ 该轮要成为"指名报出"的证据 ⇒ 需补断言（列进 tasks）。
 
@@ -89,13 +89,13 @@ SHALL NOT 猜测其含义，SHALL NOT 落笔该事件，且 SHALL NOT 改动世�
 
 - **WHEN** 本体文件不存在，或 `families` 为空
 - **THEN** 装载失败（`ReadFail` / `NoFamilies`）
-- **证据**：`tests/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`
+- **证据**：`scripts/test/contract.rs::c04_ontology_load_rejects_missing_file_and_empty_families`
 
 #### Scenario: 策略的每一类畸形形状都被拒
 
 - **WHEN** 以 5 类畸形形状分别装载门禁策略（坏 JSON／缺 `policy`／能力表为空／白名单为空／缺 `writes`）
 - **THEN** 每一类都被拒；**对照**：合法策略必须能加载
-- **证据**：`tests/contract.rs::c03_policy_load_rejects_every_malformed_shape`
+- **证据**：`scripts/test/contract.rs::c03_policy_load_rejects_every_malformed_shape`
       —— **⚠ 原文"不存在静默接受一个畸形策略的路径"是全称句，与同用例的对照②冲突**：
       `scripts/test/contract.rs:207` 逐字
       `let pol = Policy::load(&p).expect("多余键应被忽略，而不是拒载");`
@@ -105,7 +105,7 @@ SHALL NOT 猜测其含义，SHALL NOT 落笔该事件，且 SHALL NOT 改动世�
 
 - **WHEN** 以指向别处的软链作为策略路径打开世界；对照组用真实文件
 - **THEN** 软链被拒且错误信息含"符号链接"；真实文件正常打开
-- **证据**：`tests/contract.rs::c09_symlinked_law_is_refused`
+- **证据**：`scripts/test/contract.rs::c09_symlinked_law_is_refused`
       —— **⚠ 本证据只覆盖"策略"软链**，本体软链无载体。
 
 ### Requirement: 事件身份在进程内唯一
@@ -117,7 +117,7 @@ SHALL NOT 猜测其含义，SHALL NOT 落笔该事件，且 SHALL NOT 改动世�
 
 - **WHEN** 在同一进程内连续提交多条事件
 - **THEN** 所有事件的 `id` 互不相同
-- **证据**：`tests/contract.rs::c05_event_ids_are_unique_within_a_process`
+- **证据**：`scripts/test/contract.rs::c05_event_ids_are_unique_within_a_process`
 
 ### Requirement: 错误携带机器可读的错误码
 
@@ -131,7 +131,7 @@ SHALL NOT 要求调用方去匹配中文散文措辞。
 
 - **WHEN** 触发布局类（本体形状）、门禁类、法律类、通道类、读模型类失败路径
 - **THEN** 每条错误都带稳定的错误码 `ext.world.<域>.<原因>`，且错误码区分度 ≥ 6
-- **证据**：`tests/contract.rs::c15_errors_carry_machine_readable_codes`
+- **证据**：`scripts/test/contract.rs::c15_errors_carry_machine_readable_codes`
       —— **⚠ 本证据不含任何账本路径**；且"散文式错误必须判为不符合契约"这一反例
       由同函数的 `scripts/test/contract.rs:779` 承担。
 

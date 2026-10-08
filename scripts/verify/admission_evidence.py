@@ -4,7 +4,7 @@
 
 ## 本工具要挡的是什么
 
-`06-swe-gb/docs/评审类/01-阶段评审记录.md` **铁律一**（逐字）：
+`.refs/_料/process-source/06-swe-gb/docs/评审类/01-阶段评审记录.md` **铁律一**（逐字）：
 
 > **没有准出结论，不进入下一阶段。**"先做着，评审后补"**明令禁止**；
 > 没有本记录中的书面准出结论，**下一阶段的一切工作都属于未授权开工，其产出不进入基线**。
@@ -36,11 +36,24 @@
 
 ## 用法
 
-    python tools/admission_evidence.py --repo-root ..        # 扫真实文档
-    python tools/admission_evidence.py --self-test          # 判定器自证（正反例）
-    python tools/admission_evidence.py --scan <路径>...      # 只扫指定文件（供自证用）
+    python scripts/verify/admission_evidence.py --repo-root ..        # 扫真实文档
+    python scripts/verify/admission_evidence.py --self-test          # 判定器自证（正反例）
+    python scripts/verify/admission_evidence.py --scan <路径>...      # 只扫指定文件（供自证用）
 
-退出码：0 = 通过；1 = 不通过（或本工具自证失败）；2 = 用法错误。
+退出码：0 = 通过；1 = 不通过（或本工具自证失败）；2 = **读不到扫描面**（用法错／被扫件不在＝
+"未能校验"，**不是通过**）。
+
+## ★ fail-closed（2026-10-08 修；复核席 F-01 ＝仓内 `评审-后置-WC-RV-R0-001` 的 C-04）
+
+修前病灶（`D:\Code\_rev-round\exp2.py` 仓外实测）：**扫描面为 0 份与"扫过且干净"共用同一个
+结论串** ⇒ ①删掉唯一被扫件；②`--repo-root` 指向不存在的目录 —— 两条都 `rc=0`，输出是
+`[SKIP ] …（文件不存在——"未校验"要说出来）` **紧接着** `门禁结论：通过 —— …`（**两句话自相矛盾**）。
+这正是本仓要清的那一类「**空集不许判绿／未校验 ≠ 通过**」。
+
+现在：`check_repo()` 把**实扫份数 `scanned`** 单列出来，结论由 `verdict_of(scanned, total)`
+**唯一实现**分岔 —— `scanned == 0` ⇒ `rc=2` ＋ 末行写「**未能校验**」，**不再出现「门禁结论：通过」**
+（该档末行里"读不到不是通过"是有意保留的话，不是结论）。
+`--scan` 走同一条分岔（不自立第二份口径）。
 """
 
 from __future__ import annotations
@@ -49,6 +62,8 @@ import argparse
 import os
 import re
 import sys
+import tempfile
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 
@@ -101,12 +116,12 @@ OUT_OF_PHASE: Tuple[str, ...] = (
 #: 被扫描的文件（R0 材料 / R0 评审记录 / WC-R0-DS-001 三件已合并为一份）
 #: ⚠ 2026-09-26 **S0 文档合并轮**：原三份（`WC-RV-R0-001` 材料与逐条核查 /
 #: `WC-R0-DS-001` 决议单 / `WC-RV-R0-002` 阶段评审记录）已按
-#: `templates/06-评审类/01-阶段评审记录.md:13`「**每次评审一份**」合并为
-#: **一份**《R0 阶段评审记录》＝ `docs/评审/评审-后置-WC-RV-R0-001-v0.1.md`（决议单为**附件 A**、
+#: `ninedim/records/模板/06-评审类/01-阶段评审记录.md:13`「**每次评审一份**」合并为
+#: **一份**《R0 阶段评审记录》＝ `ninedim/04-枢纽B-后置闸/评审-后置-WC-RV-R0-001-v0.1.md`（决议单为**附件 A**、
 #: 阶段评审记录为**附件 B**，两者原文逐字保留在同一文件内）。
 #: ⇒ 扫描面**不缩小**：原两份被扫文件的全部字节都在下面这一份里。
 SCAN_TARGETS: Tuple[str, ...] = (
-    "docs/评审/评审-后置-WC-RV-R0-001-v0.1.md",
+    "ninedim/04-枢纽B-后置闸/评审-后置-WC-RV-R0-001-v0.1.md",
 )
 
 #: 违反形态规则表：(规则名, 正则, 为什么它被禁, 是否需要同时出现阶段外产物编号)
@@ -198,15 +213,23 @@ def scan_text(path: str, text: str) -> List[Tuple[int, str, str, str]]:
     return hits
 
 
-def check_repo(repo_root: str) -> Tuple[int, List[str]]:
-    """扫真实文档。返回 (问题数, 报告行)。"""
+def check_repo(repo_root: str) -> Tuple[int, int, List[str]]:
+    """扫真实文档。返回 (命中数, **实扫份数**, 报告行)。
+
+    ⚠ 为什么单独返回 `scanned`（2026-10-08 fail-closed 修，复核席 F-01）：原实现只累加
+      `total`，于是"**扫描面 0 份**"与"**扫过且干净**"落到同一个 `total=0` ⇒ 结论串一律写
+      「通过」。被扫件被删／仓根指错时，脚本**自己打印了"未校验"，紧接着判"通过"**。
+      ⇒ 现在由 `verdict_of(scanned, total)` 分岔：**读不到 ≠ 通过**。
+    """
     report: List[str] = []
     total = 0
+    scanned = 0
     for rel in SCAN_TARGETS:
         path = os.path.join(repo_root, rel)
         if not os.path.isfile(path):
             report.append(f"  [SKIP ] {rel}（文件不存在——\"未校验\"要说出来）")
             continue
+        scanned += 1
         with open(path, "r", encoding="utf-8", errors="replace") as fh:
             text = fh.read()
         hits = scan_text(path, text)
@@ -218,7 +241,23 @@ def check_repo(repo_root: str) -> Tuple[int, List[str]]:
                 report.append(f"                    ↳ {why}")
         else:
             report.append(f"  [通过 ] {rel}")
-    return total, report
+    return total, scanned, report
+
+
+def verdict_of(scanned: int, total: int) -> Tuple[int, str]:
+    """由「实扫份数」与「命中数」得 (rc, 结论末行) —— **唯一实现**（`main` 与 `--self-test` 共用）。
+
+    三档（**不许混**）：
+      · `total > 0`   ⇒ rc=1「不通过」（有违规）；
+      · `scanned == 0` ⇒ rc=2「**未能校验**」——读不到扫描面 ⇒ **不判绿**（空集不许判绿）；
+      · 其余          ⇒ rc=0「通过」（此时必然 `scanned > 0`，"通过"二字只许在这一档出现）。
+    """
+    if total:
+        return 1, f"门禁结论：不通过 —— 有 {total} 处把 S1–S5 阶段外产物当作 S0 准出依据"
+    if scanned == 0:
+        return 2, ("门禁结论：未能校验 —— 扫描面 0 份（被扫件一份都不在盘上 ⇒ "
+                   "读不到不是通过；**空集不许判绿**）")
+    return 0, "门禁结论：通过 —— 未发现把阶段外产物当作 S0 准出依据的引用"
 
 
 # ---------------------------------------------------------------- 自证
@@ -273,7 +312,46 @@ def self_test() -> int:
             ok = False
             print(f"  [FAIL] {expect:<18} 未命中（该判据是装饰！）实际={sorted(got)}")
 
-    print("\n③ 判据右半边（S0 允许的证据集合）——打印以便人工核对")
+    print("\n③ 反例（fail-closed）：**扫描面 0 份**（被扫件不在盘上）——期望：rc≠0，且**结论串不许是"
+          "「门禁结论：通过」**（「读不到不是通过」这类话不算结论）")
+    with tempfile.TemporaryDirectory(prefix="admission-empty-") as d:
+        total, scanned, _rep = check_repo(d)
+        rc, line = verdict_of(scanned, total)
+        if scanned == 0 and rc != 0 and not line.startswith("门禁结论：通过"):
+            print(f"  [ OK ] 扫描面 0 份 ⇒ rc={rc}（期望 ≠0）；末行：{line}")
+        else:
+            ok = False
+            print(f"  [FAIL] 扫描面 0 份却 rc={rc}／scanned={scanned} ⇒ 空集判绿（假证）；末行：{line}")
+
+    print("\n④ 反例：被扫件**在盘但含被禁形态**——期望：rc=1（走真实件路径，不经样本函数）")
+    with tempfile.TemporaryDirectory(prefix="admission-bad-") as d:
+        p = os.path.join(d, *SCAN_TARGETS[0].split("/"))
+        os.makedirs(os.path.dirname(p))
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(BAD_SAMPLES[0][1])
+        total, scanned, _rep = check_repo(d)
+        rc, line = verdict_of(scanned, total)
+        if scanned == 1 and rc == 1:
+            print(f"  [ OK ] 真件含被禁形态 ⇒ rc={rc}（期望 1），命中 {total} 处")
+        else:
+            ok = False
+            print(f"  [FAIL] 真件含被禁形态却 rc={rc}／scanned={scanned}／命中 {total} 处")
+
+    print("\n⑤ 正控：被扫件在盘且干净——期望：rc=0（「门禁结论：通过」只许在这一档出现）")
+    with tempfile.TemporaryDirectory(prefix="admission-good-") as d:
+        p = os.path.join(d, *SCAN_TARGETS[0].split("/"))
+        os.makedirs(os.path.dirname(p))
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(GOOD_SAMPLE)
+        total, scanned, _rep = check_repo(d)
+        rc, line = verdict_of(scanned, total)
+        if scanned == 1 and rc == 0 and line.startswith("门禁结论：通过"):
+            print(f"  [ OK ] 真件干净 ⇒ rc={rc}（期望 0），实扫 {scanned} 份")
+        else:
+            ok = False
+            print(f"  [FAIL] 真件干净却 rc={rc}／scanned={scanned}（正控没跑 ⇒ 绿不算绿）；末行：{line}")
+
+    print("\n⑥ 判据右半边（S0 允许的证据集合）——打印以便人工核对")
     print("  S0 准出证据集合 = {" + ", ".join(S0_EVIDENCE_ALLOWED) + "}")
     print(f"  S1–S5 阶段外产物 = {len(OUT_OF_PHASE)} 项（不得作为 S0 准出依据）")
 
@@ -296,8 +374,12 @@ def main(argv: List[str] | None = None) -> int:
     )
     parser.add_argument(
         "--repo-root",
-        default="..",
-        help="world-core 仓库子树根（默认 ..，即从 tools/ 往上一级）",
+        # ★ 2026-10-07 修（现取病灶）：默认原来是 `..`（**相对 cwd**，旧布局下从 `tools/` 往上一级）。
+        #   本文件搬到 `scripts/verify/` 后，"相对于 cwd 的 .." 会随调用位置变（裸跑时 cwd＝仓根 ⇒
+        #   `..` 指到**仓外**）⇒ 扫描面全部落进"文件不存在"的 SKIP 分支，判据恒 rc=0 而**什么也没扫**。
+        #   现在默认按**脚本自身位置**推仓根（`scripts/verify/` ⇒ 上三级），与其余判据同一口径。
+        default=str(Path(__file__).resolve().parent.parent.parent),
+        help="仓库根（默认＝按本脚本位置推：`scripts/verify/` 的上三级）",
     )
     parser.add_argument("--self-test", action="store_true", help="判定器正反例自证")
     parser.add_argument(
@@ -315,15 +397,18 @@ def main(argv: List[str] | None = None) -> int:
     print("门禁校验：S0 准出证据准入隔离")
     print("=" * 74)
     print("判据：S0 准出证据集合 ⊆ {" + ", ".join(S0_EVIDENCE_ALLOWED) + "}")
-    print(f"被扫对象：{len(SCAN_TARGETS)} 份（R0 材料 / R0 评审记录 / WC-R0-DS-001）")
+    print(f"扫描面：{len(SCAN_TARGETS)} 份（R0 材料 / R0 评审记录 / WC-R0-DS-001）——"
+          "**盘上实扫几份**见下（扫描面 0 份 ⇒ 未能校验，不判通过）")
     print()
 
+    total = 0
+    scanned = 0
     if args.scan:
-        total = 0
         for path in args.scan:
             if not os.path.isfile(path):
-                print(f"  [SKIP ] {path}（不存在）")
+                print(f"  [SKIP ] {path}（不存在——\"未校验\"要说出来）")
                 continue
+            scanned += 1
             with open(path, "r", encoding="utf-8", errors="replace") as fh:
                 hits = scan_text(path, fh.read())
             total += len(hits)
@@ -332,17 +417,18 @@ def main(argv: List[str] | None = None) -> int:
                 print(f"          :{lineno} [{name}] {frag!r}")
     else:
         root = os.path.abspath(args.repo_root)
-        total, report = check_repo(root)
+        total, scanned, report = check_repo(root)
         for line in report:
             print(line)
 
     print()
-    if total:
-        print(f"门禁结论：不通过 —— 有 {total} 处把 S1–S5 阶段外产物当作 S0 准出依据")
+    rc, line = verdict_of(scanned, total)
+    print(line)
+    if rc == 1:
         print("（铁律一：没有准出结论，不进入下一阶段；未授权开工的产出不进入基线）")
-        return 1
-    print("门禁结论：通过 —— 未发现把阶段外产物当作 S0 准出依据的引用")
-    return 0
+    elif rc == 2:
+        print("（读不到扫描面 ⇒ **未能校验**：未校验 ≠ 通过，故 rc=2；被扫件在盘上时才会给结论）")
+    return rc
 
 
 if __name__ == "__main__":

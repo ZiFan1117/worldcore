@@ -254,7 +254,7 @@ WantedBy=multi-user.target
 | 6 | 世界不会半成品 | `systemctl stop world-core && echo 一条请求 \| nc -U /run/world-core/world.sock` | 不产生任何副作用（请求排队或连接被拒，**绝不静默执行**） |
 | 7 | 内核重启不丢请求（长驻化后） | 重启 `world-core.service` 期间持续发请求 | 请求排队而非丢失（由内核积压保证） |
 
-## 七、机核：载体契约门禁（`tools/carrier_contract.py`）
+## 七、机核：载体契约门禁（`scripts/verify/carrier_contract.py`）
 
 `deploy/` 里**清单（`install.sh` 的 `UNITS=`）内的**单元的**不是手写的设计稿，而是"从法律生成"的产物**——这条关系由门禁守。
 ★**清单里有几件、是哪几件，以 `UNITS=` 那行为准**（取法：`grep -n '^UNITS=' scripts/release/install.sh`）——★**本处不写件数**（2026-10-05 订正：原写"今天清单 4 份"，而当天清单变成 5 件、**这句就成了假话**；★写死的数会烂，见 §八 第 8 条）。★目录里另有**已登记未启用**的件（`⑪c` 连原因报出，不藏着）：
@@ -274,11 +274,11 @@ WantedBy=multi-user.target
 | ⑪ | **清单 ≡ 实际**：`UNITS=` ↔ `deploy/` 里的单元件（目录里每件都要在清单里，**或**在⑪c 登记） | 目录里多一个未登记单元件 |
 | ⑪c | **已登记未启用**（**报告行**）：连**原因**报出，不许读成"已上线" | ——（报告行，不判红） |
 
-命令：`python tools/carrier_contract.py [--channel <渲染物路径>]`（★**`rc=0` 且**没有 `STATUS=SKIP` **才算全校验**；有 SKIP ⇒ 那几条是**未校验**，不是通过）｜`--self-test`（把单元复制到临时目录逐个改坏，**每条判据都必须红**）。
+命令：`python scripts/verify/carrier_contract.py [--channel <渲染物路径>]`（★**`rc=0` 且**没有 `STATUS=SKIP` **才算全校验**；有 SKIP ⇒ 那几条是**未校验**，不是通过）｜`--self-test`（把单元复制到临时目录逐个改坏，**每条判据都必须红**）。
 
 > **为什么要有它**：单元文件是"**生成物**"——手改输出而不改法律，正是本项目在别处栽过的坑。
 > ★门禁把"① 生成关系"与"⑧ 渲染物 ⊆ 法律"做成会红的；★**「实际监听 ⊆ 在册」的运行态枚举仍未实现**（受理期只判"渲染物每一条都在法律里"，不枚举内核真在听哪些口）。
-> ★**判据与单元清单都只有一个来源**：清单＝`install.sh` 的 `UNITS=`；★本表**只索引**，权威是 `tools/carrier_contract.py` 的输出。
+> ★**判据与单元清单都只有一个来源**：清单＝`install.sh` 的 `UNITS=`；★本表**只索引**，权威是 `scripts/verify/carrier_contract.py` 的输出。
 
 ## 八、已知缺口（如实登记，不假装已做）
 

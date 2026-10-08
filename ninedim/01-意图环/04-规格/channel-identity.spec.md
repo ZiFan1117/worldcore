@@ -17,7 +17,7 @@
 
 - **WHEN** 一个请求在正文里声明一个与内核给出的身份不同的主体
 - **THEN** 该请求被**拒绝且不落笔**，错误串含 `Impersonation`，账本 `last_seq` 在拒绝前后不变
-- **证据**：`tests/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`
+- **证据**：`scripts/test/contract.rs::c14_channel_takes_identity_from_kernel_not_from_request`
       —— **⚠ 本证据证明的是"拒绝"，不是"采用内核身份并忽略自称"**；
       "`actor` 取自映射"由同函数 `scripts/test/contract.rs:653-657` 的另一条断言承担。
 
@@ -37,7 +37,7 @@
        再由**另一个 uid** 尝试连接
 - **THEN** 连接被内核拒绝（非零退出），且输出里不出现 `CONNECTED`
 - **证据**：`scripts/test/system_acceptance.sh`（断言 ㉔–㉖；由 `check.sh.new` 第 ⑥ 步执行
-      ——`:133` 逐字 `run_tail 3 "系统级验收（TC-037–TC-040）" bash tools/system_acceptance.sh`）
+      ——`:133` 逐字 `run_tail 3 "系统级验收（TC-037–TC-040）" bash scripts/test/system_acceptance.sh`）
 
 #### Scenario: 未核实机制时的如实登记
 

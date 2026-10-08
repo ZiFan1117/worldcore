@@ -18,8 +18,8 @@
 
 ## 用法
 
-    python3 tools/plain_text_audit.py <文件或目录> [<更多…>]     # 目录会递归扫已知文本类型
-    python3 tools/plain_text_audit.py --self-test                 # 正/反例自证（无需外部文件）
+    python3 scripts/verify/plain_text_audit.py <文件或目录> [<更多…>]     # 目录会递归扫已知文本类型
+    python3 scripts/verify/plain_text_audit.py --self-test                 # 正/反例自证（无需外部文件）
 
 退出码：0 = 全部合格；1 = 有不合格文件；2 = 用法错误。
 """
@@ -41,7 +41,7 @@ def make_console_encoding_safe() -> None:
     ⇒ GBK 下中文仍按 GBK 输出、只有编不出的符号降级为 `?`，**判据文字一字不删**；UTF-8 下逐字节等价。
     ⚠ **`stderr` 不动**：Python 3.5+ 起 `sys.stderr` 默认就是 `backslashreplace`（本来就不崩、
     且保留字符身份）；改成 `replace` 反而把可复原的 `\u2705` 变成不可复原的 `?`（信息更少），故不改。
-    不取 ①（逐字符换 ASCII）的理由见 `tools/trace_matrix.py` 同名函数：白名单会随新符号复发。
+    不取 ①（逐字符换 ASCII）的理由见 `scripts/verify/trace_matrix.py` 同名函数：白名单会随新符号复发。
     """
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if reconfigure is None:  # 非 TextIOWrapper（被捕获/重定向）时跳过

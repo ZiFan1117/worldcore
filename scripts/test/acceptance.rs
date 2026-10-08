@@ -160,11 +160,11 @@ fn t1_append_then_read_back() {
 /// 「事件落了盘、重开能读回」，**不是**「换一个进程还能读到」（同进程的文件句柄与
 /// 页缓存状态都可能掩盖问题）。**不要把这条当成跨进程证据。**
 ///
-/// **真跨进程那一层由 `tools/s1_sys_probe2.sh` 的 `TC-070`（`REQ-F-022`）承担**：
+/// **真跨进程那一层由 `scripts/test/s1_sys_probe2.sh` 的 `TC-070`（`REQ-F-022`）承担**：
 /// 那一步用**两个独立的 `world-core read` 进程**读同一本账（本工程的命令一条一个新进程），
 /// 断言 ① 两次读回的事件序列**逐字节相同**、② 条数与账本行数一致、③ `seq` 严格递增无缺号；
-/// 它由 `check.sh` 的**步骤 ⑦**（`S1 需求验证面补建` 里 `run_tail … bash tools/s1_sys_probe2.sh`）执行。
-/// 复现：`cd world-core && bash tools/s1_sys_probe2.sh`。
+/// 它由 `check.sh` 的**步骤 ⑦**（`S1 需求验证面补建` 里 `run_tail … bash scripts/test/s1_sys_probe2.sh`）执行。
+/// 复现：`cd world-core && bash scripts/test/s1_sys_probe2.sh`。
 #[test]
 fn t2_events_survive_restart() {
     let d = tmpdir("t2");

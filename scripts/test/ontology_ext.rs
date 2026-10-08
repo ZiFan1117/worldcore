@@ -103,7 +103,7 @@ fn write_ontology(dir: &Path, name: &str, edit: impl FnOnce(&mut Value)) -> Path
 }
 
 /// **只加扩展**（纯加法）：新增一个家族 ＋ 在同一个名下新增一个概念。
-/// 与 `tools/s1_sys_probe.sh` 的 `ontology-ext.json` 同形态。
+/// 与 `scripts/test/s1_sys_probe.sh` 的 `ontology-ext.json` 同形态。
 fn add_pure_extension(v: &mut Value) {
     v["families"]["audit"] = json!({
         "_comment": "纯加法扩展家族：不得影响既有三家族的语义",
@@ -232,7 +232,7 @@ fn e02_a_landed_ledger_line_with_unknown_flags_folds_byte_identically() {
     // 同一条账本，只把每一行的 flags 换成**这个读法不认得**的旗标。
     // ⚠️ 必须同时**去掉 `chain`**：改一个字节而留着摘要，账本会以
     // `ext.world.Ledger.ChainMismatch` 拒绝打开 —— 那拒的是"摘要不符"，不是"未知旗标"，
-    // 拿它当本用例的红会**判错了病因**（与 `tools/s1_sys_probe.sh` 的 `mk_bad` 同口径）。
+    // 拿它当本用例的红会**判错了病因**（与 `scripts/test/s1_sys_probe.sh` 的 `mk_bad` 同口径）。
     let mut flagged = base.clone();
     for ev in &mut flagged {
         ev["flags"] = json!(["future.flag", "another.flag"]);
@@ -405,7 +405,7 @@ fn e04_a_flag_the_factory_reader_does_not_know_still_lands_and_folds() {
 /// ## 仍然在册的边界（不许被读成"合上了"）
 ///
 /// 出厂本体顶层 `flags` 仍是**空数组**（`src/ontology_definition/ontology.json:49`）⇒「未知旗标」在本体侧
-/// 仍**没有已定义旗标可比对**（`tools/s1_sys_probe.sh` 的 `TC-048` ⑦；`WC-SCMP-001` §8.4 的 `G-83`）。
+/// 仍**没有已定义旗标可比对**（`scripts/test/s1_sys_probe.sh` 的 `TC-048` ⑦；`WC-SCMP-001` §8.4 的 `G-83`）。
 #[test]
 fn e05_the_public_write_entry_lands_an_unknown_flag_end_to_end() {
     let dir = tmpdir("e05");
@@ -503,7 +503,7 @@ fn e05_the_public_write_entry_lands_an_unknown_flag_end_to_end() {
 
 /// **x01（判据②）**：扩展项与核心字段**重名 ⇒ 加载被拒**，且点名撞上的那一项。
 ///
-/// 反例照抄 `tools/s1_sys_probe.sh` 的 `TC-049` ⑦（那份本体现在必须被拒）：
+/// 反例照抄 `scripts/test/s1_sys_probe.sh` 的 `TC-049` ⑦（那份本体现在必须被拒）：
 /// `concepts["body-fake"] = {"fields": {"body": "string"}}`。
 #[test]
 fn x01_an_extension_item_colliding_with_a_core_field_is_refused_at_load() {

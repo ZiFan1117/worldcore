@@ -128,9 +128,9 @@
 它同时是 `REQ-F-006` 的编译期反例证据（`TC-041`）——**已变异实测**：把 `World.ledger` 改成 `pub`，该用例即报
 `Test compiled successfully, but it's marked compile_fail`。
 
-### L3 系统级验收（4 条，`tools/system_acceptance.sh`，**跑真实二进制**，不是 `cargo test`）
+### L3 系统级验收（4 条，`scripts/test/system_acceptance.sh`，**跑真实二进制**，不是 `cargo test`）
 
-运行：`cd world-core && bash tools/system_acceptance.sh`（先跑 `--self-test` 自证判定器会红）。
+运行：`cd world-core && bash scripts/test/system_acceptance.sh`（先跑 `--self-test` 自证判定器会红）。
 
 | 用例 | 需求 | 输入 | 期望 |
 |---|---|---|---|

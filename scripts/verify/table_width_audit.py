@@ -7,8 +7,8 @@ r"""表块行宽审计（**转义感知**）——判据：任一表块的体行
 本工具按 Markdown 转义规则计数，故 `\|` 不计分隔、`\\` 视为一个字面反斜杠。
 
 用法：
-  python3 tools/table_width_audit.py <file.md> [...]   # 逐文件报不符行；有则 rc=1
-  python3 tools/table_width_audit.py --self-test       # 自证：注入变异必须报红、样本必须常绿
+  python3 scripts/verify/table_width_audit.py <file.md> [...]   # 逐文件报不符行；有则 rc=1
+  python3 scripts/verify/table_width_audit.py --self-test       # 自证：注入变异必须报红、样本必须常绿
 """
 import io
 import re
@@ -91,7 +91,7 @@ def main(argv):
         return 0 if (ok_green and ok_red) else 1
     files = [a for a in argv if not a.startswith("--")]
     if not files:
-        print("用法：python3 tools/table_width_audit.py <file.md> [...] | --self-test")
+        print("用法：python3 scripts/verify/table_width_audit.py <file.md> [...] | --self-test")
         return 2
     rc = 0
     for f in files:

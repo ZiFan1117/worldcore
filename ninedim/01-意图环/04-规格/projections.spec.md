@@ -24,7 +24,7 @@
 
 - **WHEN** 在出厂状态下运行 `world-core project check`
 - **THEN** 退出码为 0，stdout 含「同源」与「✅」
-- **证据**：`tests/cli.rs::cli05_project_check_reports_same_source`
+- **证据**：`scripts/test/cli.rs::cli05_project_check_reports_same_source`
       —— **⚠ 本断言只到"命令跑通并自报同源"**，既不比对投影内容，也不涉及两份独立来源；
       该命令的判据边界见下一条 `## ADDED`。
       **⚠ 且原证据行括注的「（`check.sh` 步骤 ④）」不成立**：`check.sh.new` 全文
@@ -36,7 +36,7 @@
 
 - **WHEN** 在词表变更后比对两份投影
 - **THEN** 同源核对能报出不同源（错误串含"词表不同"）
-- **证据**：`tests/acceptance.rs::t16_two_projections_are_same_source_and_vocab_change_is_detected`
+- **证据**：`scripts/test/acceptance.rs::t16_two_projections_are_same_source_and_vocab_change_is_detected`
       —— **⚠ 这是测试自己构造的 `lang_other`**（`scripts/test/acceptance.rs:718`），
       **`project check` 命令走不到这个分支**（`src/main.rs:408-409` 两份投影共用同一 `state` 与 `vocab`）。
 
@@ -49,7 +49,7 @@
 
 - **WHEN** 把语言投影逐行解析为 `(主体, 路径, 值)` 三元组，与读模型 `entries()` 比对
 - **THEN** 两个集合完全相等
-- **证据**：`tests/acceptance.rs::t14_language_projection_matches_read_model`
+- **证据**：`scripts/test/acceptance.rs::t14_language_projection_matches_read_model`
 
 ### Requirement: 视觉投影的排版是可审计契约
 
@@ -112,7 +112,7 @@
 
 - **WHEN** 把视觉投影解析为 `(主体, 路径, 值)` 三元组，与读模型 `entries()` 比对
 - **THEN** 两个集合完全相等
-- **证据**：`tests/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`
+- **证据**：`scripts/test/acceptance.rs::t15_visual_projection_is_human_readable_yet_auditable`
       —— **⚠ 本断言的解析器与渲染器同模块**（`src/gui_projection/visual.rs::parse()`）；
       独立于渲染实现的验证面由 `scripts/verify/visual_layout_audit.py` 承担。
 

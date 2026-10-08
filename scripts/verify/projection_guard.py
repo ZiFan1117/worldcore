@@ -6,7 +6,7 @@
 
 界面层那些脚本（`world-projection` / `world-toggle-mute` …）在 `D:\\Code` 全树零命中
 ⇒ 「界面」这件事**没有可立判据的地方**：改坏了不会红，改好了也没有证据。
-本脚本把界面变成**可判读的一面**：输入面 ＝ 仓内 `tools/world-*`（只读），
+本脚本把界面变成**可判读的一面**：输入面 ＝ 仓内 `scripts/release/world-*` ∪ `scripts/collab/wc_submit.py`（只读），
 每条判据都配**同形态反例**，`--self-test` 先咬自己（正控必绿、反例必红）。
 
 ## 十条判据
@@ -36,10 +36,10 @@
 4. **值的语义**：本件不判 `project` 输出里的值对不对（那是同源核对与排版审计的活）。
 
 用法：
-  python3 tools/projection_guard.py                 # 判真件（仓树）
-  python3 tools/projection_guard.py --repo <目录>
-  python3 tools/projection_guard.py --sandbox <目录>  # --self-test 的夹具根（缺省＝私有临时目录）
-  python3 tools/projection_guard.py --self-test     # 正控必绿、每条判据的反例必红
+  python3 scripts/verify/projection_guard.py                 # 判真件（仓树）
+  python3 scripts/verify/projection_guard.py --repo <目录>
+  python3 scripts/verify/projection_guard.py --sandbox <目录>  # --self-test 的夹具根（缺省＝私有临时目录）
+  python3 scripts/verify/projection_guard.py --self-test     # 正控必绿、每条判据的反例必红
 退出码：0 全过；1 有判据红；2 用法错误／输入面解析不出（输入面读不到时**不许**rc=0）。
 """
 
@@ -53,9 +53,15 @@ import sys
 import tempfile
 
 UI_GLOB_PREFIX = "world-"
-TOOLS_REL = "tools"
+# ★ 2026-10-07 修（现取病灶）：界面件原来按 `tools/` 取——`tools/` 已随布局迁移拆成
+#   `scripts/release/`（载体侧脚本＋清单）与 `scripts/collab/`（`wc_submit.py`）
+#   （权威：`ninedim/_索引-工程域结构与命名.md` §四「脚本住 `scripts/`」）。
+#   旧口径下 `ui_files()` **恒返 0 件** ⇒ 判据 P1 报"界面面解析出 0 件"——**假红**
+#   （界面件全在，只是取的夹子过期了）；而 P2–P10 十条判据**一条都没跑**。
+UI_DIRS = (os.path.join("scripts", "release"), os.path.join("scripts", "collab"))
+UI_DIR = UI_DIRS[0]                                  # 夹具与清单用的"界面主夹"
 MAIN_REL = os.path.join("src", "main.rs")
-MANIFEST_REL = os.path.join(TOOLS_REL, "deployment-manifest.json")
+MANIFEST_REL = os.path.join(UI_DIR, "deployment-manifest.json")
 
 # ★ `project` 的 `match` 里有**不是投影名**的那一臂：`check` 是"渲染两份并核对同源"的**核对命令**，
 #   不是一份投影（口径：Lead 2026-10-05 裁 ＋ change-surface 独立复核"可达 ＝ {language, visual}"）。
@@ -83,22 +89,33 @@ def find_repo(start):
 # ★ 界面面 ＝ `tools/world-*`（界面脚本）∪ 这几件（界面层的**唯一写入口**：
 #   它不在 `world-*` 命名里，但"作者叫什么"这条纪律**必须钉到它头上**——
 #   它的缺省口一改回去，调用方不给口时作者就静默变回 `world://core`）。
-EXTRA_UI_FILES = ("wc_submit.py",)
+# ★ 界面面 ＝ `scripts/release/world-*`（界面脚本）∪ 这几件（界面层的**唯一写入口**：
+#   它不在 `world-*` 命名里，但"作者叫什么"这条纪律**必须钉到它头上**——
+#   它的缺省口一改回去，调用方不给口时作者就静默变回 `world://core`）。
+#   件名一律**仓根相对路径**（与布局迁移后的真身同形；原来是裸文件名 + `tools/` 夹）。
+EXTRA_UI_FILES = (os.path.join("scripts", "collab", "wc_submit.py"),)
 
 
 def ui_files(repo):
-    """界面件：`tools/` 下以 `world-` 开头的**普通文件** ∪ `EXTRA_UI_FILES`（排序，结果确定）。"""
-    d = os.path.join(repo, TOOLS_REL)
-    if not os.path.isdir(d):
-        return []
+    """界面件：`UI_DIRS` 下**非递归**的 `world-*` 普通文件 ∪ `EXTRA_UI_FILES`（仓根相对，排序确定）。
+
+    ⚠ 只认**非递归**：`scripts/release/units/` 下的 `world-core*.service`／`*.socket` **不是界面脚本**
+    （它们是部署单元），若递归取会被算成"界面件" ⇒ 十一条判据全打在 unit 文件上（假红）。
+    """
     out = []
-    for name in sorted(os.listdir(d)):
-        p = os.path.join(d, name)
-        if name.startswith(UI_GLOB_PREFIX) and os.path.isfile(p):
+    for rel_dir in UI_DIRS:
+        d = os.path.join(repo, rel_dir)
+        if not os.path.isdir(d):
+            continue
+        for name in sorted(os.listdir(d)):
+            p = os.path.join(d, name)
+            if name.startswith(UI_GLOB_PREFIX) and os.path.isfile(p):
+                out.append(p)
+    for rel in EXTRA_UI_FILES:
+        p = os.path.join(repo, rel)
+        if os.path.isfile(p):
             out.append(p)
-        elif name in EXTRA_UI_FILES and os.path.isfile(p):
-            out.append(p)
-    return out
+    return sorted(out)
 
 
 def read_text(path):
@@ -221,7 +238,7 @@ def evaluate(repo):
 
     files = ui_files(repo)
     if not files:
-        v.append(("P1", "界面面解析出 0 件（`tools/world-*` 一件都没有）——"
+        v.append(("P1", "界面面解析出 0 件（`scripts/release/world-*` 一件都没有）——"
                          "空集不许判绿；界面进版本控制之前，这一面无从判读"))
         return v, notes
 
@@ -486,7 +503,7 @@ printf '%s\\n' "$REQ" | python3 "$SUB" "$SOCK"
 def build_fixture(root, main=GOOD_MAIN, read=GOOD_READ, write=GOOD_WRITE,
                   read_name="world-projection.sh", write_name="world-toggle-mute.sh",
                   manifest="auto"):
-    tools = os.path.join(root, "tools")
+    tools = os.path.join(root, UI_DIR)
     os.makedirs(tools, exist_ok=True)
     with open(os.path.join(root, "src", "main.rs"), "w", encoding="utf-8", newline="\n") as f:
         f.write(main)
@@ -503,7 +520,7 @@ def build_fixture(root, main=GOOD_MAIN, read=GOOD_READ, write=GOOD_WRITE,
             for name in (read_name, write_name):
                 p = os.path.join(tools, name)
                 if os.path.isfile(p):
-                    entries.append({"host": "tools/" + name, "vm": "/x/" + name, "mode": "same",
+                    entries.append({"host": UI_DIR.replace(os.sep, "/") + "/" + name, "vm": "/x/" + name, "mode": "same",
                                     "vm_sha256": _sha256_file(p), "vm_bytes": os.path.getsize(p)})
             manifest = {"files": entries}
         with open(os.path.join(tools, "deployment-manifest.json"), "w",
@@ -608,17 +625,17 @@ def self_test(sandbox_root):
                                   'desc="notice.mute"\n'))
     # P10 三例：同源登记却对不上／待部署却已同源（清单过期）／界面件没进清单
     case("P10 same 登记与仓内不符", ["P10"],
-         manifest={"files": [{"host": "tools/world-projection.sh", "vm": "/x/p", "mode": "same",
+         manifest={"files": [{"host": "scripts/release/world-projection.sh", "vm": "/x/p", "mode": "same",
                               "vm_sha256": "0" * 64, "vm_bytes": 1},
-                             {"host": "tools/world-toggle-mute.sh", "vm": "/x/m", "mode": "same",
+                             {"host": "scripts/release/world-toggle-mute.sh", "vm": "/x/m", "mode": "same",
                               "vm_sha256": _sha256_of_text(GOOD_WRITE), "vm_bytes": 1}]})
     case("P10 pending 却已同源（清单过期）", ["P10"],
-         manifest={"files": [{"host": "tools/world-projection.sh", "vm": "/x/p", "mode": "pending",
+         manifest={"files": [{"host": "scripts/release/world-projection.sh", "vm": "/x/p", "mode": "pending",
                               "vm_sha256": _sha256_of_text(GOOD_READ), "vm_bytes": 1},
-                             {"host": "tools/world-toggle-mute.sh", "vm": "/x/m", "mode": "pending",
+                             {"host": "scripts/release/world-toggle-mute.sh", "vm": "/x/m", "mode": "pending",
                               "vm_sha256": "0" * 64, "vm_bytes": 1}]})
     case("P10 界面件没进清单", ["P10"],
-         manifest={"files": [{"host": "tools/world-projection.sh", "vm": "/x/p", "mode": "same",
+         manifest={"files": [{"host": "scripts/release/world-projection.sh", "vm": "/x/p", "mode": "same",
                               "vm_sha256": _sha256_of_text(GOOD_READ), "vm_bytes": 1}]})
 
     total = n[0]

@@ -34,7 +34,7 @@
       的 `change`
 - **THEN** 第二次提交被拒（错误含"门禁拒绝写入"），状态仍为原值，
       且账本里除那条合法 `change` 外只多一条 `gate.write-rejected` 通告
-- **证据**：`tests/contract.rs::c01_change_is_gated_and_cannot_smuggle_an_act`
+- **证据**：`scripts/test/contract.rs::c01_change_is_gated_and_cannot_smuggle_an_act`
       （由 `check.sh.new` 第 ③b 步执行）
 
 ### Requirement: 不可逆动作只允许白名单主体并加摩擦
@@ -55,10 +55,10 @@
 - **WHEN** 一个**不在** `irreversible_actors` 内的主体提交一个不可逆能力
 - **THEN** 门禁加摩擦路径被触发，落一条 `gate.awaiting-approval` 通告，理由明说 v1 无审批通道
 - **证据**：`scripts/test/acceptance.rs::t10_gate_adds_friction_for_irreversible_capability`
-      与 `tests/atom_reversibility.rs::a05_non_whitelisted_actor_gets_friction_and_the_level_shows_in_the_flow`
+      与 `scripts/test/atom_reversibility.rs::a05_non_whitelisted_actor_gets_friction_and_the_level_shows_in_the_flow`
       —— **⚠** 原证据行的原话"提交一个不可逆能力"未限定主体，会读出"任何主体都被加摩擦"；
       今天的口径是**白名单内放行且必加摩擦旗标、白名单外加摩擦到拒绝执行**——
-      前者由 `tests/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
+      前者由 `scripts/test/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
       断言（同一主体 `world://user`，可逆不带旗标、不可逆带 `gate.friction:high` 且随事件落账）。
 
 #### Scenario: 同一个主体对不可逆动作必加摩擦
@@ -66,15 +66,15 @@
 - **WHEN** **同一个在册主体**（`world://user`，出厂不可逆白名单里唯一那一个）分别提交一件可逆动作与一件不可逆动作
 - **THEN** 可逆动作免检且事件不带摩擦旗标（但照样落账）；不可逆动作放行且事件带 `gate.friction:high`，
       该旗标随事件落进账本
-- **证据**：`tests/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
+- **证据**：`scripts/test/atom_reversibility.rs::a04_same_actor_reversible_is_free_and_irreversible_always_carries_friction`
       —— 变异：把 `src/gate/mod.rs:572-584` 的 `Policy::verdict` 改成按主体身份判摩擦 ⇒ 本条变红。
 
 #### Scenario: 拒绝流水必须说清它拒绝了什么
 
 - **WHEN** 一个**不在允许名单**的主体提交带保留前缀的通告
 - **THEN** 被拒，且门禁写下的通告里含被拒内容的指纹字段
-- **证据**：`tests/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders`
-      与 `tests/contract.rs::c23_gate_notice_says_what_it_refused`
+- **证据**：`scripts/test/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders`
+      与 `scripts/test/contract.rs::c23_gate_notice_says_what_it_refused`
       —— **⚠ 两段证据不是同一件事**（`audit.md` **G4** 的张冠李戴）：
       `scripts/test/contract.rs:1095-1118` 的
       `c23_notice_with_reserved_prefix_is_refused_for_outsiders` **只查错误码与理由**
@@ -117,7 +117,7 @@
 
 - **WHEN** 显式以与预期不符的属主运行属主断言
 - **THEN** 断言报错而不是放行
-- **证据**：`tests/contract.rs::c10_owner_assertion_detects_wrong_owner`
+- **证据**：`scripts/test/contract.rs::c10_owner_assertion_detects_wrong_owner`
       —— **⚠ 它不证明"启动时会检查属主"**：不传 `--owner-uid` 即不运行
       （`ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md:355`）。
 
@@ -202,13 +202,13 @@ SHALL NOT 被读成"门禁在所有路径上不可绕过"。
 
 - **WHEN** 一个外部主体提交 `type` 以 `gate.` 开头的通告
 - **THEN** 被拒，错误串含 `ext.world.Gate.NoticeNotAllowed`，且伪造通告不落笔
-- **证据**：`tests/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders`
+- **证据**：`scripts/test/contract.rs::c23_notice_with_reserved_prefix_is_refused_for_outsiders`
 
 #### Scenario: 不在册主体不得写普通通告，在册主体必须能写
 
 - **WHEN** 一个不在白名单的主体提交普通通告；对照组由在册主体提交同样形状的通告
 - **THEN** 前者被拒（`ext.world.Gate.NoticeRejected`），后者通过
-- **证据**：`tests/contract.rs::c23_notice_from_unlisted_actor_is_refused`
+- **证据**：`scripts/test/contract.rs::c23_notice_from_unlisted_actor_is_refused`
 
 #### Scenario: 门禁不可绕过的未做部分被如实声明
 

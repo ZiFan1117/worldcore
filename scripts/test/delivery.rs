@@ -78,7 +78,7 @@ fn act_result(rid: &str, outcome: &str) -> Value {
 
 /// **d01**：带 `to` ⇒ **只有该收件人看得到**（别人那一份里没有它）。
 ///
-/// 判据出处：规格 `specs/delivery-and-resources/spec.md:16-17` 逐字
+/// 判据出处：规格 `ninedim/06-变更/archive/2026-09-28-cover-unimplemented-capabilities/specs/delivery-and-resources/spec.md:16-17` 逐字
 /// 「**WHEN** 写入一条带 `to` 的事件，再分别用两个收件人的读法取账本／
 /// **THEN** 该事件只出现在 `to` 指定的那一份读法里，另一份里没有它」。
 #[test]

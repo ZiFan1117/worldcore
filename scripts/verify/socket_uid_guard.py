@@ -24,8 +24,8 @@
   （"法律说有个口，而它不在"——那正是 `UndeclaredListener` 那一族，方向相反）。
 
 ## 用法
-    python3 tools/socket_uid_guard.py --channel /etc/world-core/channel.json --rundir /run/world-core
-    python3 tools/socket_uid_guard.py --self-test
+    python3 scripts/verify/socket_uid_guard.py --channel /etc/world-core/channel.json --rundir /run/world-core
+    python3 scripts/verify/socket_uid_guard.py --self-test
 
 ## 退出码
     0 = 全绿或 SKIP（SKIP 显式打印 `STATUS=SKIP`，**不算绿**）

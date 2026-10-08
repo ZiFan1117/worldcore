@@ -84,7 +84,7 @@ $ cd /root/world/world-core && bash check.sh
 2. **不做"全绿宣传"**：它跑的是**可失败**的检查——构建失败、未打印 `READY`、
    任一专属测试失败、同源判定失败，**任一步即 exit 非 0**（与 CI 同为阻断式）；
 3. **不替代 CI**：它是**本地/VM 侧**的同一批判定；CI 的 `smoke`/`unit-test`/`traceability`
-   由 `.github/workflows/world-core-gate.yml` 执行，两侧互为印证（见 `WC-CIVER-001`）。
+   由 `.github/workflows/gate.yml` 执行，两侧互为印证（见 `WC-CIVER-001`）。
 
 ---
 
@@ -152,7 +152,7 @@ check.sh rc=0
 
 ### CI 可复现（判据第二条）
 
-`.github/workflows/world-core-gate.yml` 的 5 个作业（gate-self-test / scope / smoke / traceability / unit-test）与上表命令同源；工作流在 `working-directory: world-core` 下执行，**与 VM 实测同一组命令**。⚠ **RTM 严格模式仍为 `"false"`**（`ci_self_check.py` 每轮报此告警）——**该翻转属独立事项，未静默改**。
+`.github/workflows/gate.yml` 的 5 个作业（gate-self-test / scope / smoke / traceability / unit-test）与上表命令同源；工作流在 `working-directory: world-core` 下执行，**与 VM 实测同一组命令**。⚠ **RTM 严格模式仍为 `"false"`**（`ci_self_check.py` 每轮报此告警）——**该翻转属独立事项，未静默改**。
 
 ### 阶段依据（**国标无独立 S3 阶段，如实标注**）
 

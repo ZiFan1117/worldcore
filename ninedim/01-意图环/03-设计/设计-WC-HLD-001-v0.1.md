@@ -286,7 +286,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | `FA-02` | **单写者**：任一时刻只有一个世界核心实例写同一本账 | S5 并发/多进程测试；R2 前（取锁流程仍有四步非原子窗口：`src/ledger/mod.rs:121-137`） | 两个写者各按内存 `next_seq` 追加 ⇒ 重号/缺号 ⇒ 下次启动 `SeqGap` 拒启（`src/ledger/mod.rs:223-229`）、**世界锁死**。代价＝人工核算与账本修复，属 P0 | `src/ledger/mod.rs:91`、`src/ledger/mod.rs:119-159`、`src/ledger/mod.rs:166-168`；`cargo test --locked --test contract c07`、`c08` |
 | `FA-03` | **账本写路径是追加写**；唯一非追加动作是启动期截掉末尾半行 | S5（账本只追加判据，`DR-01`）；R2 评审 | 任何"原地改写/删除既有行"的路径都会让 `REQ-F-001` 与 `DR-01` 同时失效；而摘要链只能检出**局部**篡改、整本重写检不出（`src/ledger/mod.rs:458`） ⇒ 无技术手段恢复信任。代价＝真相的可信性归零 | `src/ledger/mod.rs:233-235`（`append(true)`）、`src/ledger/mod.rs:314-316`、`src/ledger/mod.rs:323`、`src/ledger/mod.rs:196-209`（唯一的 `set_len`）；`cargo test --locked --test contract c22` |
 | `FA-04` | **本体以 `ontology.json` 为唯一来源**，且其内容"只加不改"（词表版本 `world=1`） | R2 冻结框架基线时；S5（`REQ-F-027`/`REQ-F-030` 的回归判据） | 事件构造器版本与本体声明不符 ⇒ **能启动却一条都写不进**（该自检已前移到启动期，`src/lib.rs:85-92`，代价是"世界起不来"）；若本体被就地改语义，旧账本的折叠结果不再可复现 ⇒ `REQ-F-011` 失效 | `ontology.json`（顶层 `"world": 1`）、`src/ontology_definition/mod.rs:71`、`src/lib.rs:73`、`src/lib.rs:85-92`；`cargo test --locked --test acceptance t6` |
-| `FA-05` | **无外部服务依赖**：直接依赖只有 `serde_json` 一个 crate，无网络/数据库/守护进程 | 每次新增依赖时（CI 已挂机械断言）；R2 | 地基的移植成本上升、攻击面扩大；换语言重建世界需要解码器 ⇒ 与 `REQ-N-001`（语言无关）的精神冲突。代价＝地基每多一个依赖，将来重建世界的代价高一截 | `Cargo.toml` 的 `[dependencies]` 仅 `serde_json = "1"`；`tools/ci_self_check.py`；`cargo tree --locked` |
+| `FA-05` | **无外部服务依赖**：直接依赖只有 `serde_json` 一个 crate，无网络/数据库/守护进程 | 每次新增依赖时（CI 已挂机械断言）；R2 | 地基的移植成本上升、攻击面扩大；换语言重建世界需要解码器 ⇒ 与 `REQ-N-001`（语言无关）的精神冲突。代价＝地基每多一个依赖，将来重建世界的代价高一截 | `Cargo.toml` 的 `[dependencies]` 仅 `serde_json = "1"`；`scripts/verify/ci_self_check.py`；`cargo tree --locked` |
 | `FA-06` | **单进程**：本体/账本/读模型/门禁同进程，**进程内无并发写** | S3 骨架跑通时复核；S5（若引入长驻服务） | 需重新设计写入互斥与状态一致性。代价＝引入并发设施，并把"唯一写入口"从**类型级**保证（私有字段 + `pub(crate)`）降级为约定 | `src/lib.rs:57-62`、`src/lib.rs:133`、`src/lib.rs:12-17`；`rg -n 'thread::spawn\|Mutex\|RwLock\|Arc<' src` |
 | `FA-07` | **账本规模可控**：全量折叠（时间 O(n)、空间 O(n)）在本版规模下可接受 | S5（重放性能度量；`WC-TP-001-v0.1.md` §五 缺口 3） | 每次读状态变慢或内存峰值过高 ⇒ 必须提前把 `M08` 快照接进读取路径，而接入又触发 `FA-14` 的代价（坏快照语义）。代价＝提前引入一整类一致性风险 | `src/lib.rs:255-257`、`src/main.rs:200`、`scripts/test/perf.rs:177`；`cargo test --release --locked --test perf -- --ignored --nocapture` |
 | `FA-08` | **宿主文件系统语义**：写入 + `sync_data` 足以在**进程崩溃**（**不含掉电**）之间保住"已回执"的事件 | R2 前（与"已回执"的定义一并裁定）；S6（真实磁盘/掉电故障实验） | `commit` 返回成功的事件可能丢失 ⇒ "零丢失"口径不成立，恢复目标需重定。代价＝需求层口径要改，无法靠实现补 | `src/ledger/mod.rs:280-285`（自述"掉电仍可能丢已 ack 的事件"）、`src/ledger/mod.rs:327-336`、`src/ledger/mod.rs:69`；`cargo test --locked --test acceptance t3`、`scripts/test/perf.rs:220` |
@@ -294,7 +294,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | `FA-10` | **`actor` 字符串可代表真实身份**（**CLI 路径**） | S5/S6 威胁模型评审；CLI 面缺口已在 `需求-WC-SRS-001-v0.1.md` §三 `REQ-F-025` 行登记 | 被管者自称白名单主体即绕过白名单与能力表 ⇒ 门禁在 CLI 路径上只剩"礼貌"。代价＝必须把 CLI 也接到身份通道，或显式声明"CLI 仅供属主使用" | `src/bus/mod.rs:5-7`（自述 CLI 的 `actor` 是命令行参数）、`src/bus/mod.rs:9-11`；`cargo test --locked --test contract c14` |
 | `FA-11` | **门禁策略形态够用**：单文件 `policy.json`（`capabilities` + `writes` + `irreversible_actors` + `subjects.allow`）足以表达 v1 治理需求；裁决**不看** `verb`/`params` | 随策略冻结（R2 框架评审） | 需要"主体 × 能力 × 作用域"粒度 ⇒ 策略格式变更走变更控制并重跑全部契约用例。代价＝契约与策略同时升级 | `src/gate/mod.rs:269-296`（`decide`）、`src/gate/mod.rs:222-244`（`authorize_write`）、`src/gate/mod.rs:103-211`（加载期校验）、`policy.json`；`cargo test --locked --test contract c03` |
 | `FA-12` | **词表内容寻址够用**：FNV-1a（非加密）足以判定"是不是同一份词表"，且**不用于安全判断** | R2 评审确认"非加密用途"可接受 | 碰撞 ⇒ 换词表检不出，`REQ-F-020` 的"同源"判定退化；升级为加密哈希又要引入依赖（与 `FA-05` 冲突）。代价＝二选一 | `src/ontology_definition/mod.rs:144`、`src/ontology_definition/mod.rs:240`、`src/gui_projection/mod.rs:124`；`cargo test --locked --lib vocab_hash`（`src/ontology_definition/mod.rs:258`、`src/ontology_definition/mod.rs:282`） |
-| `FA-13` | **纯文本格式够用**：JSON Lines 的体积与解析开销可接受 | S5（重放性能与体积度量，含 `QG-05`） | 需要索引或压缩 ⇒ 索引必须可重建（`M08` 范畴），否则"删掉派生数据即可重建"的命题失效。代价＝新增一类可损坏的持久物 | `REQ-N-001`；`tools/plain_text_audit.py`（含 `--self-test`）；`src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`src/gui_projection/visual.rs:62` |
+| `FA-13` | **纯文本格式够用**：JSON Lines 的体积与解析开销可接受 | S5（重放性能与体积度量，含 `QG-05`） | 需要索引或压缩 ⇒ 索引必须可重建（`M08` 范畴），否则"删掉派生数据即可重建"的命题失效。代价＝新增一类可损坏的持久物 | `REQ-N-001`；`scripts/verify/plain_text_audit.py`（含 `--self-test`）；`src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`src/gui_projection/visual.rs:62` |
 | `FA-14` | **v1 的启动与读取路径不读检查点快照** | **`M08` 接 CLI 的合并请求中出现对 `read_model_with_checkpoint` 的生产调用 ⇒ 本条立即为假**（可证伪事件；原写「分册冻结时复核」已改，因那不能使本条为假） | 一旦接入启动路径，必须**同时**实现"坏快照降级重算"，否则一个坏缓存会变成拒启开关 ⇒ 缓存升格成第二真相。代价＝启动语义与恢复语义都要重写并重测 | `src/lib.rs:20`（全仓唯一一处 `pub mod checkpoint;`）、`src/main.rs:200`、`src/ontology_instance/checkpoint.rs:167`（`read_model_with_checkpoint` 的调用者全在 `tests/` 内）；`rg -n 'checkpoint\|Checkpoint' src/main.rs src/ontology_instance/readmodel.rs`（零命中） |
 | `FA-15` | **账本以字节 `0x0A` 分帧**，且写侧序列化会把 `U+000A` 转义为 `\n`（正文里的换行不破坏分帧） | S5（需补"值含换行/`0x0A` 的往返"用例——该项**未在** `WC-TP-001-v0.1.md` §五 的缺口表内，属本节新增待办） | 一条事件的字节里出现真实 `0x0A` ⇒ 被读成两条、双双解析失败 ⇒ 账本不可读且**无自动恢复路径**。代价＝需人工按字节修复账本 | `src/ledger/mod.rs:198`、`src/ledger/mod.rs:213`、`src/ledger/mod.rs:314-316`、`src/ledger/mod.rs:403`；`cargo test --locked --test contract c22` |
 
@@ -312,8 +312,8 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | **L1 单元** | 模块内分支 | `src/**` 的 `#[cfg(test)]`：实测 **22 条**（`channel` 2、`error` 2、`gate` 4、`guard` 1、`ledger` 3、`ontology` 2、`readmodel` 4、`project/mod` 4） | 模块接口冻结 | `cargo test --locked --lib` 全绿；无 `#[ignore]` 残留 |
 | **L2 集成** | 模块间接口与失败路径 | `scripts/test/acceptance.rs` **17 条**（`t1`–`t17`）+ `scripts/test/cli.rs` **6 条**（`cli01`–`cli06`） | L1 绿 + 一次性沙箱账本纪律已声明 | `cargo test --locked --test acceptance --test cli` 全绿 |
 | **L2 契约** | 接口契约与错误码 | `scripts/test/contract.rs` **22 条**（`c01`–`c22`）：唯一写入口、法律/门禁顺序、单写者锁、摘要链、检查点、通道身份、错误码 | L2 集成绿 + 接口契约分册落成 | `cargo test --locked --test contract` 全绿；且每条门禁都有**会失败**的反例留存 |
-| **L3 系统** | 端到端与非功能，**在真实产物或真实环境上** | `tools/system_acceptance.sh`（`TC-037`–`TC-040`，4 条，跑真实二进制）、`tools/s1_sys_probe.sh`（11 个 TC 编号）、`tools/s1_sys_probe2.sh`（27 个 TC 编号）、`scripts/test/perf.rs`（度量，默认 `#[ignore]`） | 代码冻结到某版本标识；`check.sh` 在干净 VM 上跑通 | 三个系统级脚本全过；性能读数取得且**数值经人工确认**后方可判达标 |
-| **L4 验收** | 需求方视角的结论 | 三条专属验收测试 + 跨 uid 原型（`tools/con01-no-bypass.sh`）+ 质量目标 | L3 绿 | 由人工判定（S6 验收报告承接） |
+| **L3 系统** | 端到端与非功能，**在真实产物或真实环境上** | `scripts/test/system_acceptance.sh`（`TC-037`–`TC-040`，4 条，跑真实二进制）、`scripts/test/s1_sys_probe.sh`（11 个 TC 编号）、`scripts/test/s1_sys_probe2.sh`（27 个 TC 编号）、`scripts/test/perf.rs`（度量，默认 `#[ignore]`） | 代码冻结到某版本标识；`check.sh` 在干净 VM 上跑通 | 三个系统级脚本全过；性能读数取得且**数值经人工确认**后方可判达标 |
+| **L4 验收** | 需求方视角的结论 | 三条专属验收测试 + 跨 uid 原型（`scripts/test/con01-no-bypass.sh`）+ 质量目标 | L3 绿 | 由人工判定（S6 验收报告承接） |
 
 ### 6.2 S2 阶段可执行的测试（今天就能跑，全部只读）
 
@@ -323,11 +323,11 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 | 2 | L1 单元 | `cargo test --locked --lib` |
 | 3 | L2 集成 + 契约 | `cargo test --locked --test acceptance --test contract --test cli` |
 | 4 | L0 冒烟（含三条专属测试与同源核对） | `bash check.sh` |
-| 5 | L3 系统级（真实二进制/真实文件系统） | `bash tools/system_acceptance.sh`；`bash tools/s1_sys_probe.sh`；`bash tools/s1_sys_probe2.sh` |
-| 6 | 纯文本审计（含反例自证） | `python tools/plain_text_audit.py --self-test` |
-| 7 | 依赖纪律自检 | `python tools/ci_self_check.py` |
-| 8 | 追溯门禁（需求↔用例↔模块） | `python tools/trace_matrix.py --matrix docs/S1-需求/WC-RTM-001.csv --srs docs/S1-需求/需求-WC-SRS-001-v0.1.md` |
-| 9 | **设计级**检查：RTM 里的模块号是否都在模块登记表中存在 | 同上（`tools/trace_matrix.py` 的 `load_known_modules()` 只读 `WC-MODREG-*.md`，出处 `设计-WC-MODREG-001-v0.1.md` 文件头「机器用途」行） |
+| 5 | L3 系统级（真实二进制/真实文件系统） | `bash scripts/test/system_acceptance.sh`；`bash scripts/test/s1_sys_probe.sh`；`bash scripts/test/s1_sys_probe2.sh` |
+| 6 | 纯文本审计（含反例自证） | `python scripts/verify/plain_text_audit.py --self-test` |
+| 7 | 依赖纪律自检 | `python scripts/verify/ci_self_check.py` |
+| 8 | 追溯门禁（需求↔用例↔模块） | `python scripts/verify/trace_matrix.py --matrix ninedim/01-意图环/02-需求/WC-RTM-001.csv --srs ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md` |
+| 9 | **设计级**检查：RTM 里的模块号是否都在模块登记表中存在 | 同上（`scripts/verify/trace_matrix.py` 的 `load_known_modules()` 只读 `WC-MODREG-*.md`，出处 `设计-WC-MODREG-001-v0.1.md` 文件头「机器用途」行） |
 | 10 | 性能度量（默认 `#[ignore]`，需显式运行） | `cargo test --release --locked --test perf -- --ignored --nocapture` |
 
 **纪律（沿用 `WC-TP-001-v0.1.md` §二，硬化）**：一律用**一次性沙箱账本**（`mktemp -d`，退出即删），
@@ -346,7 +346,7 @@ rg -n 'use (world_core|gate|ledger|ontology|readmodel|event|guard|checkpoint|cha
 
 ### 6.5 测试 → 需求 可追踪性（`GB/T 8567-2006` §7.3 第 6 章）
 
-**双向**：正向见表 §7（需求 → 模块/接口/用例）；反向由 `WC-RTM-001` 的「系统测试用例／验收测试用例」两列承担，缺格由 `tools/trace_matrix.py` 每轮复算（**未校验不等于通过**）。
+**双向**：正向见表 §7（需求 → 模块/接口/用例）；反向由 `WC-RTM-001` 的「系统测试用例／验收测试用例」两列承担，缺格由 `scripts/verify/trace_matrix.py` 每轮复算（**未校验不等于通过**）。
 
 | # | 待补项 | 为什么还不能算数 | 承接环节 |
 |---|---|---|---|
@@ -1520,7 +1520,7 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 | **L0 冒烟** | "一条命令跑通"（S3 准出判据） | 构建（`--locked`）→ 在**一次性沙箱**里打开世界并打印 `READY` → 三条专属测试 → 契约测试 → 投影同源 | `check.sh`（`WC-SK-001` 原始输出）；CI `smoke` 作业 | ✅ 已建 |
 | **L1 单元** | 模块内分支 | `src/**` 的 22 条：本体 hash 口径、**账本故障注入 3 条（`U20`–`U22`）**、读模型 4 类拒绝、门禁裁决、静态墙、通道解析、错误码契约 | `WC-UT-001` §二；CI `unit-test` | ✅ 已建 |
 | **L2 集成/契约** | 模块间接口与失败路径 | `scripts/test/acceptance.rs`（17）+ `scripts/test/contract.rs`（22）：唯一写入口、法律/门禁顺序、单写者锁、摘要链、检查点、通道身份、错误码 | `WC-RE09-003` **§二.2a–§二.2c**（`c12`/`c13`/`c14` 的逐条原始输出与提交号，2026-09-26 补录）；**§二** 是 `54335d0` 的早期快照（按该文件纪律不回填），**不含**这三条 | ✅ 已建 |
-| **L3 系统** | 端到端与非功能 | ① **纯文本审计**（`REQ-N-001`）② **度量**（`scripts/test/perf.rs`：`M-01`/`M-02`/`M-05`）③ **故障注入**（`U20`–`U22`）④ **系统级验收**（`tools/system_acceptance.sh`：`TC-037`–`TC-040`，跑**真实二进制**）⑤ **跨 uid 通道** ⑥ 覆盖率 | ① 有脚本（含 `--self-test`）；② **已实测**（`WC-TR-001` §二 2.6–2.8）；③ 已由 `U20`–`U22` 覆盖**故障形状**（真实磁盘满/EIO 仍未验）；④ **已实测 26/26**（`WC-TR-001` §二 2.10；CI `smoke` 与 `check.sh` 均执行）；⑤⑥ **无**（覆盖率 `TBD-08`、跨 uid 通道并入 `WC-CON01-001`） | ⚠️ **部分**（原 ⛔） |
+| **L3 系统** | 端到端与非功能 | ① **纯文本审计**（`REQ-N-001`）② **度量**（`scripts/test/perf.rs`：`M-01`/`M-02`/`M-05`）③ **故障注入**（`U20`–`U22`）④ **系统级验收**（`scripts/test/system_acceptance.sh`：`TC-037`–`TC-040`，跑**真实二进制**）⑤ **跨 uid 通道** ⑥ 覆盖率 | ① 有脚本（含 `--self-test`）；② **已实测**（`WC-TR-001` §二 2.6–2.8）；③ 已由 `U20`–`U22` 覆盖**故障形状**（真实磁盘满/EIO 仍未验）；④ **已实测 26/26**（`WC-TR-001` §二 2.10；CI `smoke` 与 `check.sh` 均执行）；⑤⑥ **无**（覆盖率 `TBD-08`、跨 uid 通道并入 `WC-CON01-001`） | ⚠️ **部分**（原 ⛔） |
 | **L4 验收** | 需求方视角的结论 | AC-01…AC-07（`WC-FSR-001`）+ **三条专属验收测试** + 质量目标 M-01–M-06 | 三条专属测试：✅；AC-05 有 `WC-CON01-001`（14 项跨 uid）；**AC 其余项与质量目标数值均待定** | ⚠️ 部分 |
 
 ---
@@ -1572,7 +1572,7 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 | 4 | **跨 uid 通道未测** | `c14` 只证明"同 uid 可连、冒充被拒"；"别的 uid 连不上"仅由 `bind()` 权限与 `con01` 的同类实验**间接**支撑 | 并入 `WC-CON01-001` 后续批次 |
 | 5 | **无部署类验收项** | `WC-SQAP-001` 的 G-02 指 `QG-06`（部署）无独立 AC | R1/R6 前由人裁定是否补 `REQ-N-00x` |
 | 6 | **L3/L4 无自动化入口** | L3 全缺、L4 依赖人工 | S6 验收报告（`WC-AT-001`）承接 |
-| 7 | ~~`REQ-N-001` 纯文本审计**无脚本**~~ **已闭合** | 已建 `tools/plain_text_audit.py`（零依赖，含 `--self-test` 反例自证：NUL/控制字符/坏 UTF-8/坏 JSON 行必判不合格），CI `gate-self-test` 作业实跑 | — |
+| 7 | ~~`REQ-N-001` 纯文本审计**无脚本**~~ **已闭合** | 已建 `scripts/verify/plain_text_audit.py`（零依赖，含 `--self-test` 反例自证：NUL/控制字符/坏 UTF-8/坏 JSON 行必判不合格），CI `gate-self-test` 作业实跑 | — |
 
 ---
 
@@ -1610,7 +1610,7 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 | `FA-02` | `设计-WC-HLD-001-v0.1.md` §12 `A-01` 行；源码 `src/ledger/mod.rs:91`、`:119-159`、`:166-168`、`:223-229`；用例 `c07`/`c08`（`scripts/test/contract.rs:337`、`:356`） | "**单写者**：任一时刻只有一个世界核心实例写同一本账" |
 | `FA-03` | `设计-WC-HLD-001-v0.1.md` §5.3（账本格式）；源码 `src/ledger/mod.rs:233-235`、`:314-316`、`:323`、`:196-209`；`需求-WC-SRS-001-v0.1.md` §三 `DR-01` | "**一行一条事件**的 JSON Lines，UTF-8，LF 结尾；**只追加**" |
 | `FA-04` | `设计-WC-HLD-001-v0.1.md` §5.1、§5.4、§7.1 第 4 步；源码 `ontology.json`（顶层 `"world": 1`）、`src/ontology_definition/mod.rs:71`、`src/lib.rs:85-92`；`需求-WC-SRS-001-v0.1.md` §三 `DR-11` ④ | "**词表版本一致性自检**：`event::WORLD_VERSION` 必须等于本体声明的 `world`"；"兼容性义务：读模型零义务、检查点零义务、本体**只加不改**" |
-| `FA-05` | `设计-WC-HLD-001-v0.1.md` §4.6、§12 `A-07` 行；`Cargo.toml` 的 `[dependencies]`；`tools/ci_self_check.py`；`需求-WC-SRS-001-v0.1.md` §三 `REQ-N-002` | "**零外部依赖纪律**（含『指纹用非加密实现』的选择）"；"直接依赖仅 `serde_json`" |
+| `FA-05` | `设计-WC-HLD-001-v0.1.md` §4.6、§12 `A-07` 行；`Cargo.toml` 的 `[dependencies]`；`scripts/verify/ci_self_check.py`；`需求-WC-SRS-001-v0.1.md` §三 `REQ-N-002` | "**零外部依赖纪律**（含『指纹用非加密实现』的选择）"；"直接依赖仅 `serde_json`" |
 | `FA-06` | `设计-WC-HLD-001-v0.1.md` §2.2 纪律 1、§12 `A-02` 行；源码 `src/lib.rs:12-17`、`:57-62`、`:133` | "**一个进程**：本体/账本/读模型/运行时/门禁同进程（`M01`–`M05`），不拆" |
 | `FA-07` | `设计-WC-HLD-001-v0.1.md` §4.5、§12 `A-03` 行；源码 `src/lib.rs:255-257`、`src/main.rs:200`、`scripts/test/perf.rs:177` | "**账本规模可控**：读模型全量折叠（时间 O(n)、空间 O(n)）在本版数据规模下可接受" |
 | `FA-08` | `设计-WC-HLD-001-v0.1.md` §12 `A-04` 行、§5.3 末段、§15.2；源码 `src/ledger/mod.rs:280-285`、`:327-336`、`:69` | "**宿主文件系统语义**：`flush`+`sync_data` 足以在进程崩溃与**掉电**之间保住『已回执』的事件" |
@@ -1618,7 +1618,7 @@ V3→C-07/10；V4→C-01/02/05/08；V5→C-03/06；V6→C-04/07/09；V7→C-03�
 | `FA-10` | `设计-WC-HLD-001-v0.1.md` §12 `A-06` 行、§6.3；源码 `src/bus/mod.rs:5-7`、`:9-11`；`需求-WC-SRS-001-v0.1.md` §三 `REQ-F-025` | "**`actor` 可信**：`actor` 字符串可代表真实身份"；"CLI 的 `actor` 是**命令行参数**" |
 | `FA-11` | `设计-WC-HLD-001-v0.1.md` §4.1、§5.4、§12 `A-10` 行；源码 `src/gate/mod.rs:103-211`、`:222-244`、`:269-296`；`policy.json` | "**门禁策略形态够用**：单文件 `policy.json` + 能力名/主体白名单/写入授权足以表达 v1 的治理需求" |
 | `FA-12` | `设计-WC-HLD-001-v0.1.md` §4.4、§12 `A-09` 行；源码 `src/ontology_definition/mod.rs:144`、`:240`、`src/gui_projection/mod.rs:124`；`需求-WC-SRS-001-v0.1.md` §三 `DR-04` | "**词表内容寻址够用**：FNV-1a（非加密）足以判定『是不是同一份词表』"；"指纹是 FNV-1a（**非加密**），可能碰撞" |
-| `FA-13` | `设计-WC-HLD-001-v0.1.md` §4.9、§12 `A-08` 行；源码 `src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`:62`；`tools/plain_text_audit.py` | "**纯文本格式够用**：JSON Lines 的体积与解析开销可接受"；"**语言无关**" |
+| `FA-13` | `设计-WC-HLD-001-v0.1.md` §4.9、§12 `A-08` 行；源码 `src/ledger/mod.rs:496`、`src/gui_projection/visual.rs:29`/`:62`；`scripts/verify/plain_text_audit.py` | "**纯文本格式够用**：JSON Lines 的体积与解析开销可接受"；"**语言无关**" |
 | `FA-14` | `设计-WC-HLD-001-v0.1.md` §7.1「启动是否载入检查点（`M08`）——裁决」、§4.5 现状订正段；源码 `src/lib.rs:20`、`src/main.rs:200`、`src/ontology_instance/checkpoint.rs:167` | "**不载入**"；"`v1` 启动**不读快照**，一切由账本全量折叠" |
 | `FA-15` | `设计-WC-HLD-001-v0.1.md` §5.3「行分隔约定（上游差异登记 ③）」；源码 `src/ledger/mod.rs:198`、`:213`、`:314-316`、`:403` | "**任何字段的内容都不得在行内出现真实的 `0x0A` 字节**"；"`serde_json::to_string` 序列化时把 `U+000A` 转义为两个字符" |
 

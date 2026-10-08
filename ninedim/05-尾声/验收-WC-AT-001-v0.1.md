@@ -27,17 +27,23 @@
 | ⑤ | 纯文本审计（无 NUL／无控制字符／JSONL 逐行可解析／**无 BOM**） | rc=0 |
 | ⑤b | 需求追溯矩阵（RTM：需求 → 设计模块 → 测试用例，双向；含判定器自证） | rc=0 |
 | ⑥ | 系统级验收（真实二进制端到端） | rc=0 |
-| ⑥b | 载体适配器系统级验收（M10：真实二进制／真实内核／真实账本；`tools/carrier_acceptance.sh`，C-01…C-09b） | rc=0；★ **非 root 或缺 `runuser` ⇒ 本步打 ⏭「未校验」、不阻断**（C-09 组要 `runuser -u agent`；缺它时脚本自身走 `bad(...)`⇒汇总 rc=1，**不是** SKIP ⇒ 故由本步显式分岔：既不把"没跑"读成绿、也不把"这一步没跑成"读成红） |
-| ⑥c | 载体契约（`tools/carrier_contract.py`：`deploy/` 的六份单元 ≡ 设计（`scripts/release/README.md`）＋法律（`policy.json`）——单元 ⊆ 清单／清单 ⊆ 目录／`User=` 不许 root／`SocketMode` 不许 0666／`ExecStart` 不许带 `--confirm`／单元 ∧ 法律 `listeners`／渲染物 ⊆ 法律／owner→uid 映射对账，共 12 条） | rc=0；★ 该守卫自带 `STATUS=SKIP`：宿主机缺 POSIX 元数据或部署件（`/etc/world-core/owner_uid.json`／`channel.json`）⇒ 它**显式打印"未校验"并 rc=0** ⇒ `run_tail` 认这一行，本步正确显示 **⏭**（未校验 ≠ 通过）。⚠ **本步在 VM 上的颜色 2026-10-06 未取到**（VM 连接超时）；宿主机现取＝绿（红 0 条）＋ 5 条未校验 |
+| ⑥b | 载体适配器系统级验收（M10：真实二进制／真实内核／真实账本；`scripts/test/carrier_acceptance.sh`，C-01…C-09b） | rc=0；★ **非 root 或缺 `runuser` ⇒ 本步打 ⏭「未校验」、不阻断**（C-09 组要 `runuser -u agent`；缺它时脚本自身走 `bad(...)`⇒汇总 rc=1，**不是** SKIP ⇒ 故由本步显式分岔：既不把"没跑"读成绿、也不把"这一步没跑成"读成红） |
+| ⑥c | 载体契约（`scripts/verify/carrier_contract.py`：`deploy/` 的六份单元 ≡ 设计（`scripts/release/README.md`）＋法律（`policy.json`）——单元 ⊆ 清单／清单 ⊆ 目录／`User=` 不许 root／`SocketMode` 不许 0666／`ExecStart` 不许带 `--confirm`／单元 ∧ 法律 `listeners`／渲染物 ⊆ 法律／owner→uid 映射对账，共 12 条） | rc=0；★ 该守卫自带 `STATUS=SKIP`：宿主机缺 POSIX 元数据或部署件（`/etc/world-core/owner_uid.json`／`channel.json`）⇒ 它**显式打印"未校验"并 rc=0** ⇒ `run_tail` 认这一行，本步正确显示 **⏭**（未校验 ≠ 通过）。⚠ **本步在 VM 上的颜色 2026-10-06 未取到**（VM 连接超时）；宿主机现取＝绿（红 0 条）＋ 5 条未校验 |
 | ⑦ | S1 需求验证面补建（两轮 `TC-0xx`） | rc=0 |
-| ⑦b | kind 守卫（`tools/kind_guard.py`：架构件里"三类话 vs 帧上方法名"，判据三条） | rc=0；**扫描根是仓外的架构夹** ⇒ 根不在时本步以 `--allow-missing` 打印"未校验"、rc=0（那是"没跑"，不是"通过"） |
-| ⑦c | 两件一致性守卫·跨件对账（`tools/cross_contract.py --set cross`：`ontology.json` × `policy.json` 的 **C-01…C-07**——反向能力集／动作两层三样／许可条文的键／`writes` 与 `subjects.allow`／`listeners` 与 `subjects.allow`） | rc=0（**判得了** ⇒ 该步配 ✅）。★ 本步的 ✅ 是「**判过且对**」，**不是**「没人判」：七条各有反例证明**它会红**（`--self-test`），现跑 0 红 |
-| ⑦d | 实例地址归属（`tools/cross_contract.py --set instance`：**C-08**，口径①——实例地址只许落在实例位键下） | rc=0；★ **本步今天为 ⏭、不是 ✅**（标的物 `ontology._permissions._instance_keys` 今天不在 ⇒ 报"无法判定"，**不许**算通过；标的一落地本步自动转 ✅）。★ 与 ⑦c **分两步**的理由：**"7 条判过且对"与"1 条判不了"是两件事**，混在一步里会让那 7 条的绿被吞掉、也会让 ⏭ 被读成 ❌（两个方向都会误读） |
-| ⑦e | 授权路判据（`tools/grant_path_guard.py`：本体 `_permissions._grant_via_ledger` 声称的授权路 ↔ **`src/` 里有没有读那张格的代码**；G-01 声明在不在／G-01b 是否声称"走账本事件"／G-02 代码在不在／G-03 读法是否唯一） | ★★ **登记型**：红 ⇒ 打 **⚠️**、**不阻断全闸**（`run_registered`，非 `run_tail`）。理由：红因是【**设计已定·未落地**】，**不是"谁改坏了"**（先例：`s1_sys_probe2.sh` 的"另行登记"）。★ 退出码口径：`0` 绿／SKIP（**SKIP 显式打印、不算绿**）／`1` ⇒ **折算为登记型红**／**`2` 输入缺失 ⇒ 仍然阻断**（"读不到"不许折算成"登记一下就过去了"） |
-| ⑦f | 值形状判据（`tools/value_shape_guard.py`：落进账本的**每一个值**必须落在一个**已声明的格**上；J1-01 类型已声明／J1-02 字段已声明／J1-03 值合声明类型（含 `enum(…)` 越界）／**J1-04 通告不许带非空 `payload`**） | ★★ **登记型**（与 ⑦e 同）：理由——存量红的原因是【**设计已定·未落地**】（那批值本来就借在本体不声明形状、读模型只计数不折叠的 `payload` 口袋里），**不是"谁改坏了"**。★ 口径同上：`0` 绿／SKIP／`1` 折算为登记型红／`2` 阻断。★ 自证：五个反例必红、两个正控必绿、不适用必 `SKIP` |
-| ⑦g | 口属主判据（`tools/socket_uid_guard.py`：**盘上那个口的属主 ↔ 法律 `channel.json.listeners` 里那条的 uid**；S-01 盘上的口有人认／S-02 uid **逐字相等**／S-03 法律列的口都在盘上） | ★★ **登记型**（与 ⑦e／⑦f 同）。★ 它盯的机理：`RuntimeDirectory=` 的**递归 chown** 会把口属主**盖回**服务的 `User=`，而兑现写法是 `ExecStartPre=+/bin/chown …`；且**"配了"不等于"生效"**，最狠的一种是**沉默**。★ 口径同上 |
-| ⑧ | 规格层守卫（`tools/spec_bridge.py`） | rc=0 |
-| ⑨ | 机核层守卫（`tools/module_graph.py`，`WC-ATOM-001` §四） | rc=0（真源码环 `M04↔M09` 已按「消回边、保留合法方向」改成 DAG）——**读数以 `python scripts/verify/module_graph.py` 的输出为准，本节不复述数字** |
+| ⑦b | kind 守卫（`scripts/verify/kind_guard.py`：架构件里"三类话 vs 帧上方法名"，判据三条） | rc=0；**扫描根是仓外的架构夹** ⇒ 根不在时本步以 `--allow-missing` 打印"未校验"、rc=0（那是"没跑"，不是"通过"） |
+| ⑦c | 两件一致性守卫·跨件对账（`scripts/verify/cross_contract.py --set cross`：`ontology.json` × `policy.json` 的 **C-01…C-07**——反向能力集／动作两层三样／许可条文的键／`writes` 与 `subjects.allow`／`listeners` 与 `subjects.allow`） | rc=0（**判得了** ⇒ 该步配 ✅）。★ 本步的 ✅ 是「**判过且对**」，**不是**「没人判」：七条各有反例证明**它会红**（`--self-test`），现跑 0 红 |
+| ⑦d | 实例地址归属（`scripts/verify/cross_contract.py --set instance`：**C-08**，口径①——实例地址只许落在实例位键下） | rc=0；★ **本步今天为 ⏭、不是 ✅**（标的物 `ontology._permissions._instance_keys` 今天不在 ⇒ 报"无法判定"，**不许**算通过；标的一落地本步自动转 ✅）。★ 与 ⑦c **分两步**的理由：**"7 条判过且对"与"1 条判不了"是两件事**，混在一步里会让那 7 条的绿被吞掉、也会让 ⏭ 被读成 ❌（两个方向都会误读） |
+| ⑦e | 授权路判据（`scripts/verify/grant_path_guard.py`：本体 `_permissions._grant_via_ledger` 声称的授权路 ↔ **`src/` 里有没有读那张格的代码**；G-01 声明在不在／G-01b 是否声称"走账本事件"／G-02 代码在不在／G-03 读法是否唯一） | ★★ **登记型**：红 ⇒ 打 **⚠️**、**不阻断全闸**（`run_registered`，非 `run_tail`）。理由：红因是【**设计已定·未落地**】，**不是"谁改坏了"**（先例：`s1_sys_probe2.sh` 的"另行登记"）。★ 退出码口径：`0` 绿／SKIP（**SKIP 显式打印、不算绿**）／`1` ⇒ **折算为登记型红**／**`2` 输入缺失 ⇒ 仍然阻断**（"读不到"不许折算成"登记一下就过去了"） |
+| ⑦f | 值形状判据（`scripts/verify/value_shape_guard.py`：落进账本的**每一个值**必须落在一个**已声明的格**上；J1-01 类型已声明／J1-02 字段已声明／J1-03 值合声明类型（含 `enum(…)` 越界）／**J1-04 通告不许带非空 `payload`**） | ★★ **登记型**（与 ⑦e 同）：理由——存量红的原因是【**设计已定·未落地**】（那批值本来就借在本体不声明形状、读模型只计数不折叠的 `payload` 口袋里），**不是"谁改坏了"**。★ 口径同上：`0` 绿／SKIP／`1` 折算为登记型红／`2` 阻断。★ 自证：五个反例必红、两个正控必绿、不适用必 `SKIP` |
+| ⑦g | 口属主判据（`scripts/verify/socket_uid_guard.py`：**盘上那个口的属主 ↔ 法律 `channel.json.listeners` 里那条的 uid**；S-01 盘上的口有人认／S-02 uid **逐字相等**／S-03 法律列的口都在盘上） | ★★ **登记型**（与 ⑦e／⑦f 同）。★ 它盯的机理：`RuntimeDirectory=` 的**递归 chown** 会把口属主**盖回**服务的 `User=`，而兑现写法是 `ExecStartPre=+/bin/chown …`；且**"配了"不等于"生效"**，最狠的一种是**沉默**。★ 口径同上 |
+| ⑦h | 双环四种循环（L1–L4 七条判据）＋ 两枢纽签字面 | `scripts/verify/check_loops.py`（`run_registered`，机制缺口不阻断）＋ `scripts/verify/signoff_guard.py` |
+| ⑦i | 并入件原文章节仍在（`scripts/verify/doc_integrity.py`：并入件的原文章节逐行仍在宿主文件内） | ★ 显式分岔：有 `.git` ⇒ `run_tail` 真跑；无 `.git`（VM 镜像按 `sync-vm.ps1` 排除 `.git`）⇒ 显式 ⏭「未校验」不阻断（该件 fail-closed，无 `.git` 实测 rc=1） |
+| ⑦j | S0 准出证据准入隔离（`scripts/verify/admission_evidence.py`：不许把阶段外产物当 S0 准出依据） | ★★ **阻断式 `run_tail`**（故意）：扫描面 0 份 ⇒ **rc=2「未能校验」** 当场阻断 —— 这正是 C-04 的判据形态；盘上有被扫件时才给结论（现取 1 份、rc=0） |
+| ⑦k | 界面＝世界的投影（`scripts/verify/projection_guard.py`：P1–P10） | ★★ **登记型 `run_registered`**：现取红 1 条 = P10「`world-projection.sh` 登记 same 而仓内 sha ≠ 表里 VM 值」＝该更新部署清单 ⇒ 打 ⚠️ 不阻断；rc=2 输入缺失仍阻断 |
+| ⑦l | 落地 chown 必带 `+`（`scripts/verify/chown_plus_guard.py --repo .`：仓内面 P-01／P-04） | ★★ **登记型 `run_registered`**；盘上面（P-02／P-03）要 root＋宿主 systemd 目录 ⇒ 现取自报 `STATUS=SKIP`、rc=0 ⇒ 显示 ⏭（未校验 ≠ 通过） |
+| ⑦m | presence 的 `last_seen` 有账本出处（`scripts/verify/last_seen_guard.py`：L-01…L-04） | ★ 照 ⑦g 两岔写法：`/var/lib/world-core/ledger.jsonl` 与 `/run/world-core/presence-list.txt` 都在 ⇒ `run_registered` 真跑；缺任一面 ⇒ 显式 ⏭「未校验」不阻断（现取：账本在、presence 件不在 ⇒ 走 ⏭） |
+| ⑧ | 规格层守卫（`scripts/verify/spec_bridge.py`） | rc=0 |
+| ⑨ | 机核层守卫（`scripts/verify/module_graph.py`，`WC-ATOM-001` §四） | rc=0（真源码环 `M04↔M09` 已按「消回边、保留合法方向」改成 DAG）——**读数以 `python scripts/verify/module_graph.py` 的输出为准，本节不复述数字** |
 
 ## 三、准出判据（**哪些必须绿、哪些红是允许的**）
 

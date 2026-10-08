@@ -19,8 +19,8 @@
 
 ## 用法
 
-    python tools/doc_integrity.py            # 扫真实文档（默认）
-    python tools/doc_integrity.py --self-test  # 判定器自证（正/反例）
+    python scripts/verify/doc_integrity.py            # 扫真实文档（默认）
+    python scripts/verify/doc_integrity.py --self-test  # 判定器自证（正/反例）
 
 退出码：0 = 逐行一致（可能有 WARN）；1 = 有逐行不一致；2 = 用法错误。
 """
@@ -117,7 +117,7 @@ SELF_HOSTS: Dict[str, int] = {
     #: 另修 1 处未闭合的表行（缺尾竖线）。合计改写 16 行，其中 1 行相对冻结件属"新增缺行"。
     #: **138 → 140**（【S1 收口第三轮（2026-09-27）】，逐条登记，各对应一条已登记订正）：
     #: ＋1 行 = `L728`（`IF-005-R05` 行）复算命令里的 `\\|`（双反斜杠 ＋ 裸竖线）订正为 `\|`——
-    #:   **裸竖线在表内是未转义分隔符**，该行实为 5 格/表头 4 格（新载体 `tools/table_width_audit.py` 实测）；
+    #:   **裸竖线在表内是未转义分隔符**，该行实为 5 格/表头 4 格（新载体 `scripts/verify/table_width_audit.py` 实测）；
     #: ＋1 行 = `L933`（`IF-007-R02` 行）同型缺陷（`grep -rn 'std::fs\\|File::'`）同法订正。
     #: 另 26 行属**既有已登记行**的文本改写（§十一 9 行状态格、§十一 4 行收口段、§十一之二 9 行处置态、
     #: §十一之二 5 行收敛计数——即 IRS 13 项未决的**第三轮逐项收口**，承项目负责人第三轮授权），

@@ -98,7 +98,7 @@ L.append("> ⚠ **主规格里今天还没有这个能力**（`openspec list --s
 L.append("> ⚠ **不要**为了让本节看起来成立而手动把它塞进 `ninedim/01-意图环/04-规格/`——那会让 `archive fc-2026-001` 报 `ADDED already exists` 而**永远归不了档**（`fc-2026-002` 今天正是这个病，守卫判据⑩ 抓的 10 处就是它）。")
 L.append("> 而流程侧今天没有对应需求 ⇒ **逐条登记为「无号·待流程侧增补」**（这是新规矩的第一次适用）。")
 L.append("")
-L.append("| # | 承诺（逐字，`specs/spec-governance/spec.md` 的 Requirement 标题） | 号 |")
+L.append("| # | 承诺（逐字，`ninedim/06-变更/fc-2026-001-openspec-into-cm/specs/spec-governance/spec.md` 的 Requirement 标题） | 号 |")
 L.append("|---|---|---|")
 # 标题**现取 delta**（2026-09-27 修）：写死的 GOV 会与 delta 脱节——与"标题现取规格树"同一条规矩。
 _gov_delta = _REPO / "ninedim/06-变更/fc-2026-001-openspec-into-cm/specs/spec-governance/spec.md"
@@ -180,13 +180,18 @@ for c in d["caps"]:
     for r in c["reqs"]:
         _known.add(r["title"])
 _extra = []
-_repo = _P(OUT).parents[1]
+# ★ 2026-10-07 修（现取病灶）：`_P(OUT).parents[1]` 是**错的层数**——OUT 是
+#   `<仓根>/ninedim/records/生成物/BRIDGE.md` ⇒ `parents[0]=生成物`／`[1]=records`／`[2]=ninedim`／`[3]=仓根`。
+#   原来取 `[1]` ⇒ 后面所有现算路径（SRS／RTM／规格树／audit）都落在 `ninedim/records/` 之下、
+#   **一个都读不到** ⇒ §六 恒空、§七 的 1–5 项恒 `-1`／`0`。现取仓根＝`parents[3]`。
+_repo = _P(OUT).parents[3]
 for _sp in sorted((_repo / "ninedim" / "01-意图环" / "04-规格").glob("*.spec.md")):
     for _ln in _sp.read_text(encoding="utf-8").split("\n"):
         if _ln.startswith("### Requirement:"):
             _t = _ln[len("### Requirement:"):].strip()
             if _t not in _known and _t not in GOV:
-                _extra.append((_sp.parent.name, _t))
+                # 主规格是**平铺**的 `<能力>.spec.md` ⇒ 能力名取自**文件名**（不是父夹名）
+                _extra.append((_sp.name[: -len(".spec.md")], _t))
 if _extra:
     L.append("## 六、规格树下、编号桥来源表里没有的 Requirement（**合并进来的新增条，逐条在册**）")
     L.append("")
@@ -222,7 +227,9 @@ def _nfiles(d, exts):
         return -1
 _srs = _repo / "ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md"
 _rtm = _repo / "ninedim/01-意图环/02-需求/WC-RTM-001.csv"
-_docs = _repo / "docs"
+# ★ 2026-10-07 修：`docs/` 已随布局迁移**不存在**（工程域统一在 `ninedim/`，权威见
+#   `ninedim/_索引-工程域结构与命名.md`）⇒ 第 4／5 项的计数面改指 `ninedim/`（同一件事：工程域里的档案件）。
+_docs = _repo / "ninedim"
 _n_srs = _cnt(_srs, r"REQ-[FN]-\d{3}")
 _uniq_srs = len(set(_re2.findall(r"REQ-[FN]-\d{3}", _srs.read_text(encoding="utf-8", errors="replace")))) if _srs.is_file() else -1
 _n_rtm = _cnt(_rtm, r"REQ-[FN]-\d{3}")
@@ -247,7 +254,7 @@ L.append("|---|---|---|---|")
 L.append("| 1 | `需求-WC-SRS-001-v0.1.md` 里 `REQ-[FN]-NNN` 的出现次数 | **%d** | `[regex]::Matches((Get-Content -Raw <file>),'REQ-[FN]-\\d{3}').Count` |" % _n_srs)
 L.append("| 2 | 同上，**唯一**需求号个数 | **%d** | 同上去重 |" % _uniq_srs)
 L.append("| 3 | `WC-RTM-001.csv` 里同模式出现次数 | **%d** | 同上换文件 |" % _n_rtm)
-L.append("| 4 | `docs/` 下 `.md`＋`.csv` 文件数 | **%d** | `Get-ChildItem -Recurse -File docs` 按扩展名过滤 |" % _n_docs)
+L.append("| 4 | `ninedim/`（工程域）下 `.md`＋`.csv` 文件数 | **%d** | `Get-ChildItem -Recurse -File ninedim` 按扩展名过滤 |" % _n_docs)
 L.append("| 5 | 上述文件里**含** `openspec`（不分大小写）的文件数 | **%d** | 逐文件 `read_text().lower()` 检索 |" % _n_openspec)
 L.append("| 6 | 规格审计查出的差错条数（`audit.md`） | **%d** | 见 `fc-2026-001` 的 `audit.md` |" % _n_findings)
 L.append("| 7 | 规格树下的 Requirement 条数 | **%d** | 逐文件计 `^### Requirement` |" % sum(1 for _sp in (_repo / "ninedim" / "01-意图环" / "04-规格").glob("*.spec.md") for _l in _sp.read_text(encoding="utf-8", errors="replace").split(chr(10)) if _l.startswith("### Requirement:")))

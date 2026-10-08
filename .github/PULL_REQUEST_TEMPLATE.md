@@ -5,9 +5,10 @@
 > 本仓库及任何走 GitHub PR 流程的项目**一律按 B 档要求**。
 > PR 即 **R0–R8 中的对应评审**，本模板即**评审记录**。
 >
-> **六条必满足，缺一不可**（出处 `06-swe-gb/docs/附件/附件八-责任时间与阶段分解.md` §六——
-> **该件不在本仓**：实测全仓 `附件八*` 0 命中、`../docs/` 不存在。本仓的同类硬约定见
-> `ninedim/records/openspec-流程件/schemas/README.md` §三（R5 前置闸／R4 后置闸）与 `docs/评审/`）：
+> **六条必满足，缺一不可**（出处 `.refs/_料/process-source/06-swe-gb/docs/附件/附件八-责任时间与阶段分解.md` §六——
+> **该件是退役料：在仓内留档、不入版本控制**，故不在 `git ls-files` 面；本仓的同类硬约定见
+> `ninedim/records/openspec-流程件/schemas/README.md` §三（R5 前置闸／R4 后置闸）与
+> `ninedim/02-枢纽A-前置闸/`・`ninedim/04-枢纽B-后置闸/`）：
 >
 > - [ ] **1. 变更说明写清「不改的后果」**——不是"优化""完善"
 > - [ ] **2. 变更类型正确标注**（下方勾选）
@@ -17,7 +18,7 @@
 > - [ ] **6. 触及框架或敏感路径时，附影响分析与 R5 结论**
 >
 > **作者不能自己 Approve 自己的 PR**（RACI：执行者与批准者必须分离）。
-> **CI 八个作业全部阻断式**（`.github/workflows/world-core-gate.yml`，2026-09-27 实测）——
+> **CI 八个作业全部阻断式**（`.github/workflows/gate.yml`）——
 > `smoke` / `unit-test` / `gate-self-test` / `traceability` / `scope` /
 > `openspec-validate` / `spec-bridge` / `module-graph`，任一失败不予合入。
 > ⚠️ 其中 `spec-bridge`（判据⑥ 归档件未签）与 `module-graph`（工具在建）今天是**如实红**：
@@ -57,14 +58,17 @@
 | **变更申请编号** | `CR-xxx`（一般变更）；`FC-YYYY-NNN`（**框架变更必填**） |
 
 > **框架变更不走 CR-**：敏感路径的**权威清单**是 `scripts/verify/scope_check.py` 的
-> `SENSITIVE_PATHS`（实测 `:130-141`）：`ontology.json`、`src/lib.rs`、`src/common/event.rs`、
-> `src/ontology_definition/mod.rs`、`src/ledger/mod.rs`、`tests/`、`tools/`、`.github/workflows/`、
-> `.github/PULL_REQUEST_TEMPLATE.md`、`docs/评审/`。触及它们一律按框架变更处理，**必须走 R5**。
-> ⚠️ 旧写法里的 `skeleton/`、`docs/02-评审与门禁/` 在本仓**不存在**（实测 0 命中），已按上面的实测清单改正。
+> `SENSITIVE_PATHS`（现取 `:130-142`）：`src/ontology_definition/ontology.json`、`src/gate/policy.json`、
+> `src/lib.rs`、`src/common/event.rs`、`src/ontology_definition/mod.rs`、`src/ledger/mod.rs`、
+> `scripts/test/`、`scripts/`、`.github/workflows/`、`.github/PULL_REQUEST_TEMPLATE.md`、
+> `ninedim/02-枢纽A-前置闸/`。触及它们一律按框架变更处理，**必须走 R5**。
+> ⚠️ 旧写法里的 `skeleton/`、`docs/02-评审与门禁/`、`tests/`、`tools/`、`docs/评审/` 在本仓**不存在**
+> （前三者随 2026-10-07 结构迁移改名/并位：`tests/`→`scripts/test/`、`tools/`→`scripts/`、
+> `docs/评审/`→两个枢纽夹），已按上面的现取清单改正。
 
 ## 变更范围声明
 
-本次改动**声明覆盖的路径**（供 `tools/scope_check.py` 判定是否越界）：
+本次改动**声明覆盖的路径**（供 `scripts/verify/scope_check.py` 判定是否越界）：
 
 ```
 <例如：src/ledger/mod.rs, scripts/test/acceptance.rs>
@@ -78,7 +82,7 @@
 ## R4 模块评审检查单（门禁，逐项确认）
 
 ### 契约与设计
-- [ ] 模块行为符合其**接口契约**（见 `templates/03-设计类/03-模块接口契约.md`）
+- [ ] 模块行为符合其**接口契约**（见 `ninedim/records/模板/03-设计类/03-模块接口契约.md`）
 - [ ] 未新增循环依赖；分层方向正确（低层不依赖高层）
 - [ ] **框架适配性回判已执行**——若不适配，已提 R5 框架变更评审
 - [ ] 设计文档已同步更新（**文档与代码无漂移**）

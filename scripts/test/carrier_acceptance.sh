@@ -13,7 +13,7 @@
 #   C-09 写侧进程（**被管者身份**）读得到账本，但**写不到账本、也改不了规则**（书 §4.5:601）
 #
 # 纪律：只碰一次性沙箱（mktemp 目录），退出即删；**绝不触碰真实账本**。
-# 用法：bash tools/carrier_acceptance.sh [world-core 可执行文件路径]
+# 用法：bash scripts/test/carrier_acceptance.sh [world-core 可执行文件路径]
 # 退出码：0 = 全通过；非 0 = 任一步失败（阻断式）
 
 set -u
@@ -26,7 +26,7 @@ if [ -z "$BIN" ]; then
   done
 fi
 if [ -z "$BIN" ] || [ ! -x "$BIN" ]; then
-  echo "[FAIL] 找不到 world-core 可执行文件（用法：bash tools/carrier_acceptance.sh <路径>）"
+  echo "[FAIL] 找不到 world-core 可执行文件（用法：bash scripts/test/carrier_acceptance.sh <路径>）"
   exit 2
 fi
 

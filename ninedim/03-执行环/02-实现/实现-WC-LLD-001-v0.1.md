@@ -237,7 +237,7 @@
 | 方向 | 条目 |
 |---|---|
 | 上游 | `WC-HLD-001-v0.1`、`WC-IC-001-v0.1`、`WC-MODREG-001-v0.1`（**§二 是模块号唯一出处，9 个 `M01`–`M09`**）、`WC-SRS-001-v0.1`、`WC-CR-002`（⛔ **D1 已被否决**，见头部份数口径行） |
-| 上游（**格式与需求载体**，本文件**不定义**它们，只引用） | `WC-CKFMT-001`（检查点格式）`docs/S2-设计/WC-CKFMT-001.md`、`WC-PFMT-001-v0.1`（协议/格式）`docs/S2-设计/WC-PFMT-001-v0.1.md`、`WC-LFMT-001-v0.1`（账本格式）`docs/S2-设计/WC-LFMT-001-v0.1.md`、`WC-ONT-001-v0.1`（本体说明/词表身份）`docs/S2-设计/WC-ONT-001-v0.1.md`、`WC-IRS-001-v0.1`（接口**需求**规格说明）`docs/S1-需求/需求-WC-IRS-001-v0.1.md`——**5 份文件 2026-09-27 实测全部实存**（本文件起草期间由并行任务落位）；登记与同号核验见 `WC-IC-001` §七。⚠ 是否已在 `WC-SCMP-001 §4.2` 登记 + `WC-SDP-001` 三处落位，**本文件未核** ⇒ 仍**不声称"格式已受控"** |
+| 上游（**格式与需求载体**，本文件**不定义**它们，只引用） | `WC-CKFMT-001`（检查点格式）`ninedim/07-待审/S2-设计/WC-CKFMT-001.md`、`WC-PFMT-001-v0.1`（协议/格式）`ninedim/07-待审/S2-设计/WC-PFMT-001-v0.1.md`、`WC-LFMT-001-v0.1`（账本格式）`ninedim/07-待审/S2-设计/WC-LFMT-001-v0.1.md`、`WC-ONT-001-v0.1`（本体说明/词表身份）`ninedim/07-待审/S2-设计/WC-ONT-001-v0.1.md`、`WC-IRS-001-v0.1`（接口**需求**规格说明）`ninedim/01-意图环/02-需求/需求-WC-IRS-001-v0.1.md`——**5 份文件 2026-09-27 实测全部实存**（本文件起草期间由并行任务落位）；登记与同号核验见 `WC-IC-001` §七。⚠ 是否已在 `WC-SCMP-001 §4.2` 登记 + `WC-SDP-001` 三处落位，**本文件未核** ⇒ 仍**不声称"格式已受控"** |
 | 下游 | `WC-UT-001`（单元测试记录）、`WC-RV-R4-*`（逐模块准出）、`WC-TS-001`（测试用例）、`WC-TR-001`（系统测试报告） |
 | 代码 | `src/**`（**实测 14 个文件**：`lib.rs`/`main.rs`/`ledger.rs`/`gate.rs`/`guard.rs`/`ontology.rs`/`readmodel.rs`/`checkpoint.rs`/`channel.rs`/`event.rs`/`error.rs` + `src/gui_projection/{mod,language,visual}.rs`）、`scripts/test/**`（`acceptance.rs`/`contract.rs`/`cli.rs`/`perf.rs`）、`check.sh.new` |
 

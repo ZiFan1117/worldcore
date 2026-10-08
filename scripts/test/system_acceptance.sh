@@ -7,7 +7,7 @@
 # （`REQ-F-001`、`REQ-F-002`、`REQ-F-010`、`REQ-N-003`），`trace_matrix.py` 为此长期报
 # 4 条 WARN。而 `WC-SQAP-001` 的 S5 退出准则要求把 `RTM_STRICT` 翻成 `true`——
 # ⚠ **2026-09-26 订正（原文写"一旦翻转，这 4 条就会由 WARN 变 ERROR"——该声明与实现不符）**：
-#    `tools/trace_matrix.py` 的"缺少系统级/验收级测试用例"检查（约 `:352-355`）**恒为 WARN**，
+#    `scripts/verify/trace_matrix.py` 的"缺少系统级/验收级测试用例"检查（约 `:352-355`）**恒为 WARN**，
 #    `--strict` 只作用于**状态列**（约 `:361-362`）⇒ **`RTM_STRICT=true` 不会**让本项由 WARN 变 ERROR。
 #    实测（提交 7166398）：非严格 rc=0 / ERROR=0 / WARN=31；`--strict` rc=1 / ERROR=10（**全部是状态列**）/ WARN=31。
 #    ⇒ 本脚本补齐这 4 条系统级用例的价值**不因该机制而改变**（它提供的是真实证据），
@@ -34,12 +34,18 @@
 # - 自带 `--self-test`：先证明**本脚本的判定会红**（"一个从不失败的检查不是检查，是装饰"）；
 # - 不依赖网络、不依赖墙钟、不依赖执行顺序。
 #
-# 用法：`bash tools/system_acceptance.sh`（在  内或任意位置）
-#       `bash tools/system_acceptance.sh --self-test`（只跑判定器自证）
+# 用法：`bash scripts/test/system_acceptance.sh`（在  内或任意位置）
+#       `bash scripts/test/system_acceptance.sh --self-test`（只跑判定器自证）
 # 退出码：0 = 全通过；1 = 有断言失败；2 = 前置条件不满足（缺二进制且构建失败）
 set -uo pipefail
 
-cd "$(dirname "$0")/.." || exit 2
+# ⚠ 2026-10-08 修（现取病灶，**同一类随迁漏搬**）：本件随 `world-core/tools/` → `scripts/test/`
+#   的改名（`7f70003` R099）只搬了件、**没搬这一行的深度**：旧位置 `tools/` 的上一级恰是
+#   crate 根，落到 `scripts/test/` 后上一级成了 `scripts/` ⇒ `BIN=target/debug/world-core` 与
+#   `src/**` 全部指空（实测：`目录 : /root/world/scripts`、`cp: cannot stat 'src/...'`、
+#   `target/debug/world-core: No such file or directory`）⇒ 本脚本 52 项里 36 项假红、rc=1，
+#   并因此把 `check.sh` 的 ⑥ 步**当场阻断**（结论区都打不出来）。仓根＝本件的上两级。
+cd "$(dirname "$0")/../.." || exit 2
 BIN="${CARGO_TARGET_DIR:-target}"/debug/world-core
 
 PASS=0

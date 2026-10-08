@@ -15,7 +15,7 @@ r"""module_graph.py —— 机核层的守卫：把 `WC-ATOM-001` §四 机核�
 | 4 | 原子档字段齐备且取值真（登记表每一行的原子化栏位） | 本脚本判据④ |
 | 5 | 生成物与源一致（`WC-MODREG-001`） | **仍未建闸**——本脚**不**声称它在管这条 |
 
-**一个从不失败的检查不是装饰，是假证**——本项目既有口径（`tools/spec_bridge.py` 文件头）。
+**一个从不失败的检查不是装饰，是假证**——本项目既有口径（`scripts/verify/spec_bridge.py` 文件头）。
 本脚本是 §四 第 1–3 条（原子侧）的**执行者**：任一条不成立即非零退出，
 且 `--self-test` 为**每条判据各造一个反例**，反例不变红即判该守卫是装饰、拒绝合入。
 
@@ -83,7 +83,7 @@ r"""module_graph.py —— 机核层的守卫：把 `WC-ATOM-001` §四 机核�
        经模块树归属到本模块 ⇒ 该文件的用例算它的；一个锚点都不指 ⇒ 报「测试缺」。
        （`tests/*.rs` 整文件 `use world_core;` 而无具名子模块者——即 CLI 端到端用例——
        归 `src/main.rs` 的宿主模块，即「运行时入口」；理由写在 `test_anchor()`。）
-     · **契约** ＝ 文档或规格里有落点：`docs/S2-设计/设计-WC-IC-001-v0.1.md`（接口契约**一册**）
+     · **契约** ＝ 文档或规格里有落点：`ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md`（接口契约**一册**）
        里有一条**含本模块号的标题**（形如 `### §5.1 \`M01\` …`），
        **或** `ninedim/01-意图环/04-规格/**/spec.md` 里有 Requirement 的证据行指到本模块的测试锚点
        （`WC-ATOM-001` §三：「规格条目（一条 Requirement）＋ `WC-IC-001` 里的模块接口契约节」）。
@@ -116,18 +116,18 @@ r"""module_graph.py —— 机核层的守卫：把 `WC-ATOM-001` §四 机核�
    **语义口径**：`intent` 与表内既有的**「职责（一句话）」列同义**（那一列就是 A-1 的 `intent`，见判据①）。
    本判据**要求两处都在、且逐字相同**——两处不一致即报红（同一件事两个说法，正是 A-1 要消灭的形态）。
    **列序不得动**：本判据要求的栏位**一律加在表末**（`依赖模块` 之后）。
-   理由：`deps == import` 的取格是**按下标**（`cells[4]`）走的，`tools/ic_books_check.py` 同款——
+   理由：`deps == import` 的取格是**按下标**（`cells[4]`）走的，`scripts/verify/ic_books_check.py` 同款——
    在它前面插列会让两个门禁**读错列**，那种红是"改坏了门禁"，会被读成"世界坏了"。
 
 ⑤ **自己也要自证**（`--self-test`）
-   照 `tools/spec_bridge.py --self-test` 的结构与输出风格：搭一个**完好沙盒**做正控（四条应全绿），
+   照 `scripts/verify/spec_bridge.py --self-test` 的结构与输出风格：搭一个**完好沙盒**做正控（四条应全绿），
    再**为每条判据各造一个反例**，反例不变红即判该守卫是装饰 ⇒ rc=1。
    正控与反例都打印逐字结果，并带"恢复后回到绿"的第二正控。
 
 用法
 ----
-    python3 tools/module_graph.py [--repo <world-core 或仓库根>] [--json]
-    python3 tools/module_graph.py --self-test     # 每条判据一个反例，全红才 rc=0
+    python3 scripts/verify/module_graph.py [--repo <world-core 或仓库根>] [--json]
+    python3 scripts/verify/module_graph.py --self-test     # 每条判据一个反例，全红才 rc=0
 
 退出码：0 = 全通过；1 = 有判据不成立（含自证失败）；2 = 用法错误。
 """
@@ -198,7 +198,7 @@ ATOM_MACHINE_CMD_RE = re.compile(r"`[^`]+`|\b(?:python3?|cargo|bash|sh|pwsh|npx|
 
 
 # 非 UTF-8 控制台（Windows GBK/cp936）下，中文与记号会让 print 抛 UnicodeEncodeError
-# —— 那会变成"门禁自己崩了"的假失败。按本项目既有口径（`tools/spec_bridge.py:44-51`）：
+# —— 那会变成"门禁自己崩了"的假失败。按本项目既有口径（`scripts/verify/spec_bridge.py:44-51`）：
 # **只重配 errors，不改 encoding**（UTF-8 环境下逐字节等价）；记号一律用 ASCII。
 for _s in (sys.stdout, sys.stderr):
     try:
@@ -263,7 +263,7 @@ def _atom_col_map(text):
     """`WC-MODREG-001` 全文里**每个原子档表块**的表头 → `{内部键: 下标}`。
 
     为什么按表头认列而**不写死下标**：判据④（A-3 原子档栏位）要求的那几栏是**加在表末**的，
-    而 `deps == import` 的取格是按下标走的（本文件 `cells[4]`、`tools/ic_books_check.py` 同款）。
+    而 `deps == import` 的取格是按下标走的（本文件 `cells[4]`、`scripts/verify/ic_books_check.py` 同款）。
     按表头认列 ⇒ 栏位顺序可以变、栏位可以增删，判据**只认名字**；
     名字被改掉时它报"列缺失"，而不是悄悄取到隔壁那一格的文字
     （本项目既有血泪口径：**搜字样 ≠ 认结构**、**判据不许取文件里第一处字样**）。
@@ -304,7 +304,7 @@ def read_registry(wc):
     """返回 (path, text, {模块号: {line, name, intent, src_cell, ifs, deps, deps_cell, atom}})。
 
     只在 `## §2 模块登记表` 这一节内取表（附录 A 是**旧表**、口径不同，
-    混取会让判据失去意义——同 `tools/ic_books_check.py:80-91` 的口径）。
+    混取会让判据失去意义——同 `scripts/verify/ic_books_check.py:80-91` 的口径）。
 
     `atom` ＝ 该行**原子档栏位**的取值（键见 `ATOM_FIELDS`）。取不到的键**不出现**在 `atom` 里
     ——判据④ 就是靠"键在不在"来判"列缺失"，而不是靠"取到了空串"。
@@ -983,7 +983,7 @@ def all_test_tokens(wc):
     """`tests/**/*.rs` 里**真实存在的** `#[test]` 函数锚点集合（`tests/x.rs::fn`）。
 
     用途：规格证据行只算"有效证据"——它指向的用例必须真的在 `tests/` 里存在
-    （这条口径与 `tools/spec_bridge.py` 判据②「证据存在性」同源）。
+    （这条口径与 `scripts/verify/spec_bridge.py` 判据②「证据存在性」同源）。
     """
     real = set()
     tests_dir = os.path.join(wc, TESTS_REL)

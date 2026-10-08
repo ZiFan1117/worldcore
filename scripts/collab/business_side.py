@@ -35,9 +35,9 @@
 
 ```sh
 # 点一下（对已经起来的世界说一句 act），并把"进没进世界"的读数打出来
-python3 tools/business_book.py --socket /run/world-core/world.sock \
+python3 scripts/collab/business_side.py --socket /run/world-core/world.sock \
     --cli /usr/bin/world-core --ontology … --ledger … --policy … click
-python3 tools/business_book.py --self-test        # 只验形状，不连世界
+python3 scripts/collab/business_side.py --self-test        # 只验形状，不连世界
 ```
 输出一律 **ASCII 的 `KEY=VALUE` 行**（免得读数被控制台编码搅坏），最后一行是 `STATUS=…`。
 """

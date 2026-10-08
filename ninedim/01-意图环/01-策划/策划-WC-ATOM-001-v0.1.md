@@ -26,7 +26,7 @@
 | **A-3** | **契约字段齐**：`intent / input / output / side_effects` 必写；不写副作用＝声明"无副作用" | 契约表逐列非空；`side_effects` 允许写"无"，但不许留空 | `spec/atom.schema.json` 必填 `id, layer, version, intent, description, input, output` ＋ 可选 `side_effects` |
 | **A-4** | **依赖单向 DAG，且 `deps` 必须等于真实 import** | 机器断言：声明的依赖集 ≡ 代码里真实 import/use 的兄弟模块集；有向图无环 | `ATOMIZATION.md:32`「依赖是单向 DAG，且 `deps` 必须等于 `impl/` 里真实 import 的兄弟原子」 |
 | **A-5** | **生成物不许手编**：改了源必须重跑生成器 | 生成物带头部声明"生成物·勿手编"；改动源后未重跑 ⇒ 生成物闸红 | `ATOMIZATION.md:80`「改实现只动 `impl/`；`detail.json` 是生成物，跑 `npm run atoms:details` 而不是手编」 |
-| **A-6** | **编码一律 UTF-8 无 BOM**，且有编码闸 | 现存判据：`tools/plain_text_audit.py`（本项目已要求纯文本 UTF-8、无 NUL）；BOM 纳入同一闸 | `ATOMIZATION.md:84`「编码一律 UTF-8 无 BOM；编码闸会拦非法 UTF-8 字节」 |
+| **A-6** | **编码一律 UTF-8 无 BOM**，且有编码闸 | 现存判据：`scripts/verify/plain_text_audit.py`（本项目已要求纯文本 UTF-8、无 NUL）；BOM 纳入同一闸 | `ATOMIZATION.md:84`「编码一律 UTF-8 无 BOM；编码闸会拦非法 UTF-8 字节」 |
 
 > **五条机器断言的移植**（参照仓的五条 ＝ `deps == import`、`detail.json == .atom.md`、`CATALOG == 重算`、`spec schema == 代码常量`、`编码合法`）：
 > 本项目对应关系见 §四 的对照表。
@@ -35,13 +35,13 @@
 
 | 参照仓 | 本项目 |
 |---|---|
-| `atoms/<id>/<id>.atom.md`（契约文档） | 规格条目（`ninedim/01-意图环/04-规格/<cap>/spec.md` 的一条 Requirement）＋ `docs/S2-设计/` 的模块接口契约（`WC-IC-M*`） |
+| `atoms/<id>/<id>.atom.md`（契约文档） | 规格条目（`ninedim/01-意图环/04-规格/<cap>/spec.md` 的一条 Requirement）＋ `ninedim/01-意图环/03-设计/` 的模块接口契约（`WC-IC-M*`） |
 | `atoms/<id>/impl/` | `src/<mNN>/*.rs`（**唯一真源**） |
 | `atoms/<id>/tests/` | `scripts/test/*.rs` 里该原子的用例（**每条承诺都要有会红的断言**） |
 | `detail.json`（生成物边车） | `WC-MODREG-001` 模块注册表（**生成物，勿手编**） |
 | `deps == import` 闸 | 待建：`scripts/verify/module_graph.py --check`（**本件确立要求，实现列进 `cover-unimplemented-capabilities`**） |
 | `npm run gate` 全闸 | `check.sh.new`（**实跑步骤由脚本自身打印的步骤清单承载，本件不复述步数**）＋ `spec_bridge.py`（规格层守卫；**判据条数以 `--json` 的 `passed`/`failed` 为准**） |
-| `_shared/CONTRACT.md` 跨原子公共契约 | `docs/S2-设计/WC-IC-001`（接口契约总册）＋ `ninedim/records/openspec-流程件/schemas/` 的融合档公约 |
+| `_shared/CONTRACT.md` 跨原子公共契约 | `ninedim/01-意图环/03-设计/WC-IC-001`（接口契约总册）＋ `ninedim/records/openspec-流程件/schemas/` 的融合档公约 |
 
 > **〔更正 2026-09-28〕上表第 4 行「本项目」那一格已过时**（**原字保留、不追改**）：
 > `WC-MODREG-001` **不是生成物**（本仓无产出它的生成器）⇒ **A-5「生成物不许手编」不适用本表**；

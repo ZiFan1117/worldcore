@@ -103,8 +103,11 @@ seed_config() {
     #   `/etc/world-core/ontology.json` 与 `/etc/world-core/policy.json`，
     #   仓内那份在 `src/` 下是**源码布局**，不是装机布局（2026-10-07 结构迁移后订正）。
     for_base="$(basename "$f")"
-    if [ -f "$SRC_DIR/../$f" ] && [ ! -f "$CONF_DIR/$for_base" ]; then
-      install -m 0644 "$SRC_DIR/../$f" "$CONF_DIR/$for_base"
+    # ★ 2026-10-07 修（现取病灶）：本脚本搬进 `scripts/release/` 后**多了一层夹**
+    #   （旧位置 `deploy/` ⇒ 仓根＝`$SRC_DIR/..`；现在仓根＝`$SRC_DIR/../..`）。
+    #   下面三处相对路径原来都少一层 ⇒ 装不到法律、也跑不动生成器（每一条都静默跳过）。
+    if [ -f "$SRC_DIR/../../$f" ] && [ ! -f "$CONF_DIR/$for_base" ]; then
+      install -m 0644 "$SRC_DIR/../../$f" "$CONF_DIR/$for_base"
       # ★ 法律属主：A-05（`src/gate/guard.rs::assert_owned_by`）在服务路径上判的就是这两份
       #   （调用点实参＝本体／门禁策略／账本三件；`channel.json` 与 `cap.d/` **不在其中**，故不 chown）。
       #   目录维持 root（有意为之）：目录归 root ⇒ 核心用户不能"替换"法律；
@@ -119,27 +122,27 @@ seed_config() {
   # → `ChannelConfig::load` → `listener_for`），而法律那份 `listeners` 在运行路径上零读者。
   # 这两个件之间以前**没有生成器、没有门禁、不在版本控制**里 ⇒ 渲染物事实上是**第二在册**。
   # 现在链路是：法律（policy.json.listeners）＋ 部署面 uid 映射 ⇒ 渲染物，两个工具都是仓内件：
-  #   ① tools/gen_owner_uid.py   读 listeners[].owner ＋ 本机用户库 ⇒ /etc/world-core/owner_uid.json
-  #   ② tools/render_channel.py  读法律 ＋ 那份映射 ⇒ /etc/world-core/channel.json
+  #   ① scripts/gen/gen_owner_uid.py   读 listeners[].owner ＋ 本机用户库 ⇒ /etc/world-core/owner_uid.json
+  #   ② scripts/gen/render_channel.py  读法律 ＋ 那份映射 ⇒ /etc/world-core/channel.json
   #
   # ★ 为什么映射**住在 `/etc`、不住在仓里**（Lead 2026-10-05 钉死）：★**它含本机事实**
   #   （`uid` 每台机不同）⇒ ★**含本机事实的产物，不入版本控制，也不住在仓内路径。**
   #   （对照：`ninedim/records/生成物/BRIDGE.md` 是**文档派生量、不含本机事实** ⇒ 它入仓。）
   UIDS="$CONF_DIR/owner_uid.json"
-  GEN="$SRC_DIR/../tools/gen_owner_uid.py"
-  RENDER="$SRC_DIR/../tools/render_channel.py"
+  GEN="$SRC_DIR/../gen/gen_owner_uid.py"
+  RENDER="$SRC_DIR/../gen/render_channel.py"
   if [ -f "$GEN" ]; then
-    if python3 "$GEN" --policy "$SRC_DIR/../src/gate/policy.json" --out "$UIDS" >/dev/null 2>&1; then
-      say "  已生成 uid 映射：$UIDS（由 tools/gen_owner_uid.py 读本机用户库）"
+    if python3 "$GEN" --policy "$SRC_DIR/../../src/gate/policy.json" --out "$UIDS" >/dev/null 2>&1; then
+      say "  已生成 uid 映射：$UIDS（由 scripts/gen/gen_owner_uid.py 读本机用户库）"
     else
-      say "  ⚠ tools/gen_owner_uid.py 跑不动（看它的用法：--policy/--out）——"
+      say "  ⚠ scripts/gen/gen_owner_uid.py 跑不动（看它的用法：--policy/--out）——"
       say "    uid 映射必须先有，渲染物才渲得出来"
     fi
   else
     say "  ⚠ 缺 $GEN（uid 映射的生产者）——渲染链缺一环"
   fi
   if [ -f "$RENDER" ] && [ -f "$UIDS" ]; then
-    if python3 "$RENDER" --policy "$SRC_DIR/../src/gate/policy.json" --uids "$UIDS" \
+    if python3 "$RENDER" --policy "$SRC_DIR/../../src/gate/policy.json" --uids "$UIDS" \
          --out "$CONF_DIR/channel.json" >/dev/null 2>&1; then
       chmod 0644 "$CONF_DIR/channel.json"
       say "  已渲染身份映射：$CONF_DIR/channel.json（$RENDER 从法律生成，勿手改）"
@@ -148,7 +151,7 @@ seed_config() {
     fi
   elif [ ! -f "$CONF_DIR/channel.json" ]; then
     say "  ⚠ 缺 $CONF_DIR/channel.json（身份映射）——内核单元会引用它，缺了它服务起不来；"
-    say "    渲染链：$CONF_DIR/owner_uid.json ＋ tools/render_channel.py（本脚本不伪造）"
+    say "    渲染链：$CONF_DIR/owner_uid.json ＋ scripts/gen/render_channel.py（本脚本不伪造）"
   fi
 }
 
@@ -244,9 +247,9 @@ verify() {
     fi
   done
 
-  # ★ 渲染链：**渲染物必须逐条解析到法律**（权威落点＝tools/render_channel.py --check）。
+  # ★ 渲染链：**渲染物必须逐条解析到法律**（权威落点＝scripts/gen/render_channel.py --check）。
   #   机器契约：STATUS=PASS 记绿／FAIL 记红／**SKIP 记"未校验"，不许记绿**（文件不在≠合规）。
-  RENDER="$SRC_DIR/../tools/render_channel.py"
+  RENDER="$SRC_DIR/../gen/render_channel.py"
   if [ -f "$RENDER" ] && [ -f "$CONF_DIR/policy.json" ]; then
     st="$(python3 "$RENDER" --check "$CONF_DIR/channel.json" --policy "$CONF_DIR/policy.json" 2>&1 \
           | sed -n 's/^STATUS=//p' | tail -n 1)"
@@ -270,7 +273,7 @@ case "$MODE" in
     say "== 只核对（不改动） =="
     verify || true
     say ""
-    say "（--check 不因缺失而失败；要当门禁用，请跑 tools/carrier_contract.py）"
+    say "（--check 不因缺失而失败；要当门禁用，请跑 scripts/verify/carrier_contract.py）"
     ;;
   uninstall)
     need_root
@@ -286,7 +289,7 @@ case "$MODE" in
     #   「一个口一个身份」要落到系统上，就得**一个口一个系统用户**。
     ensure_user "$CORE_USER"; ensure_user "$ACTD_USER"; ensure_user "$OMARCHY_USER"
     # ★ DSH 同形：没有 `dsh` 这个用户 ⇒ `/etc/world-core/owner_uid.json` 里那条只能是 `null`
-    #   （`tools/gen_owner_uid.py` 的口径③：查不到 ⇒ `null`，**绝不写 0**），渲染物里就没有它的口。
+    #   （`scripts/gen/gen_owner_uid.py` 的口径③：查不到 ⇒ `null`，**绝不写 0**），渲染物里就没有它的口。
     ensure_user "$DSH_USER"
     say "== 2/5 目录 =="
     ensure_dir "$CONF_DIR" 0755 root:root
@@ -306,7 +309,7 @@ case "$MODE" in
     say "下一步（由部署方做）："
     say "  1) 复核 $CONF_DIR/ontology.json 与 policy.json"
     say "  2) 身份映射已由 render_channel.py 渲染到 $CONF_DIR/channel.json（缺则先跑 seed_config 那两个工具）"
-    say "  3) systemctl start world-core.service，再跑 tools/carrier_contract.py 复核单元与法律"
+    say "  3) systemctl start world-core.service，再跑 scripts/verify/carrier_contract.py 复核单元与法律"
     say "  4) ★ 让界面真的能以它自己的身份说话，还差【申报】这一步——"
     say "     新身份走的是两级：①**申报**（账本里它名下要有格）②**授权**（本体 _permissions.grants 的 scope 命中它）。"
     say "     grants 一步已在法律里（ontology.json），申报是**账本事实**，要落五条 change（presence 的五格）："

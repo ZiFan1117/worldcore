@@ -30,15 +30,15 @@
 | `agent_completion.rs` | Agent 运行时的**完工通告**（`j*`）：完工是账本上一条可读回的通告／启动失败也留痕／待办只由账本折叠回答（**不靠第二本登记簿**）／读回幂等 |
 | `agent_undo.rs` | Agent 运行时的**动手前载体撤销点**（`u*`）：编排出一次且顺序在人确认之后／撤销点失败即不执行／不需要撤销的策略不编排／**载体撤销点不是世界回滚** |
 | `ontology_instance.rs` | **每个实例必须指回定义面**（书 §5.3 的**读侧**那一半，`i*`）：换一本不声明该类型的法律读同一本账 ⇒ 拒（`EntityNotDeclared`，点名类型段与主体）／恢复·迁移那一行 ⇒ 拒／正控四条（已声明照常、纯加法读旧账、裸主体不判、内嵌四段按第 3 段）／空实体集 ⇒ 拒折（`NoDeclaredEntities`）／"没接"由 `None` 显式表达（既有直接装配点不受影响） |
-| `return_vocabulary.rs` | **回来方向的对账**（一条**会红**的判据）：账本里出现过的通告类型（去掉内核保留前缀 `gate.` 之后剩下的**每一种**）**世界侧必须有一处"认它"的读法**；认不得 ⇒ 红。落点在 `tests/` 而**不**落 `src/carrier/**`——后者会新增模块边，与 `WC-ATOM-001` §二 A-4 的 `deps == import` 冲突 |
+| `return_vocabulary.rs` | **回来方向的对账**（一条**会红**的判据）：账本里出现过的通告类型（去掉内核保留前缀 `gate.` 之后剩下的**每一种**）**世界侧必须有一处"认它"的读法**；认不得 ⇒ 红。落点在 `scripts/test/` 而**不**落 `src/carrier/**`——后者会新增模块边，与 `WC-ATOM-001` §二 A-4 的 `deps == import` 冲突 |
 
-**脚本面**（★**口径**：`scripts/` 下的 `*.py` 与 `*.sh`，**不含子目录**；★本表是**该口径下的全表**；
+**脚本面**（★**口径**：`scripts/` 下**递归**的 `*.py`／`*.sh`／`*.ps1`；件名一律写**仓根相对路径**；★本表是**该口径下的全表**；
 "管什么"一列**逐件取自各文件自己的头**，不是另写的说法）：
 
-> ★ **本表由判据⑮ `j15_doc_lists_match_reality` 双向盯着**：`scripts/` 下**多一个 `*.py`／`*.sh` 而表里没有** ⇒ 红；
-> **表里列了而目录里没有** ⇒ 红；**整张表不见了**而 `tools/` 下确有件 ⇒ 红。跑 `python scripts/verify/spec_bridge.py` 即见分晓。
+> ★ **本表由判据⑮ `j15_doc_lists_match_reality` 双向盯着**：`scripts/` 下**多一个 `*.py`／`*.sh`／`*.ps1` 而表里没有** ⇒ 红；
+> **表里列了而目录里没有** ⇒ 红；**整张表不见了**而 `scripts/` 下确有件 ⇒ 红。跑 `python scripts/verify/spec_bridge.py` 即见分晓。
 > ⇒ ★ 它盯的是「**件名 ≡ 实际**」，**不盯**"管什么"这一列写得对不对——那要人读。
-> ★ **唯一入口不在此表**：`check.sh.new`（它**不在** `tools/` 下）。
+> ★ **唯一入口不在此表**：`check.sh`（它**不在** `scripts/` 下，在**仓根**）。
 
 | 脚本 | 管什么 |
 |---|---|
@@ -54,6 +54,7 @@
 | `scripts/gen/gen_secmap.py` | （待补：脚本自述） |
 | `scripts/gen/gen_specmap.py` | （待补：脚本自述） |
 | `scripts/gen/render_channel.py` | （待补：脚本自述） |
+| `scripts/release/install.sh` | 部署件安装脚本：建身份与目录 → 装四份单元 → 载体系上套接字 → 逐条核对（`--check` 只核对；`--uninstall` **不动账本与法律**） |
 | `scripts/release/world-projection.sh` | （待补：脚本自述） |
 | `scripts/release/world-toggle-mute.sh` | （待补：脚本自述） |
 | `scripts/test/carrier_acceptance.sh` | （待补：脚本自述） |
@@ -64,6 +65,7 @@
 | `scripts/test/system_acceptance.sh` | （待补：脚本自述） |
 | `scripts/verify/admission_evidence.py` | （待补：脚本自述） |
 | `scripts/verify/carrier_contract.py` | （待补：脚本自述） |
+| `scripts/verify/check_loops.py` | 双环·四种循环（L1–L4）＋「九维都有活体」的可机检判据（八条，`--self-test` 逐条给反例） |
 | `scripts/verify/chown_plus_guard.py` | （待补：脚本自述） |
 | `scripts/verify/ci_self_check.py` | （待补：脚本自述） |
 | `scripts/verify/cross_contract.py` | （待补：脚本自述） |
@@ -76,6 +78,7 @@
 | `scripts/verify/plain_text_audit.py` | （待补：脚本自述） |
 | `scripts/verify/projection_guard.py` | （待补：脚本自述） |
 | `scripts/verify/scope_check.py` | （待补：脚本自述） |
+| `scripts/verify/signoff_guard.py` | 两个枢纽的**签字面**判据（S-A 枢纽A 未出「批准」⇒ 执行环不许有产物；S-B 枢纽B 未签 ⇒ 变更不许进 `archive/`） |
 | `scripts/verify/socket_uid_guard.py` | （待补：脚本自述） |
 | `scripts/verify/spec_bridge.py` | （待补：脚本自述） |
 | `scripts/verify/spec_length_audit.py` | （待补：脚本自述） |
@@ -88,14 +91,14 @@
 
 **测试面的项数一律现数**（不写死）：
 ```
-(cd 到**仓根**再跑；在 `` 里跑会**静默印 0**——路径前缀对不上，但不报错)
-python -c "import re,pathlib;print(sum(1 for p in pathlib.Path('tests').glob('*.rs') for l in p.read_text(encoding='utf-8').splitlines() if re.match(r'\s*fn [a-z]+\d', l)))"
+(cd 到**仓根**再跑；在别处跑会**静默印 0**——路径前缀对不上，但不报错)
+python -c "import re,pathlib;print(sum(1 for p in pathlib.Path('scripts/test').glob('*.rs') for l in p.read_text(encoding='utf-8').splitlines() if re.match(r'\s*fn [a-z]+\d', l)))"
 ```
 （口径：测试函数名以字母＋数字开头；**以命令输出为准**。）
 
 **★ 项数不以本表为准（如实登记）**：上面那条命令数出的**项数**（测试函数个数）**不进任何判据**——新增用例而忘了改文档里的数，**没有任何判据会红** ⇒ **项数一律以命令输出为准**。
 
-**件清单**（`tests/*.rs` 与 `tools/*.py`／`*.sh`）**进判据⑮**：表里少了／多了件都会红（见 §一 的「测试二进制」表头与「脚本面」表登记）。
+**件清单**（`scripts/test/*.rs` 与 `scripts/**/*.py`／`*.sh`／`*.ps1`）**进判据⑮**：表里少了／多了件都会红（见 §一 的「测试二进制」表头与「脚本面」表登记）。
 
 ## 二、在哪跑（**构建与测试只在 VM**）
 
@@ -126,7 +129,7 @@ bash check.sh          # rc=0 才算全过；任一步 rc≠0，它立刻 exit 1
 ## 五、什么算失败
 
 - **任一步 rc≠0 即失败**：`check.sh` 的 `run_tail` 遇 rc≠0 立刻 `exit 1`，**不吞失败**；
-- **红要如实报红**：本仓允许**如实红**——例如机核层（`tools/module_graph.py`）今天仍红在三条**在册真缺陷**上。
+- **红要如实报红**：本仓允许**如实红**——例如机核层（`scripts/verify/module_graph.py`）今天仍红在三条**在册真缺陷**上。
   **如实红不是缺陷，把红写成绿才是**。判"这条红算不算过"的口径见 `WC-AT-001` §三。
 - **每条判据都要能红**：判定器一律带 `--self-test`（每条判据配反例；**反例不变红即判该判定器是装饰**）。
 

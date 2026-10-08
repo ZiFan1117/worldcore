@@ -30,9 +30,9 @@ r"""kind 守卫（架构件里的"三类话 vs 帧上方法"口径 vs 代码结�
 ★ **本件不能证明的事**：见文件末尾 §不能证明。
 
 用法：
-  python3 tools/kind_guard.py [根目录...]   # 缺省根＝本仓的兄弟目录「语义世界-架构」（见 default_root）
-  python3 tools/kind_guard.py --self-test   # 每条判据各造反例，反例不红即判该守卫是装饰 ⇒ rc=1
-  python3 tools/kind_guard.py --allow-missing  # 根目录不存在时**显式跳过**（rc=0，且打印"未校验"）
+  python3 scripts/verify/kind_guard.py [根目录...]   # 缺省根＝本仓的兄弟目录「语义世界-架构」（见 default_root）
+  python3 scripts/verify/kind_guard.py --self-test   # 每条判据各造反例，反例不红即判该守卫是装饰 ⇒ rc=1
+  python3 scripts/verify/kind_guard.py --allow-missing  # 根目录不存在时**显式跳过**（rc=0，且打印"未校验"）
 退出码：0 = 无红项且正控全在；1 = 有红项／有反例没红／正控缺；2 = 用法错（根目录不存在且未 --allow-missing）
 """
 import os

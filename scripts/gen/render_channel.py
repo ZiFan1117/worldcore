@@ -22,13 +22,13 @@
 
 ```sh
 # ① 生成渲染物（默认写 stdout；部署方重定向到 /etc/world-core/channel.json）
-python3 tools/render_channel.py --policy policy.json --uids deploy/listener_uids.json
+python3 scripts/gen/render_channel.py --policy policy.json --uids deploy/listener_uids.json
 
 # ② 对账：渲染物逐条必须能在法律里解析到（司法那条判据的**权威落点**）
-python3 tools/render_channel.py --check /etc/world-core/channel.json --policy policy.json
+python3 scripts/gen/render_channel.py --check /etc/world-core/channel.json --policy policy.json
 
 # ③ 自测：正控必绿 ＋ 反例必红（反例＝往渲染物里加一行法律里没有的映射）
-python3 tools/render_channel.py --self-test
+python3 scripts/gen/render_channel.py --self-test
 ```
 
 ## `deploy/listener_uids.json` 的形状（部署面件，**法律里不存这个数**）
@@ -306,7 +306,7 @@ def main(argv=None):
     text = json.dumps({
         'channel': 1,
         '_source': 'policy.json 的 listeners 段的渲染物；本文件不是第二权威'
-                   '（由 tools/render_channel.py 生成，勿手改）',
+                   '（由 scripts/gen/render_channel.py 生成，勿手改）',
         'listeners': rows,
     }, ensure_ascii=False, indent=2, sort_keys=False) + '\n'
     if a.out == '-':

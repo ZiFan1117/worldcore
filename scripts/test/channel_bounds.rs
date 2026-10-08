@@ -12,7 +12,7 @@
 //! - **证得到**：四个边界各自的**超限即拒**、拒绝里**点名错误码与上限的当前值**、
 //!   以及"被拒的那条**没有落笔**"（`Recorder::commits` 长度不变）。
 //! - **证不到**：真账本上的行数（这里刻意不碰真账本）。
-//!   端到端的账本比对面在 `tools/s1_sys_probe2.sh` 的 `TC-076`（真二进制 ＋ 真账本）。
+//!   端到端的账本比对面在 `scripts/test/s1_sys_probe2.sh` 的 `TC-076`（真二进制 ＋ 真账本）。
 //!
 //! ## 每个用例的变异点（改坏哪一行 ⇒ 哪条红）
 //!
@@ -64,7 +64,7 @@ fn tmpdir(tag: &str) -> PathBuf {
 }
 
 /// 建一个**测试用**监听者：刻意用 `UnixListener::bind` 而不是 `bus::bind`
-/// （后者还要看目录 mode 与 uid——那是 `c14` 与 `tools/system_acceptance.sh` 的面）。
+/// （后者还要看目录 mode 与 uid——那是 `c14` 与 `scripts/test/system_acceptance.sh` 的面）。
 fn bind_in(d: &Path, name: &str) -> (PathBuf, UnixListener) {
     let p = d.join(name);
     let l = UnixListener::bind(&p).unwrap();
@@ -411,7 +411,7 @@ fn l06_the_factory_config_really_carries_the_four_numbers() {
         lim.max_msgs_per_sec
     );
     // `IF-REQ-04`：**服务方上限 < 调用方超时**。仓内自有的调用方
-    // `tools/carrier_acceptance.sh` 用 `timeout 20`（20 000 ms）⇒
+    // `scripts/test/carrier_acceptance.sh` 用 `timeout 20`（20 000 ms）⇒
     // 出厂值必须小于它，否则那条端到端会先在**调用方**那侧超时。
     assert!(
         lim.idle_timeout_ms < 20_000,

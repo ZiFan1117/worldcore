@@ -349,7 +349,7 @@ fn f64_a_traced_result_can_be_traced_back_from_the_ledger() {
 /// **f65**（判据 (4) 经写入入口）：`trace` 指向**不存在**的 `id` ⇒ 必须被接受并落笔。
 ///
 /// v1 **不做**引用完整性校验；这一条是**反假条款**——哪天实现开始拒绝，本条即变红。
-/// 既有的可执行面（`tools/s1_sys_probe.sh` 的 TC-052）只用手写账本行，**不经过入口**；
+/// 既有的可执行面（`scripts/test/s1_sys_probe.sh` 的 TC-052）只用手写账本行，**不经过入口**；
 /// 本用例补的正是"经入口"这一半。
 ///
 /// 变异：在 `src/lib.rs` 的 `commit_verbatim` 里给 `trace` 加一段引用完整性校验

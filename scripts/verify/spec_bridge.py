@@ -16,7 +16,7 @@ OpenSpec 的 `validate` 只判**形态**（结构、Scenario 个数、delta 语�
 而这些恰恰是 `opsx-swe-gb` 的文字里承诺过的。**一个从不失败的检查不是装饰，是假证。**
 本脚本就是它们的**执行者**：任一条不成立即非零退出。
 
-判据（与 `specs/spec-governance/spec.md` 逐条对应）——**条数以 `JUDGMENTS` 为准，条数由 `JUDGMENTS` 长度现算——**不写死**（写死过一次：加判据时这里就烂了）**
+判据（与 `ninedim/06-变更/fc-2026-001-openspec-into-cm/specs/spec-governance/spec.md` 逐条对应）——**条数以 `JUDGMENTS` 为准，条数由 `JUDGMENTS` 长度现算——**不写死**（写死过一次：加判据时这里就烂了）**
 -------------------------------------------------------
 ① 归档硬前置      每个 `ninedim/06-变更/archive/*/` 必须有非空 `review.md`
 ② 证据存在性      `ninedim/01-意图环/04-规格/**/spec.md` **与 delta** 里每条 `- **证据**：<token>` 的
@@ -26,15 +26,16 @@ OpenSpec 的 `validate` 只判**形态**（结构、Scenario 个数、delta 语�
 ⑤ 覆盖在册        `ninedim/06-变更/cover-*/` 至少有一个**未归档**、且 `tasks.md` 仍有未勾项
 ⑥ 评审已签        归档件的 `review.md` 结论 ∈ {批准,通过,有条件通过}，且批准人栏非空、非占位
 ⑦ 让路登记        件里声明了「谁让」，三要素就必须写全（让的是哪一条／为什么要让／谁批的）
-⑧ 无修订记录      `docs/**`（书除外）不许有修订记录节——**标题式／加粗式／表格式都拦**
+⑧ 无修订记录      **正文面**（`ninedim/` 的阶段件夹；**旧称 `docs/**`**，已随 `a7bb4fe` 整树搬迁）
+                  不许有修订记录节——**标题式／加粗式／表格式都拦**
 ⑨ 无改因块        规格正文（**主规格 ＋ delta**）不许有 `> **改的是哪一类问题**…` 这类块
 ⑩ ADDED 不撞车    未归档 change 的 **ADDED** 标题不许与主规格逐字相同（撞了归档必被拒）
 ⑪ 生成物同步      `ninedim/records/生成物/BRIDGE.md` 必须与 `scripts/gen/gen_bridge_md.py` 的当前输出逐字节一致
 
 用法
 ----
-    python3 tools/spec_bridge.py [--repo <仓库根>] [--json]
-    python3 tools/spec_bridge.py --self-test     # 为**每条**判据各造一个反例（条数随 `JUDGMENTS` 增长，加一条判据必须同时加一个反例），反例不变红即判装饰
+    python3 scripts/verify/spec_bridge.py [--repo <仓库根>] [--json]
+    python3 scripts/verify/spec_bridge.py --self-test     # 为**每条**判据各造一个反例（条数随 `JUDGMENTS` 增长，加一条判据必须同时加一个反例），反例不变红即判装饰
 """
 
 import argparse
@@ -88,11 +89,43 @@ def read_text(p):
 
 
 def resolve_src(repo, p):
-    """证据行里的路径按仓库根或  解析（两种基准都试，写死口径）。"""
+    """证据行里的路径按仓库根解析（口径写死一处）。"""
     for cand in (Path(repo) / p,):
         if cand.is_file():
             return cand
     return None
+
+
+# ── 主规格**扫描面**的唯一取处（判据②④⑨⑩ 共用；口径一处，不各写各的）──────────────
+# ★ 2026-10-07 修（现取病灶）：主规格的形态**已随 NineDim 布局改成平铺**的
+#   `ninedim/01-意图环/04-规格/<能力>.spec.md`（权威：`ninedim/_索引-工程域结构与命名.md` §二；
+#   `scripts/verify/spec_shape.py:69` 是同一口径）。而判据②④⑨⑩ 原来一律用 `rglob("spec.md")`
+#   ——那是 openspec CLI 的老形态 `<能力>/spec.md` ⇒ **一份主规格都命中不到**、扫描面是 `[]`，
+#   于是四条判据在空集上**静默全绿**（＝"命中 [] 仍 OK"的假证）。
+#   现在：**两形态都收**（平铺 `*.spec.md` ∪ 老形态 `*/spec.md`），**且空集＝判红**（见 EMPTY_SPECS_MSG）。
+MAIN_SPECS_ROOT = ("ninedim", "01-意图环", "04-规格")
+EMPTY_SPECS_MSG = (
+    "ninedim/01-意图环/04-规格/ —— **一份主规格都扫不到**（平铺 `*.spec.md` 与老形态 `*/spec.md` 两向皆空）。"
+    "按本仓口径**空集不许判绿**（照 `scripts/verify/spec_shape.py:71-72` 的纪律）：扫描面为 `[]` 时"
+    "判据②④⑨⑩ 会**静默全绿**——那正是它们改动前的样子。")
+
+
+def main_spec_files(repo):
+    """主规格扫描面：`<能力>.spec.md`（平铺）∪ `<能力>/spec.md`（老形态）。排序确定、去重。"""
+    root = Path(repo)
+    for seg in MAIN_SPECS_ROOT:
+        root = root / seg
+    out = []
+    if root.is_dir():
+        out += [p for p in root.glob("*.spec.md") if p.is_file()]
+        out += [p for p in root.rglob("spec.md") if p.is_file() and "archive" not in p.parts]
+    seen, uniq = set(), []
+    for p in sorted(out):
+        k = str(p.resolve())
+        if k not in seen:
+            seen.add(k)
+            uniq.append(p)
+    return uniq
 
 
 # ────────────────────── 判据（条数以 `JUDGMENTS` 为准，条数由 `JUDGMENTS` 长度现算——**不写死**（写死过一次：加判据时这里就烂了））──────────────────────
@@ -167,19 +200,20 @@ def j2_evidence(repo):
 
     **扫描面含 delta**（2026-09-27 扩）：`ninedim/06-变更/**/specs/**/spec.md` 里的证据行
     在**归档合并**时才会进主规格——只扫主规格等于**漏检一整片**，而且是在归档那一刻才红（太晚）。
-    实测：扩面前 delta 侧有 1 条无 token 的证据行（`fc-2026-002/specs/ledger-integrity/spec.md:189`），
+    实测：扩面前 delta 侧有 1 条无 token 的证据行（`ninedim/06-变更/archive/2026-09-28-fc-2026-002-spec-revisions/specs/ledger-integrity/spec.md:189`），
     当天不变红、合并后必红；已按同一口径改为 `- **证据（待补）**：`。
     """
     bad = []
-    roots = [(Path(repo) / "ninedim" / "01-意图环" / "04-规格", "spec.md")]
+    specs = main_spec_files(repo)                       # 平铺 `*.spec.md` ∪ 老形态 `*/spec.md`
+    if not specs:
+        bad.append(EMPTY_SPECS_MSG)                     # ★ 空集＝判红，不许静默全绿
     ch = Path(repo) / "ninedim" / "06-变更"
     if ch.is_dir():
-        roots.append((ch, "spec.md"))                   # delta：归档时会并入主规格 ⇒ 同一把尺子
-    for root, pat in roots:
-        for spec in sorted(root.rglob(pat)):
-            if "archive" in spec.parts:                 # 归档件自有历史口径，不追改
-                continue
-            for i, line in enumerate(read_text(spec).splitlines(), 1):
+        # delta：归档时会并入主规格 ⇒ 同一把尺子。
+        # ★ delta 那处**不动**：change 里的规格按 OpenSpec 口径仍是 `<能力>/spec.md`。
+        specs += [p for p in sorted(ch.rglob("spec.md")) if "archive" not in p.parts]
+    for spec in specs:
+        for i, line in enumerate(read_text(spec).splitlines(), 1):
                 m = EVIDENCE_RE.search(line)
                 if not m:
                     continue
@@ -230,8 +264,9 @@ def j3_default_schema(repo):
 
 
 def iter_requirement_titles(repo):
+    """主规格树下**每条** `### Requirement:`（扫描面与判据②⑨ 同一处取，见 `main_spec_files`）。"""
     out = []
-    for spec in sorted((Path(repo) / "ninedim" / "01-意图环" / "04-规格").rglob("spec.md")):
+    for spec in main_spec_files(repo):
         for i, line in enumerate(read_text(spec).splitlines(), 1):
             m = REQ_RE.match(line)
             if m:
@@ -245,7 +280,11 @@ def j4_bridge_coverage(repo):
         return ["%s —— 编号桥映射表不存在（规格树下每条 Requirement 都必须在此在册）" % rel(repo, bridge)]
     text = read_text(bridge)
     bad = []
-    for f, i, title in iter_requirement_titles(repo):
+    titles = iter_requirement_titles(repo)
+    if not titles:
+        # ★ 空集＝判红（原实现在 `[]` 上返回 `[]`＝判绿 ⇒ 规格面一空，编号桥这条就自动"通过"）
+        bad.append(EMPTY_SPECS_MSG + " ⇒ 本判据**无从判覆盖**，不许记成通过。")
+    for f, i, title in titles:
         if title not in text:
             bad.append("%s:%d —— `%s` 不在编号桥映射表里（既没给号，也没标「无号」）" % (f, i, title))
     return bad
@@ -286,7 +325,7 @@ REJECTED = ("退回", "驳回")
 UNSIGNED = ("待签", "未签", "空缺")
 #: 未签取值必须是**取值形态**：令牌 ＋ 可选的括号说明 ＋ 尾巴标点。
 #: 为什么加这一关（**实盘反例，就在活标本那一件自己身上**）：
-#: `2026-09-27-baseline-verified-doctrine/review.md` 有一段**叙述**逐字含「结论：待签」
+#: `ninedim/06-变更/archive/2026-09-27-baseline-verified-doctrine/review.md` 有一段**叙述**逐字含「结论：待签」
 #: （它解释的正是这个洞本身）——"以 `待签` 开头就收"会把那句**引文**当成结论，
 #: 给一份已签的件造出**假红**。⇒ **认取值形态，不认"开头字样"**（skill §五：搜字样 ≠ 认结构）。
 UNSIGNED_SHAPE = re.compile(r"^(%s)(（[^（）]*）|\s*\([^()]*\))?[\s。．.,，;；]*$" % "|".join(UNSIGNED))
@@ -297,7 +336,7 @@ def _verdict_cells(review_text):
 
     ★ 为什么返回**列表**而不是第一个值（2026-09-28 修，评审席判据② 同族缺陷）：
       本函数此前是 `_verdict_of`，**遇到第一处就 return**。
-      而 `templates/review.md` 的结论栏有**两处**（§一 基本信息 与 §八 结论与后续）
+      而 `ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md` 的结论栏有**两处**（§一 基本信息 与 §八 结论与后续）
       ⇒ `§一=批准` ＋ `§八=退回` 会被判成"已签"。
       更讽刺的是：**同一个病同文件里已经修过一次**——判据⑥ 的「批准人」栏
       （`j6_archived_review_signed` 里那条 `re.findall`）就是 2026-09-28 从"取第一处字样"
@@ -407,7 +446,7 @@ WAIVER_LABEL_RE = re.compile(r"(^#{1,6}[^\n]*谁让)|(\*\*谁让\*\*)|(让的是
 def _strip_code_blocks(text):
     """去掉围栏代码块——**引用的原始输出不是声明**。
 
-    2026-09-27 实测误报：`fc-2026-002-spec-revisions/tasks.md` 把门禁的原始输出粘进件里，
+    2026-09-27 实测误报：`ninedim/06-变更/archive/2026-09-28-fc-2026-002-spec-revisions/tasks.md` 把门禁的原始输出粘进件里，
     那段输出含「⑦ 让路登记（声明了「谁让」的件必须写全…）」⇒ 判据⑦ 把它当成让路声明而误报。
     ⇒ 本判据只在**正文**里找声明与三要素，围栏代码块一律不参与。
     """
@@ -418,7 +457,7 @@ def j7_waiver_registered(repo):
     """⑦ 让路登记：件里只要声明了"谁让"，三要素就必须写全。
 
     为什么单列一条：书自己的纪律说「规格与流程文档**不受**十条写作纪律约束，但**冲突时要说明谁让**」；
-    而 `schemas/README.md` §〇 又写「不写＝违规」。半写的让路（只写"谁让"两字、不写让哪一条／为什么／谁批的）
+    而 `ninedim/records/openspec-流程件/schemas/README.md` §〇 又写「不写＝违规」。半写的让路（只写"谁让"两字、不写让哪一条／为什么／谁批的）
     与不写等价——这是"承诺与实现不符"的又一处入口。
     **只在件里出现了"谁让"时才检**：不声明让路的 change 不会被这条误伤。
     """
@@ -435,7 +474,7 @@ def j7_waiver_registered(repo):
         # （2026-09-27 实测误报：fc-2026-002/tasks.md 粘了门禁原始输出，输出里含判据⑦ 的名字 ⇒ 被当成声明。）
         union = _strip_code_blocks("\n".join(read_text(f) for f in files))
         # **只在"真的在登记让路"时才检**：判据要的是**结构化的声明**，不是顺口提到的两个字。
-        # 2026-09-27 实测误报：`fc-2026-003/design.md:5` 写「…一套是『我曾经写错什么、谁让我这么改的』」
+        # 2026-09-27 实测误报：`ninedim/06-变更/archive/2026-09-28-fc-2026-003-doc-consolidation/design.md:5` 写「…一套是『我曾经写错什么、谁让我这么改的』」
         # ——那是行文里的顺口话，不是让路声明，却被裸子串匹配抓成"声明了让路却缺三要素"。
         # ⇒ 触发条件改为：**标题里带「谁让」**、或 **`**谁让**` 加粗标签**、或 **出现三要素的第一个标签「让的是哪一条」**。
         if not WAIVER_LABEL_RE.search(union):
@@ -470,15 +509,21 @@ REVISION_TABLE_RE = re.compile(r"^\s*\|+\s*\**\s*" + REV_KEY + r"\s*\**\s*\|")
 #   —— 它在一张**属性表**里说的是"变更登记在哪一节"：**没有版本号、没有日期、没有"改了什么"** ⇒ 那是**指路**，不是记录。
 #   ⇒ 表格行必须**同时**出现"像记录"的东西：版本号（`V0.2`／`v0.1` 一类）或日期（`2026-09-27` 一类）。
 REV_TABLE_RECORD_RE = re.compile(r"([Vv]\d+(?:\.\d+)+|\d{4}-\d{2}-\d{2})")
-# ⑧ 的**豁免目录**（按 `docs/` 下的目录名；豁免范围与理由一并写在这里，别让下一个人以为漏了）：
-#   · `理论`：那是**作者的书**，其附录体例由作者定（既有口径，未改）
-#   · `评审`：评审记录里**逐字留存了别人提交的文档**（"并入件"）⇒ 改它＝**篡改记录**（与"书除外"同一个道理）
-#   · `模板`：那是**空白表单**（国标模板），其体例**本来就含"修订记录"栏**——本判据管的是
-#     "**作者写成的文档**正文只写现在是什么"，管不到空白表单的栏目结构（2026-10-07 随
-#     `templates/` → `ninedim/records/模板/` 搬迁补入；不补则搬迁当场把 21 份模板判成 21 条红）
-#   **豁免范围只到 `docs/评审/`、`ninedim/01-意图环/01-策划/`、`ninedim/records/模板/`**；`docs/S0-立项/`…`docs/S4-实现/`、
-#   `docs/阶段外-待启用/` **一律照判**。
-REV_EXEMPT_TOPDIRS = ("评审", "模板")
+# ⑧ 的**扫描根与豁免**（2026-10-07 随布局迁移第二次订正；豁免范围与理由一并写在这里，别让下一个人以为漏了）：
+#   ★ 背景：`docs/` 已随顶层收敛**整树搬进工程域** `ninedim/`（权威：`ninedim/_索引-工程域结构与命名.md`、
+#     `ninedim/01-意图环/03-设计/设计-落位契约.md`）⇒ 原来那句 `Path(repo)/"docs"` 现在**不是目录**，
+#     `j8` 直接 `return []` —— **判据在空扫描面上静默判绿**（同族病：空集不判红）。
+#   扫描面（＝原 `docs/` 的对应物，"正文"面）：`ninedim/` 下的**阶段件夹**（01-意图环、02/04 枢纽闸、
+#     03-执行环、05-尾声）；`06-变更`（过程件）／`07-待审`（未批候选）／`records`（生成物与记录）
+#     **不在正文面**——它们对应旧的 `openspec/changes`、`openspec/work`、`openspec/schemas`，原判据也不扫。
+#   豁免三处（与判据声明逐条一致）：
+#     · `ninedim/01-意图环/01-策划`：**作者的书与策划件**，体例由作者定；
+#     · 文件名以 `评审-` 开头：**评审记录里逐字留存了别人提交的文档** ⇒ 改它＝**篡改记录**；
+#     · 路径里含 `模板`：**空白表单**（国标模板），体例本来就含"修订记录"栏。
+REV_SCAN_TOPS = ("01-意图环", "02-枢纽A-前置闸", "03-执行环", "04-枢纽B-后置闸", "05-尾声")
+REV_EXEMPT_PARTS = ("模板", "理论")
+REV_EXEMPT_NAME_PREFIX = ("评审-",)
+REV_EXEMPT_PREFIX = (("01-意图环", "01-策划"),)
 RATIONALE_HEAD_RE = re.compile(r"^> \*\*(改的是哪一类问题|为什么用 ADDED|证据是哪条测试)")
 # ⑩ 用：delta 的 ADDED 节标题、以及 Requirement 标题（`REQ_RE` 见文件头）
 ADDED_HEAD_RE = re.compile(r"^##\s+ADDED\s+Requirements\s*$")
@@ -514,19 +559,30 @@ def j8_no_revision_log_in_docs(repo):
         带**必要条件**：行里得有版本号或日期（否则是"指路"不是记录，见 `REV_TABLE_RECORD_RE`）。
     实盘真实违规**没有一处带 `#`**；三种形态由 `revision_hit()` 一处判定，`--self-test` 每种形态各一个反例。
 
-    **豁免两处**（`REV_EXEMPT_TOPDIRS` ＋ 书）：`ninedim/01-意图环/01-策划/`（作者的书）与 `docs/评审/`（评审记录里逐字留存了
-    别人的文档，改它＝篡改记录）。其余目录（`S0-立项`…`S4-实现`、`阶段外-待启用`）**一律照判**。
+    **豁免三处**（`REV_EXEMPT_*`）：`ninedim/01-意图环/01-策划/`（作者的书与策划件）、
+    文件名以 `评审-` 开头的件（评审记录里逐字留存了别人的文档，改它＝篡改记录）、
+    路径含 `模板` 的件（空白表单，体例本来就含这一栏）。**其余阶段件一律照判**。
+
+    ★ 空集＝判红（2026-10-07 增）：见 `REV_SCAN_TOPS` 上方那段——本判据曾在**扫描面不存在**时
+    `return []`（假绿）。现在扫不到任何件也**判红**，不再有"没人扫 = 通过"。
     """
     bad = []
-    docs = Path(repo) / "docs"
-    if not docs.is_dir():
-        return []
-    for f in sorted(docs.rglob("*.md")):
-        if "理论" in f.parts:                           # 书：作者的作品
-            continue
-        top = f.relative_to(docs).parts[0]              # 豁免只认 `docs/` 下**顶层**目录名
-        if top in REV_EXEMPT_TOPDIRS:                   # 评审记录：含别人文档的逐字留存
-            continue
+    root = Path(repo)
+    files = []
+    for top in REV_SCAN_TOPS:
+        for f in sorted((root / "ninedim" / top).rglob("*.md")):
+            parts = f.relative_to(root).parts
+            if any(p in REV_EXEMPT_PARTS for p in parts):      # 模板：空白表单；理论：作者的书
+                continue
+            if any(tuple(parts[:len(pre)]) == pre for pre in REV_EXEMPT_PREFIX):
+                continue                                        # 01-策划：作者的书与策划件
+            if f.name.startswith(REV_EXEMPT_NAME_PREFIX):
+                continue                                        # 评审-*：别人文档的逐字留存
+            files.append(f)
+    if not files:
+        bad.append("ninedim/ —— **⑧ 的扫描面为空**（按 `REV_SCAN_TOPS` 一份正文件都没取到）"
+                   "；按本仓口径**空集不许判绿**，否则「正文无修订记录」会在没人扫的情况下记成通过。")
+    for f in files:
         for i, ln in enumerate(f.read_text(encoding="utf-8", errors="replace").split("\n"), 1):
             form = revision_hit(ln)
             if form:
@@ -549,20 +605,18 @@ def j9_no_rationale_in_specs(repo):
       ；同一句注入**主规格** `ninedim/01-意图环/04-规格/read-model.spec.md` ⇒ ⑨ 变 [FAIL]。
     """
     bad = []
-    roots = [Path(repo) / "ninedim" / "01-意图环" / "04-规格"]
+    files = main_spec_files(repo)                       # 主规格：平铺 `*.spec.md` ∪ 老形态 `*/spec.md`
+    if not files:
+        bad.append(EMPTY_SPECS_MSG)                     # ★ 空集＝判红
     ch = Path(repo) / "ninedim" / "06-变更"
     if ch.is_dir():
-        roots.append(ch)                                # delta：归档时会并入主规格 ⇒ 同一把尺子
-    for root in roots:
-        if not root.is_dir():
-            continue
-        for f in sorted(root.rglob("spec.md")):
-            if "archive" in f.parts:                    # 归档件自有历史口径，不追改
-                continue
-            for i, ln in enumerate(f.read_text(encoding="utf-8", errors="replace").split("\n"), 1):
-                if RATIONALE_HEAD_RE.match(ln.strip()):
-                    bad.append("%s:%d —— 规格正文里有改因块「%s…」；**改因归该 change 的 `design.md`／`audit.md`**"
-                               % (rel(repo, f), i, ln.strip()[:44]))
+        # delta：归档时会并入主规格 ⇒ 同一把尺子。★ delta 那处**不动**（仍是 `<能力>/spec.md`）。
+        files += [p for p in sorted(ch.rglob("spec.md")) if "archive" not in p.parts]
+    for f in files:
+        for i, ln in enumerate(f.read_text(encoding="utf-8", errors="replace").split("\n"), 1):
+            if RATIONALE_HEAD_RE.match(ln.strip()):
+                bad.append("%s:%d —— 规格正文里有改因块「%s…」；**改因归该 change 的 `design.md`／`audit.md`**"
+                           % (rel(repo, f), i, ln.strip()[:44]))
     return bad
 
 
@@ -595,7 +649,12 @@ def j10_delta_added_not_colliding(repo):
             continue
         for sp in sorted(sd.rglob("spec.md")):
             cap = sp.parent.name
-            msp = main / cap / "spec.md"
+            # ★ 2026-10-07 修（现取病灶）：主规格现在是**平铺**的 `<能力>.spec.md`，
+            #   而这里只找老形态 `<能力>/spec.md` ⇒ `existing` 恒空 ⇒ 判据⑩ 在真撞车上也不红
+            #   （正是 `fc-2026-002` 那条「永远归不了档」的病）。现在**两形态都试**（平铺优先）。
+            msp = main / ("%s.spec.md" % cap)
+            if not msp.is_file():
+                msp = main / cap / "spec.md"
             existing = set()
             if msp.is_file():
                 for ln in read_text(msp).split("\n"):
@@ -617,17 +676,20 @@ def j10_delta_added_not_colliding(repo):
                     continue
                 m = REQ_RE.match(ln)
                 if m and m.group(1) in existing:
-                    bad.append("%s:%d —— ADDED 标题「%s」**已存在于主规格**（`ninedim/01-意图环/04-规格/%s/spec.md`）"
+                    bad.append("%s:%d —— ADDED 标题「%s」**已存在于主规格**（`ninedim/01-意图环/04-规格/%s`）"
                                " ⇒ 归档会被拒（`already exists`）；要么该 delta 作废、"
                                "要么用 `openspec archive --skip-specs` 并在此处登记原因"
-                               % (rel(repo, sp), i, m.group(1), cap))
+                               % (rel(repo, sp), i, m.group(1), rel(repo, msp)))
+    # ★ 空集＝判红：本条比的是"delta ↔ 主规格"；主规格面一份都没有时它无从判，不许记成通过。
+    if not bad and not main_spec_files(repo):
+        bad.append(EMPTY_SPECS_MSG + " ⇒ 本判据**无主规格可比**，不许记成通过。")
     return bad
 
 
 # ⑪ 用：生成物与它的生成器（都在仓内受控；**闸必须在仓内**，见 skill §九）
 BRIDGE_REL = "ninedim/records/生成物/BRIDGE.md"
 BRIDGE_GEN_REL = "scripts/gen/gen_bridge_md.py"
-MIRROR_SKIP = (".git", "target", "node_modules", "__pycache__")
+MIRROR_SKIP = (".git", ".refs", "target", "node_modules", "__pycache__")
 
 
 def _bridge_from_generator(repo, tmp_root):
@@ -638,7 +700,7 @@ def _bridge_from_generator(repo, tmp_root):
     ⇒ 把 `` 与 `` 复制进临时目录，再 `exec` **镜像里那份**生成器
     （`__file__` 指向镜像 ⇒ `SRC`／`OUT` 一并落在镜像内），比对镜像产出与仓内文件的**字节**。
     依赖仓内**任何**被生成器读到的输入（今天：`ninedim/records/生成物/specmap.json`、`ninedim/01-意图环/04-规格/**`、
-    `docs/**`、`ninedim/06-变更/fc-2026-001-*/audit.md`）都随整树复制 ⇒ 生成器日后
+    `ninedim/` 的阶段件夹（原 `docs/**` 的对应物）、`ninedim/06-变更/fc-2026-001-*/audit.md`）都随整树复制 ⇒ 生成器日后
     加了新输入也不必改这里。失败一律返回 `(None, 原因)`，由调用方**判红**（读不到＝失败，不是"没有该项"）。
     """
     gen = Path(repo) / "scripts" / "gen" / "gen_bridge_md.py"
@@ -646,7 +708,11 @@ def _bridge_from_generator(repo, tmp_root):
         return None, "生成器 `%s` 不存在（生成物没有生成器＝不可复算）" % BRIDGE_GEN_REL
     mirror = Path(tmp_root)
     for sub in sorted(os.listdir(repo)):
-        if sub in MIRROR_SKIP or sub in (".git", "refs", "_脚本", ".agents"):
+        # ★ 2026-10-07 修（现取病灶）：料夹已随布局迁移从 `refs/` 改名成 **`.refs/`**（隐藏夹），
+        #   而这里挡的还是旧名 `refs` ⇒ 镜像时把 **69670 件上游料**（含 Windows 非法字符 `#` 的文件名）
+        #   一起往临时夹里抄 ⇒ 判据⑪ 当场自己崩成一大坨 `[Errno 2]`（实测）。
+        #   现在：挡 `.refs`（并留在 MIRROR_SKIP 里，双保险）。
+        if sub in MIRROR_SKIP or sub in (".git", ".refs", "_脚本", ".agents"):
             continue
         s = Path(repo) / sub
         if not s.is_dir():
@@ -814,7 +880,7 @@ def _script_table_names(text):
 def j15_doc_lists_match_reality(repo):
     """⑮ 两份文档的**三张清单表**必须 ≡ 实际（**双向**）：
     `WC-ST-001` 的测试件清单 ≡ `scripts/test/*.rs`；
-    `WC-ST-001` §一「脚本面」表 ≡ `scripts/` 下的 `*.py`／`*.sh`（不含子目录）；
+    `WC-ST-001` §一「脚本面」表 ≡ `scripts/` 下**递归**的 `*.py`／`*.sh`／`*.ps1`（件名用仓根相对路径）；
     `WC-AT-001` 的步骤清单 ≡ `check.sh` 的 `step "…"` 首词。
 
     为什么单列一条：那两份文档**自己登记过**这个缺口，逐字——
@@ -823,14 +889,14 @@ def j15_doc_lists_match_reality(repo):
     实测（2026-09-28）：`WC-ST-001` 列 **9** 个测试件、实有 **13** 个（缺的四个**全是本批新增**）；
     `WC-AT-001` 列 **11** 步、`check.sh` 实有 **13** 步（缺 `①b`／`③c`）。⇒ 本判据就是那份文档要的那条检查。
     「脚本面」那一支同理：`WC-ST-001` §一 曾逐字写「**本表不进任何判据**——判据⑮ 只认 `tests/`
-    下的测试件，**不认 `tools/`**」⇒ 该表**只靠人记**（实测 2026-10-05：列 7／实有 28）。
+    下的测试件，**不认 `scripts/`**」⇒ 该表**只靠人记**（实测 2026-10-05：列 7／实有 28）。
 
     **★ 射程（如实写）**：
       · 只核「**件名 ≡ 实际件名**」，**不核**表里那些"这个文件测什么／这一步做什么／管什么"的描述对不对
         ——那要人读。**双向**：文档多了也红（防"表里留着已经删掉的件"）。
-      · 「脚本面」一支的口径 ＝ `tools/` 下**非递归**的 `*.py`／`*.sh`（与 `WC-ST-001` §一 自述的口径逐字一致）；
-        表体其他扩展名（`*.ps1`／`*.json`）会被算作「表里多了」⇒ 红，因为那与它自己声明的口径不符。
-      · 「脚本面」表**整块不在**、而 `tools/` 下确有 `*.py`／`*.sh` ⇒ 红（**表不见了**比"少一行"更坏）。
+      · 「脚本面」一支的口径 ＝ `scripts/` 下**递归**的 `*.py`／`*.sh`／`*.ps1`（9 个用途子夹全在内），
+        件名写成**仓根相对路径**（`scripts/verify/x.py`）——与 `scripts/README.md` 的表体同形。
+      · 「脚本面」表**整块不在**、而 `scripts/` 下确有脚本 ⇒ 红（**表不见了**比"少一行"更坏）。
     """
     import glob as _glob
     bad = []
@@ -857,11 +923,11 @@ def j15_doc_lists_match_reality(repo):
             if actual_s:
                 bad.append("测试-WC-ST-001-v0.1.md §一 —— **找不到「脚本面」表**（表头逐字 `| 脚本 | 管什么 |`）；"
                            "而 `scripts/` 下有 %d 个 `*.py`／`*.sh` ⇒ **表整块不见了**"
-                           "（比「表里少一行」更坏：读者会以为 `tools/` 下只有表里那几个）" % len(actual_s))
+                           "（比「表里少一行」更坏：读者会以为 `scripts/` 下只有表里那几个）" % len(actual_s))
         else:
             ls, acts = set(listed_s), set(actual_s)
             for n in sorted(acts - ls):
-                bad.append("测试-WC-ST-001-v0.1.md §一「脚本面」—— `tools/%s` **在目录里、表里没有**"
+                bad.append("测试-WC-ST-001-v0.1.md §一「脚本面」—— `%s` **在目录里、表里没有**"
                            "（新增件忘改表 ⇒ 本判据会红）" % n)
             for n in sorted(ls - acts):
                 bad.append("测试-WC-ST-001-v0.1.md §一「脚本面」—— 表里列了 `%s`，**`scripts/` 里没有**"
@@ -900,12 +966,17 @@ def j14_judges_all_claimed(repo):
         doc = json.loads(sm.read_text(encoding="utf-8"))
     except Exception as e:
         return ["ninedim/records/生成物/specmap.json —— 读不出 JSON（%r）" % e]
-    claims = [Path(repo) / "docs" / "理论" / "落点" / "第五章.md",
-              Path(repo) / "docs" / "S1-需求" / "需求-WC-SRS-001-v0.1.md"]
+    # ★ 2026-10-07 修（现取病灶）：「认领处」的两条路径还是**布局迁移前**的 `docs/…`
+    #   ——`docs/` 已不存在（工程域统一进 `ninedim/`）⇒ `texts` 里只剩 `cover-*/tasks.md` 一处，
+    #   于是全部 17 行判据**一律报"没人认领"**（假红），而自证反例⑭ 还因写死的 `docs/理论/落点/第五章.md`
+    #   当场 `FileNotFoundError` 崩掉。现在按目录里的真身取（与判据⑮ 的 `WC-ST-001` 路径同源）。
+    claims = [Path(repo) / "ninedim" / "01-意图环" / "03-设计" / "设计-落点" / "第五章.md",
+              Path(repo) / "ninedim" / "01-意图环" / "02-需求" / "需求-WC-SRS-001-v0.1.md"]
     claims += sorted((Path(repo) / "ninedim" / "06-变更").glob("cover-*/tasks.md"))
     texts = [(p, p.read_text(encoding="utf-8", errors="replace")) for p in claims if p.is_file()]
     if not texts:
-        return ["书 §5.6 的判据**没有任何认领处**：`节落点/第五章.md`／`WC-SRS-001`／在役 `cover-*/tasks.md` 都不在"]
+        return ["书 §5.6 的判据**没有任何认领处**：`ninedim/01-意图环/03-设计/设计-落点/第五章.md`／"
+                "`ninedim/01-意图环/02-需求/需求-WC-SRS-001-v0.1.md`／在役 `cover-*/tasks.md` 都不在"]
     bad = []
     for j in doc.get("judges", []):
         ln = str(j.get("line", ""))
@@ -925,8 +996,10 @@ def j16_retracted_claims(repo):
     出处：合订本 `:1708` 逐字「**已被撤回的说法** | **不许写回正文**，共四件」，逐字登记在
     `ninedim/01-意图环/01-策划/策划-尺子-理念条目.md` 的「已被撤回的说法（不许写回正文）」四行里。
 
-    **扫描面**＝"正文"：`ninedim/01-意图环/04-规格/**` ＋ `docs/**`。
-    **豁免面**＝登记处与书本身（`ninedim/01-意图环/01-策划/**`、`ninedim/01-意图环/01-策划/**`、`ninedim/06-变更/**`）——它们**本来就该提到**这些说法。
+    **扫描面**＝"正文"：`ninedim/01-意图环/04-规格/**` ＋ **工程域的阶段件夹**（`REV_SCAN_TOPS`——
+    `docs/` 已整树搬进 `ninedim/`，原口径的 `docs/**` 就是它的对应物）。
+    **豁免面**＝登记处与书本身（`ninedim/01-意图环/01-策划/**`）＋过程件（`ninedim/06-变更/**`）
+    ＋ `理论`／`落点`——它们**本来就该提到**这些说法。
     **放行**＝命中处**带正指标记**（订正／已改／收回／已撤回／属单因论／已删）——那是"**指出它被撤回**"，不是"写回"。
 
     **★ 射程（如实写）**：它是**串匹配**，判的是"这四件的措辞有没有出现在正文里且没被标成已撤回"；
@@ -935,12 +1008,19 @@ def j16_retracted_claims(repo):
     SIG = ("共同语言", "没有脑子", "三方都能懂", "原因只有一个——它里面没有")
     MARK = ("订正", "已改", "收回", "已撤回", "属单因论", "已删")
     bad = []
-    for base, in ((Path(repo) / "ninedim" / "01-意图环" / "04-规格",), (Path(repo) / "docs",)):
+    roots = [Path(repo) / "ninedim" / "01-意图环" / "04-规格"]
+    roots += [Path(repo) / "ninedim" / t for t in REV_SCAN_TOPS]
+    seen = set()
+    for base in roots:
         if not base.is_dir():
             continue
         for p in sorted(base.rglob("*.md")):
-            rel = str(p.relative_to(repo))
-            if any(x in rel for x in ("理论", "落点", "changes")):
+            key = str(p.resolve())
+            if key in seen:
+                continue
+            seen.add(key)
+            relp = str(p.relative_to(repo))
+            if any(x in relp for x in ("理论", "落点", "changes", "06-变更", "01-策划", "模板")):
                 continue
             try:
                 t = p.read_text(encoding="utf-8", errors="replace")
@@ -954,7 +1034,7 @@ def j16_retracted_claims(repo):
                     if any(k in ctx for k in MARK):
                         continue
                     bad.append("%s:%d —— 已被撤回的说法「%s」出现在正文里，且**附近没有「已撤回／订正」之类的标记** ⇒ "
-                               "按书 `:1708`「**不许写回正文**」：要么删，要么明写「该说法已撤回」" % (rel, ln, sig))
+                               "按书 `:1708`「**不许写回正文**」：要么删，要么明写「该说法已撤回」" % (relp, ln, sig))
     return bad
 
 
@@ -967,7 +1047,9 @@ JUDGMENTS = [
     ("⑥ 归档件的评审已签（结论 ∈ 批准/通过/有条件通过，且批准人非空）", j6_archived_review_signed),
     ("⑦ 让路登记（声明了「谁让」的件必须写全：让哪一条／为什么／谁批的）", j7_waiver_registered),
     ("⑧ 流程文档无修订记录（**修订记录＝git 提交历史**；标题式/加粗式/表格式都拦；"
-     "豁免目录：`docs/评审/`、书 `ninedim/01-意图环/01-策划/`）", j8_no_revision_log_in_docs),
+     "扫描面＝`ninedim/` 的阶段件夹（`REV_SCAN_TOPS`，旧称 `docs/**`）；"
+     "豁免＝路径含 `模板`／`理论`、文件名以 `评审-` 开头、`ninedim/01-意图环/01-策划/`；"
+     "**豁免面与扫描面一律以上方常量现取为准**）", j8_no_revision_log_in_docs),
     ("⑨ 规格正文无改因块（**主规格 ＋ delta**；改因归该 change 的 `design.md`／`audit.md`）", j9_no_rationale_in_specs),
     ("⑩ ADDED 标题不与主规格撞车（撞了该 change 永远归不了档）", j10_delta_added_not_colliding),
     ("⑪ `ninedim/records/生成物/BRIDGE.md` 与生成器的当前输出逐字节一致（生成物不许手编）", j11_bridge_in_sync_with_generator),
@@ -1001,19 +1083,23 @@ SANDBOX_DELTA = (
     "沙盒 delta 正文（判据②／⑨ 的扫描面含 delta）。\n\n"
     "#### Scenario: 沙盒 delta 场景\n\n"
     "- **WHEN** 跑沙盒 delta\n- **THEN** 通过\n"
-    "- **证据**：`tests/t.rs::the_test`\n\n"
+    "- **证据**：`scripts/test/t.rs::the_test`\n\n"
     "## MODIFIED Requirements\n\n"
     "### Requirement: REQ-X-001 沙盒需求\n\n"
     "沙盒：MODIFIED 的标题**本来就该**在主规格里存在 ⇒ 判据⑩ **不许**判它红（对照⑩n）。\n"
 )
 SANDBOX = {
     "ninedim/records/openspec-流程件/openspec-config.yaml": "schema: %s\n" % SCHEMA_NAME,
-    "ninedim/01-意图环/04-规格/cap-a/spec.md": (
+    # ★ 2026-10-07：主规格**形态随布局改了**（平铺 `<能力>.spec.md`，权威见
+    #   `ninedim/_索引-工程域结构与命名.md` §二）⇒ 沙盒**照实况用平铺形态**，
+    #   否则沙盒钉的是已被淘汰的老形态，判据在真仓上量到的差异永远不进自证。
+    "ninedim/01-意图环/04-规格/cap-a.spec.md": (
         "# cap-a Specification\n\n## Purpose\n沙盒用最小规格，只为验证守卫会红。\n\n"
         "## Requirements\n\n### Requirement: REQ-X-001 沙盒需求\n\n"
         "沙盒正文。\n\n#### Scenario: 沙盒场景\n\n"
         "- **WHEN** 跑沙盒\n- **THEN** 通过\n"
-        "- **证据**：`tests/t.rs::the_test`\n"
+        # ★ 证据行的根按实况是 `scripts/test/`（集成测试在 `scripts/test/`，不在已删的 `tests/`）
+        "- **证据**：`scripts/test/t.rs::the_test`\n"
     ),
     "ninedim/06-变更/archive/2026-01-01-sandbox/review.md": (
         "# Review\n\n| 项 | 内容 |\n|---|---|\n"
@@ -1039,7 +1125,11 @@ SANDBOX = {
         "# -*- coding: utf-8 -*-\n"
         "# 沙盒最小生成器：只证明判据⑪「生成物与生成器不同步即红」真的会红。\n"
         "from pathlib import Path\n"
-        "OUT = str(Path(__file__).resolve().parent.parent / 'ninedim/records/生成物/BRIDGE.md')\n"
+        # ★ 2026-10-07 修：脚本从 `tools/` 搬到 `scripts/gen/` 后**多了一层夹**
+        #   （`tools/x.py` → `scripts/gen/x.py`），而这份夹具还留着旧取径 `parent.parent`
+        #   ⇒ 它把产物写进 `scripts/ninedim/...` ⇒ 判据⑪ 在正控上就报"无法判定"（假红）。
+        #   现在与真生成器 `scripts/gen/gen_bridge_md.py` 的取径**逐字同形**：`parent.parent.parent`。
+        "OUT = str(Path(__file__).resolve().parent.parent.parent / 'ninedim/records/生成物/BRIDGE.md')\n"
         "open(OUT, 'w', encoding='utf-8', newline='\\n').write(" + repr(SANDBOX_BRIDGE) + ")\n"
     ),
     "scripts/test/t.rs": "fn the_test() {}\n",
@@ -1065,28 +1155,32 @@ def build_sandbox(root):
     _t.mkdir(parents=True, exist_ok=True)
     for _n in ("acceptance.rs", "contract.rs"):
         (_t / _n).write_text("// 沙盒\n", encoding="utf-8", newline="\n")
-    # ⚠ 沙盒是**共享**的（别的判据也会往里放件，例如 `tests/t.rs`）⇒ 这两份表必须
+    # ⚠ 沙盒是**共享**的（别的判据也会往里放件，例如 `scripts/test/t.rs`）⇒ 这两份表必须
     #   **按沙盒里实际有什么来生成**，否则"对照15n"会被别的判据的件误伤。
     _st = Path(root) / "ninedim" / "03-执行环" / "03-测试" / "测试-WC-ST-001-v0.1.md"
     _st.parent.mkdir(parents=True, exist_ok=True)
     _names = sorted(p.name for p in _t.glob("*.rs"))
-    # ★ 判据⑮ 的「脚本面」沙盒件：表 ≡ `scripts/` 下的 `*.py`／`*.sh`（同一套口径现算）
+    # ★ 判据⑮ 的「脚本面」沙盒件：表 ≡ `scripts/` 下**递归**的 `*.py`／`*.sh`／`*.ps1`，
+    #   件名用**仓根相对路径**（`scripts/<用途>/x.py`）——与判据实现那一套口径**逐字同形**，
+    #   否则沙盒自己就违反口径（实测：旧沙盒只列裸文件名，`scripts/gen/*` 一进沙盒就成"表里没有"）。
     _td = Path(root) / "scripts"
     _td.mkdir(parents=True, exist_ok=True)
     for _s in ("sandbox_alpha.py", "sandbox_beta.sh"):
         _td.joinpath(_s).write_text("#!/usr/bin/env python3\n", encoding="utf-8", newline="\n")
-    _snames = sorted(p.name for p in _td.iterdir() if p.is_file() and p.suffix in (".py", ".sh"))
-    _st.write_text("".join("| `%s` | 沙盒 |\n" % n for n in _names)
-                   + "\n| 脚本 | 管什么 |\n|---|---|\n"
-                   + "".join("| `%s` | 沙盒 |\n" % n for n in _snames),
-                   encoding="utf-8", newline="\n")
+    _snames = sorted(
+        os.path.relpath(os.path.join(_dp, _f), root).replace(os.sep, "/")
+        for _dp, _dns, _fns in os.walk(_td) for _f in _fns
+        if _f.endswith((".py", ".sh", ".ps1")) and "__pycache__" not in _dp
+    )
     _at = Path(root) / "ninedim" / "05-尾声" / "验收-WC-AT-001-v0.1.md"
     _at.parent.mkdir(parents=True, exist_ok=True)
     _ck = Path(root) / "check.sh"
     _ck.write_text('step "① 构建"\n', encoding="utf-8", newline="\n")
     _at.write_text("| ① | 构建 | rc=0 |\n", encoding="utf-8", newline="\n")
     # ★ 判据⑭ 的沙盒件：让"认领表"覆盖沙盒 specmap 里的每一行（行号取自沙盒本身 ⇒ 正控绿）
-    _j14 = Path(root) / "docs" / "理论" / "落点" / "第五章.md"
+    #   ★ 路径必须与 `j14_judges_all_claimed` 的认领处**同一处**（布局迁移后是 `ninedim/01-意图环/03-设计/设计-落点/`），
+    #     否则正控/反例⑭ 跑的是"文件不存在"这条岔路，自证就成了假证。
+    _j14 = Path(root) / "ninedim" / "01-意图环" / "03-设计" / "设计-落点" / "第五章.md"
     _j14.parent.mkdir(parents=True, exist_ok=True)
     _j14.write_text("| 行 | 认领 |\n|---|---|\n| 733 | 沙盒 |\n| 734 | 沙盒 |\n",
                     encoding="utf-8", newline="\n")
@@ -1108,6 +1202,19 @@ def build_sandbox(root):
     _sec.write_text("# 41 节对齐图（沙盒）\n\n**来源与坐标**：`ninedim/records/生成物/specmap.json` 的 sha256 `%s…`｜"
                     "生成器 `scripts/gen/gen_secmap.py` 的 sha256 `%s…`\n" % (_sm_sha[:16], _sha2[:16]),
                     encoding="utf-8", newline="\n")
+    # ★ 判据⑮ 的两张表**最后写**（2026-10-07 修，现取病灶）：它必须 ≡ 沙盒**最终**的样子。
+    #   原来写在中间 ⇒ 后面才落地的 `scripts/gen/gen_secmap.py`（字节复制）没进表
+    #   ⇒ "对照15n（三张表与实际一致）"**被自己的夹具误伤**（实测：报 `gen_secmap.py` 表里没有）。
+    _names = sorted(p.name for p in _t.glob("*.rs"))
+    _snames = sorted(
+        os.path.relpath(os.path.join(_dp, _f), root).replace(os.sep, "/")
+        for _dp, _dns, _fns in os.walk(_td) for _f in _fns
+        if _f.endswith((".py", ".sh", ".ps1")) and "__pycache__" not in _dp
+    )
+    _st.write_text("".join("| `%s` | 沙盒 |\n" % n for n in _names)
+                   + "\n| 脚本 | 管什么 |\n|---|---|\n"
+                   + "".join("| `%s` | 沙盒 |\n" % n for n in _snames),
+                   encoding="utf-8", newline="\n")
 
 
 def self_test():
@@ -1156,7 +1263,7 @@ def self_test():
         rv.write_text(backup, encoding="utf-8", newline="\n")
 
         # 反例 2a：把**主规格**的证据指向不存在的函数
-        sp = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a/spec.md"
+        sp = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a.spec.md"
         backup = sp.read_text(encoding="utf-8")
         sp.write_text(backup.replace("::the_test", "::no_such_fn"), encoding="utf-8", newline="\n")
         _red(1, "②a", "**主规格**证据函数不存在")
@@ -1175,15 +1282,15 @@ def self_test():
         #   旧实现里 `EVIDENCE_RE` 要求冒号后至少一个字符 ⇒ 这一形态**正则不匹配、直接跳过**，
         #   那条"没有反引号 token ⇒ 判红"的 offender **永不执行**。
         #   本条即那次修改的反例；**没有它，这次修改就是没有反例的判据（＝装饰）**。
-        sp2 = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a/spec.md"
+        sp2 = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a.spec.md"
         bak2c = sp2.read_text(encoding="utf-8")
-        sp2.write_text(bak2c.replace("- **证据**：`tests/t.rs::the_test`", "- **证据**："),
+        sp2.write_text(bak2c.replace("- **证据**：`scripts/test/t.rs::the_test`", "- **证据**："),
                        encoding="utf-8", newline="\n")
         _red(1, "②c", "证据行冒号后为空（空 token 档）")
         # 正控 2d：**改成 `（待补）` 变身写法必须放行**——否则本判据会过紧，
         #   把"尚无断言但已写明落点"这一合法形态也判红。
-        sp2.write_text(bak2c.replace("- **证据**：`tests/t.rs::the_test`",
-                                     "- **证据（待补）**：本条尚无断言，落点 `tests/t.rs`"),
+        sp2.write_text(bak2c.replace("- **证据**：`scripts/test/t.rs::the_test`",
+                                     "- **证据（待补）**：本条尚无断言，落点 `scripts/test/t.rs`"),
                        encoding="utf-8", newline="\n")
         _green(1, "2d", "证据行显式标「（待补）」并写明落点（合法形态，不应红）")
         sp2.write_text(bak2c, encoding="utf-8", newline="\n")
@@ -1220,7 +1327,7 @@ def self_test():
                        encoding="utf-8", newline="\n")
         _red(5, "⑥b", "结论已签但批准人占位")
         # 反例 6c：**结论栏有两处且不一致**——§一 已签、§八 退回。
-        #   这是 2026-09-28 评审席指出的真实形态：`templates/review.md` 的结论栏本来就有两处
+        #   这是 2026-09-28 评审席指出的真实形态：`ninedim/records/openspec-流程件/schemas/opsx-swe-gb-atom/templates/review.md` 的结论栏本来就有两处
         #   （§一 基本信息 与 §八 结论与后续），而旧实现**取第一处就 return**
         #   ⇒ 押中 §一 即可让一份实际未通过的评审"看起来已签"。
         #   本条即那次修改的反例；**没有它，这次修改就是没有反例的判据（＝装饰）**。
@@ -1277,19 +1384,21 @@ def self_test():
         #   （逐字：`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md:67` = `**修订记录**`；
         #          `ninedim/01-意图环/01-策划/策划-WC-SCMP-001-v0.1.md:1845` = `| 修订记录 | … |`）
         #   ⇒ 旧守卫在真违规上照样报 [OK]（假绿：评审席注入实验照出的正是这一条）。
-        #   ⚠ 三条都写在 **`docs/S0-立项/`** 下——这正是"豁免**没**扩大到别处"的证明（豁免只到 `docs/评审/`）。
-        print("  ⑧ 的豁免目录：`docs/评审/`（评审记录含别人文档的逐字留存，改它＝篡改记录）、"
-              "书 `ninedim/01-意图环/01-策划/`；其余目录（S0-立项…S4-实现、阶段外-待启用）**一律照判**")
-        doc8 = Path(tmp) / "docs/S0-立项/WC-X-001.md"
+        #   ⚠ 三条都写在 **`ninedim/01-意图环/02-需求/`**（工程域的**正文件夹**）下——这正是
+        #     "豁免**没**扩大到别处"的证明（豁免只到 `01-策划/`、`评审-*`、`模板/`）。
+        print("  ⑧ 的豁免目录：`ninedim/01-意图环/01-策划/`（作者的书与策划件）、文件名以 `评审-` 开头的件"
+              "（评审记录含别人文档的逐字留存，改它＝篡改记录）、路径含 `模板` 的件（空白表单）；"
+              "其余阶段件（01-意图环/02-枢纽闸/03-执行环/05-尾声）**一律照判**")
+        doc8 = Path(tmp) / "ninedim/01-意图环/02-需求/需求-X-001.md"
         doc8.parent.mkdir(parents=True, exist_ok=True)
         for tag, body, why in (
             ("8a", "# 沙盒文档\n\n### 修订记录\n\n| 版本 | 改了什么 |\n|---|---|\n| V0.1 | 沙盒 |\n",
-                   "标题式 `### 修订记录`（写在 `docs/S0-立项/`）"),
+                   "标题式 `### 修订记录`（写在 `ninedim/01-意图环/02-需求/`）"),
             ("8b", "# 沙盒文档\n\n**修订记录**\n\n| 版本 | 改了什么 |\n|---|---|\n| V0.1 | 沙盒 |\n",
-                   "加粗式 `**修订记录**`（与 `策划-WC-ATOM-001-v0.1.md:67` **同形态**；写在 `docs/S0-立项/`）"),
+                   "加粗式 `**修订记录**`（与 `策划-WC-ATOM-001-v0.1.md:67` **同形态**；写在 `ninedim/01-意图环/02-需求/`）"),
             ("8c", "# 沙盒文档\n\n| 项 | 内容 |\n|---|---|\n| 修订记录 | **V0.2（2026-09-27）**：沙盒 |\n",
                    "表格式**带版本号/日期** `| 修订记录 | V0.2（2026-09-27）… |`"
-                   "（与 `策划-WC-SCMP-001-v0.1.md:1845` **同形态**；写在 `docs/S0-立项/`）"),
+                   "（与 `策划-WC-SCMP-001-v0.1.md:1845` **同形态**；写在 `ninedim/01-意图环/02-需求/`）"),
         ):
             doc8.write_text(body, encoding="utf-8", newline="\n")
             _red(7, tag, why)
@@ -1311,22 +1420,44 @@ def self_test():
         _green(7, "8n", "「本文件不设修订记录」的正当声明")
         doc8.unlink()
 
-        # 反例 8d：**同一形态改放到 `docs/S0-立项/`** ⇒ 仍应红
-        #   （证明豁免**只到 `docs/评审/`**，没有扩大；8a–8c 亦同在此目录下）
-        doc8d = Path(tmp) / "docs/S0-立项/WC-Y-001.md"
+        # 反例 8d：**同一形态改放到另一个正文件夹** ⇒ 仍应红
+        #   （证明豁免**只到 `01-策划/`／`评审-*`／`模板/`**，没有扩大；8a–8c 亦在正文件夹下）
+        doc8d = Path(tmp) / "ninedim/03-执行环/03-测试/测试-X-001.md"
+        doc8d.parent.mkdir(parents=True, exist_ok=True)
         doc8d.write_text("# 沙盒文档\n\n**修订记录**\n", encoding="utf-8", newline="\n")
-        _red(7, "8d", "同一条加粗式放在 `docs/S0-立项/` 下（豁免**没**扩到别处）")
+        _red(7, "8d", "同一条加粗式放在 `ninedim/03-执行环/03-测试/` 下（豁免**没**扩到别处）")
         doc8d.unlink()
 
-        # 对照 8e：**同一条**放到 `docs/评审/` 下 ⇒ **不应红**（评审记录是别人文档的逐字留存，改它＝篡改记录）
-        doc8e = Path(tmp) / "docs/评审/WC-RV-X-001.md"
+        # 对照 8e：**同一条**放到"评审记录"件里 ⇒ **不应红**（评审记录是别人文档的逐字留存，改它＝篡改记录）
+        doc8e = Path(tmp) / "ninedim/04-枢纽B-后置闸/评审-后置-WC-RV-X-001.md"
         doc8e.parent.mkdir(parents=True, exist_ok=True)
         doc8e.write_text("# 沙盒评审记录\n\n**修订记录**\n", encoding="utf-8", newline="\n")
-        _green(7, "8e", "`docs/评审/` 下的同一条（豁免目录：评审记录含别人文档的逐字留存）")
+        _green(7, "8e", "`评审-*` 件里的同一条（豁免：评审记录含别人文档的逐字留存）")
         doc8e.unlink()
 
+        # 对照 8f：**空白表单**（路径含 `模板`）里的同一条 ⇒ **不应红**（国标模板体例本来就有这一栏）
+        doc8f = Path(tmp) / "ninedim/records/模板/03-设计类/01-软件概要设计说明.md"
+        doc8f.parent.mkdir(parents=True, exist_ok=True)
+        doc8f.write_text("# 沙盒模板\n\n### 修订记录\n", encoding="utf-8", newline="\n")
+        _green(7, "8f", "`ninedim/records/模板/` 下的同一条（空白表单：体例本来就含这一栏）")
+        doc8f.unlink()
+
+        # ★ 反例 8g（空集）：把 ⑧ 的扫描面整块挪走 ⇒ 必须红（不许"没人扫 = 通过"）
+        _rev_moved = []
+        for _top in REV_SCAN_TOPS:
+            _d = Path(tmp) / "ninedim" / _top
+            if _d.is_dir():
+                _tgt = Path(tmp) / ("_off_" + _top)
+                _d.rename(_tgt)
+                _rev_moved.append((_d, _tgt))
+        try:
+            _red(7, "8g", "⑧ 的扫描面为空（阶段件夹整块挪走）⇒ **空集必须红**，不许判绿")
+        finally:
+            for _d, _tgt in _rev_moved:
+                _tgt.rename(_d)
+
         # ── 反例 9a／9b：改因块的**两个扫描面都必须红**（主规格 ＋ delta） ──
-        sp9 = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a/spec.md"
+        sp9 = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a.spec.md"
         backup9 = sp9.read_text(encoding="utf-8")
         sp9.write_text(backup9 + "\n> **改的是哪一类问题**：沙盒反例。\n", encoding="utf-8", newline="\n")
         _red(8, "9a", "**主规格**正文里出现改因块")
@@ -1390,22 +1521,23 @@ def self_test():
         _red(13, "⑮", "文档的**测试件**表少了一件（与实际不再一致）")
         st15.write_text(back15, encoding="utf-8", newline="\n")
 
-        # ── 反例 15b／15c／15d：「脚本面」表 ≡ `tools/` 实际（**双向**）──
-        #   形态＝**真实违规**：真违规就是表里**少一行**／**多一行**（`tools/` 下新增件忘改表／删件忘改表），
+        # ── 反例 15b／15c／15d：「脚本面」表 ≡ `scripts/` 实际（**双向**）──
+        #   形态＝**真实违规**：真违规就是表里**少一行**／**多一行**（`scripts/` 下新增件忘改表／删件忘改表），
         #   **不是**标题式的假形态。15b／15c 两向各一条；15d 钉"表整块不见了"那一支。
         #   ⚠ 夹具**互不污染**：每条反例跑完当场按 `back15` 恢复，后一条从同一份基线改。
-        st15.write_text(re.sub(r"(?m)^\| `sandbox_alpha\.py` \|[^\n]*\n", "", back15, count=1),
+        #   ⚠ 件名用**仓根相对路径**（与判据口径同形），否则钉的是"裸文件名"这种已被淘汰的形态。
+        st15.write_text(re.sub(r"(?m)^\| `scripts/sandbox_alpha\.py` \|[^\n]*\n", "", back15, count=1),
                         encoding="utf-8", newline="\n")
-        _red(13, "15b", "「脚本面」表**少一行**（`tools/sandbox_alpha.py` 在目录里、表里没有）")
+        _red(13, "15b", "「脚本面」表**少一行**（`scripts/sandbox_alpha.py` 在目录里、表里没有）")
         st15.write_text(back15, encoding="utf-8", newline="\n")
 
-        st15.write_text(back15 + "| `sandbox_ghost.py` | 沙盒：表里有、`tools/` 里没有 |\n",
+        st15.write_text(back15 + "| `scripts/sandbox_ghost.py` | 沙盒：表里有、`scripts/` 里没有 |\n",
                         encoding="utf-8", newline="\n")
-        _red(13, "15c", "「脚本面」表**多一行**（表里有、`tools/` 里没有）")
+        _red(13, "15c", "「脚本面」表**多一行**（表里有、`scripts/` 里没有）")
         st15.write_text(back15, encoding="utf-8", newline="\n")
 
         st15.write_text(back15.split("\n| 脚本 | 管什么 |")[0] + "\n", encoding="utf-8", newline="\n")
-        _red(13, "15d", "「脚本面」表**整块不见了**（`tools/` 下有件却没表）")
+        _red(13, "15d", "「脚本面」表**整块不见了**（`scripts/` 下有件却没表）")
         st15.write_text(back15, encoding="utf-8", newline="\n")
 
         # 对照 15n：**不该红的** —— 沙盒里那三张表与实际一致（测试件／脚本／`check.sh` 步骤）
@@ -1422,9 +1554,9 @@ def self_test():
         _green(14, "14n", "每行判据都有人认领")
 
         # ── 反例 16：往"正文"里**裸写一条已被撤回的说法**（附近无标记）⇒ 判据⑯ 必须红 ──
-        j16p = Path(tmp) / "docs"
+        j16p = Path(tmp) / "ninedim" / "01-意图环" / "02-需求"
         j16p.mkdir(parents=True, exist_ok=True)
-        j16f = j16p / "sandbox-note.md"
+        j16f = j16p / "需求-X-016.md"
         back16 = j16f.read_text(encoding="utf-8") if j16f.is_file() else None
         j16f.write_text("本节说明：共同语言已被证伪。\n", encoding="utf-8", newline="\n")
         _red(15, "⑯", "正文里裸写了已被撤回的说法")
@@ -1437,6 +1569,25 @@ def self_test():
         j16f.write_text("本节说明：共同语言一说**已撤回**（被证伪的是中间语言）。\n", encoding="utf-8", newline="\n")
         _green(15, "16n", "命中处带「已撤回」标记")
         j16f.unlink()
+
+        # ── ★ 反例（空集）：把主规格扫描面**整块挪走** ⇒ 判据②④⑨⑩ 都必须红 ──
+        #   为什么必须有这一条（2026-10-07 现取病灶）：这四条判据的扫描面一空，原实现在 `[]` 上
+        #   **静默判绿**（"命中 [] 仍 OK"）——而主规格形态随布局改成平铺 `*.spec.md` 后，
+        #   它们的 `rglob("spec.md")` **恰好一份都命中不到**，四条因此全成了假绿。
+        #   本反例钉的正是这个形态：**空集＝判红**（照 `scripts/verify/spec_shape.py:71-72` 的纪律）。
+        print("  空集反例：主规格扫描面整块挪走（`*.spec.md` 与 `*/spec.md` 两向皆空）")
+        _main_root = Path(tmp) / "ninedim/01-意图环/04-规格"
+        _moved = _main_root / "cap-a.spec.md.off"
+        (_main_root / "cap-a.spec.md").rename(_moved)
+        try:
+            _red(1, "空集②", "主规格扫描面为空（`rglob(\"spec.md\")` 命中 `[]` 的老病）⇒ 判据② 必须红，不许判绿")
+            _red(3, "空集④", "主规格扫描面为空 ⇒ 判据④ 无从判覆盖，必须红")
+            _red(8, "空集⑨", "主规格扫描面为空 ⇒ 判据⑨ 必须红")
+            _red(9, "空集⑩", "主规格扫描面为空 ⇒ 判据⑩ 必须红")
+        finally:
+            _moved.rename(_main_root / "cap-a.spec.md")
+        # 对照（空集恢复后）：同一套沙盒必须重新变绿
+        _green(1, "空集复原②", "主规格挪回原位 ⇒ 判据② 恢复绿（证明上一条红的是空集，不是别的）")
 
         # 反面自检：**每条判据都必须有反例**（没有反例的那条＝装饰）
         missing = [jname(i) for i in range(len(JUDGMENTS)) if i not in covered]
@@ -1473,10 +1624,16 @@ def main(argv=None):
 
     res = run_all(repo)
     failed = [r for r in res if not r["ok"]]
+    # ★ 2026-10-07 增（现取病灶）：「**读不到**」与「**判过且对**」必须分成两个读数——
+    #   主规格扫描面为空时，判据②④⑨⑩ 本来会在 `[]` 上判绿（假证）。那四条已被改成"空集判红"，
+    #   这里再把 rc 单独标成 **2**（照 `spec_shape.py` 的约定：空集/读不到＝2，不是 0 也不是 1），
+    #   免得"扫描面是空的"被读成"查过了、没问题"。
+    empty_specs = not main_spec_files(repo)
 
     if args.json:
         print(json.dumps({"repo": str(repo), "judgments": res,
-                          "passed": len(res) - len(failed), "failed": len(failed)},
+                          "passed": len(res) - len(failed), "failed": len(failed),
+                          "main_specs_empty": empty_specs},
                          ensure_ascii=False, indent=1))
     else:
         print("== spec_bridge.py —— 规格层守卫 ==")
@@ -1486,6 +1643,10 @@ def main(argv=None):
             for o in r["offenders"]:
                 print("       · %s" % o)
         print("  —— 通过 %d / 失败 %d ——" % (len(res) - len(failed), len(failed)))
+        if empty_specs:
+            print("  ★ 主规格扫描面为空 ⇒ rc=2（**读不到**，不是通过）：%s" % EMPTY_SPECS_MSG)
+    if empty_specs:
+        return 2
     return 1 if failed else 0
 
 

@@ -2,7 +2,7 @@
 # world-toggle-mute.sh —— 界面**唯一**的写路径：点一下 ⇒ 世界的**一条 `act`**。
 #
 # ## 壳与脑子分开（★ Omarchy 那套是"壳"，世界是"脑子"）
-# - **壳**（状态栏那一格、图标、提示怎么摆）：`tools/.refs/.refs/omarchy/world-notice-cell.json`；
+# - **壳**（状态栏那一格、图标、提示怎么摆）：`.refs/omarchy/world-notice-cell.json`（★ 现取：这一件**不在**本仓 `.refs/omarchy/` 下——它是 Omarchy 那侧的壳件，本仓只留指针）；
 # - **脑子**（这次点击在世界里是什么）：本件。它**不列**"界面上有哪些可点项"——那是世界说的。
 #
 # ## 作者（"谁点的"）★ 第一条

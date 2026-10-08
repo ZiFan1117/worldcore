@@ -64,11 +64,11 @@ C-01／C-02 与 `World::open` 的判据**判的是同一个谓词、同一批取
 ★ 硬底线：**"判不了"不许显示成 ✅**。
 
 用法：
-  python3 tools/cross_contract.py                        # 缺省读 ./ontology.json 与 ./policy.json（--set all）
-  python3 tools/cross_contract.py --set cross            # 只判 C-01…C-07
-  python3 tools/cross_contract.py --set instance         # 只判 C-08
-  python3 tools/cross_contract.py --ontology <p> --policy <p>
-  python3 tools/cross_contract.py --self-test            # 每条判据各造反例＋正控＋短路验红
+  python3 scripts/verify/cross_contract.py                        # 缺省读 ./ontology.json 与 ./policy.json（--set all）
+  python3 scripts/verify/cross_contract.py --set cross            # 只判 C-01…C-07
+  python3 scripts/verify/cross_contract.py --set instance         # 只判 C-08
+  python3 scripts/verify/cross_contract.py --ontology <p> --policy <p>
+  python3 scripts/verify/cross_contract.py --self-test            # 每条判据各造反例＋正控＋短路验红
 
 退出码：0 = 无红（**可能带 UNDECIDABLE**，那时自报 `STATUS=SKIP`）；1 = 有红／自证失败；
        2 = 输入读不到或形状不认识（fail-closed：**读不到不许当成"没问题"**）。
@@ -297,7 +297,7 @@ def report(ont_path, pol_path, reds, warns, undec, set_name="all", quiet=False):
         print("== 两件一致性守卫（ontology.json × policy.json）==")
         print("  ontology: %s" % ont_path)
         print("  policy  : %s" % pol_path)
-        print("  判据面  : %s（本套＝`--set %s`；逐条见 tools/cross_contract.py 文件头）"
+        print("  判据面  : %s（本套＝`--set %s`；逐条见 scripts/verify/cross_contract.py 文件头）"
               % ("／".join(SETS[set_name]), set_name))
         for cid, msg in reds:
             print("  RED  %s  %s" % (cid, msg))

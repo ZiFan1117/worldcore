@@ -19,7 +19,10 @@ SPECS = os.path.join(REPO, "ninedim", "01-意图环", "04-规格")
 THEORY = os.path.join(REPO, "ninedim", "01-意图环", "01-策划")
 SRS = os.path.join(REPO, "ninedim", "01-意图环", "02-需求", "需求-WC-SRS-001-v0.1.md")
 TESTS = os.path.join(REPO, "scripts", "test")
-OUT = os.environ.get("SPECMAP_OUT") or os.path.join(REPO, "generated", "specmap.json")
+# ★ 2026-10-07 修（现取病灶）：原来落 `REPO/generated/specmap.json`——那是**布局迁移前**的路径
+#   （`generated/` 已随 5d4566b 搬成 `ninedim/records/生成物/`）。产物落错处 ⇒ 判据⑫ 核的那份
+#   永远不是本生成器写的那份。现在与判据⑫／`gen_bridge_md.py`／`gen_secmap.py` **同一个坐标**。
+OUT = os.environ.get("SPECMAP_OUT") or os.path.join(REPO, "ninedim", "records", "生成物", "specmap.json")
 # ↑ 可用 `SPECMAP_OUT` 覆盖输出路径（判据⑫ 将来若要改成"重跑生成器逐字节比对"，靠它把产物写到临时目录）
 GEN_SELF = os.path.join(REPO, "scripts", "gen", "gen_specmap.py")
 with io.open(GEN_SELF, "rb") as _f:
@@ -31,12 +34,20 @@ def rl(p):
         return f.read().splitlines()
 
 # ---------- 1. OpenSpec 规格 ----------
+# ★ 2026-10-07 修（现取病灶，lead 指派）：主规格的形态**已随 NineDim 布局改成平铺**
+#   —— `ninedim/01-意图环/04-规格/<能力>.spec.md`（权威：`ninedim/_索引-工程域结构与命名.md` §二
+#   「规格（一个能力一份）：`<能力>.spec.md`」；`scripts/verify/spec_shape.py:69` 同一口径）。
+#   本段原来按 openspec CLI 的老形态 `<能力>/spec.md` 取 ⇒ **一份都取不到**、`caps` 静默成 `[]`
+#   ⇒ 产物 `counts.caps=0`／`counts.reqs=0` ⇒ `gen_bridge_md.py` 的 `rows=0` ⇒ `BRIDGE.md` 空
+#   ⇒ 判据④（编号桥覆盖）⑪⑫⑬ 全红。**空集＝报错退出**（照 spec_shape 的纪律），不许静默出空件。
 caps = []
-for cap in sorted(os.listdir(SPECS)):
-    d = os.path.join(SPECS, cap)
-    f = os.path.join(d, "spec.md")
+for _fn in sorted(os.listdir(SPECS)):
+    if not _fn.endswith(".spec.md"):
+        continue
+    f = os.path.join(SPECS, _fn)
     if not os.path.isfile(f):
         continue
+    cap = _fn[: -len(".spec.md")]
     lines = rl(f)
     purpose = []
     reqs = []
@@ -70,6 +81,23 @@ for cap in sorted(os.listdir(SPECS)):
                 for t in re.findall(r"`([^`]+)`", s):
                     scn["ev"].append(t)
     caps.append({"cap": cap, "file": os.path.relpath(f, REPO), "purpose": " ".join(purpose), "reqs": reqs})
+
+# ★ 空集＝**报错退出**，不是"产出 0 条"（本仓纪律：空集不许判绿；照 `spec_shape.py:71-72`）。
+#   为什么必须有这一关（实测 2026-10-07）：上面那处取径写错时，本脚本 **rc=0**、打印
+#   `{"caps": 0, "reqs": 0, ...}`、照样把空件写进产物——下游 `gen_bridge_md.py` 只报 `rows=0`，
+#   再下游 `spec_bridge.py` 判据④⑪⑫⑬ 全红而**根因在生成器**。⇒ 让它在源头当场失败。
+if not caps:
+    raise SystemExit(
+        "[FAIL] 规格夹里一份 `*.spec.md` 都没取到：%s\n"
+        "       口径：主规格是**平铺**的 `<能力>.spec.md`（`ninedim/_索引-工程域结构与命名.md` §二）。\n"
+        "       处置：核 `SPECS` 是否指对；**不许静默产出空件**。" % SPECS)
+if not any(c["reqs"] for c in caps):
+    raise SystemExit(
+        "[FAIL] 取到 %d 份 `*.spec.md`，但**没有任何 `### Requirement:`**：%s\n"
+        "       ⇒ 解析口径与 `spec_shape.py` 不符（或规格正文形态变了）；不许静默产出 0 条承诺。"
+        % (len(caps), SPECS))
+print("规格：%d 份 `*.spec.md`；Requirement 合计 %d 条"
+      % (len(caps), sum(len(c["reqs"]) for c in caps)))
 
 # ---------- 2. 流程侧 SRS ----------
 srs = {}
@@ -174,7 +202,7 @@ for fn in sorted(os.listdir(TESTS)):
         continue
     src = "\n".join(rl(os.path.join(TESTS, fn)))
     fns = re.findall(r"^\s*fn\s+([A-Za-z0-9_]+)\s*\(", src, re.M)
-    tests["tests/" + fn] = fns
+    tests["scripts/test/" + fn] = fns
 
 # ---------- 6. 人工对应表 ----------
 REQ_MAP = {
@@ -262,7 +290,7 @@ FINDINGS = [
      "detail": "实现按最后一个 \\n 截断（ledger.rs:276-289，直接 set_len 落盘），不看能否解析。实测：只去掉末尾换行（该行仍是完整合法 JSON）⇒ check 报「条数=1」、rc=0，还打印「✅ 有摘要链」；随后一次 append 把该行物理删除并复用 seq。ledger.rs:385 自述「启动『截到最后一个 \\n』会静默删掉它们」——摘链那条边界要求如实声明，这条没有。"},
     {"cap": "ledger-integrity", "sev": "重要", "n": "L4",
      "title": "t2 证据层级错位：规格写「新进程」，测试是同进程 drop + reopen",
-     "detail": "spec:23 写「以新进程打开」；acceptance.rs:88-104 实为同进程 drop 后 reopen。全仓只有 cli.rs:20/39 起新进程。真正合格的证据（TC-070，tools/s1_sys_probe2.sh:379-384「两次独立进程读回的事件序列逐字节相同」）没被引用。"},
+     "detail": "spec:23 写「以新进程打开」；acceptance.rs:88-104 实为同进程 drop 后 reopen。全仓只有 cli.rs:20/39 起新进程。真正合格的证据（TC-070，scripts/test/s1_sys_probe2.sh:379-384「两次独立进程读回的事件序列逐字节相同」）没被引用。"},
     {"cap": "ledger-integrity", "sev": "重要", "n": "L5",
      "title": "t1 的「逐字段一致」没有被断言",
      "detail": "acceptance.rs:68-80 只比 len/seq/world/kind/body.before；actor、id、at、flags、body.subject、body.path、body.after 一个都没比。"},
@@ -291,7 +319,7 @@ FINDINGS = [
      "detail": "实测（套接字 actor=world://agent/1、uid=1001、mode=600）：uid 1001 连上→落笔 agent/1；root 连上→同样落笔 agent/1。只有 root「自称」world://user 才被拒 ⇒ 该检查只抓自称、不抓谁连上。书第五章:69 已登记「最高权限的用户可以连任何套接字，这一项对它无效」。"},
     {"cap": "channel-identity", "sev": "重要", "n": "C4",
      "title": "被引证据绕过了它要验证的机制本身",
-     "detail": "contract.rs:642 用 std UnixListener::bind，没走 channel::bind（main.rs:578-581 自述这一绕过）；真正执行该机制的是 tools/system_acceptance.sh:301-351（㉒–㉖），由 check.sh 步骤⑦执行——而规格引的是步骤③b。"},
+     "detail": "contract.rs:642 用 std UnixListener::bind，没走 channel::bind（main.rs:578-581 自述这一绕过）；真正执行该机制的是 scripts/test/system_acceptance.sh:301-351（㉒–㉖），由 check.sh 步骤⑦执行——而规格引的是步骤③b。"},
     {"cap": "channel-identity", "sev": "重要", "n": "C5",
      "title": "写窄：四项已实现行为规格零落点",
      "detail": "① 缺省拒绝 ext.world.Channel.NotConfigured（main.rs:604-615，实测 rc=2）② 自称与映射一致时被接受 ③ 拒绝时先回一行 {\"ok\":false,...} 再报错（channel.rs:279；SRS REQ-F-023 反例① 明确要求它）④ 空 listeners 拒载（channel.rs:89-94）。"},
@@ -369,7 +397,7 @@ FINDINGS = [
      "detail": "WC-RTM-001.csv:40 状态「未实现」；scripts/test/perf.rs 三条全部 #[ignore]，无一条测带检查点续算。"},
     {"cap": "read-model", "sev": "提示", "n": "R9",
      "title": "证据链无机械门禁：改一个测试名，规格不会变红",
-     "detail": "tools/doc_integrity.py 的受控清单里 openspec 零命中——正是本 change 要补的 spec_bridge.py 那一条。"},
+     "detail": "scripts/verify/doc_integrity.py 的受控清单里 openspec 零命中——正是本 change 要补的 spec_bridge.py 那一条。"},
     {"cap": "read-model", "sev": "提示", "n": "R10",
      "title": "t8 用 State::fold 直喂向量，使 SeqGap 检查在生产路径上不可达",
      "detail": "账本层 ledger.rs:304 更早拦截；不是缺陷，是防线冗余，但读者会误以为是端到端验证。"},

@@ -12,12 +12,12 @@
 //! | 组 | 判据 | 落点 |
 //! |---|---|---|
 //! | ①a | 本体里（**参与身份**的那一半）不许出现载体专有串 ⇒ 拒启 | **生产代码**：`src/ontology_definition/mod.rs::check_carrier_independence`（用例见 `scripts/test/ontology_elements.rs::m15`） |
-//! | ①b | **换掉载体，说法不变**：世界的行为**不取决于 unit 的内容** | 本文件（静态：`src/**` 不引用载体件；动态：换一份诱饵 `deploy/` ⇒ 输出逐字节不变） |
-//! | ②a | `deploy/*.service`／`*.socket` 的依赖**不许指向具体应用**（只许自身／内核侧／基础 target） | 本文件（含**反例**：合成一份指向应用的 unit ⇒ 必被点名） |
+//! | ①b | **换掉载体，说法不变**：世界的行为**不取决于 unit 的内容** | 本文件（静态：`src/**` 不引用载体件；动态：换一份诱饵 `scripts/release/units/` ⇒ 输出逐字节不变） |
+//! | ②a | `scripts/release/units/*.service`／`*.socket` 的依赖**不许指向具体应用**（只许自身／内核侧／基础 target） | 本文件（含**反例**：合成一份指向应用的 unit ⇒ 必被点名） |
 //! | ②b | **正控**：把所有**应用**都停掉，世界照常 `check` 与折叠 | 本文件（等价形态：**没有任何载体件在场**时，`check` rc=0 且 `state --json` 逐字节相同） |
 //! | ④-i | **不许用载体机制表达许可**的一个**可判**切片：`SocketMode`／`SocketUser`／`SocketGroup` **只许**出现在 `.socket`（不许出现在 `.service`） | 本文件 |
 //!
-//! ## 本文件**判不了**的（如实登记，不假装；详见 `docs/证据/证据-EV-009.md`）
+//! ## 本文件**判不了**的（如实登记，不假装；详见 `ninedim/03-执行环/05-验证证据/证据-EV-009.md`）
 //!
 //! - **"把 unit 的依赖顺序当因果用"**：这是**语义**判断。机器只能查到"顺序依赖指向了
 //!   **应用单元**"这一**形态**——而那已被 ②a 覆盖。⇒ 更深的"用顺序担保某条世界语义"
@@ -33,6 +33,30 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+/// ★ **载体面的落点（单一出处）**：部署面随迁后住 `scripts/release/`，单元在它下面的 `units/`。
+///
+/// **为什么做成常量**：`c03` 的**判定器**与夹具里的**合成样本**必须认**同一个**词。
+/// 本轮随迁只把样本从 `deploy/` 改成 `scripts/release/`，判定器仍盯着 `deploy/`
+/// ⇒ `c03` 的自证断言当场红（`hit(fake_bad)` 为假＝"判定器抓不到自己造的违规"）。
+/// 做成一处常量后，落点再搬只会让两边**一起**动。
+const CARRIER_DIR: &str = "scripts/release/";
+
+/// 一行里"**会去读/建路径**"的调用——真扫（`walk`）与正控（`hit`）**共用这一份**。
+///
+/// **为什么要共用**：两处各留一份 ⇒ 一处改了、另一处没改时，正控与真扫会**各说各话**
+/// （本轮实测的正是这一类：样本改了、判定器没改）。
+const IO_CALLS: &[&str] = &[
+    "read_to_string",
+    "read_dir",
+    "read_link",
+    "File::open",
+    "include_str!",
+    "include_bytes!",
+    "Path::new",
+    "PathBuf::from",
+    "metadata(",
+];
 
 fn tmpdir(tag: &str) -> PathBuf {
     let n = SystemTime::now()
@@ -53,8 +77,13 @@ fn manifest_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
+/// 本仓**真载体件**在哪：`<仓根>/scripts/release/units/`（落点取单一出处 `CARRIER_DIR`）。
+///
+/// ⚠️ 函数名 `deploy_dir` 是**旧落点**（`deploy/`，已于 `5d4566b` 迁到 `scripts/release/`）的留痕，
+/// **不改名**：本仓 `ninedim/records/生成物/specmap.json` 按函数名登记本件符号，
+/// 改名会让那份生成物失同步（生成物只许由生成器改，不手编）。
 fn deploy_dir() -> PathBuf {
-    manifest_dir().join("deploy").join("units")
+    manifest_dir().join(CARRIER_DIR).join("units")
 }
 
 /// 读一个 unit 文件里的**指令行**：`键=值`（忽略注释与空行）。
@@ -76,7 +105,7 @@ fn directives(text: &str) -> Vec<(String, String)> {
 ///
 /// 允许的目标（**白名单要写理由**）：
 /// 1. **它自己**——`PartOf=world-core.service` 之于 `world-core.socket` 等；
-/// 2. **内核侧单元**（本仓 `deploy/` 里给出的内核定义）：`world-core.service`／`world-core.socket`；
+/// 2. **内核侧单元**（本仓 `scripts/release/units/` 里给出的内核定义）：`world-core.service`／`world-core.socket`；
 /// 3. **systemd 的标准 target／slice**（`*.target`／`*.slice`／`-.mount`）——它们是**资源轴**的
 ///    汇合点，不是某个应用。
 ///
@@ -119,7 +148,7 @@ fn app_dependencies(
     bad
 }
 
-/// 本仓 `deploy/` 里给出的**内核侧**单元名（从文件名推，**不写死两份副本**）。
+/// 本仓 `scripts/release/units/` 里给出的**内核侧**单元名（从文件名推，**不写死两份副本**）。
 fn kernel_units_from(dir: &Path) -> BTreeSet<String> {
     let mut s = BTreeSet::new();
     if let Ok(rd) = fs::read_dir(dir) {
@@ -159,7 +188,7 @@ fn run_cli(args: &[&str]) -> (i32, String) {
 
 /// **②a**：依赖指向**具体应用** ⇒ 必被点名；指向**自身／内核侧／标准 target** ⇒ 不点名。
 ///
-/// 反例（合成夹具）＋ 正控（合成夹具）＋ **扫本仓真实 `deploy/`** 三件一起。
+/// 反例（合成夹具）＋ 正控（合成夹具）＋ **扫本仓真实 `scripts/release/units/`** 三件一起。
 #[test]
 fn c01_unit_dependencies_must_not_point_at_applications() {
     let kernel: BTreeSet<String> = [
@@ -211,8 +240,8 @@ Wants=world-core.service
         "内核侧单元与标准 target 不该被点名（**两条轴不许混**：资源轴的目标是汇合点），实得：{h:?}"
     );
 
-    // 扫**本仓真实** `deploy/`：今天指得到应用的 ⇒ 红。
-    // ⚠️ 若 `deploy/` 不在（那是**他人在飞**的目录，可能被移走）⇒ **如实说明并只跑合成夹具**，
+    // 扫**本仓真实** `scripts/release/units/`：今天指得到应用的 ⇒ 红。
+    // ⚠️ 若它不在（那是**他人在飞**的目录，可能被移走）⇒ **如实说明并只跑合成夹具**，
     //    不把"读不到"读成"没有违规"。
     let dd = deploy_dir();
     if !dd.is_dir() {
@@ -226,7 +255,7 @@ Wants=world-core.service
     let kernel_units = kernel_units_from(&dd);
     assert!(
         !kernel_units.is_empty(),
-        "`deploy/` 里必须能认出内核侧单元（`world-core.service`／`.socket`）；否则白名单是空的"
+        "`scripts/release/units/` 里必须能认出内核侧单元（`world-core.service`／`.socket`）；否则白名单是空的"
     );
     let mut offenders = Vec::new();
     for e in fs::read_dir(&dd).unwrap().flatten() {
@@ -249,7 +278,7 @@ Wants=world-core.service
 /// **②b · 正控**：**把所有应用都停掉**，世界照常 `check` 与折叠。
 ///
 /// 本环境里没有常驻的应用进程可停 ⇒ 用它的**等价形态**（更强）：让世界里
-/// **一份载体件都不在场**（诱饵 `deploy/` 里全是垃圾 unit），断言
+/// **一份载体件都不在场**（诱饵 `scripts/release/units/` 里全是垃圾 unit），断言
 /// `check` **rc=0**、`state --json` 与"正常 cwd"下**逐字节相同**。
 #[test]
 fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
@@ -288,16 +317,16 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
     let mut state_args: Vec<&str> = args_base.iter().map(String::as_str).collect();
     state_args.extend(["state", "--json"]);
 
-    // ① 正常 cwd（仓根 ``）——那里**有**真 `deploy/`
+    // ① 正常 cwd（仓根 ``）——那里**有**真 `scripts/release/units/`
     let (rc1, check1) = run_cli(&check_args);
     let (rc2, state1) = run_cli(&state_args);
     assert_eq!(rc1, 0, "有载体件在场时 `check` 必须 rc=0：{check1}");
     assert_eq!(rc2, 0, "有载体件在场时 `state` 必须 rc=0：{state1}");
 
-    // ② 诱饵 cwd：一份**全是垃圾**的 `deploy/`（应用全停、载体件全换）
+    // ② 诱饵 cwd：一份**全是垃圾**的 `scripts/release/units/`（应用全停、载体件全换）
     let decoy = tmpdir("c02-decoy");
-    // ★ 诱饵沙盒**镜像仓内布局**：单元在 `scripts/release/units/`
-    let dd = decoy.join("deploy").join("units");
+    // ★ 诱饵沙盒**镜像仓内布局**：单元在 `scripts/release/units/`（同 `CARRIER_DIR`）
+    let dd = decoy.join(CARRIER_DIR).join("units");
     fs::create_dir_all(&dd).unwrap();
     fs::write(
         dd.join("junk.service"),
@@ -330,13 +359,13 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
     );
 }
 
-/// **①b（静态面）**：`src/**` 里**不许**把载体目录 `deploy/` **当路径用**。
+/// **①b（静态面）**：`src/**` 里**不许**把载体目录 `scripts/release/` **当路径用**。
 ///
 /// ## 判什么（**认结构，不搜字样**——第一版在这里吃过假阳性）
 ///
 /// 第一版把 `".socket"` 当**裸串**扫，结果 `src/carrier/kernel.rs` 的
 /// `&self.socket`（**Rust 字段访问**）被当成"代码引用了载体件" ⇒ **假阳性**。
-/// ⇒ 今天在判的**只有一条**（执行体＝本件 `walk`）：**同一行**里既出现 `deploy/`
+/// ⇒ 今天在判的**只有一条**（执行体＝本件 `walk`）：**同一行**里既出现 `scripts/release/`
 /// 又出现一个"会去读/建路径的调用"（`IO_CALLS`）⇒ 判红；注释里的指路**不判**。
 ///
 /// ## ★ 今天**不判**的那一半（如实登记；不许读成"已覆盖"）
@@ -352,11 +381,11 @@ fn c02_with_every_application_down_the_world_still_checks_and_folds_the_same() {
 ///
 /// ## 它今天能支撑到哪儿（如实声明）
 ///
-/// 动态面（`c02`）证明"输出不随载体变"；本判据只证"**代码里没有把 `deploy/` 当路径用**"
-/// ⇒ 两条合起来**只排除**"读了 `deploy/` 而恰好结果相同"这一支，
+/// 动态面（`c02`）证明"输出不随载体变"；本判据只证"**代码里没有把 `scripts/release/` 当路径用**"
+/// ⇒ 两条合起来**只排除**"读了载体件而恰好结果相同"这一支，
 /// **不排除**"按载体机制名去读"（那一半今天不判，见上一节）。
 ///
-/// ⚠️ **射程（如实声明）**：它证的是"**没有以 `deploy/` 路径的形式出现**"。
+/// ⚠️ **射程（如实声明）**：它证的是"**没有以 `scripts/release/` 路径的形式出现**"。
 /// 一个**运行时从配置里读来的路径**（例如 `--channel` 指向的渲染件）**不在**本判据内——
 /// 那种情形由"接入映射的权威在 `policy.json`"那条既有口径管（见 `EV-009` 的登记）。
 #[test]
@@ -471,7 +500,7 @@ fn c03_world_sources_never_read_the_carrier_units() {
                 if is_comment {
                     continue;
                 }
-                // ★ **判据（第三次收窄，如实留痕）**：`deploy/` 出现在**引用它去读的行** ⇒ 红。
+                // ★ **判据（第三次收窄，如实留痕）**：`scripts/release/` 出现在**引用它去读的行** ⇒ 红。
                 //
                 // 三版怎么走到这里的（每一版都是被**自己人**误伤后收窄的，不是"为了好看放宽"）：
                 // - v1「裸串扫机制名」⇒ 误伤 `&self.socket`（Rust 字段访问）——**搜字样 ≠ 认结构**；
@@ -480,21 +509,14 @@ fn c03_world_sources_never_read_the_carrier_units() {
                 // - v3（本版）：只在**同时出现"会去读/建路径"的调用**时才判 ⇒
                 //   这才是"**世界在读载体件**"这条主张的**可判形态**。
                 //
-                // ⚠️ 如实登记射程：它**不是**数据流分析——若把路径先存进变量再读（`let p = "deploy/x";`
+                // ⚠️ 如实登记射程：它**不是**数据流分析——若把路径先存进变量再读
+                // （`let p = "scripts/release/units/x.service";`
                 // 另起一行 `fs::read_to_string(p)`），本判据**抓不到**。那一格**无法判定**（原因：
-                // 需要跨行数据流），登记在 `docs/证据/证据-EV-009.md`，**不假装**覆盖。
-                const IO_CALLS: &[&str] = &[
-                    "read_to_string",
-                    "read_dir",
-                    "read_link",
-                    "File::open",
-                    "include_str!",
-                    "include_bytes!",
-                    "Path::new",
-                    "PathBuf::from",
-                    "metadata(",
-                ];
-                let has_path = ln.contains("deploy/") || ln.contains("deploy\\");
+                // 需要跨行数据流），登记在 `ninedim/03-执行环/05-验证证据/证据-EV-009.md`，**不假装**覆盖。
+                //
+                // ★ 路径词与"会去读/建路径"的调用**都取单一出处**（`CARRIER_DIR`／`IO_CALLS`）：
+                //   两处各留一份 ⇒ 样本改了、判定器没改时本判据会**静默变空**（本轮实测正是这一类）。
+                let has_path = ln.replace('\\', "/").contains(CARRIER_DIR);
                 let uses_it = IO_CALLS.iter().any(|c| ln.contains(c));
                 if has_path && uses_it {
                     out.push(format!(
@@ -522,31 +544,23 @@ fn c03_world_sources_never_read_the_carrier_units() {
          跨行数据流（先存变量再读）**抓不到**，那一格登记为**无法判定**。命中：\n{}",
         hits.join("\n")
     );
-    // 正控（反假）：判定器**确实会红**，且**确实不会误伤**——两半都用**同一条**判据。
-    const IO: &[&str] = &[
-        "read_to_string",
-        "read_dir",
-        "read_link",
-        "File::open",
-        "include_str!",
-        "include_bytes!",
-        "Path::new",
-        "PathBuf::from",
-        "metadata(",
-    ];
+    // 正控（反假）：判定器**确实会红**，且**确实不会误伤**——两半都用**同一条**判据
+    // （路径词 `CARRIER_DIR` 与调用表 `IO_CALLS` 都是**模块级单一出处**，与 `walk` 里那份同源）。
     let hit = |ln: &str| {
-        (ln.contains("deploy/") || ln.contains("deploy\\")) && IO.iter().any(|c| ln.contains(c))
+        ln.replace('\\', "/").contains(CARRIER_DIR) && IO_CALLS.iter().any(|c| ln.contains(c))
     };
     // 不该红的两形（都是**说给人听**或**注释**，世界没读任何东西）：
     let fake_comment = "// 指路：见 scripts/release/README.md";
-    let fake_msg = "eprintln!(\"为什么：`scripts/release/units/world-core.socket` 把套接字交给载体\");";
+    let fake_msg =
+        "eprintln!(\"为什么：`scripts/release/units/world-core.socket` 把套接字交给载体\");";
     assert!(!hit(fake_comment), "注释里的指路**不许**被当成违规");
     assert!(
         !hit(fake_msg),
         "**说给人听的文本**（错误消息/帮助）里命名一个件**不许**被当成'世界在读它'"
     );
     // 该红的那一形（世界真的去读它）：
-    let fake_bad = "let t = fs::read_to_string(\"scripts/release/units/world-core.service\").unwrap();";
+    let fake_bad =
+        "let t = fs::read_to_string(\"scripts/release/units/world-core.service\").unwrap();";
     assert!(
         hit(fake_bad),
         "判定器必须能抓到合成违规（否则上面那句『0 命中』是恒真实现）"
@@ -581,7 +595,9 @@ fn c04_socket_permission_directives_belong_only_to_socket_units() {
     // 扫真件（若在）
     let dd = deploy_dir();
     if !dd.is_dir() {
-        eprintln!("[登记] `deploy/` 不存在 ⇒ ④-i **扫不了真实载体件**（只跑了合成夹具）。");
+        eprintln!(
+            "[登记] `scripts/release/units/` 不存在 ⇒ ④-i **扫不了真实载体件**（只跑了合成夹具）。"
+        );
         return;
     }
     let mut offenders = Vec::new();

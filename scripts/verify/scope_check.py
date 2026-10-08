@@ -5,18 +5,31 @@
 
 依据：docs/04-配置与版本/配置管理与版本化.md（变更控制八步）、
       docs/01-流程与阶段/框架与模块共演化.md（R5 框架变更评审）。
+      ★ 2026-10-08 注：`docs/**` 已于提交 `a7bb4fe` **整树删除**、内容并入 `ninedim/`；
+        上面两条是**历史坐标**（现落点见 `ninedim/01-意图环/03-设计/设计-落位契约.md`），
+        本处按"只引不复述"留存，**不代表盘上有那个路径**。
 
 用法：
     # 用变更声明文件限定范围（**CI 就是这一条**）
-    python tools/scope_check.py --base main --scope .scope-declaration.json
+    python scripts/verify/scope_check.py --base main --scope .scope-declaration.json
 
     # 直接给允许的路径前缀
-    python tools/scope_check.py --base HEAD~1 --allow src/ --allow tests/
+    python scripts/verify/scope_check.py --base HEAD~1 --allow src/ --allow tests/
 
     # 演示模式（无需 git 变更）
-    python tools/scope_check.py --demo
+    python scripts/verify/scope_check.py --demo
 
-退出码：0 = 范围合规；1 = 越界（门禁不通过）；2 = 环境不可用（不阻断，仅告警）。
+    # 自证模式（每条判据各造一个**会红**的反例；含"判定器蒙眼"探针）
+    python scripts/verify/scope_check.py --self-test
+
+退出码：0 = 范围合规；1 = 越界（门禁不通过）；2 = **未能校验**
+        （未声明任何范围／声明文件缺失／声明为空／环境不可用 —— **不是通过**）。
+
+★ fail-closed 口径（2026-10-08 修，对应 `WC-RV-R0-001` 的 **C-04** 与复核 F-11）：
+  **"没有声明"曾走 rc=0**（打两条 `[WARN] …跳过范围校验` 就放行）——那是
+  "未能校验被读成校验通过"，与仓内纪律『未能校验 ≠ 通过』相反。
+  现在：**缺声明 ⇒ rc=2**（`--scope` 指定了却不在盘上、`allowed` 为空数组，一律同办）；
+  只有"**读到声明 且 判过**"才可能给 rc=0。★ CI 的 `scope` 作业对任何非零都阻断。
 
 ────────────────────────────────────────────────────────────────────────────
 本文件对上游模板（06-swe-gb/tools/scope_check.py）的**必要改动**及其证据
@@ -27,7 +40,7 @@
 
 2026-09-26 复现（在  内，完全照 CI 的调用方式）：
 
-    $ python tools/scope_check.py --base HEAD~3 --scope .scope-declaration.json
+    $ python scripts/verify/scope_check.py --base HEAD~3 --scope .scope-declaration.json
     [越界] "docs/S0-/347/253/213/351/241/271/策划-WC-FSR-001-v0.1.md"
     [越界] src/main.rs
     ...
@@ -66,10 +79,14 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from typing import List, Sequence, Tuple
 
@@ -86,7 +103,7 @@ def make_console_encoding_safe() -> None:
     ⚠ **`stderr` 不动**：Python 3.5+ 起 `sys.stderr` 默认就是 `backslashreplace` —— 本脚本的
     `[ERROR] … ⚠️ 注意` 一行正是走 stderr，**实测 GBK 下本来就不崩**（打印出 `\u26a0\ufe0f`）；
     改成 `replace` 反而把可复原的 `\u26a0` 变成不可复原的 `?`（信息更少），故不改。
-    不取 ①（逐字符换 ASCII）的理由见 `tools/trace_matrix.py` 同名函数：白名单会随新符号复发。
+    不取 ①（逐字符换 ASCII）的理由见 `scripts/verify/trace_matrix.py` 同名函数：白名单会随新符号复发。
     """
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if reconfigure is None:  # 非 TextIOWrapper（被捕获/重定向）时跳过
@@ -158,7 +175,7 @@ SCOPE_EXCLUDED_PREFIXES: Sequence[str] = ()
 # 因此把它们显式拉回管辖：既要**在声明范围内**（改门禁必须写进
 # `.scope-declaration.json`），也会**命中 SENSITIVE_PATHS**（触发 R5 评审提示）。
 JOINT_JURISDICTION: Sequence[str] = (
-    ".github/workflows/world-core-gate.yml",
+    ".github/workflows/gate.yml",
     ".github/PULL_REQUEST_TEMPLATE.md",
 )
 
@@ -439,6 +456,176 @@ def demo() -> int:
     return 0
 
 
+# ── 自证（`--self-test`）：每条判据各造一个**会红**的反例 ──────────────────────
+# 为什么不复用 `demo()`：`demo()` 直接调内部函数，验的是**判定器**；
+#   而"缺声明 ⇒ rc=2"这条判据住在 `main()` 的**入口分支**里，只有**跑真入口、看真 rc**
+#   才在被证之列（本仓教训：「自证通过 ≠ 判据有效」——签名改了而自证只喂旧形态，照样全绿）。
+# 判据清单（与 main() 的分支一一对应）：
+#   ① 合规 ⇒ rc=0（正控）                ② 越界 ⇒ rc=1
+#   ③ 未声明 ⇒ rc=2                      ④ `--scope` 文件缺失 ⇒ rc=2
+#   ⑤ 声明为空数组 ⇒ rc=2                ⑥ 声明存在但坏 JSON ⇒ rc=1（配置错误，阻断）
+#   ⑦ 环境不可用（仓根不存在）⇒ rc=2      ⑧ 环境不可用（git 调用抛错）⇒ rc=2
+#   ⑨ **蒙眼探针**：把 `evaluate` 弄瞎后，②那条反例**不许**再 rc=1
+#      ——它证明②的红**真的来自判定器**，而不是别的什么碰巧给了 1。
+def _run_cli(argv: Sequence[str]) -> Tuple[int, str]:
+    """跑一次**真入口** `main(argv)`，把 stdout/stderr 一起收回来。"""
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+        try:
+            rc = main(argv)
+        except SystemExit as exc:  # argparse 的用法错
+            rc = int(exc.code or 2)
+    return rc, buf.getvalue()
+
+
+def _git_init(root: str) -> bool:
+    proc = subprocess.run(
+        ["git", "init", "-q"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return proc.returncode == 0
+
+
+def self_test() -> int:
+    """每条判据一个反例 ＋ 一个蒙眼探针。**反例不变红即判本判定器是装饰。**"""
+    failures: List[str] = []
+    checks = 0
+    cases: List[str] = []
+
+    def expect(name, argv, want_rc, must_contain=None, must_not_contain=None):
+        nonlocal checks
+        checks += 1
+        cases.append(name)
+        rc, out = _run_cli(list(argv))
+        ok = rc == want_rc
+        why = [] if ok else [f"rc={rc}（期望 {want_rc}）"]
+        if must_contain and must_contain not in out:
+            ok = False
+            why.append(f"输出里没有「{must_contain}」")
+        if must_not_contain and must_not_contain in out:
+            ok = False
+            why.append(f"输出里不该有「{must_not_contain}」")
+        if ok:
+            print(f"[OK ] {name} ⇒ rc={rc}（期望 {want_rc}）")
+        else:
+            print(f"[FAIL] {name} ⇒ " + "；".join(why))
+            failures.append(f"{name}：{'；'.join(why)}")
+        return rc, out
+
+    tmp = tempfile.mkdtemp(prefix="scope_check_selftest_")
+    try:
+        if not _git_init(tmp):
+            print("[FAIL] 自证环境不可用：`git init` 跑不起来 ⇒ 本自证**未能校验**（不是通过）")
+            return 2
+        os.makedirs(os.path.join(tmp, "src"), exist_ok=True)
+        os.makedirs(os.path.join(tmp, "agentd"), exist_ok=True)
+        decl = os.path.join(tmp, ".scope-declaration.json")
+        with open(decl, "w", encoding="utf-8") as fh:
+            json.dump({"allowed": ["src/"]}, fh)
+        with open(os.path.join(tmp, "src", "ledger.rs"), "w", encoding="utf-8") as fh:
+            fh.write("// fixture\n")
+        outside = os.path.join(tmp, "agentd", "job.go")
+        scope_argv = ["--repo-root", tmp, "--scope", ".scope-declaration.json"]
+
+        # ① 正控：全部改动都在声明范围内 ⇒ rc=0
+        expect("正控 合规（件全在声明范围内）", scope_argv, 0, must_contain="门禁结论：通过")
+
+        # ② 反例：多一件越界件 ⇒ rc=1
+        with open(outside, "w", encoding="utf-8") as fh:
+            fh.write("package main\n")
+        expect("反例 越界件", scope_argv, 1, must_contain="[越界] agentd/job.go")
+
+        # ⑨ 蒙眼探针：把 evaluate 弄瞎 ⇒ ②必须**不再** rc=1
+        real_evaluate = globals()["evaluate"]
+
+        def _blind(changed, allowed):
+            return ScopeResult(changed=list(changed), allowed=list(allowed))
+
+        globals()["evaluate"] = _blind
+        try:
+            checks += 1
+            cases.append("蒙眼探针")
+            rc_blind, _ = _run_cli(scope_argv)
+            if rc_blind == 1:
+                print("[FAIL] 蒙眼探针 ⇒ 判定器蒙眼后越界反例**仍然** rc=1 —— 那条红不是判定器给的")
+                failures.append("蒙眼探针：越界反例的红不来自 evaluate（自证是装饰）")
+            else:
+                print(f"[OK ] 蒙眼探针 ⇒ evaluate 蒙眼后不再 rc=1（rc={rc_blind}）⇒ 反例确由判定器产生")
+        finally:
+            globals()["evaluate"] = real_evaluate
+        os.remove(outside)
+
+        # ③ 反例：未声明任何范围 ⇒ rc=2（fail-closed，原为 rc=0）
+        expect(
+            "反例 未声明（裸跑）",
+            ["--repo-root", tmp],
+            2,
+            must_contain="未能校验",
+            must_not_contain="门禁结论：通过",
+        )
+
+        # ④ 反例：点了 --scope 而文件不在盘上 ⇒ rc=2（原只打 [WARN] 后继续）
+        #    ★ 故意**同时给 `--allow src/`**：这样只有"声明文件缺失"这一条判据能产生 rc=2，
+        #      该分支被回退成"WARN 后继续"时，本反例会退回 rc=0（那条判据因此**被测住**）。
+        expect(
+            "反例 声明文件缺失（同时给了 --allow）",
+            ["--repo-root", tmp, "--scope", ".no-such-decl.json", "--allow", "src/"],
+            2,
+            must_contain="未能校验",
+        )
+
+        # ⑤ 反例：声明在、但 allowed 为空数组 ⇒ rc=2（"空声明"＝没声明）
+        with open(decl, "w", encoding="utf-8") as fh:
+            json.dump({"allowed": []}, fh)
+        expect("反例 声明为空数组", scope_argv, 2, must_contain="未能校验")
+
+        # ⑥ 反例：声明在、但 JSON 坏 ⇒ rc=1（配置错误 ⇒ 阻断；不许降级成跳过）
+        with open(decl, "w", encoding="utf-8") as fh:
+            fh.write("{ this is not json ")
+        expect("反例 声明坏 JSON", scope_argv, 1, must_contain="无法解析")
+
+        # ⑦ 反例：仓根不存在 ⇒ rc=2（原实现抛 NotADirectoryError 崩栈）
+        expect(
+            "反例 仓根不存在",
+            ["--repo-root", os.path.join(tmp, "no-such-dir"), "--allow", "src/"],
+            2,
+            must_contain="未能校验",
+        )
+
+        # ⑧ 反例：git 调用抛错（模拟 git 不可用）⇒ rc=2
+        with open(decl, "w", encoding="utf-8") as fh:
+            json.dump({"allowed": ["src/"]}, fh)
+        real_find = globals()["find_toplevel"]
+
+        def _boom(_root):
+            raise RuntimeError("模拟：git 不可用")
+
+        globals()["find_toplevel"] = _boom
+        try:
+            expect("反例 git 不可用", scope_argv, 2, must_contain="未能校验")
+        finally:
+            globals()["find_toplevel"] = real_find
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    print()
+    if failures:
+        print("自证结论：**不通过** —— %d 项（共 %d 条）：" % (len(failures), checks))
+        for x in failures:
+            print("  [FAIL] " + x)
+        print("（一个从不失败的检查不是检查，是装饰）")
+        return 1
+    print(
+        "自证结论：通过 —— %d 条（正控 1 ＋ 反例 7 ＋ 蒙眼探针 1）："
+        "每条判据都有会红的反例，且越界那条的红确由判定器产生。" % checks
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     make_console_encoding_safe()
 
@@ -454,7 +641,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="子项目根目录（声明与允许范围都相对它；默认当前目录）",
     )
     parser.add_argument("--demo", action="store_true", help="演示模式，不调用 git")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="自证模式：每条判据各造一个会红的反例（含「判定器蒙眼」探针）",
+    )
     args = parser.parse_args(argv)
+
+    if args.self_test:
+        return self_test()
 
     if args.demo:
         return demo()
@@ -465,43 +660,63 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.scope:
         scope_path = os.path.join(repo_root, args.scope)
         if not os.path.isfile(scope_path):
-            print(f"[WARN] 范围声明文件不存在：{scope_path}", file=sys.stderr)
-        else:
-            try:
-                allowed.extend(load_scope_declaration(scope_path))
-            except (json.JSONDecodeError, ValueError, OSError) as exc:
-                # 声明文件存在但读不了 —— 这是**配置错误**，不是"没有声明"。
-                # 必须报错退出，不能静默降级为"跳过校验"：
-                # 否则一个写坏的声明文件就等于把门禁关掉了。
-                print(
-                    f"[ERROR] 范围声明文件无法解析：{scope_path}\n"
-                    f"        原因：{exc}\n"
-                    "        该文件必须是合法 JSON（对象含 allowed 字段，或直接是数组）。\n"
-                    "        ⚠️ 注意：JSON **不支持注释**。说明性文字请写在 "
-                    "docs/04-配置与版本/配置管理与版本化.md，不要写进本文件。\n"
-                    "        处置：修正该文件后重跑；不得为了绕过而删掉 --scope。",
-                    file=sys.stderr,
-                )
-                return 1
+            # ★ fail-closed（2026-10-08，C-04）：调用方**点名了**宣言文件而它不在盘上
+            #   ⇒ 本次校验**不完整** ⇒ rc=2「未能校验」。
+            #   原实现只打一条 [WARN] 就继续（有 --allow 时照跑、没有时一路 rc=0）
+            #   ⇒ "声明读不到"被折算成"没有越界"，正是本仓禁的那一类。
+            print(
+                f"[ERROR] 范围声明文件不存在：{scope_path}\n"
+                "        ⇒ **未能校验**（rc=2）——声明读不到 ≠ 没有越界。\n"
+                "        处置：修正 `--scope` 的路径后重跑；不得为了绕过而删掉 `--scope`。",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            allowed.extend(load_scope_declaration(scope_path))
+        except (json.JSONDecodeError, ValueError, OSError) as exc:
+            # 声明文件存在但读不了 —— 这是**配置错误**，不是"没有声明"。
+            # 必须报错退出，不能静默降级为"跳过校验"：
+            # 否则一个写坏的声明文件就等于把门禁关掉了。
+            print(
+                f"[ERROR] 范围声明文件无法解析：{scope_path}\n"
+                f"        原因：{exc}\n"
+                "        该文件必须是合法 JSON（对象含 allowed 字段，或直接是数组）。\n"
+                "        ⚠️ 注意：JSON **不支持注释**。说明性文字请写在 "
+                "ninedim/01-意图环/03-设计/设计-落位契约.md 所指的落点，不要写进本文件。\n"
+                "        处置：修正该文件后重跑；不得为了绕过而删掉 --scope。",
+                file=sys.stderr,
+            )
+            return 1
 
     if not allowed:
+        # ★ fail-closed（2026-10-08，C-04 后半）：**缺声明 ⇒ rc=2（未能校验）**。
+        #   原实现打两条 [WARN] 后 `return 0` —— "没有声明"被读成"没有越界"。
+        #   仓根 `.scope-declaration.json` 明明存在，而裸跑却静默放行，等于把门禁关掉。
         print(
-            "[WARN] 未声明任何允许范围（--allow / --scope），跳过范围校验。",
+            "[ERROR] 未声明任何允许范围（--allow / --scope）⇒ **未能校验**（rc=2）。",
             file=sys.stderr,
         )
         print(
-            "       建议在 PR 中填写变更范围声明，否则无法判断改动是否越界。",
+            "        ★ 「没有声明」不等于「没有越界」：缺声明时本门禁**不给通过**。",
             file=sys.stderr,
         )
-        return 0
+        print(
+            "        处置：填变更范围声明（CI 用的就是 "
+            "`--scope .scope-declaration.json`），不要靠删参数绕过。",
+            file=sys.stderr,
+        )
+        return 2
 
     try:
         toplevel = find_toplevel(repo_root)
         prefix = project_prefix(toplevel, repo_root)
         changed, elsewhere = git_changed_files(args.base, toplevel, prefix)
-    except RuntimeError as exc:
-        print(f"[WARN] 无法执行 git 变更检测：{exc}", file=sys.stderr)
-        print("       环境不可用，本项门禁跳过（不阻断流程）。", file=sys.stderr)
+    except (RuntimeError, OSError) as exc:
+        # ★ OSError 一并接住：`--repo-root` 指向不存在的目录时，`subprocess.run(cwd=…)`
+        #   抛的是 `NotADirectoryError`（它**不是** RuntimeError）⇒ 原实现直接崩栈，
+        #   既没结论串、也说不清是"未能校验"。现在统一折成 rc=2。
+        print(f"[ERROR] 无法定位仓库根／执行 git 变更检测：{exc}", file=sys.stderr)
+        print("        ⇒ **未能校验**（rc=2）—— 环境不可用 ≠ 通过。", file=sys.stderr)
         return 2
 
     # 把「共同管辖」的辖区外文件拉回管辖（仓库根相对路径，见 JOINT_JURISDICTION）

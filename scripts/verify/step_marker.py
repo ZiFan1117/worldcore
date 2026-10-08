@@ -15,12 +15,12 @@ r"""步级标记渲染（**只给门禁脚本用**：把一步的结局渲染成
 ★★ 三档**不许混**：`⏭`＝**没跑**（未校验）／`⚠️`＝**跑了、判了、如实红**（登记型）／`✅`＝**通过**。
 
 用法（`check.sh` 用）：
-  python3 tools/step_marker.py marker PASS     # -> ✅
-  python3 tools/step_marker.py marker SKIP     # -> ⏭
-  python3 tools/step_marker.py marker FAIL     # -> ❌
-  python3 tools/step_marker.py marker REG      # -> ⚠️（**登记型红**；★ 绝不出 ✅）
-  python3 tools/step_marker.py --self-test     # 自证：反例逐条，缺一条即红
-  python3 tools/step_marker.py --self-test --break-markers   # 把逻辑短路成"恒 ✅" ⇒ 自证必红
+  python3 scripts/verify/step_marker.py marker PASS     # -> ✅
+  python3 scripts/verify/step_marker.py marker SKIP     # -> ⏭
+  python3 scripts/verify/step_marker.py marker FAIL     # -> ❌
+  python3 scripts/verify/step_marker.py marker REG      # -> ⚠️（**登记型红**；★ 绝不出 ✅）
+  python3 scripts/verify/step_marker.py --self-test     # 自证：反例逐条，缺一条即红
+  python3 scripts/verify/step_marker.py --self-test --break-markers   # 把逻辑短路成"恒 ✅" ⇒ 自证必红
 退出码：0 = 正常；1 = 自证失败（含不变量被短路）；2 = 用法错。
 """
 import sys

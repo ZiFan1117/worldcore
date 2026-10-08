@@ -37,11 +37,11 @@ NotifyAccess=main
 # ★★★ **命门是两个字符 `+`**：`ExecStartPre` 默认跑在【已降权】的服务身份下 ——
 #   沙箱同形装置实测：**去掉 `+` ⇒ `chown` 改不动、而且被后一趟递归 chown 静默盖掉**（**服务仍报 success**）。
 #   `+` ⇒ 以完全权限跑 ⇒ ①改得动 ②落在最后。
-#   ★ 判据：`tools/chown_plus_guard.py`（P-01 盯这个 `+`、P-02/P-03 盯"仓内 ↔ 盘上不许漂移"）。
+#   ★ 判据：`scripts/verify/chown_plus_guard.py`（P-01 盯这个 `+`、P-02/P-03 盯"仓内 ↔ 盘上不许漂移"）。
 # ★★ 2026-10-05 同日再补一条：`dsh` 口（`world://agent/dsh`，uid 962）走**[同一个机制]** ——
 #   口建在同一个 `RuntimeDirectory=` 里 ⇒ 同样被递归 chown 盖成 `User=` ⇒ 同样要用 `+chown` 在**递归之后**改回来。
 #   两条**各自点名一个具体的口**（不是目录）；★ 少一条 ⇒ 那个口的属主静默走回 965，
-#   而 `tools/socket_uid_guard.py` **会在下次读盘时红**（盘上 uid ≢ 法律那条 uid）。
+#   而 `scripts/verify/socket_uid_guard.py` **会在下次读盘时红**（盘上 uid ≢ 法律那条 uid）。
 ExecStartPre=+/bin/chown omarchy:omarchy /run/world-core/omarchy.sock
 ExecStartPre=+/bin/chown dsh:dsh /run/world-core/dsh.sock
 ExecStart=/usr/bin/world-core --ontology /etc/world-core/ontology.json --ledger /var/lib/world-core/ledger.jsonl --policy /etc/world-core/policy.json --channel /etc/world-core/channel.json --cap-dir /etc/world-core/cap.d --owner-uid 965 serve
