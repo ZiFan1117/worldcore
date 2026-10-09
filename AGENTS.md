@@ -4,7 +4,7 @@
 
 1. 先读仓根 `README.md`（东西在哪）与 `ninedim/01-意图环/03-设计/设计-落位契约.md`（东西该住哪）。
 2. 一条规矩的权威文本在 **NineDim 标准**里；**这里只引不复述**（标准的《工程域的结构与命名》见 `ninedim/_索引-工程域结构与命名.md`）。
-3. 改任何东西之前，先跑 `bash check.sh` 拿到基线读数。⚠️ **本机（Windows）无 `cargo`、无 `bash`** ⇒ 这一步只能在 Linux／VM 侧跑；宿主侧能跑的是 `scripts/verify/*.py` 里那几个纯 Python 判据（本机 `python3` 是 WindowsApps 别名，**rc=9009**，要用 `D:\package\venv\Scripts\python.exe`）。
+3. 改任何东西之前，先跑 `bash check.sh` 拿到基线读数。⚠️ **本机（Windows）无 `cargo`、无 `bash`** ⇒ 这一步只能在 Linux／VM 侧跑；宿主侧能跑的是 `scripts/verify/*.py` 里那几个纯 Python 判据（本机 `python3` 是 WindowsApps 别名，**rc=9009**）；**解释器用 `python`**（现取＝`D:\package\Python312\python.exe`，3.12.10，rc=0），或先 `Get-Command python` **解析**再调；**解析不到就显式报错**（不许静默跳过）。★ `D:\package\venv\Scripts\python.exe` **已废**（`pyvenv.cfg` 指向不存在的 uv 解释器，直调 rc=103）。
 
 ## 硬约束（本仓）
 

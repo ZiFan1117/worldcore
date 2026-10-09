@@ -24,17 +24,17 @@
 
   "families": {
     "change": {
-      "_comment": "变更：世界状态发生了变化",
+      "_comment": "变更：世界状态发生了变化。★ **未实现**（判词 · 形式本体 Y-2）：本条名字取的是它所关于的那一过程（occurrent），而家族在实现上是账本里的一行记录（信息内容实体）；本体的『记录／信息内容』这一类**今天不存在**（`_objects` 六类里无 event／record），『这条记录**关于**哪件事』在声明面上**无落点**。真修＝往 `_objects` 加『记录／信息内容』一类（`_` 键）⇒ **零身份代价**（`src/ontology_definition/mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。本批只写提案，见 `ninedim/06-变更/2026-10-08-ontology-decl-fix/提案.md`。",
       "required": ["subject", "path", "before", "after"],
       "optional": []
     },
     "act": {
-      "_comment": "动作：请求 → 结果（结果本身也是事件）",
+      "_comment": "动作：请求 → 结果（结果本身也是事件）。★ **未实现**（同 Y-2）：名字取的是那一过程，实现上是账本行（无『记录』类）；且这条『请求→结果』因果边**只有 `trace`**，而 `trace` **不做引用完整性校验**（指向不存在的 `id` 不导致拒绝；`ledger-integrity.spec.md` 的 v1 口径）。",
       "required": ["capability", "verb", "request_id"],
       "optional": ["params"]
     },
     "notice": {
-      "_comment": "通告：发生了什么（完工铃等）",
+      "_comment": "通告：发生了什么（完工铃等）。★ **未实现**（判词 · 形式本体 Y-2 ＋ 安全与授权 题 2 串 B）：`payload` 的形状本体**不声明**（见 `_subscribe._declared_gaps`）；且 `notice` 家族过闸时**不查能力许可**（只判『非 `gate.` 前缀 ＋ 在册』）⇒ 任一在册主体可伪造 `job.completed`，而读法不认作者。",
       "required": ["type", "subject"],
       "optional": ["payload"]
     }
@@ -58,6 +58,7 @@
   "_objects": {
     "_element": "对象（Object）—— 类型 → 属性（值类型参与校验）",
     "_comment": "『世界里存在什么』。字段值是**机器可读的类型声明**（`bool`／`string`／`integer`／`number`／`array`／`object`／`ref(<类型>)`／`enum(a,b,…)`）；**不是**这几种写法的自由度说明文字一律**放行**（本体没声明类型口径，判据不替它发明）。",
+    "_declared_gaps": "★ **未实现／未接入**（本批只登记，非 `_` 键一字未动；判词 · 形式本体 Y-1／Y-2／判-1.5）：① **缺主体类型**——`world://user`／`world://agent/dsh` 已按能力拿到许可（`_permissions.grants`），而 `user`／`agent` 两类**不在这六类里**；判据 `UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。② **缺『记录／信息内容』这一类**——`change`／`act`／`notice` 在实现上是账本行（见 `families.*._comment`）。③ **缺 agent／user／世界级资源对象** ⇒ 『谁参与了这次过程』问不出（`envelope.actor` 只是字符串）。④ `concepts`（非 `_` 键）是**冻结映射**：它缺 `instance_mode`／`_nested`，权威读法是本节。⇒ 真修①②＝往 `_objects` 加类型（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
     "notice": {
       "fields": { "muted": "bool", "retract_seq": "integer" },
       "instance_mode": "many"
@@ -87,6 +88,7 @@
   "_links": {
     "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
     "_comment": "『哪两类对象之间允许存在什么连接』。这是**一等声明**，不是外键。两端的类型必须已在 `_objects` 里声明，否则 `ext.world.Ontology.UndeclaredRelationEndpoint`。★ **关系是【世界里的一条记录】，不是两个应用之间的连线** —— 应用之间永远没有直连；两个应用「有关系」这件事，是世界从它自己的记录里【算】出来的（`C10 投递：「该给谁」由世界算`）。",
+    "_declared_gaps": "★ **未实现／未接入**（判词 · 形式本体 Y-3a／判-2）：① **生产路径零读**——`Ontology::links()` 只有**定义处**（`src/ontology_definition/mod.rs`）与**一处测试调用**（`scripts/test/ontology_elements.rs` 的 `m04`）；世界**不执行**基数与方向性，也**没有**『从 `change` 折出关系实例』这条推断规则 ⇒ 主张『关系实例在账本里』今天**无载体**（把本节整节删空、装载照常通过）。② **时间性关系写成静态声明**——`runs-on`／`speaks-on` 是随时间变的关系，而 `LinkDecl` 四格里**没有**有效区间／起止 `seq` ⇒ 现取读法是**恒真**；BFO 2020 有出路（temporalized relations 分册，本地料 `.refs/bfo-2020/…/bfo-temporalized-relations.owl`），本仓未采用。③ **同词两义**：本节的 `part-of` 与 `_objects.<类型>.part_of`（内嵌标记的父类型名）共用 `part of` 一词；`_links` 那一条改名**不换身份**，内嵌那一格（`_objects.<类型>.part_of`）改名**同样不换身份**——`_objects` 也是 `_` 前缀键、被整枝剔除（`mod.rs:2149-2164`）；两者的代价都只是改代码里的读法，不是身份（只写提案）。",
     "part-of": {
       "from": "notice",
       "to": "job",
@@ -115,7 +117,8 @@
 
   "_interfaces": {
     "_element": "接口·能力（Interface）—— 可读／可配／可调",
-    "_comment": "『这类东西能被怎样对待』。条文落在**能力**上（不是落在具体类型／具体对象上）——授权只在 `_permissions` 里按**能力名**给。",
+    "_comment": "『这类东西能被怎样对待』。条文落在**能力**上（不是落在具体类型／具体对象上）——授权只在 `_permissions` 里按**能力名**给。★ **现取口径**：**真正的写闸是 `policy.json.writes`**（按对象地址前缀），本节只管**能力名**这一路（见 `_permissions._comment`）。",
+    "_declared_gaps": "★ **未实现**（判词 · 形式本体 Y-1／判-1.1）：① **缺「承载者」**——本节的 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in` ⇒ 按形式本体（BFO 的 realizable entity 必须 inhere in 某个 independent continuant），问不出『这块能力长在谁身上』；今天的承载者只活在命名约定 `A.B` 的前缀里（字符串约定，无声明面、无判据）。② **本节的名字按字面不是可实现倾向**，而是**声明文本**（IAO 的指令性信息实体一侧），而许可**已经照着这些名字发出**（`_permissions.grants`）⇒ 法律在**没有承载者的可实现倾向**上发许可证。③ `notice.payload` 的形状**不由本节声明**（见 `_subscribe._declared_gaps`）。④ 本节的 `what` 是**人读散文**，**没有任何判据读它**（过程／仿真判词 §七 改法 1 逐字点名）。真修①＝往本节加 `bearer`（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
     "notice.mute": { "kind": "invoke", "what": "把一条通告静音" },
     "notice.unmute": { "kind": "invoke", "what": "解除静音" },
     "job.start": { "kind": "invoke", "what": "起一个作业" },
@@ -128,8 +131,9 @@
   },
 
   "_actions": {
-    "_element": "动作（Action）",
-    "_comment": "『怎么改』。动作是**唯一**的写入通道。每一条动作必须**引用一个已声明的能力**（`capability` 字段）——引用了不存在的能力 ⇒ `ext.world.Ontology.ActionCapabilityUnknown`。",
+    "_element": "动作（Action）—— ★ 本节的 `reversible` 一律读作「**存在一条补偿路径**」（由调用方**再写一条普通 `change`**），**不是**世界提供撤销／回滚 API（v1 没有回滚 API）。",
+    "_comment": "『怎么改』。动作是**唯一**的写入通道。每一条动作必须**引用一个已声明的能力**（`capability` 字段）——引用了不存在的能力 ⇒ `ext.world.Ontology.ActionCapabilityUnknown`。★ **现取更正**（判词 · 安全与授权 重一／形式本体 判-3.7）：写入通道其实**不止一条**——`change` 直接改字段（其『效果』只由 `after` 表达），`act` 只写『请求→结果』（**不改任何状态格**）；而**撤回**（`change` ＋ `retract_seq`）**不在本节里**，却能取消任意一条已生效的 `change`。⇒ 本句『唯一的写入通道』**不许**被读成『凡写入必过本节』。",
+    "_declared_gaps": "★ **未实现**（判词 · 形式本体 判-1.2／判-3；过程与仿真 §1.3）：① **一行三种范畴**——动作名是 **process type**、`capability` 引用的是**可实现倾向／信息实体**侧、`reversible` 是**道义模态**。② **缺整套过程本体构件**：`pre`／`eff`／`objective`／后置条件／participant／时长**都没有槽位** ⇒ 世界**答不出**『这个动作会做什么』（效果只存在于将来那条 `change` 的 `after` 里；`_functions.entries` 空表）。③ 『请求 → 结果』这条因果边**只有 `trace`**，而 `trace` 不做引用完整性校验。④ **撤回无授权面**（见 `_permissions._declared_gaps`）。⑤ 本节九条与 `_interfaces` 九条**名字一一相同** ⇒ 『动作引用一个已声明的能力』在出厂法律里是**零信息边**。",
     "notice.mute": { "capability": "notice.mute", "reversible": true },
     "notice.unmute": { "capability": "notice.unmute", "reversible": true },
     "job.start": { "capability": "job.start", "reversible": true },
@@ -142,28 +146,30 @@
   },
 
   "_functions": {
-    "_element": "函数（Function）—— **只有入口名**（引用到底层函数）",
+    "_element": "函数（Function）—— **只有入口名**（引用到底层函数）。★ 本节的『函数』**不是** BFO 意义的 `function`（那是一种可实现倾向，长在有物理构造、且为着实现某类过程而被有意设计出来的承载者上）；本节是一串**入口引用**（信息实体侧）——**同名不同物**（判词 · 形式本体 G-4 甲／判-1.3）。",
     "_comment": "『怎么算』。函数**不改本体**——要落地只能被某个动作引用、由该动作执行。本表**只收入口名**：它是一张**引用表**，代码不进本体。",
     "_no_command_literal": "★ 判据：入口表里出现**命令字面量**（带空格、带 `/` 的路径、带引号，或**已登记的宿主包管理器命令名**）⇒ 红（`ext.world.Ontology.FunctionLiteralNotAllowed`）。理由：命令今天硬编码在 Rust 里（`src/carrier/**`），把 `pacman` 这类字面量抄进本体等于让本体长出**第二份**可执行事实。",
     "_registered_host_commands": ["pacman", "apt", "apt-get", "dnf", "yum", "zypper", "apk", "brew", "choco", "winget", "systemctl", "pacman-key"],
+    "_declared_gaps": "★ **未实现**（判词 · 形式本体 判-1.3／过程与仿真 F-2）：出厂 `entries` ＝ **空表** ⇒ 五要素之五**零实例**：『五要素齐』在第五要素上是**名字级通过、节级为空**。`DeadFunctionEntry` 在空集上**永不触发**（它判得对——空集没有死入口——但**不许**被读成『函数面已立』）；九条动作**没有一条**写 `function`，故该判据今天在出厂本体上是**空转**的。",
     "entries": {}
   },
 
   "_permissions": {
     "_element": "许可条文（**不是**能力本身：授权授在**能力**上）",
-    "_comment": "『谁能把某个能力授给谁／从谁收回』。条文并入本体，但**授权对象只能是 `_interfaces` 里已声明的能力**——授在**具体类型**或**具体对象**上 ⇒ 红（`ext.world.Ontology.GrantNotOnCapability`）。",
+    "_comment": "『谁能把某个能力授给谁／从谁收回』。条文并入本体，但**授权对象只能是 `_interfaces` 里已声明的能力**——授在**具体类型**或**具体对象**上 ⇒ 红（`ext.world.Ontology.GrantNotOnCapability`）。★★ **本段不是世界的总闸**（现取口径，判词 · 安全与授权 题 1）：真正决定『谁能改世界』的写闸是 `src/gate/policy.json` 的 `writes`，它**按对象地址前缀**授权（`authorize_write`）；本段的 `grants` **只在 `act` 家族**被判（`src/lib.rs` 的 `check_presence_levels` 读 `scope`），**`change` 与 `notice` 两个家族根本不经过本段**。⇒ 读『授权只授在能力上』这句话时，**不许**把它读成『世界只有这一个授权面』。",
     "_default_closed": "★ 判据：`default` 必须**显式**写 `\"deny\"`。缺 `default` 或写成别的词 ⇒ 红（`ext.world.Ontology.PermissionDefaultOpen`）——默认允许不是安全默认，是法律没写全。",
+    "_declared_gaps": "★ **未实现／未接入**（判词 · 安全与授权；本机**无 cargo** ⇒ 下列是**判词读数，未在真二进制上跑过**）：① **`who` 无读者**——它被装载器解析进 `PermissionDecl.who`，而**没有任何生产消费者读它**（判『许可』只读 `scope`）⇒ 该格**只作条文、无执行体**，写与不写在程序上等价。② **`_grant_via_ledger` 声称的路没有执行体**——`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**（登记型红，接在 `check.sh` 上不阻断全闸）。③ **撤回没有授权面**——`change` ＋ `retract_seq` 能取消任意一条已生效的 `change`，而撤回**不是**本节的能力、不是 `_actions` 的动作，`change` 分支**不读本节、也不查两级**。④ **`notice` 家族不查能力**——只判『非 `gate.` 前缀 ＋ 在册』⇒ 任一在册主体可伪造 `job.completed`。⑤ **『一条 grant ＋ 一次重启』即可放宽一项能力**：全程**无判据会红、无账本事件、无签字要求**；『谁有资格改本段』今天**只有流程答案**（『改本段＝改法律（走评审）』），**没有机器答案**。⑥ `ledger.compact` 的 `scope` ＝ `[\"world://*\"]` 把一项**不可逆**能力授给了**每一个**主体（纵深只剩 `policy.json.irreversible_actors` 一层）。⑦ `who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型在 `_objects` 里不存在**（见 `_objects._declared_gaps`）。⇒ 真修③④要动代码（`src/lib.rs`／`src/agent/**`）；⑤要动流程（判据＋签字要求）；**⑥⑦的声明面修法反而是零身份代价**（`_permissions`／`_objects` 都是 `_` 键）⇒ 本批**只写提案**（法律口径取舍待批）。",
     "default": "deny",
     "grants": {
       "notice.mute": { "who": ["world://user", "world://agent/dsh"], "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"] },
       "notice.unmute": { "who": ["world://agent/dsh"], "scope": ["world://agent/dsh", "world://presence/omarchy"] },
       "ledger.compact": { "who": ["world://user"], "scope": ["world://*"] },
       "presence.report": { "who": ["world://user"], "scope": ["world://presence/pcmanfm", "world://presence/omarchy"] },
-      "_omarchy_note": "★ 新身份 `world://presence/omarchy`（界面自己的口 `/run/world-core/omarchy.sock`）：**只动 `scope`，不动 `who`**。理由可核——`src/lib.rs::check_presence_levels` 判「许可」时逐字读的是 `p.scope`（`gate::pattern_matches(pat, actor)`），**不读 `who`**；而本段自己的口径写着 `who` ＝『谁能把某个能力授给谁／从谁收回』⇒ 把界面写进 `who` 就是**另外给它一份「发许可证」的权力**，本批**不给**。★ 授权只授在**能力**上（`notice.mute`／`notice.unmute`／`presence.report`），**没有一条授在具体对象上**。★ 拿到许可 ≠ 能说话：`world://presence/*` 还要过第①级**申报**（它名下要有格），两级都过才交回门禁。",
-      "_omarchy_scope_why": "为什么这三条：界面的「点一下」是**一条 `act`**（家族 act，能力＝动作名），不是直接改字段；它今天要用的能力就是「静音／解除静音」，另加它自己报在场状态用的 `presence.report`。★ 与本项目既有口径一致：**能力清单不在这里发明**——名字都取自 `policy.json.capabilities` ∩ 本文件 `_interfaces`（两处同集由 `World::open` 逐项核对）。"
+      "_omarchy_note": "★ 新身份 `world://presence/omarchy`（界面自己的口 `/run/world-core/omarchy.sock`）：**只动 `scope`，不动 `who`**。理由可核——`src/lib.rs::check_presence_levels` 判「许可」时逐字读的是 `p.scope`（`gate::pattern_matches(pat, actor)`），**不读 `who`**；而本段自己的口径写着 `who` ＝『谁能把某个能力授给谁／从谁收回』⇒ 把界面写进 `who` 就是**另外给它一份「发许可证」的权力**，本批**不给**。★ **更正（判词 · 安全与授权 题 1）**：这条论证的**前提今天是假的**——`who` 被装载器读进结构体，而**没有任何生产读者**（判『许可』只读 `scope`）⇒ 写与不写在程序上**完全等价**，『把界面写进 `who` 等于给它发许可证的权力』**不成立**（结论无害，理由是空的）。**现取事实**：本批只动 `scope`，因为 `scope` 才是生效许可；`who` 今天**只作条文、无执行体**（见 `_declared_gaps`）。★ 授权只授在**能力**上（`notice.mute`／`notice.unmute`／`presence.report`），**没有一条授在具体对象上**。★ 拿到许可 ≠ 能说话：`world://presence/*` 还要过第①级**申报**（它名下要有格），两级都过才交回门禁。",
+      "_omarchy_scope_why": "为什么这三条：界面的「点一下」是**一条 `act`**（家族 act，能力＝动作名），不是直接改字段；它今天要用的能力就是「静音／解除静音」，另加它自己报在场状态用的 `presence.report`。★ 与本项目既有口径一致：**能力清单不在这里发明**——名字都取自 `policy.json.capabilities` ∩ 本文件 `_interfaces`。★ **现取更正**（判词 · 安全与授权 题 4 附带）：『两处同集』**在运行期只兑现一半**——`World::open` 只做**单向**（policy ⊆ ontology）；**反向**由 Python 判据 `scripts/verify/cross_contract.py` 的 C-03 承担，**不是拒启**。"
     },
-    "_presence_report_note": "★ 在场者两级分开（顺序是死的）：①**申报**给的是“依据”（该在场者有没有在世界里申报过——判据＝折叠出的状态里这个主体有没有格）；②**授权**给的是“许可”（`grants.<能力>.scope` 命中该主体；`default: deny`）。**二者不许合并**——一旦合并，等于在场者自己给自己发许可证，世界就不再管着它。报得再全，也不自动拿到任何能力；开放只由许可决定。",
-    "_grant_via_ledger": "授予／收回是**事实**，走账本事件（`change` 写 `world://user` 的能力格 → 门禁 `authorize_write` 裁决 → 落笔）。本段只是**条文的声明面**：谁**有资格**授予、授给谁。改本段＝改法律（走评审）；改一次授权＝落一条事件。"
+    "_presence_report_note": "★ 在场者两级分开（顺序是死的）：①**申报**给的是“依据”（该在场者有没有在世界里申报过——判据＝折叠出的状态里这个主体有没有格）；②**授权**给的是“许可”（`grants.<能力>.scope` 命中该主体；`default: deny`）。**二者不许合并**——一旦合并，等于在场者自己给自己发许可证，世界就不再管着它。报得再全，也不自动拿到任何能力；开放只由许可决定。★ **现取更正（射程）**（判词 · 安全与授权 题 4）：这两级**只在 `act` 分支成立**（申报在前、授权在后）；对 `change` 与 `notice` 两个家族**不成立**——同一主体改走那两个家族即可**绕过**本节的能力许可。「两级都过才交回门禁」这句**只对 `act` 为真**。",
+    "_grant_via_ledger": "★ **设计已定·未落地**（判词 · 安全与授权 改法③ 乙）：下面这条路**今天在程序里不存在**——`src/` 里**没有**读『能力格』的代码（`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**）；**今天的授权判定读本段 `grants.<能力>.scope`，不读账本**。⇒ 在落地前，**不许**把下句读成『授予／收回已经在走账本事件』。**设计口径（保留供对照）**：授予／收回是**事实**，走账本事件（`change` 写 `world://user` 的能力格 → 门禁 `authorize_write` 裁决 → 落笔）。本段只是**条文的声明面**：谁**有资格**授予、授给谁。改本段＝改法律（走评审）；改一次授权＝落一条事件（**这句是设计口径，未落地**）。★ 处置两条（判词③）：甲＝落地（让 G-02 有真命中）／乙＝本句改标『设计已定·未落地』。⇒ 本席取**如实登记、不单方面改法律口径**，故 G-02 **仍红**（如实），处置权交评审与法律主人。"
   },
 
   "_subscribe": {
@@ -181,16 +187,23 @@
         "_why": "旧数被当成现状，比没有数更坏——那是把『曾经是什么』冒充『现在是什么』。"
       }
     },
-    "_status": "本键**只声明形状**；执行体（`subscribe` 命令）另行落地。按本仓口径，这属「**先声明、后使用**」——`usage` 会如实把它报成『已声明、尚未被使用』，**只报告、绝不红**。"
+    "_status": "本键**只声明形状**；执行体（`subscribe` 命令）另行落地。按本仓口径，这属「**先声明、后使用**」——`usage` 会如实把它报成『已声明、尚未被使用』，**只报告、绝不红**。",
+    "_declared_gaps": "★ **未实现／未接入**（判词 · 过程与仿真 §4）：① 形状**缺三格**——位点**闭开**（`since_seq` 的『从第几条**起**』两读；`m18` 已把实现钉成**左闭**，故按现形状写会**重复消费**）、**去重键**（世界不去重，`delivery.rs` 自述）、是否按 `to`／`kind` **收窄**（今天只有 `--since`）。★ **本批只登记、不补声明**：补了却没有执行体就是『**声明了没执行**』，本仓口径判它比没声明更坏 ⇒ 三格留待与执行体同批落。② `notice.payload` 的形状**本体今天不声明**（`_section_map.sections.订阅形状._why_half` 的逐字口径；`payload` 只计数、不折叠）。③ 形状里**没有 `to` 这一维**（投递面有实现与断言，形状不声明它）。④ `_status` 说的『`usage` 报成已声明、尚未被使用』是**现取事实**，不是保证。"
   },
 
   "_pending_tables": {
-    "_element": "本批**只登记、不实现**的四张必配表（防止范围爆炸）",
+    "_element": "本批**只登记、不实现**的四张必配表（防止范围爆炸）。★ **下面 `_declared_gaps` 不是那四张表**——那是本批按三份判词（形式本体 G-1／Y-1／Y-2）追加的**声明面缺口登记**，同样『只登记、不实现』；四张必配表本身**未动**。",
     "_comment": "这四张表今天**不存在**（本体里没有它们的节，代码里也没有读它们的路径）。本批把它们的缺口**如实写在这里**，不落实现、不假装已定。",
     "value_types_and_units": "**值的类型与单位**：`_objects` 的字段值今天只给**类型词**（`bool`／`enum(…)`），**没有单位**（秒／字节／档位）与量纲。缺口：`at` 声明 `integer  # Unix 秒`，那个『秒』只活在注释里，判据读不到它。",
     "clock_and_timezone": "**时钟与时区口径**：`at` 是 Unix 秒（UTC 绝对时刻）——这条只在 `envelope.fields` 的说明文字里，**没有**『同一账本在任何时区折叠出同一状态』的判据（今天靠『不读时钟』这条实现事实成立，未立判据）。",
     "identity_and_naming": "**主键·标识与命名规则**：实例名的**唯一性**今天无人判（`world://notice/a` 写两次是两次普通写入）；标识与命名的字符集／长度／大小写口径**没有**任何声明面。",
-    "version_migration": "**版本迁移面**：`world` 是词表版本（升版即拒启，已实现）；但**事件层的字段含义演进（upcasting）落点未定**——`WC-SRS-001` 的 `REQ-F-027` 只落『加法演进那一层』，`WC-FSR-001` 的 `SL-06`／`CON-04` 记着**待人裁**（责任人＝项目负责人，时点＝S4 中段）。本批不选路。"
+    "version_migration": "**版本迁移面**：`world` 是词表版本（升版即拒启，已实现）；但**事件层的字段含义演进（upcasting）落点未定**——`WC-SRS-001` 的 `REQ-F-027` 只落『加法演进那一层』，`WC-FSR-001` 的 `SL-06`／`CON-04` 记着**待人裁**（责任人＝项目负责人，时点＝S4 中段）。本批不选路。",
+    "_declared_gaps": {
+      "_element": "★ 本批（`2026-10-08-ontology-decl-fix`）按判词**追加**的缺口登记（**零词表身份代价**：全挂在 `_` 键下）。四条**都不实现**；**修它们落在 `_` 键下时零身份代价**——真代价只有一处：动代码（`src/**`）；★ 会换身份的是动**非 `_` 顶层键**（现取 **5 类**：`['concepts','envelope','families','flags','world']`，不是 4 类）——本条修法**不碰它们**。",
+      "capability_bearer": "**能力的承载者**（判词 · 形式本体 G-1／Y-1）：`_interfaces` 的能力**没有** bearer／domain 声明面，`_links` 里**没有** `bears` ⇒ 『这块能力长在谁身上』问不出。**未实现**。真修＝`_interfaces.<能力>` 加 `bearer: ref(<类型>)` ＋ 新增拒启判据 `CapabilityBearerUndeclared`。★ **身份代价＝零**（现取复算，2026-10-09；`D:\\package\\Python312\\python.exe`）：`_interfaces` 与 `_objects` **都是 `_` 前缀键**，被 `strip_comments` **整枝剔除**（`src/ontology_definition/mod.rs:2149-2164` 逐字 `if k.starts_with('_') { continue; }`）；且新类型只在一处出现时 `check_frozen_mirror` 射程表第 5 行逐字「该类型只在一处出现 ⇒ **不判**（纯扩展的常态）」（`mod.rs:637`；代码 `:647-650` 逐字「该类型在 `concepts` 里没有 ⇒ 纯扩展，不判（射程表第 5 行）」）。⇒ 只动 `_` 键的变更**不换词表身份**：BASE＝`fnv1a64:6a96abfa9a969462`（1265 字节）／只动 `_` 键后 **SAME**（这两个读数**可直接引**；其可比性依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**，不是 4 类）；本条修法**不碰它们**。★ **身份读数纪律**：凡写身份读数必须同批写死『改了哪一格』的逐字变更；本席早期流传的『同时改 `concepts` 变体＝`fnv1a64:43583bcc3c45999b`（1302 字节）』与专家席另一口径（`e82b408cf86c3d1a`／1289 字节）**不同 ⇒ 口径未定、不可比**，本件**不再作为读数引用**。⇒ 本批仍**只写提案**，但理由是『取舍要人裁 ＋ 拒启判据要改 `mod.rs`』，**不是**『修不起』。",
+      "permission_subject_types": "**许可主体的类型**（判词 · 形式本体 G-1／判-1.5）：`_permissions.grants.*.who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型**在 `_objects` 里**没有声明**；`UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。**未实现**。真修＝`_objects` 加主体类型（如 `party`）＋ 新增拒启判据 `PermissionSubjectUndeclared`。★ **身份代价＝零**（现取复算）：`_objects` 是 `_` 前缀键 ⇒ 整枝剔除（`mod.rs:2149-2164`）；新类型只在一处出现 ⇒ `check_frozen_mirror` **不判**（`:637`）⇒ 加类型 **不换 hash**（BASE 同值；此读数依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。★ 早期流传的『改 `concepts` 变体＝`43583bcc3c45999b`』**口径未定、不可比**（专家席另一口径得 `e82b408cf86c3d1a`），**不作读数引用**。",
+      "record_and_occurrent": "**记录／信息内容这一类**（判词 · 形式本体 Y-2）：`change`／`act`／`notice` 在实现上是账本里的行（IAO 意义上的信息内容实体），法律里**没有**它们的类型，『这条记录**关于**哪件事』**无声明面**。**未实现**。真修＝在 `_objects` 加『记录／信息内容』一类（必要时在 `_links` 加 `is-about` 一条）——两者**都是 `_` 键** ⇒ **零身份代价**（`mod.rs:2149-2164`／`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。"
+    }
   },
 
   "_meta_layers": {
@@ -200,8 +213,8 @@
   },
 
   "_section_map": {
-    "_comment": "★ **十二节的归属表**（写死在这里，供人读、也供判据读）。**判据**：本表声明的 `_` 分节键集合 == 文件里**实际存在**的 `_` 分节键集合（实际＝全部顶层 `_` 键 − `_not_domain_sections` 里列名的键）⇒ 多一处、少一处都拒启（`ext.world.Ontology.SectionMapDrift`）。⇒ **新加一个 `_` 分节却不在本表列名，装不起来。**",
-    "_why": "为什么要把「谁挂在哪」写死：『其余一切挂进五要素』这句话**不成立**（评审甲 2026-09-28 逐节试挂后判定）——十二节里只有 4 节**整节**挂得进、4 节**半挂**、4 节**挂不进**。不写死就会出现「某节到底算不算某个要素的一部分」各说各话，而**没有任何东西会因此变红**。★ **不许**为了把某节塞进某个要素而重命名它或合并它的语义：`attach: \"out\"` 的节**如实**留在元层／接入层。",
+    "_comment": "★ **十二节的归属表**（写死在这里，供人读、也供判据读）。**判据**：本表声明的 `_` 分节键集合 == 文件里**实际存在**的 `_` 分节键集合（实际＝全部顶层 `_` 键 − `_not_domain_sections` 里列名的键）⇒ 多一处、少一处都拒启（`ext.world.Ontology.SectionMapDrift`）。⇒ **新加一个 `_` 分节却不在本表列名，装不起来。** ★ **「十二节」的读法**（判词 · 形式本体 判-4.4 附）：这里的『十二节』是**散文话题数**，**不是声明面数**——判据判的是 `sections` 里 `keys` 声明到的 **8 个 `_` 分节键**（3 节共用 1 键）⇒ **不许**把『十二节』读成『十二个声明面』。",
+    "_why": "为什么要把「谁挂在哪」写死：『其余一切挂进五要素』这句话**不成立**（评审甲 2026-09-28 逐节试挂后判定）——十二节里只有 4 节**整节**挂得进、4 节**半挂**、4 节**挂不进**。不写死就会出现「某节到底算不算某个要素的一部分」各说各话，而**没有任何东西会因此变红**。★ **不许**为了把某节塞进某个要素而重命名它或合并它的语义：`attach: \"out\"` 的节**如实**留在元层／接入层。★ **本批如实登记三处缺口**（判词 · 形式本体 判-4.2／4.3／4.4）：① **`home` 一词两义**——它同时回答『领域归属』（世界图景里的哪一类）与『文档归属』（声明住在哪一节），而两种归属对这个格**都真**（`_meta_layers` 就在这份法律里）⇒ 应然做法是**拆成 `domain_home`（领域）＋ `doc_locator`（文档）两格**（都在 `_` 键下、**零身份代价**），或在本字段逐字写明说的是哪一种；本批**登记、不拆**（拆格要同批改装载器判据 1，见提案）。② **`out` 档的归属不是判据**——`keys: []` 的 3 节（订阅形状／错误码与结局／旁道与收据与缓存）**不贡献**集合相等，只要 `home` 还是封闭表里的词，**改坏不会红** ⇒ 这 3 节的归属今天**不是判据、是注释**。③ **一处自相矛盾未解**——见 `sections.订阅形状._conflict`（`home` 写 `动作（Action）`，而 `_subscribe._element` 自称『接口·能力面』，且 `_subscribe` 又被『接口·能力』的 `keys` 认领）——**双向都不红**。",
     "_attach_kinds": {
       "full": "整节属于该要素",
       "half": "半挂：有一半属于该要素，另一半不属（理由写在 `_why_half`）",
@@ -222,7 +235,7 @@
       "_source": "出处说明（一行）",
       "_five_elements": "五要素的总口径表（`_` 键口径、读序、为什么 `concepts` 冻结）",
       "_section_map": "本表自己",
-      "_pending_tables": "四张必配表的**登记**（缺口清单，不是分节）"
+      "_pending_tables": "四张必配表的**登记**（缺口清单，不是分节）＋ 本批按三份判词追加的 `_declared_gaps`（同样只登记、不实现）"
     },
     "sections": {
       "类型（对象）": {
@@ -266,7 +279,9 @@
         "attach": "half",
         "_why_half": "**半挂**：`notice` 家族的可选格 `payload` 的形状（订阅什么、回什么）由**动作**的产物决定，但形状本身不是动作的声明面（本体今天不声明它）。",
         "keys": [],
-        "_where": "今天**本体里没有独立分节**：形状活在 `WC-IRS-001` 的接口面与 `src/common/delivery.rs` 的投递语义里。"
+        "_where": "今天**本体里没有独立分节**：形状活在 `WC-IRS-001` 的接口面与 `src/common/delivery.rs` 的投递语义里。",
+        "_conflict": "★ **本批如实登记的矛盾**（判词 · 形式本体 判-4.4／Y-3d）：本节的 `home` ＝ `动作（Action）`，而 `_subscribe._element` 逐字自称『订阅形状 —— 「订户可以要什么」（**接口·能力面**，不是新的领域分节）』；同时『接口·能力』节的 `keys` 已收录 `_subscribe` ⇒ **同一个 `_` 键被两节认领，两节给它两个 `home`**。判据**抓不到**：本节 `keys` 是空数组（不贡献集合相等），`_subscribe` 由『接口·能力』覆盖 ⇒ `SectionMapDrift` 绿。★ **双向都不红**：本节 `home` 保持或改成任何封闭表里的词 ⇒ 绿；改成与 `_subscribe._element` 一致的 `接口·能力（Interface）` ⇒ 也绿。",
+        "_should_be": "**应然归属＝`接口·能力（Interface）`**（理由三条，可核）：① 载体 `_subscribe._element` 自己写明它是『接口·能力面，不是新的领域分节』——归属表的 `home` 与它所引用载体的自称口径**必须一致**；② 本节 `_why_half` 讲的是 `payload` 的形状与『订户可以要什么』，那是**能力面**的提问方式，不是动作的产物类型；③ 若仍留在 `动作（Action）`，同一 `_` 键在两节间的归属**永远无法判**（见 `_conflict`）。★ 落法（判词 G-2，**本批未做**）：改 `home` ＋ 把本节的 `keys` 填成 `_subscribe` ＋ 把 `_subscribe` 从『接口·能力』的 `keys` 移出 ＋ **新增拒启判据 `SectionHomeConflict`**（须改 `mod.rs`，不在本席写域）——**四条同批落**才成立：只改前三条会取掉唯一的机器抓手（`_subscribe` 被两节认领这件事反而变得不可见）。"
       },
       "错误码与结局": {
         "home": "动作（Action）",

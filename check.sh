@@ -589,6 +589,16 @@ else
 fi
 
 echo
+step "⑦n 模块化尺寸（面①代码／面②文档／面③结构／面④判据脚本；超硬顶 250 行即红）"
+# 为什么要有它：作者点名"只做了原子化，没做模块化——六七百行谁看得懂；应该是几十行"。
+# 为什么走 run_registered：本步现取是**大量的**超限件（【已知缺口·整改中】），
+#   与 ⑦e/⑦k 同例 ⇒ 该红要被看见、不阻断全闸；rc=2（用法错／仓根错／空集）仍阻断。
+# ★ 本处**不复述任何数**（件数／红数／例数都会变）——一律以本步当场打印的输出为准。
+# ★ 判据本体的口径（阈值/排除面/三档）在 scripts/verify/module_size_guard.py 里一处写死，本处不复述。
+run_tail 1 "模块化尺寸判据自证（正控＋反例；反例必红且指名到件）" python3 scripts/verify/module_size_guard.py --self-test
+run_registered 20 "模块化尺寸（面①代码／面②文档／面③结构／面④判据脚本）" python3 scripts/verify/module_size_guard.py
+
+echo
 step "⑧ 规格层守卫（OpenSpec 层）"
 # 为什么放在这里：`openspec validate` 只判**形态**（结构、每个 Scenario 恰好 4 个 `#`、delta 语法），
 # 它**不查**那几件核心的事：证据行指向的测试是否真的存在（改名即失锚，且不会变红）、归档目录有没有

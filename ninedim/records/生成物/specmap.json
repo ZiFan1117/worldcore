@@ -80,7 +80,7 @@
      "line": 8,
      "text": [
       "事件 SHALL 支持指定收件人：带 `to` 时只送该收件人，不带 `to` 时按广播处理；`act` 的应答 SHALL 能通过 `request_id` 追回它的请求。",
-      "（★ 2026-09-28 订正：本括注原写「今天：通道身份与一行应答已实现并实测，但 **`to` 的投递与请求/应答配对字段未实现**」——**那两个字段今天都落地了**：`to` 的投递＝`src/common/delivery.rs`（断言 `scripts/test/delivery.rs` 的 `d01`–`d08`，含正控 `d04`）；请求—应答配对＝`src/common/pairing.rs`（断言 `scripts/test/trace_notice.rs` 的 `f61`–`f65`）。**上一轮我只改了本 Requirement 的另外两条证据行、漏了这个括注**；⚠ 仍记在案的是：跨进程通道线格式的**端到端观测面不可达**（v1 CLI 无 `serve`）。）"
+      "> ★ **本件正文里的修订叙述已移出**（原处只留本行指针）：逐条见 `ninedim/06-变更/2026-10-08-doc-modularize/改动对照.md` §九。"
      ],
      "scenarios": [
       {

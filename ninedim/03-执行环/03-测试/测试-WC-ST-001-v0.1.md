@@ -2,7 +2,7 @@
 
 > 这份文档管**"系统测试怎么跑、在哪跑、读数怎么取"**。它不写"某次跑出多少"，那属**现取**（见 §四）。
 
-## 一、测试面（**§一 的两张表都是权威清单，由判据⑮ `j15_doc_lists_match_reality` 盯着**——表里少了／多了测试件、或少了／多了 `tools/` 下的脚本，守卫会红）
+## 一、测试面（**§一 的两张表都是权威清单，由判据⑮ `j15_doc_lists_match_reality` 盯着**——表里少了／多了测试件、或少了／多了 `scripts/` 下的脚本，守卫会红）
 
 **测试二进制**（`scripts/test/`，`cargo test --locked` 逐个跑）：
 
@@ -75,6 +75,7 @@
 | `scripts/verify/kind_guard.py` | （待补：脚本自述） |
 | `scripts/verify/last_seen_guard.py` | （待补：脚本自述） |
 | `scripts/verify/module_graph.py` | （待补：脚本自述） |
+| `scripts/verify/module_size_guard.py` | 模块化尺寸判据：「**六七百行的件，谁看得懂**」（面① 代码／面② 文档／面③ 结构；目标 150 行／硬顶 250） |
 | `scripts/verify/plain_text_audit.py` | （待补：脚本自述） |
 | `scripts/verify/projection_guard.py` | （待补：脚本自述） |
 | `scripts/verify/scope_check.py` | （待补：脚本自述） |
