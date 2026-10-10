@@ -43,7 +43,7 @@
 | ⑦l | 落地 chown 必带 `+`（`scripts/verify/chown_plus_guard.py --repo .`：仓内面 P-01／P-04） | ★★ **登记型 `run_registered`**；盘上面（P-02／P-03）要 root＋宿主 systemd 目录 ⇒ 现取自报 `STATUS=SKIP`、rc=0 ⇒ 显示 ⏭（未校验 ≠ 通过） |
 | ⑦m | presence 的 `last_seen` 有账本出处（`scripts/verify/last_seen_guard.py`：L-01…L-04） | ★ 照 ⑦g 两岔写法：`/var/lib/world-core/ledger.jsonl` 与 `/run/world-core/presence-list.txt` 都在 ⇒ `run_registered` 真跑；缺任一面 ⇒ 显式 ⏭「未校验」不阻断（现取：账本在、presence 件不在 ⇒ 走 ⏭） |
 | ⑦n | 模块化尺寸守卫（巨件＝至少原子化没模块化：一份件几百上千行，没人看得懂）| ★ **登记型红**（`run_registered`）：（读数以 `scripts/verify/module_size_guard.py` **当场输出为准**；本格不复述任何数）|
-| ⑦o | 废料夹越界（同一条内容既在 `99-废料/`、又在正文件／记录里 ⇒ 红） | ★ **登记型**（`run_registered`；现取 `STATUS=SKIP`＝**空集未校验**，不阻断；rc=2 仍阻断） |
+| ⑦o | 废料夹（**越界**：同一条内容既在 `99-废料/`、又在正文件／记录里 ⇒ 红；**登记**：每件须在 `_索引.md` 登记一行且四栏俱全 ⇒ 红） | ★ **登记型**（`run_registered`；现取 `STATUS=SKIP`＝**空集未校验**，不阻断；rc=2 仍阻断） |
 | ⑧ | 规格层守卫（`scripts/verify/spec_bridge.py`） | rc=0 |
 | ⑨ | 机核层守卫（`scripts/verify/module_graph.py`，`WC-ATOM-001` §四） | rc=0（真源码环 `M04↔M09` 已按「消回边、保留合法方向」改成 DAG）——**读数以 `python scripts/verify/module_graph.py` 的输出为准，本节不复述数字** |
 
