@@ -72,7 +72,7 @@
 | `scripts/verify/doc_integrity.py` | （待补：脚本自述） |
 | `scripts/verify/grant_path_guard.py` | （待补：脚本自述） |
 | `scripts/verify/ic_books_check.py` | （待补：脚本自述） |
-| `scripts/verify/junk_boundary.py` | 废料夹判据（**同一件里两面**）：**越界**＝同一条内容既在 `99-废料/`、又在正文件／记录里出现 ⇒ 红（`J-01`／`J-02`）；**登记**＝每件必须在 `99-废料/_索引.md` 登记一行且四栏俱全（件名｜谁的｜为什么留｜什么时候该清），缺栏／重复／登记了不存在的件 ⇒ 红（`J-03`） |
+| `scripts/verify/junk_boundary.py` | 废料夹判据（**同一件里三面**）：**越界**＝同一条内容既在 `99-废料/`、又在正文件／记录里出现 ⇒ 红（`J-01`／`J-02`）；**登记**＝每件必须在 `99-废料/_索引.md` 登记一行且四栏俱全（件名｜谁的｜为什么留｜什么时候该清），缺栏／重复／登记了不存在的件 ⇒ 红（`J-03`）；**清空**＝件仍在却写「已清」⇒ 红、件没了却没留痕 ⇒ 红（`J-04`；「已清」须带括号说明或日期、且须与件名同行） |
 | `scripts/verify/kind_guard.py` | （待补：脚本自述） |
 | `scripts/verify/last_seen_guard.py` | （待补：脚本自述） |
 | `scripts/verify/module_graph.py` | （待补：脚本自述） |
