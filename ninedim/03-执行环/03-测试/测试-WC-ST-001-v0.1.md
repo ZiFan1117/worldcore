@@ -72,6 +72,7 @@
 | `scripts/verify/doc_integrity.py` | （待补：脚本自述） |
 | `scripts/verify/grant_path_guard.py` | （待补：脚本自述） |
 | `scripts/verify/ic_books_check.py` | （待补：脚本自述） |
+| `scripts/verify/junk_boundary.py` | 废料夹越界判据：**同一条内容既在 `99-废料/`、又在正文件／记录里出现 ⇒ 红**（防"两处真相"与"把正件藏进废料"；空集 ⇒ `STATUS=SKIP` 未校验） |
 | `scripts/verify/kind_guard.py` | （待补：脚本自述） |
 | `scripts/verify/last_seen_guard.py` | （待补：脚本自述） |
 | `scripts/verify/module_graph.py` | （待补：脚本自述） |

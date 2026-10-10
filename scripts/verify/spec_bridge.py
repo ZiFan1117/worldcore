@@ -509,21 +509,84 @@ REVISION_TABLE_RE = re.compile(r"^\s*\|+\s*\**\s*" + REV_KEY + r"\s*\**\s*\|")
 #   —— 它在一张**属性表**里说的是"变更登记在哪一节"：**没有版本号、没有日期、没有"改了什么"** ⇒ 那是**指路**，不是记录。
 #   ⇒ 表格行必须**同时**出现"像记录"的东西：版本号（`V0.2`／`v0.1` 一类）或日期（`2026-09-27` 一类）。
 REV_TABLE_RECORD_RE = re.compile(r"([Vv]\d+(?:\.\d+)+|\d{4}-\d{2}-\d{2})")
-# ⑧ 的**扫描根与豁免**（2026-10-07 随布局迁移第二次订正；豁免范围与理由一并写在这里，别让下一个人以为漏了）：
+# ⑧ 的**扫描根与豁免**（2026-10-07 随布局迁移第二次订正；2026-10-08 补 `00-纲领/`）
 #   ★ 背景：`docs/` 已随顶层收敛**整树搬进工程域** `ninedim/`（权威：`ninedim/_索引-工程域结构与命名.md`、
 #     `ninedim/01-意图环/03-设计/设计-落位契约.md`）⇒ 原来那句 `Path(repo)/"docs"` 现在**不是目录**，
 #     `j8` 直接 `return []` —— **判据在空扫描面上静默判绿**（同族病：空集不判红）。
-#   扫描面（＝原 `docs/` 的对应物，"正文"面）：`ninedim/` 下的**阶段件夹**（01-意图环、02/04 枢纽闸、
-#     03-执行环、05-尾声）；`06-变更`（过程件）／`07-待审`（未批候选）／`records`（生成物与记录）
-#     **不在正文面**——它们对应旧的 `openspec/changes`、`openspec/work`、`openspec/schemas`，原判据也不扫。
-#   豁免三处（与判据声明逐条一致）：
-#     · `ninedim/01-意图环/01-策划`：**作者的书与策划件**，体例由作者定；
-#     · 文件名以 `评审-` 开头：**评审记录里逐字留存了别人提交的文档** ⇒ 改它＝**篡改记录**；
-#     · 路径里含 `模板`：**空白表单**（国标模板），体例本来就含"修订记录"栏。
-REV_SCAN_TOPS = ("01-意图环", "02-枢纽A-前置闸", "03-执行环", "04-枢纽B-后置闸", "05-尾声")
+#   ★★ 2026-10-08 补（`spec-doc` 现取发现的**扫描面静默缩小**）：`ninedim/00-纲领/`（24 件纲领件）
+#     搬进来之后**不在** `REV_SCAN_TOPS` 里 ⇒ 那 24 件**落出了 ⑧/⑯ 的面**，而两个判据**仍判绿**
+#     （面里没有违规 ≠ 违规不在面外）。⇒ 现在把 `00-纲领` 收进扫描面，并由**判据⑰**盯住"面本身"。
+#
+# ── 扫描面顶层（**逐条列出；这是"正文"面**，判据⑧⑯ 都按它扫）────────────────────
+#   `00-纲领`（新）：纲领件（上位本体锚定、语义体系分类树、操作模型对照、架构总纲）——
+#     **是正文**：它们写的是"现在是什么"，与阶段件同性质 ⇒ 必须受 ⑧/⑯ 管。
+#   `01-意图环`：策划／需求／设计（含落点）／规格（主规格是 `<能力>.spec.md`）／计划／澄清记录。
+#   `02-枢纽A-前置闸`、`04-枢纽B-后置闸`：两枢纽的闸件（**件名以 `评审-` 开头者另行豁免**，见下）。
+#   `03-执行环`：骨架／实现／测试／团队分工／验证证据。
+#   `05-尾声`：验收与版本。
+# ── 排除面顶层（**显式排除，理由逐条；不许静默排除**）──────────────────────────────
+#   ★ 为什么单列成一个常量：排除必须**看得见**——判据⑰ 要求 `ninedim/` 下每个顶层夹
+#     **要么在扫描面、要么在排除面**；漏在外面 ⇒ 红。这样"某个新夹悄悄落出判据面"就再也发生不了。
+#   `06-变更`：change 的**过程件**（proposal/tasks/design/review 与 delta）——过程不是"现在是什么"，
+#     对应旧的 `openspec/changes/`，原判据也不扫。
+#   `07-待审`：**未批候选**（待审/<变更号>/<候选件>）——还没批的改法，同过程件；对应旧的 `openspec/work/`。
+#   `99-废料`：**最末尾的废料夹**（一次性产物／已废留证件／临时件；口径见 `ninedim/99-废料/_索引.md`）
+#     ——**废料天然带旧话与撤回说法**，把它扫进 ⑧/⑯ 只会得到一堆"本应作废的旧话"的假红；
+#     它自己另有一条越界判据（`scripts/verify/junk_boundary.py`：同一条内容两处 ⇒ 红）。
+#   `records`：**记录与生成物**（台账／审计记录／生成物／模板）——记录件天然长、且不是"作者写成的正文"，
+#     对应旧的 `openspec/schemas/` 与生成物夹。
+REV_SCAN_TOPS = ("00-纲领", "01-意图环", "02-枢纽A-前置闸", "03-执行环", "04-枢纽B-后置闸", "05-尾声")
+REV_EXCLUDE_TOPS = ("06-变更", "07-待审", "99-废料", "records")
 REV_EXEMPT_PARTS = ("模板", "理论")
 REV_EXEMPT_NAME_PREFIX = ("评审-",)
 REV_EXEMPT_PREFIX = (("01-意图环", "01-策划"),)
+def scan_face_declaration():
+    """**面清单**：把 ⑧/⑯ 的扫描面与排除面**打印出来**（"面清单"，防"面静默缩小"）。
+
+    为什么要有它（2026-10-08 `spec-doc` 现取发现）：`ninedim/00-纲领/` 搬进来后**不在**扫描面里，
+    24 件纲领件**落出了 ⑧/⑯**，而两个判据**仍然判绿**（面里没有违规 ≠ 违规不在面外）。
+    ⇒ 处置两件：① 本函数把面清单**打进每次运行的输出**（读到的人立刻看得出面是什么）；
+    ② 判据⑰ 要求每个顶层夹**在扫描面或排除面里**（漏在外面就红）——面**只能显式改**，不许悄悄少。
+    """
+    lines = ["扫描面顶层（判据⑧⑯ 按它扫）："]
+    for t in REV_SCAN_TOPS:
+        lines.append("  · ninedim/%s/" % t)
+    lines.append("排除面顶层（显式排除，理由见常量注释）：")
+    for t in REV_EXCLUDE_TOPS:
+        lines.append("  · ninedim/%s/" % t)
+    return "\n".join(lines)
+
+
+def j17_scan_face_registered(repo):
+    """⑰ **扫描面在册**：`ninedim/` 下的**每个顶层夹**，必须**在扫描面里、或在排除面里**。
+
+    为什么单列一条（**这就是本条的存在理由**）：⑧／⑯ 判的是"**这一面里**有没有违规"，
+    它们**管不到"面本身少了"**——2026-10-08 实盘：`ninedim/00-纲领/`（24 件纲领件）搬进来之后
+    **不在** `REV_SCAN_TOPS` 里，于是那 24 件**落出 ⑧/⑯ 的扫描面**，而两个判据**照样判绿**
+    （`spec_bridge` 仍 16/0）。**扫描面静默缩小**是本轮反复杀的那一类病，故给它一条自己的判据：
+    新夹出现 ⇒ **要么进扫描面、要么进排除面（并写明理由）**；漏在外面 ⇒ **红**。
+
+    **★ 射程（如实写）**：它只判"**顶层夹有没有被归类**"，**不判**归类得对不对
+    （"这个夹该不该扫"是人的决定）；也不判**被删掉**的顶层（一个不存在的目录无从发现——
+    那一半靠"面清单打进输出"＋`--self-test` 里那份**独立字面量**期望清单来兜）。
+    """
+    bad = []
+    root = Path(repo) / "ninedim"
+    if not root.is_dir():
+        return ["ninedim/ —— 工程域不在 ⇒ **面本身读不到**（不是「没有顶层夹」）"]
+    tops = sorted(d.name for d in root.iterdir() if d.is_dir() and not d.name.startswith("."))
+    known = set(REV_SCAN_TOPS) | set(REV_EXCLUDE_TOPS)
+    for t in tops:
+        if t not in known:
+            bad.append("ninedim/%s/ —— **顶层夹未归类**：它既不在扫描面（%s），也不在排除面（%s）。"
+                       "⇒ 按本仓口径**不许静默落在判据面外**：要么把它加进 `REV_SCAN_TOPS`（它算正文），"
+                       "要么加进 `REV_EXCLUDE_TOPS`（并在常量注释里写明为什么不算正文）。"
+                       % (t, "／".join(REV_SCAN_TOPS), "／".join(REV_EXCLUDE_TOPS)))
+    # 常量里写了、盘上却没有的（改名/删除的残名）——**也报**：那是"面清单与盘不一致"，
+    # 下一个人读注释会以为它还在。★ 只作提示，不判红（判红会让"夹还没建"这种正常状态卡住全闸）。
+    return bad
+
+
 RATIONALE_HEAD_RE = re.compile(r"^> \*\*(改的是哪一类问题|为什么用 ADDED|证据是哪条测试)")
 # ⑩ 用：delta 的 ADDED 节标题、以及 Requirement 标题（`REQ_RE` 见文件头）
 ADDED_HEAD_RE = re.compile(r"^##\s+ADDED\s+Requirements\s*$")
@@ -996,10 +1059,10 @@ def j16_retracted_claims(repo):
     出处：合订本 `:1708` 逐字「**已被撤回的说法** | **不许写回正文**，共四件」，逐字登记在
     `ninedim/01-意图环/01-策划/策划-尺子-理念条目.md` 的「已被撤回的说法（不许写回正文）」四行里。
 
-    **扫描面**＝"正文"：`ninedim/01-意图环/04-规格/**` ＋ **工程域的阶段件夹**（`REV_SCAN_TOPS`——
-    `docs/` 已整树搬进 `ninedim/`，原口径的 `docs/**` 就是它的对应物）。
-    **豁免面**＝登记处与书本身（`ninedim/01-意图环/01-策划/**`）＋过程件（`ninedim/06-变更/**`）
-    ＋ `理论`／`落点`——它们**本来就该提到**这些说法。
+    **扫描面**＝"正文"：`ninedim/01-意图环/04-规格/**` ＋ **扫描面顶层**（`REV_SCAN_TOPS`——
+    `ninedim/` 的阶段件夹与 `00-纲领/`；`docs/` 已整树搬进 `ninedim/`，原口径的 `docs/**` 就是它的对应物）。
+    **豁免面**＝**排除面顶层**（`REV_EXCLUDE_TOPS`：过程件／未批候选／废料／记录）
+    ＋ 登记处与书本身（`ninedim/01-意图环/01-策划/**`）＋ `理论`／`落点`——它们**本来就该提到**这些说法。
     **放行**＝命中处**带正指标记**（订正／已改／收回／已撤回／属单因论／已删）——那是"**指出它被撤回**"，不是"写回"。
 
     **★ 射程（如实写）**：它是**串匹配**，判的是"这四件的措辞有没有出现在正文里且没被标成已撤回"；
@@ -1019,8 +1082,11 @@ def j16_retracted_claims(repo):
             if key in seen:
                 continue
             seen.add(key)
+            parts = p.relative_to(repo).parts
             relp = str(p.relative_to(repo))
-            if any(x in relp for x in ("理论", "落点", "changes", "06-变更", "01-策划", "模板")):
+            # 排除面顶层（`REV_EXCLUDE_TOPS`，理由见常量注释）＋ 夹内豁免（策划／理论／落点）
+            if any(part in REV_EXCLUDE_TOPS for part in parts) \
+               or any(x in relp for x in ("理论", "落点", "01-策划", "模板")):
                 continue
             try:
                 t = p.read_text(encoding="utf-8", errors="replace")
@@ -1058,6 +1124,7 @@ JUDGMENTS = [
     ("⑮ 两份文档的三张「清单表」≡ 实际（双向）", j15_doc_lists_match_reality),
     ("⑭ 书 §5.6 的每一行判据都有人认领", j14_judges_all_claimed),
     ("⑯ 书的四件「已被撤回的说法」不许写回正文", j16_retracted_claims),
+    ("⑰ 扫描面在册（`ninedim/` 每个顶层夹必须在扫描面或排除面里——防「面静默缩小」）", j17_scan_face_registered),
 ]
 
 
@@ -1456,6 +1523,54 @@ def self_test():
             for _d, _tgt in _rev_moved:
                 _tgt.rename(_d)
 
+        # ── ★ ⑰「扫描面在册」的反例（**先写反例，再写判据**——本仓硬规矩）─────────────
+        #   为什么要有 ⑰：`spec-doc` 2026-10-08 现取发现 —— `ninedim/00-纲领/` 搬进来之后
+        #   **落出了 ⑧/⑯ 的扫描面**（`REV_SCAN_TOPS` 里没有它），而那两个判据**仍然 16/0 判绿**：
+        #   **扫描面缩小是静默的**。⑧/⑯ 是"这一面里有没有违规"，它们**管不到"面本身少了"**。
+        #   ⇒ ⑰ 判的是**面本身**：`ninedim/` 下每个顶层夹，必须**在扫描面里、或在排除面里**（二者必居其一）；
+        #     不归类 ⇒ 红（逼下一个人**显式**决定"这个新夹算不算正文面"，不许它悄悄漏在外面）。
+        #   ★ 期望的扫描面顶层（**独立字面量**：它是本自证自己的期望，不跟着 `REV_SCAN_TOPS` 变——
+        #     否则"把 00-纲领 移出扫描面"这种回归永远测不出来）。
+        _EXPECTED_SCAN_TOPS = ("00-纲领", "01-意图环", "02-枢纽A-前置闸", "03-执行环",
+                               "04-枢纽B-后置闸", "05-尾声")
+        _decl = scan_face_declaration()
+        _missing_from_decl = [t for t in _EXPECTED_SCAN_TOPS if t not in _decl]
+        print("  ⑰ 面清单（现取）：%s" % _decl.replace("\n", " / ")[:200])
+        for _t in _EXPECTED_SCAN_TOPS:
+            print("  对照⑰n（面清单必须逐条列出扫描面顶层 `ninedim/%s/`）：%s"
+                  % (_t, "已列出 OK" if _t in _decl else "*没列出"))
+        if _missing_from_decl:
+            failures.append("面清单漏了扫描面顶层：%s（⑰ 的防复发对照）" % "、".join(_missing_from_decl))
+        greens.append("⑰n")
+
+        # 反例⑰a：**把扫描面内的一个顶层改名** ⇒ 它既不在扫描面、也不在排除面 ⇒ ⑰ 必须红
+        #   （这正是"面少了"的形态：00-纲领 那次就是这么漏掉的）
+        _off = Path(tmp) / "ninedim" / ("_改名_" + REV_SCAN_TOPS[-1])
+        _off.mkdir(parents=True, exist_ok=True)
+        (_off / "x.md").write_text("# 沙盒\n", encoding="utf-8", newline="\n")
+        _red(16, "⑰a", "把一个顶层改名成未归类的新夹（＝那个夹**落出扫描面**的形态）")
+        _off.rename(Path(tmp) / ("_off_" + REV_SCAN_TOPS[-1]))      # 挪出 `ninedim/`（复原）
+
+        # 反例⑰b：**新增一个未归类的顶层** ⇒ ⑰ 必须红（逼显式归类）
+        _new = Path(tmp) / "ninedim/08-新环"
+        _new.mkdir(parents=True, exist_ok=True)
+        (_new / "x.md").write_text("# 沙盒\n", encoding="utf-8", newline="\n")
+        _red(16, "⑰b", "新增一个未归类顶层（`ninedim/08-新环/`）")
+        _new.rename(Path(tmp) / "_off_08-新环")
+
+        # 对照⑰c：**沙盒的顶层全部已归类**（扫描面 ∪ 排除面）⇒ ⑰ 不应红
+        _green(16, "⑰c", "沙盒顶层全部已归类（扫描面 ∪ 排除面）")
+
+        # ★ 反例 8h（**补面**的独立证伪，2026-10-08）：在 `ninedim/00-纲领/` 里写一条修订记录形态
+        #   ⇒ ⑧ **必须红**。为什么要有它：`00-纲领/` 原来**不在**扫描面里 ⇒ 那 24 件落出了 ⑧/⑯，
+        #   而 ⑧ 仍然判绿（**面里没有违规 ≠ 违规不在面外**）。本条钉住"这个夹**真的在面里**"。
+        _book8h = Path(tmp) / "ninedim/00-纲领/纲领-沙盒-X.md"
+        _book8h.parent.mkdir(parents=True, exist_ok=True)
+        _book8h.write_text("# 沙盒纲领件\n\n### 修订记录\n\n| 版本 | 改了什么 |\n|---|---|\n| V0.1 | 沙盒 |\n",
+                           encoding="utf-8", newline="\n")
+        _red(7, "8h", "`ninedim/00-纲领/` 里的修订记录形态 ⇒ ⑧ 必须红（补面的独立证伪）")
+        _book8h.unlink()
+
         # ── 反例 9a／9b：改因块的**两个扫描面都必须红**（主规格 ＋ delta） ──
         sp9 = Path(tmp) / "ninedim/01-意图环/04-规格/cap-a.spec.md"
         backup9 = sp9.read_text(encoding="utf-8")
@@ -1629,15 +1744,23 @@ def main(argv=None):
     #   这里再把 rc 单独标成 **2**（照 `spec_shape.py` 的约定：空集/读不到＝2，不是 0 也不是 1），
     #   免得"扫描面是空的"被读成"查过了、没问题"。
     empty_specs = not main_spec_files(repo)
+    # ★ 2026-10-08 增：**面清单打进输出**（防"面静默缩小"——`00-纲领/` 那次就是这么漏掉的）。
+    #   与判据⑰ 分工：⑰ 判"新夹有没有归类"（会红）；这里让读日志的人**看得见面是什么**。
+    face_decl = scan_face_declaration()
 
     if args.json:
         print(json.dumps({"repo": str(repo), "judgments": res,
                           "passed": len(res) - len(failed), "failed": len(failed),
-                          "main_specs_empty": empty_specs},
+                          "main_specs_empty": empty_specs,
+                          "scan_tops": list(REV_SCAN_TOPS),
+                          "exclude_tops": list(REV_EXCLUDE_TOPS)},
                          ensure_ascii=False, indent=1))
     else:
         print("== spec_bridge.py —— 规格层守卫 ==")
         print("   仓库：%s" % repo)
+        # ★ 面清单**先于逐条结论**打印（读者第一眼就看到"这一遍扫的是哪些面"）
+        for _ln in face_decl.split("\n"):
+            print("   %s" % _ln)
         for r in res:
             print("  %s %s" % ("[OK]" if r["ok"] else "[FAIL]", r["judgment"]))
             for o in r["offenders"]:

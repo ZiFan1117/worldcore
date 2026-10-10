@@ -599,6 +599,15 @@ run_tail 1 "模块化尺寸判据自证（正控＋反例；反例必红且指�
 run_registered 20 "模块化尺寸（面①代码／面②文档／面③结构／面④判据脚本）" python3 scripts/verify/module_size_guard.py
 
 echo
+step "⑦o 废料夹越界（同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红）"
+# 为什么有它：`ninedim/99-废料/` 是作者口述要的"平时废料"夹；它的规矩是"进夹必须登记、不得当巨件藏身处"，
+#   而"不得把正件藏进废料"与"不许两处真相"这两条**必须有闸**，否则废料夹会变成第二个真相源。
+# 为什么走 run_registered：现取 STATUS=SKIP（空集＝未校验，不是通过），且新夹刚起步；
+#   rc=2（用法／仓根错）两口径都阻断。★ 本处不复述任何数，一切以本步当场打印为准。
+run_tail 1 "废料夹越界判据自证（正控＋反例；反例必红且指名到件/到行）" python3 scripts/verify/junk_boundary.py --self-test
+run_registered 12 "废料夹越界（两处真相／把正件藏进废料）" python3 scripts/verify/junk_boundary.py
+
+echo
 step "⑧ 规格层守卫（OpenSpec 层）"
 # 为什么放在这里：`openspec validate` 只判**形态**（结构、每个 Scenario 恰好 4 个 `#`、delta 语法），
 # 它**不查**那几件核心的事：证据行指向的测试是否真的存在（改名即失锚，且不会变红）、归档目录有没有
