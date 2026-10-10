@@ -1,39 +1,47 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""junk_boundary.py —— 废料夹的**越界判据**：**同一条内容既在 `99-废料/`、又在正文件／记录里 ⇒ 红**。
+"""junk_boundary.py —— 废料夹的两条口径，做成会红的判据：**越界（内容两处）** ＋ **登记**。
 
 口径的权威出处
 --------------
-`ninedim/99-废料/_索引.md` §三（逐字）：
-「**同一条内容既在本夹、又在正文件／记录里出现 ⇒ 红**」，两条理由——
-① **防"两处真相"**：同一事实两个载体 ⇒ 读者不知道信哪一份；
-② **防"把正件藏进废料"**：正文件不许借"废料"这个口袋躲开 `01-意图环/**` 的判据面
-   （⑧无修订记录／⑯撤回说法、`spec_shape`、`module_size_guard` 面② 等）。
-⇒ 本件就是它的执行者；**兑现方式**（同 §三）：按**内容指纹**（规范化 sha256／逐行集合）
-与「正文件 ＋ 记录」比，命中 ⇒ 红。
+`ninedim/99-废料/_索引.md`：
+* §三（逐字）：「**同一条内容既在本夹、又在正文件／记录里出现 ⇒ 红**」——
+  ① **防"两处真相"**：同一事实两个载体 ⇒ 读者不知道信哪一份；
+  ② **防"把正件藏进废料"**：正文件不许借"废料"这个口袋躲开 `01-意图环/**` 的判据面
+     （⑧无修订记录／⑯撤回说法、`spec_shape`、`module_size_guard` 面② 等）。
+* §一（逐字）：「**进夹规矩**：**每件必须在本索引登记一行**（**件名 ｜ 谁的 ｜ 为什么留 ｜ 什么时候该清**）
+  ——**没登记就不许进**」＋「**清之前先在本索引写一行**（不许静默删）」。
+  ★ 这一半**今天没有执行体 ⇒ 那句是装饰**（本仓口径：不会红的判据只配当返工项）⇒ 本件把它补上。
 
-两条判据（各自可判真假；`--self-test` 先证明它真会红且**指名到件**）
-------------------------------------------------------------------
-* **J-01 整件重复**：废料件的**规范化全文 sha256** 与某个正文件／记录件**相同** ⇒ 红。
-  规范化＝逐行 `rstrip`、丢空行、以 `\\n` 连接（⇒ 只差行尾空格/多余空行的副本仍能被认出）。
-* **J-02 逐行重复**：废料件里某条**实质行**（规范化后长度 ≥ `SUBSTANTIVE_MIN_LEN`）在正文件／记录里
-  也出现 ⇒ 红。为什么必须有这一条：J-01 只抓"整件副本"，而"**把正件的一段粘进废料的长件里**"
-  同样造成两处真相（`_索引.md` §三 要防的正是这个）。
+三条判据（各自可判真假；`--self-test` 先证明它真会红且**指名到件/到行**）
+------------------------------------------------------------------------
+* **J-01 整件重复**：废料件的**规范化全文 sha256** 与某个正文件／记录件相同 ⇒ 红。
+  规范化＝逐行 `rstrip`、丢空行、`\\n` 连接（⇒ 只差行尾空格/多余空行的副本仍认得出）。
+* **J-02 逐行重复**：废料件里某条**实质行**（规范化后 ≥ `SUBSTANTIVE_MIN_LEN` 字符）在正文件／记录里
+  也出现 ⇒ 红。为什么必须有：J-01 只抓"整件副本"，而"**把正件的一段粘进废料的长件里**"
+  同样造成两处真相（§三 要防的正是这个）。
+* **J-03 登记面**（§一 那一半）：
+  · **有件未登记** ⇒ 红（指名那件）；**登记了盘上没有的件** ⇒ 红（指名那行）；
+  · **缺栏** ⇒ 红：登记行必须**四栏俱全**（`件名 ｜ 谁的 ｜ 为什么留 ｜ 什么时候该清`），
+    否则"登记"会退化成只写个件名；
+  · **同名重复登记** ⇒ 红；
+  · **缺 `_索引.md` 而有件** ⇒ 红（本夹是**唯一索引**，没有它"登记过没有"无从判）。
 
 ★ 射程（如实写，别读成"废料夹已清净"）
 --------------------------------------
-* **被检面**＝`ninedim/99-废料/**` 的**在册废料件**（除索引 `_索引.md` 以外）**＋ 索引件自身**
+* **被检面**＝`ninedim/99-废料/**` 的**在册废料件**（除索引 `_索引.md`）**＋ 索引件自身**
   （拿索引当"正件的口袋"同样要抓）。**空集判据挂在"在册件"上**：只有索引、没有在册件 ⇒
   `[EMPTY]` ＋ `STATUS=SKIP`（**未校验 ≠ 通过**，不许 PASS）——真仓今天就是这个状态。
-  ★ 但**命中优先于空集**：索引件里若真抄了一份正件，那是真违规，**不许**被"空集"折成 ⏭。
-* **比较面**＝`ninedim/**` **减去** `99-废料/`（被检面）**减去** `06-变更/`／`07-待审/`（**过程件**：
-  它们在 `design.md`／`tasks.md` 里**引用**废料口径与内容是**合法**的，扫进来只会得到假红）。
-  ⇒ 本判据**不**覆盖"废料件与某个过程件重复"这一格（那一格由人读；如实登记，不冒充覆盖）。
-* **实质行过滤**＝"规范化后 ≥ `SUBSTANTIVE_MIN_LEN` 个字符"。它会**漏掉**"两处只重复一句短话"的形态；
-  也会把长而通用的句子（如国标表格骨架）判成命中——**阈值是旋钮**，`--min-len N` 可调，改动要配反例。
+  ★ 但**命中优先于空集**：索引里若真抄了一份正件、或真登记了一个不存在的件，那是真违规，
+  **不许**被"空集"折成 ⏭。
+* **比较面**（只给 J-01／J-02 用）＝`ninedim/**` **减去** `99-废料/`（被检面）**减去**
+  `06-变更/`／`07-待审/`（**过程件**：它们在 `design.md`／`tasks.md` 里**引用**废料口径与内容是**合法**的）。
+  ⇒ 本判据**不**覆盖"废料件与某个过程件重复"这一格（由人读；如实登记，不冒充覆盖）。
+* **实质行过滤**＝"规范化后 ≥ `SUBSTANTIVE_MIN_LEN` 字符"。它会**漏掉**"两处只重复一句短话"的形态；
+  也会把长而通用的句子判成命中——**阈值是旋钮**，`--min-len N` 可调，改动要配反例。
 * **只比 `ninedim/**`**：废料件与 `src/**`／`scripts/**`／`README.md` 的重复**不在**本件面内。
-* **不判**"登记"那一半口径（`_索引.md` §一「**每件必须在本索引登记一行**——没登记就不许进」）：
-  本件只判**越界（内容两处）**；登记面**今天无执行体**，已在报告里登记为缺口。
+* **不判**「清空条件」那一半（"该清时点到期 ⇒ 清它"）：那要**人**判"到期没有"，
+  机器只能判"**清之前有没有留一行**"；本件今天**不**判它（如实登记为缺口）。
 
 用法
 ----
@@ -43,8 +51,8 @@
 
 退出码
 ------
-    0 = 无越界，**或**显式 `STATUS=SKIP`（废料夹空／比较面空 ⇒ **未校验 ≠ 通过**）
-    1 = 有越界（J-01 或 J-02 命中）
+    0 = 无违规，**或**显式 `STATUS=SKIP`（在册件为空 ⇒ **未校验 ≠ 通过**）
+    1 = 有违规（J-01／J-02／J-03 任一命中）
     2 = 用法错、仓根错
 """
 import argparse
@@ -71,8 +79,14 @@ COMPARE_EXCLUDE_TOPS = (JUNK_TOP, "06-变更", "07-待审")
 SKIP_DIRS = {".git", ".refs", "target", "node_modules", "__pycache__"}
 #: 实质行阈值（规范化后字符数）——低于它的一律不算"同一条内容"（表格骨架／短标题会大量误报）。
 SUBSTANTIVE_MIN_LEN = 24
+#: 索引件名（每夹一份）与登记表的**四栏**（§一 逐字：件名｜谁的｜为什么留｜什么时候该清）
+JUNK_INDEX_NAME = "_索引.md"
+REG_SECTION_KEY = "在册件"
+REG_COLS = ("件名", "谁的", "为什么留", "什么时候该清")
+#: 登记表里**合法的空表占位**（不是件名）
+REG_PLACEHOLDERS = ("（空）", "—", "-", "")
 
-OK, FAIL, EMPTY = "OK", "FAIL", "EMPTY"
+OK, FAIL = "OK", "FAIL"
 
 
 # ────────────────────────── 工具 ──────────────────────────
@@ -94,47 +108,39 @@ def read_text(p):
         return fh.read().decode("utf-8", "replace")
 
 
-def _files(root, exts=None):
+def _files(root):
     out = []
     if not root.is_dir():
         return out
     for dp, dn, fn in os.walk(root):
         dn[:] = [d for d in dn if d not in SKIP_DIRS]
         for f in sorted(fn):
-            if exts and not f.endswith(exts):
-                continue
             out.append(Path(dp) / f)
     return sorted(out)
 
 
 def junk_files(repo):
-    """被检面：`ninedim/99-废料/**` 的全部件（**含 `_索引.md` 自身**——索引件也是本夹的一份字节，
-    拿它当"正件的口袋"同样要被抓；自证 `反例⑧` 钉着这一条）。"""
+    """被检面：`ninedim/99-废料/**` 的全部件（**含 `_索引.md` 自身**——索引也是本夹的一份字节）。"""
     return _files(Path(repo) / NINEDIM / JUNK_TOP)
 
 
-#: 废料夹的**索引件**名（每夹一份，是"登记表"不是"在册废料件"）。
-JUNK_INDEX_NAME = "_索引.md"
-
-
 def junk_items(repo):
-    """**在册废料件**：`99-废料/**` 里除索引件以外的件。
+    """**在册废料件**：除索引件以外的件。
 
-    ★ 为什么把"空集判据"挂在**这一面**上：索引件是**每夹必备的登记表**（`_索引.md`），
-    它的存在不等于"本夹有废料件"——今天真仓就是"只有索引、在册件为 (空)"。
-    若拿"索引在不在"当非空判据，本判据就会在一个**没有废料件**的夹上打 PASS（假绿）。
+    ★ 为什么"空集判据"挂在**这一面**上：索引件是**每夹必备的登记表**，它的存在不等于"本夹有废料件"——
+    今天真仓就是"只有索引、在册件为 (空)"。拿"索引在不在"当非空判据 ⇒ 本判据会在没有废料件的夹上打 PASS。
     """
     return [p for p in junk_files(repo) if p.name != JUNK_INDEX_NAME]
 
 
 def junk_index(repo):
-    """废料夹的索引件（可能不存在）。它**仍进比较面**（防"拿索引当口袋"），但不计入"在册件"。"""
+    """废料夹的索引件（可能不存在）。它**仍进 J-01/J-02 比较面**（防"拿索引当口袋"），但不计入在册件。"""
     p = Path(repo) / NINEDIM / JUNK_TOP / JUNK_INDEX_NAME
     return p if p.is_file() else None
 
 
 def compare_files(repo):
-    """比较面：`ninedim/**` 减去 `COMPARE_EXCLUDE_TOPS` 命中的**顶层**。"""
+    """比较面：`ninedim/**` 减去 `COMPARE_EXCLUDE_TOPS` 命中的**顶层**（只给 J-01／J-02 用）。"""
     root = Path(repo) / NINEDIM
     out = []
     if not root.is_dir():
@@ -169,52 +175,114 @@ def substantive_lines(t, min_len):
     return out
 
 
+# ────────────────────────── J-03 登记面 ──────────────────────────
+def parse_registry(idx_text):
+    """解析 `_索引.md` 的「在册件」表；返回 (rows, problem)：
+    rows＝[(行号, [四栏…])]（已滤掉表头／分隔行／`（空）` 占位）；problem≠None ⇒ **找不到该节**。"""
+    lines = idx_text.split("\n")
+    start = next((i for i, ln in enumerate(lines)
+                  if ln.lstrip().startswith("#") and REG_SECTION_KEY in ln), None)
+    if start is None:
+        return None, "索引里**找不到「%s」节**（登记表的落点没有 ⇒ 无从判「登记过没有」）" % REG_SECTION_KEY
+    rows = []
+    for i in range(start + 1, len(lines)):
+        s = lines[i].strip()
+        if s.startswith("#"):
+            break                                    # 下一个标题 ⇒ 本节结束
+        if not s.startswith("|"):
+            continue
+        cells = [c.strip().strip("`* 　") for c in s.strip("|").split("|")]
+        if not cells or all((not c) or set(c) <= set("-: ") for c in cells):
+            continue                                 # 分隔行 `|---|---|`
+        if cells[0] == REG_COLS[0] or cells[0] in REG_PLACEHOLDERS:
+            continue                                 # 表头／空表占位
+        rows.append((i + 1, cells))
+    return rows, None
+
+
+def check_registry(repo):
+    """J-03：把「在册废料件」与登记表**双向**对账，并查**缺栏／重复**。返回违规清单。"""
+    bad = []
+    items = junk_items(repo)
+    idx = junk_index(repo)
+    if idx is None:
+        if items:
+            bad.append("缺 `%s`（本夹是**唯一索引**）：有 %d 件在册废料件、却没有任何登记表 ⇒ "
+                       "「每件必须在本索引登记一行」无从满足" % (JUNK_INDEX_NAME, len(items)))
+        return bad
+    rows, problem = parse_registry(read_text(idx))
+    if problem:
+        return ["`%s` —— %s" % (rel(repo, idx), problem)]
+    registered, seen = [], {}
+    for ln, cells in rows:
+        if len(cells) < len(REG_COLS) or any(not c for c in cells[:len(REG_COLS)]):
+            bad.append("`%s:%d` —— 登记行**缺栏**：须四栏俱全（`%s`），实得 %d 栏 %s"
+                       % (rel(repo, idx), ln, " ｜ ".join(REG_COLS), len(cells), cells))
+            continue
+        name = cells[0]
+        if name in seen:
+            bad.append("`%s:%d` —— **同名重复登记**（`%s` 已在第 %d 行登记过）"
+                       % (rel(repo, idx), ln, name, seen[name]))
+        seen[name] = ln
+        registered.append((ln, name))
+    have = {p.name for p in items}
+    reg = {n for _, n in registered}
+    for name in sorted(have - reg):
+        bad.append("`%s/%s` —— **有件未登记**（§一：没登记就不许进；请在 `%s` 的「%s」表补一行四栏）"
+                   % (JUNK_TOP, name, JUNK_INDEX_NAME, REG_SECTION_KEY))
+    for ln, name in sorted(registered, key=lambda x: x[0]):
+        if name not in have:
+            bad.append("`%s:%d` —— **登记了盘上没有的件** `%s`（清件时忘了划登记行？"
+                       "§一：清之前先写一行「已清（时点／谁）」，不许静默删）"
+                       % (rel(repo, idx), ln, name))
+    return bad
+
+
 # ────────────────────────── 判定 ──────────────────────────
 def evaluate(repo, min_len):
-    """返回 (rows, j01, j02, empty_reason)：rows＝被检件逐件（在册件 ＋ 索引件）；
-    `empty_reason` 非空 ⇒ **空集**（没有可判的在册件／比较面为空）⇒ 不许判 PASS。"""
+    """返回 (rows, j01, j02, j03, empty_reason)。
+
+    rows＝被检件（在册件 ＋ 索引件）；j01/j02＝越界命中；j03＝登记面违规；
+    `empty_reason` 非空 ⇒ **在册件为空**（不许判 PASS）——但**命中优先于空集**。
+    """
     items, idx = junk_items(repo), junk_index(repo)
-    targets = ([("item", p) for p in items]
-               + ([("index", idx)] if idx is not None else []))
-    cf = compare_files(repo)
-    if not items and not targets:
-        return [], [], [], "废料夹不存在或为空（`%s/%s/` 下连索引件都没有）" % (NINEDIM, JUNK_TOP)
+    targets = [("item", p) for p in items] + ([("index", idx)] if idx is not None else [])
+    j03 = check_registry(repo)
+    empty_reason = ""
     if not items:
-        empty_reason = ("废料夹**没有在册废料件**（只有索引 `%s`）——被检面为空"
-                        % JUNK_INDEX_NAME) if idx is not None else "废料夹没有在册件"
-    else:
-        empty_reason = ""
-    if not cf:
-        return [], [], [], "比较面为空（`%s/**` 减掉 %s 后没有件）" % (NINEDIM, "／".join(COMPARE_EXCLUDE_TOPS))
-
-    # 比较面索引：规范化指纹 → 件；实质行 → 件集合
-    fp_index, line_index = {}, {}
-    for p in cf:
-        t = read_text(p)
-        fp_index.setdefault(fingerprint(t), []).append(rel(repo, p))
-        for s in substantive_lines(t, min_len):
-            line_index.setdefault(s, set()).add(rel(repo, p))
-
-    rows, j01, j02 = [], [], []
-    for kind, p in targets:
-        t = read_text(p)
-        r = rel(repo, p)
-        fp = fingerprint(t)
-        rows.append({"path": r, "kind": kind, "lines": len(t.splitlines()), "fp": fp[:12],
-                     "verdict": FAIL if fp in fp_index else OK})
-        for other in fp_index.get(fp, []):
-            j01.append((r, other))
-        for s, ln in sorted(substantive_lines(t, min_len).items(), key=lambda kv: kv[1]):
-            for other in sorted(line_index.get(s, ())):
-                j02.append((r, ln, s, other))
-    return rows, j01, j02, empty_reason
+        empty_reason = ("废料夹**没有在册废料件**（只有索引 `%s`）——被检面为空" % JUNK_INDEX_NAME
+                        if idx is not None else "废料夹没有在册件")
+    cf = compare_files(repo)
+    j01, j02 = [], []
+    if cf:
+        fp_index, line_index = {}, {}
+        for p in cf:
+            t = read_text(p)
+            fp_index.setdefault(fingerprint(t), []).append(rel(repo, p))
+            for s in substantive_lines(t, min_len):
+                line_index.setdefault(s, set()).add(rel(repo, p))
+        for kind, p in targets:
+            t = read_text(p)
+            r = rel(repo, p)
+            fp = fingerprint(t)
+            for other in fp_index.get(fp, []):
+                j01.append((r, other))
+            for s, ln in sorted(substantive_lines(t, min_len).items(), key=lambda kv: kv[1]):
+                for other in sorted(line_index.get(s, ())):
+                    j02.append((r, ln, s, other))
+    elif not j03:
+        empty_reason = empty_reason or ("比较面为空（`%s/**` 减掉 %s 后没有件）"
+                                        % (NINEDIM, "／".join(COMPARE_EXCLUDE_TOPS)))
+    rows = [{"path": rel(repo, p), "kind": kind, "lines": len(read_text(p).splitlines()),
+             "fp": fingerprint(read_text(p))[:12]} for kind, p in targets]
+    return rows, j01, j02, j03, empty_reason
 
 
 def run(repo, min_len, out=None):
     out = out if out is not None else sys.stdout
-    rows, j01, j02, empty_reason = evaluate(repo, min_len)
+    rows, j01, j02, j03, empty_reason = evaluate(repo, min_len)
     items, idx = junk_items(repo), junk_index(repo)
-    print("== junk_boundary —— 废料夹越界判据（同一条内容两处 ⇒ 红）==", file=out)
+    print("== junk_boundary —— 废料夹判据（越界 J-01/J-02 ＋ 登记 J-03）==", file=out)
     print("   仓根：%s" % repo, file=out)
     print("   被检面：`%s/%s/**`（在册件 %d 件；索引件 %s）｜比较面：`%s/**` 减 %s（%d 件）"
           "｜实质行阈值＝%d 字符"
@@ -226,26 +294,35 @@ def run(repo, min_len, out=None):
               % ("判定", "件", "类别", "行数", "规范化sha256前12"), file=out)
         for r in sorted(rows, key=lambda x: x["path"]):
             print("   %-5s %-52s %-7s %6d %14s"
-                  % (r["verdict"], r["path"], r["kind"], r["lines"], r["fp"]), file=out)
-        print("", file=out)
-        print("── J-01 整件重复（规范化全文 sha256 相同）%d 条 ──" % len(j01), file=out)
-        for a, b in j01:
-            print("   [RED] `%s` ≡ `%s`（同一份内容两处 ⇒ 两处真相／把正件藏进废料）" % (a, b), file=out)
-        print("── J-02 逐行重复（实质行 ≥%d 字符）%d 条 ──" % (min_len, len(j02)), file=out)
-        for a, ln, s, b in j02:
-            print("   [RED] `%s:%d` 的实质行也出现在 `%s` ⇒ %s"
-                  % (a, ln, b, ("「%s」" % s[:60]) + ("…" if len(s) > 60 else "")), file=out)
-        print("", file=out)
-        print("── 汇总（现算）──", file=out)
-        print("   被检件 %d 件（在册 %d ＋ 索引 %d）；J-01 %d 条 ＋ J-02 %d 条 ⇒ 红合计 %d"
-              % (len(rows), len(items), 1 if idx is not None else 0,
-                 len(j01), len(j02), len(j01) + len(j02)), file=out)
+                  % (FAIL if (r["path"] in [a for a, _ in j01]) else OK,
+                     r["path"], r["kind"], r["lines"], r["fp"]), file=out)
 
-    # ★ 顺序要紧：**命中优先于空集**——索引件里若真抄了一份正件，那是真违规，不许被"空集"折成 ⏭。
-    if j01 or j02:
+    print("", file=out)
+    print("── J-01 整件重复（规范化全文 sha256 相同）%d 条 ──" % len(j01), file=out)
+    for a, b in j01:
+        print("   [RED] `%s` ≡ `%s`（同一份内容两处 ⇒ 两处真相／把正件藏进废料）" % (a, b), file=out)
+    print("── J-02 逐行重复（实质行 ≥%d 字符）%d 条 ──" % (min_len, len(j02)), file=out)
+    for a, ln, s, b in j02:
+        print("   [RED] `%s:%d` 的实质行也出现在 `%s` ⇒ %s"
+              % (a, ln, b, ("「%s」" % s[:60]) + ("…" if len(s) > 60 else "")), file=out)
+    print("── J-03 登记面（每件须在本索引登记一行：%s）%d 条 ──" % (" ｜ ".join(REG_COLS), len(j03)),
+          file=out)
+    for x in j03:
+        print("   [RED] %s" % x, file=out)
+
+    print("", file=out)
+    print("── 汇总（现算）──", file=out)
+    print("   被检件 %d 件（在册 %d ＋ 索引 %d）；J-01 %d ＋ J-02 %d ＋ J-03 %d ⇒ 红合计 %d"
+          % (len(rows), len(items), 1 if idx is not None else 0,
+             len(j01), len(j02), len(j03), len(j01) + len(j02) + len(j03)), file=out)
+
+    # ★ 顺序要紧：**命中优先于空集**——索引里真抄了正件、或真登记了不存在的件，那是真违规，
+    #   不许被"在册件为空"折成 ⏭（否则"拿索引当口袋"与"空登记"都能躲过判据）。
+    if j01 or j02 or j03:
         print("STATUS=FAIL", file=out)
-        print("结论 = **红**：同一份内容在两处出现 ⇒ 要么删废料件、要么删正件里的那一份"
-              "（**不许两处真相**；正文件不许借废料夹躲开判据面）", file=out)
+        print("结论 = **红**：%d 条（越界 %d ＋ 登记 %d）⇒ 两处真相／把正件藏进废料／登记不实，"
+              "按 `ninedim/%s/_索引.md` §一§三 处置" % (len(j01) + len(j02) + len(j03),
+                                                        len(j01) + len(j02), len(j03), JUNK_TOP), file=out)
         return 1
     if empty_reason:
         print("   [EMPTY] %s" % empty_reason, file=out)
@@ -255,7 +332,7 @@ def run(repo, min_len, out=None):
         print("结论 = **未校验**（空集；**不是通过**）", file=out)
         return 0
     print("STATUS=PASS", file=out)
-    print("结论 = 绿（废料夹里没有与正文件／记录重复的内容）", file=out)
+    print("结论 = 绿（无越界；在册件与登记表双向一致、四栏俱全）", file=out)
     return 0
 
 
@@ -270,11 +347,23 @@ GOOD_DOC = ("# 需求-沙盒\n\n"
             "系统 SHALL 在被请求时返回当前状态，且不得回放上一次的读数。\n")
 
 
+def _index_text(names):
+    """造一份合口径的 `_索引.md`：`names` 为空 ⇒ 用 `（空）` 占位行。"""
+    head = ("# 99-废料 · 索引\n\n## 二、%s\n\n| %s |\n|---|---|---|---|\n"
+            % (REG_SECTION_KEY, " | ".join(REG_COLS)))
+    if not names:
+        return head + "| （空） | — | — | — |\n"
+    return head + "".join("| `%s` | 沙盒 | 反例夹具 | 判完即清 |\n" % n for n in names)
+
+
 def _base(tmp):
+    """正控底子：废料夹 1 件（**已登记、四栏俱全**）＋ 正文件 1 件 ＋ 记录 1 件，内容互不相同。"""
+    name = "一次性-沙盒-2026-10-08.md"
+    _mk(tmp / ("ninedim/99-废料/" + name),
+        "# 一次性产物\n\n这是一份只此一处的临时导出，内容独一无二、不与任何正件重复。\n")
+    _mk(tmp / "ninedim/99-废料/_索引.md", _index_text([name]))
     _mk(tmp / "ninedim/01-意图环/02-需求/需求-沙盒.md", GOOD_DOC)
     _mk(tmp / "ninedim/records/台账-沙盒.md", "# 台账\n\n另起一行的记录内容，与本件无关。\n")
-    _mk(tmp / "ninedim/99-废料/一次性-沙盒-2026-10-08.md",
-        "# 一次性产物\n\n这是一份只此一处的临时导出，内容独一无二、不与任何正件重复。\n")
     (tmp / "scripts" / "verify").mkdir(parents=True, exist_ok=True)
 
 
@@ -309,54 +398,57 @@ def self_test():
         cases.append((label, ok, "；".join(checks)))
         return output
 
-    # ── 正控：废料一件（唯一内容）、正件一件 ⇒ 不红 ──
-    case("正控（废料件内容独一无二；与正件/记录都不重复）⇒ 绿", None, 0,
-         must_in="STATUS=PASS")
+    # ── 正控：越界面无命中 ＋ 登记面双向一致 ⇒ 绿 ──
+    case("正控（废料件已登记四栏俱全；内容独一无二）⇒ 绿", None, 0, must_in="STATUS=PASS")
 
-    # ── 反例① 整件复制 ⇒ J-01 红，且**指名两件** ──
+    # ── 反例① J-01 整件复制 ⇒ 红且**指名两件**（该件也登记了 ⇒ 只让 J-01 红，测单一面）──
     def _copy(t):
         _mk(t / "ninedim/99-废料/抄件-沙盒.md", GOOD_DOC)
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "抄件-沙盒.md"]))
     case("反例①（J-01：把正文件整件抄进废料夹）⇒ 红且指名两件",
          _copy, 1, must_in="ninedim/99-废料/抄件-沙盒.md")
 
-    # ── 反例② 逐行重复（长件里粘一段正件）⇒ J-02 红，且指名该行 ──
+    # ── 反例② J-02 逐行重复（长件里粘一段正件）⇒ 红 ──
     def _line(t):
         _mk(t / "ninedim/99-废料/长件-沙盒.md",
             "# 临时长件\n\n" + "与本判据无关的第一段。\n\n"
             "系统 SHALL 在被请求时返回当前状态，且不得回放上一次的读数。\n\n"
             "与本判据无关的第二段。\n")
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "长件-沙盒.md"]))
     case("反例②（J-02：废料长件里粘了一整条正件的实质行）⇒ 红",
          _line, 1, must_in="ninedim/99-废料/长件-沙盒.md")
 
-    # ── 对照③ 只在废料夹一处 ⇒ 不红（正控已覆盖，再钉一条"独立内容"）──
+    # ── 对照③／④ 内容只在一处 ⇒ 不红 ──
     def _solo(t):
         _mk(t / "ninedim/99-废料/独一份-沙盒.md",
             "# 独一份\n\n这段话只在本夹里出现过一次，正文件与记录里都没有它。\n")
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "独一份-沙盒.md"]))
     case("对照③（内容只在废料夹一处）⇒ 不红", _solo, 0, must_in="STATUS=PASS")
+    case("对照④（内容只在正文件一处）⇒ 不红",
+         lambda t: _mk(t / "ninedim/01-意图环/02-需求/另加.md",
+                       "# 另加\n\n这段话只在正文件里出现，废料夹里一个字都没有，不应被判红。\n"),
+         0, must_in="STATUS=PASS")
 
-    # ── 对照④ 只在正文件一处 ⇒ 不红 ──
-    def _only_doc(t):
-        _mk(t / "ninedim/01-意图环/02-需求/另加.md",
-            "# 另加\n\n这段话只在正文件里出现，废料夹里一个字都没有，不应被判红。\n")
-    case("对照④（内容只在正文件一处）⇒ 不红", _only_doc, 0, must_in="STATUS=PASS")
-
-    # ── 反例⑤ 空集：**只有索引、没有在册件** ⇒ `[EMPTY]` ＋ `STATUS=SKIP`，不许 `STATUS=PASS` ──
+    # ── 反例⑤ 空集：**只有索引、没有在册件** ⇒ `[EMPTY]` ＋ `STATUS=SKIP`，不许 PASS ──
     def _empty(t):
         shutil.rmtree(t / "ninedim/99-废料")
-        _mk(t / "ninedim/99-废料/_索引.md", "# 99-废料 · 索引\n\n（空）—— 本夹刚建，尚无在册件。\n")
-    out5 = case("反例⑤（废料夹只有在册件为空：只剩索引）⇒ `[EMPTY]`／`STATUS=SKIP`（**未校验 ≠ 通过**）",
+        _mk(t / "ninedim/99-废料/_索引.md", _index_text([]))
+    out5 = case("反例⑤（在册件为空：只剩索引）⇒ `[EMPTY]`／`STATUS=SKIP`（**未校验 ≠ 通过**）",
                 _empty, 0, must_in="STATUS=SKIP", must_not="STATUS=PASS")
-    cases.append(("反例⑤b（空集时输出里必须出现 `[EMPTY]` 字样，且写明不是通过）",
-                  ("[EMPTY]" in out5) and ("不是通过" in out5),
-                  "含 `[EMPTY]` 与「不是通过」"))
+    cases.append(("反例⑤b（空集时输出里必须出现 `[EMPTY]`，且写明不是通过）",
+                  ("[EMPTY]" in out5) and ("不是通过" in out5), "含 `[EMPTY]` 与「不是通过」"))
 
-    # ── 对照⑥ 短行／表格骨架／短标题重复 ⇒ 不红（实质行阈值在起作用）──
-    #   ★ 夹具要点：两件的**骨架相同、全文不同**（废料件多出一段独有长文）——
-    #     若整件内容一模一样，那命中 J-01（整件重复）是**对的**，测不到"阈值过滤"这件事。
+    # ── 对照⑥ 短行／表格骨架重复 ⇒ 不红（实质行阈值在起作用）──
+    #   ★ 两件**骨架相同、全文不同**（各有一段独有长文）——若整件一模一样，命中 J-01 是对的，测不到阈值。
     def _skeleton(t):
         _mk(t / "ninedim/99-废料/骨架-沙盒.md",
             "# 沙盒\n\n| 项 | 值 |\n|---|---|\n| 甲 | 乙 |\n\n"
             "本夹件的独有尾段：这段文字只出现在废料夹这一件里，与正件不重复。\n")
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "骨架-沙盒.md"]))
         _mk(t / "ninedim/01-意图环/02-需求/骨架正件.md",
             "# 沙盒\n\n| 项 | 值 |\n|---|---|\n| 甲 | 乙 |\n\n"
             "正件件的独有尾段：这段文字只出现在正文件这一件里，与废料夹不重复。\n")
@@ -370,20 +462,58 @@ def self_test():
             rc7 = main(["--repo", str(Path(d) / "no-such")])
     cases.append(("反例⑦（`--repo` 指到不存在的仓根）⇒ rc=2", rc7 == 2, "rc=%d（期望 2）" % rc7))
 
-    # ── 反例⑧ **索引件也在被检面内**：只在索引里抄一份正件（在册件为空）⇒ **仍须红** ──
-    #   ★ 这一条同时钉住"**命中优先于空集**"：若把空集折成 SKIP 而不看索引，拿索引当口袋就能躲过去。
+    # ── 反例⑧ **索引件也在越界面内**：只在索引里抄一份正件（在册件为空）⇒ 仍须红 ──
     def _via_index(t):
         shutil.rmtree(t / "ninedim/99-废料")
         _mk(t / "ninedim/99-废料/_索引.md", GOOD_DOC)
     case("反例⑧（只在索引里抄正件：在册件为空但索引命中）⇒ **仍须红**（命中优先于空集）",
          _via_index, 1, must_in="ninedim/99-废料/_索引.md", must_not="STATUS=SKIP")
 
-    # ── 对照⑨ **比较面排除过程件**：`06-变更/` 里引用废料件的原文 ⇒ 不红 ──
-    def _in_change(t):
-        _mk(t / "ninedim/06-变更/2026-01-01-x/design.md",
-            "# Design\n\n这段话只在本夹里出现过一次，正文件与记录里都没有它。\n")
+    # ── 对照⑨ **J-01/J-02 的比较面排除过程件**：`06-变更/` 里出现同样内容 ⇒ 不红 ──
     case("对照⑨（相同内容在 `06-变更/`（过程件）里 ⇒ 不红：过程件引用是合法的）",
-         _in_change, 0, must_in="STATUS=PASS")
+         lambda t: _mk(t / "ninedim/06-变更/2026-01-01-x/design.md",
+                       "# Design\n\n这段话只在本夹里出现过一次，正文件与记录里都没有它。\n"),
+         0, must_in="STATUS=PASS")
+
+    # ══ J-03 登记面（§一）══
+    # ── 反例⑩ **有件未登记** ⇒ 红并指名那件 ──
+    def _unreg(t):
+        _mk(t / "ninedim/99-废料/没登记-沙盒.md", "# 没登记\n\n这是一件没有在索引里登记过的废料件。\n")
+    case("反例⑩（J-03：有件但索引里**没登记**）⇒ 红并指名那件",
+         _unreg, 1, must_in="ninedim/99-废料/没登记-沙盒.md")
+
+    # ── 对照⑪ 全部登记 ⇒ 不红（正控已覆盖；再钉一条"多件全登记"）──
+    def _all_reg(t):
+        _mk(t / "ninedim/99-废料/第二件-沙盒.md", "# 第二件\n\n第二件独有内容，与别处都不重复。\n")
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "第二件-沙盒.md"]))
+    case("对照⑪（两件**全部登记**、四栏俱全）⇒ 不红", _all_reg, 0, must_in="STATUS=PASS")
+
+    # ── 反例⑫ **登记了盘上没有的件**（反向）⇒ 红并指名那行 ──
+    def _ghost(t):
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "幽灵件-沙盒.md"]))
+    case("反例⑫（J-03：索引里登记了一个**盘上不存在**的件）⇒ 红",
+         _ghost, 1, must_in="幽灵件-沙盒.md")
+
+    # ── 反例⑬ **登记行缺栏**（只写件名）⇒ 红（否则"登记"会退化成只写个件名）──
+    def _short(t):
+        _mk(t / "ninedim/99-废料/_索引.md",
+            "# 99-废料 · 索引\n\n## 二、%s\n\n| %s |\n|---|---|---|---|\n"
+            "| `一次性-沙盒-2026-10-08.md` | 沙盒 |\n" % (REG_SECTION_KEY, " | ".join(REG_COLS)))
+    case("反例⑬（J-03：登记行**缺栏**——只写件名与『谁的』）⇒ 红",
+         _short, 1, must_in="缺栏")
+
+    # ── 反例⑭ **同名重复登记** ⇒ 红 ──
+    def _dup(t):
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "一次性-沙盒-2026-10-08.md"]))
+    case("反例⑭（J-03：同名**重复登记**）⇒ 红", _dup, 1, must_in="重复登记")
+
+    # ── 反例⑮ **缺索引而有件** ⇒ 红（本夹是唯一索引）──
+    def _no_index(t):
+        (t / "ninedim/99-废料/_索引.md").unlink()
+    case("反例⑮（J-03：**缺 `_索引.md`** 却有在册件）⇒ 红", _no_index, 1, must_in="唯一索引")
 
     bad = 0
     for label, ok, detail in cases:
@@ -395,15 +525,17 @@ def self_test():
         print("  => 自证**不通过**：%d 例不符；按本仓口径，这条守卫是装饰，拒绝合入。" % bad)
         return 1
     print("  => 自证通过：正控绿 ＋ 反例逐条红且**指名到件/到行**"
-          "（J-01 整件重复／J-02 逐行重复／索引件当口袋／空集 SKIP／阈值过滤／仓根错）")
-    print("     （「不应红」的对照 4 处：只在废料一处、只在正件一处、只有骨架短行重复、"
-          "相同内容在过程件 `06-变更/` 里）")
+          "（J-01 整件重复／J-02 逐行重复／索引当口袋／空集 SKIP／阈值过滤／仓根错／"
+          "**J-03 未登记／登记幽灵件／缺栏／重复登记／缺索引**）")
+    print("     （「不应红」的对照 5 处：只在废料一处、只在正件一处、只有骨架短行重复、"
+          "相同内容在过程件 `06-变更/` 里、多件全登记）")
     return 0
 
 
 # ────────────────────────── 入口 ──────────────────────────
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="废料夹越界判据（同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红）")
+    ap = argparse.ArgumentParser(
+        description="废料夹判据：同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红；每件须在索引登记一行")
     ap.add_argument("--repo", default=None, help="仓根；默认从本脚本位置向上找（含 ninedim 与 scripts/verify）")
     ap.add_argument("--min-len", type=int, default=SUBSTANTIVE_MIN_LEN,
                     help="实质行阈值（规范化后字符数；默认 %d）" % SUBSTANTIVE_MIN_LEN)

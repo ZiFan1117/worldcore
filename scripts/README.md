@@ -48,7 +48,7 @@
 | `verify/scope_check.py` | 「受控变更」的机器化闸门：防静默改框架／顺手重构／越界改动 | **CI**（`check.sh` 里没有，这是有意分工） |
 | `verify/signoff_guard.py` | 两枢纽签字面：**S-A 枢纽A 未批不许动手**／**S-B 枢纽B 未签不进 archive**（★「归档签字链」只是 **S-B** 的射程——原表把它当整件的名字，是把两闸说成一闸，F-10） | `check.sh` 第 ⑦h 步 |
 | `verify/socket_uid_guard.py` | 盘上那个口的属主 ≡ 法律里那条 uid | `check.sh` 第 ⑦g 步 |
-| `verify/junk_boundary.py` | 废料夹**越界**判据：**同一条内容既在 `ninedim/99-废料/`、又在正文件／记录里 ⇒ 红**（防"两处真相"＋防"把正件藏进废料"；口径出处＝`ninedim/99-废料/_索引.md` §三）。**射程**：被检面＝在册废料件 **＋ 索引件**（拿索引当口袋也抓）；比较面＝`ninedim/**` **减** `99-废料`／`06-变更`／`07-待审`（**过程件引用合法**，不扫）；实质行阈值 `--min-len`（默认 24 字符）；**只比 `ninedim/**`**（不覆盖 `src/**`／`scripts/**` 的重复）；**不判**"每件必须在索引登记一行"那一半口径（**今天无执行体**，已登记为缺口） | **待接线**（清单见 §四；本席建议 `run_registered`） |
+| `verify/junk_boundary.py` | 废料夹**两条口径**都做成会红的判据：**J-01/J-02 越界**（**同一条内容既在 `ninedim/99-废料/`、又在正文件／记录里 ⇒ 红**——防"两处真相"＋防"把正件藏进废料"）＋ **J-03 登记**（**每件必须在本索引登记一行**，四栏＝`件名 ｜ 谁的 ｜ 为什么留 ｜ 什么时候该清`；未登记／登记幽灵件／缺栏／同名重复／缺索引 各判红）。口径出处＝`ninedim/99-废料/_索引.md` §一 §三。**射程**：被检面＝在册废料件 **＋ 索引件**（拿索引当口袋也抓）；比较面（只给 J-01/J-02）＝`ninedim/**` **减** `99-废料`／`06-变更`／`07-待审`（**过程件引用合法**，不扫）；实质行阈值 `--min-len`（默认 24 字符）；**只比 `ninedim/**`**；**不判**「清空条件」那一半（"该清时点到期 ⇒ 清它"要**人**判到期没有） | **待接线**（清单见 §四 第 7 条；本席建议 `run_registered`） |
 | `verify/module_size_guard.py` | 「模块化」尺寸判据（**四面**：面①代码／面②文档／面③结构／面④判据脚本；目标 150 行／硬顶 250 行；依据＝作者「六七百行谁看得懂；应该是几十行」） | `check.sh` 第 ⑦n 步（`run_registered`；**包含本件自己在面④**，不豁免） |
 | `verify/spec_bridge.py` | 规格层的守卫（判据 ①…⑰；**条数以 `JUDGMENTS` 长度现算、此处不复述**。⑰＝**扫描面在册**：`ninedim/` 每个顶层夹必须在扫描面或排除面里——防「面静默缩小」） | `check.sh` 第 ⑧ 步 ＋ CI |
 | `verify/spec_shape.py` | 规格形态（Requirement／Scenario／WHEN／THEN 齐备） | `check.sh` 第 ⑧ 步 ＋ CI |
@@ -144,7 +144,7 @@ python scripts/gen/gen_secmap.py        # → ninedim/records/生成物/节对�
 | 4 | ⑦g 之后 | `check.sh:503-509`（口属主那条的显式分岔）之后 | （无此行） | `run_registered 8 "落地 chown 必带 +（仓内面；盘上面要 VM）" python3 scripts/verify/chown_plus_guard.py --repo .`（现取 `STATUS=SKIP` ⇒ 两种助手都会正确显示 ⏭） |
 | 5 | 接在第 4 条之后 | 同上 | （无此行） | 照 ⑦g 的**两岔写法**接 `scripts/verify/last_seen_guard.py --ledger … --presence …`：账本／presence 在 ⇒ `run_registered`；不在 ⇒ 显式打印 ⏭（**未校验 ≠ 通过**） |
 | 6 | **不接** | — | — | `spec_length_audit.py` **不接**（恒 rc=0，是审计表不是判据；接了就是装饰） |
-| 7 | ⑦n 之后**新起一步**（建议 ⑦o） | 现取：`Select-String -Path check.sh -Pattern '^step "⑦n'` 那一步之后 | （无此行） | `run_tail 1 "废料夹越界判据自证（11 例；反例必红且指名到件/到行）" python3 scripts/verify/junk_boundary.py --self-test` ＋ `run_registered 12 "废料夹越界（同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红）" python3 scripts/verify/junk_boundary.py`（★ 走**登记型**：废料夹刚起步、且真仓今天**在册件为 0** ⇒ 本件打印 `STATUS=SKIP`，两种助手都会正确显示 ⏭；**命中优先于空集**，索引件里抄了正件照样 rc=1 打 ⚠️） |
+| 7 | ⑦n 之后**新起一步**（建议 ⑦o） | 现取：`Select-String -Path check.sh -Pattern '^step "⑦n'` 那一步之后 | （无此行） | `run_tail 1 "废料夹判据自证（17 例；反例必红且指名到件/到行）" python3 scripts/verify/junk_boundary.py --self-test` ＋ `run_registered 12 "废料夹（越界：同一条内容两处；登记：每件须在索引登记一行）" python3 scripts/verify/junk_boundary.py`（★ 走**登记型**：废料夹刚起步、且真仓今天**在册件为 0** ⇒ 本件打印 `STATUS=SKIP`，两种助手都会正确显示 ⏭；**命中优先于空集**，索引件里抄了正件、或索引里登记了幽灵件，照样 rc=1 打 ⚠️） |
 
 > **★ 第 7 条（2026-10-08 本席提）**：`junk_boundary.py` 是**新判据**，口径出处＝
 > `ninedim/99-废料/_索引.md` §三（"同一条内容既在本夹、又在正文件／记录里出现 ⇒ 红"）。
