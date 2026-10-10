@@ -211,6 +211,11 @@
     "**openspec CLI 已退休、判据已承接**（2026-10-08 登记）：形态门禁不再由 `openspec validate --all --strict` 承担——`gate.yml` 的 `openspec-validate` 作业已改跑 `scripts/verify/spec_shape.py`（结构／每个 Scenario 恰好 4 个 `#`／delta 语法），内容侧仍由 `scripts/verify/spec_bridge.py`、`scripts/verify/spec_shape.py` 逐条判；`openspec` 只保留「装与 schema 校验」这一处辅助调用。⇒ 本档**不把 openspec CLI 写成任何判据的唯一执行体**。",
     "`roots` 三格随迁（2026-10-08 按盘上现取改写）：`docs`→`ninedim/01-意图环/01-策划`（仓根 `docs/` 已于 `a7bb4fe` 删除；人读说明＝仓根 `README.md` ＋ 书）、`deploy`→`scripts/release`（原仓根 `deploy/`，于 `5d4566b` 迁入）、`generated`→`ninedim/records/生成物`（原仓根 `generated/`）。",
     "`atoms` 与 `src/` 的 9 个夹**一一对应**（现取：`agent`／`bus`／`carrier`／`common`／`gate`／`gui_projection`／`ledger`／`ontology_definition`／`ontology_instance`）。两处**不占模块号**的夹照实登记：`common`・`agent` 按 `设计-WC-MODREG-001-v0.1.md` §2.1 是**不占号的共同模块**（`modules: []`、`shared: true`）。**原件里的 `A-04 runtime-root` 已退役**：它的 `zone=src/runtime-root` 盘上不存在（`Test-Path` False）；`M04` 的实落点登记在本档 `crate_root` 格。原子号按现取**重排为 `A-01`…`A-09`**（旧号未在任何活件里被引用，现取检索 `scripts/**` 与 `ninedim/**` 均无）。",
-    "`contracts[].spec` 一栏本档留空：`ninedim/01-意图环/04-规格/` 的 9 份 `<能力>.spec.md` 里**只有 `write-side-adaptation.spec.md` 逐字出现接口号**（`IF-011`），其余**映射未经核对** ⇒ 不臆填。接口的总账见 `ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md` §一，模块与接口的对应见 `设计-WC-MODREG-001-v0.1.md` §2 与 §4.4。"
+    "`contracts[].spec` 一栏本档留空：`ninedim/01-意图环/04-规格/` 的 9 份 `<能力>.spec.md` 里**只有 `write-side-adaptation.spec.md` 逐字出现接口号**（`IF-011`），其余**映射未经核对** ⇒ 不臆填。接口的总账见 `ninedim/01-意图环/03-设计/设计-WC-IC-001-v0.1.md` §一，模块与接口的对应见 `设计-WC-MODREG-001-v0.1.md` §2 与 §4.4。",
+    {
+      "what": "工程域内加层 ninedim/00-纲领/",
+      "why": "标准的立项/宪法落 01-意图环/01-策划（S0）；而'跨环成立的纲领性思考'无家可归，散在 01-策划/03-设计/06-澄清记录 三处（作者 2026-10-08 点名要一个纲领夹）",
+      "how": "记为受登记的结构偏离：本夹只收纲领件（不收过程/记录），命名 纲领-<名>.md，深度封顶三层；旧件本批不搬（搬＝改归属须人裁）"
+    }
   ]
 }
