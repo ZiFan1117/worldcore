@@ -20,19 +20,27 @@
 * **J-02 逐行重复**：废料件里某条**实质行**（规范化后 ≥ `SUBSTANTIVE_MIN_LEN` 字符）在正文件／记录里
   也出现 ⇒ 红。为什么必须有：J-01 只抓"整件副本"，而"**把正件的一段粘进废料的长件里**"
   同样造成两处真相（§三 要防的正是这个）。
-* **J-03 登记面**（§一 那一半）：
-  · **有件未登记** ⇒ 红（指名那件）；**登记了盘上没有的件** ⇒ 红（指名那行）；
+* **J-03 登记面**（§一 前半句）：
+  · **有件未登记** ⇒ 红（指名那件）；
   · **缺栏** ⇒ 红：登记行必须**四栏俱全**（`件名 ｜ 谁的 ｜ 为什么留 ｜ 什么时候该清`），
     否则"登记"会退化成只写个件名；
   · **同名重复登记** ⇒ 红；
   · **缺 `_索引.md` 而有件** ⇒ 红（本夹是**唯一索引**，没有它"登记过没有"无从判）。
+* **J-04 清空面**（§一 后半句；作者裁 2026-10-08 批准补）：
+  · 索引里有「**已清（时点／谁）**」的留痕、而**件仍在盘上** ⇒ **红**（自己打自己脸）；
+  · 件**已不在盘上**、而**没有任何一行**留了「已清（时点／谁）」⇒ **红**（**静默删**——本仓最恨的形态）。
+  · ★★ **口径（作者要求逐字写进件头，免得下一个人以为闸能替他判时机）**：
+    「**机器只能判『清前留没留一行』，判不了『到没到期』（到期由人判）**」。
+    该清时点写在登记表第四栏、由**人**判；本件判的只是**留痕**。
+  · 「已清」的**形态关**：须带**括号说明或日期**（`已清（2026-10-09／张三）`／`已清 2026-10-09`）；
+    只写「已清」两个字**不算**留痕（否则"写两个字过关"会把这半边口径架空）。
 
 ★ 射程（如实写，别读成"废料夹已清净"）
 --------------------------------------
 * **被检面**＝`ninedim/99-废料/**` 的**在册废料件**（除索引 `_索引.md`）**＋ 索引件自身**
   （拿索引当"正件的口袋"同样要抓）。**空集判据挂在"在册件"上**：只有索引、没有在册件 ⇒
   `[EMPTY]` ＋ `STATUS=SKIP`（**未校验 ≠ 通过**，不许 PASS）——真仓今天就是这个状态。
-  ★ 但**命中优先于空集**：索引里若真抄了一份正件、或真登记了一个不存在的件，那是真违规，
+  ★ 但**命中优先于空集**：索引里若真抄了一份正件、或真登记/清空得不实，那是真违规，
   **不许**被"空集"折成 ⏭。
 * **比较面**（只给 J-01／J-02 用）＝`ninedim/**` **减去** `99-废料/`（被检面）**减去**
   `06-变更/`／`07-待审/`（**过程件**：它们在 `design.md`／`tasks.md` 里**引用**废料口径与内容是**合法**的）。
@@ -40,8 +48,13 @@
 * **实质行过滤**＝"规范化后 ≥ `SUBSTANTIVE_MIN_LEN` 字符"。它会**漏掉**"两处只重复一句短话"的形态；
   也会把长而通用的句子判成命中——**阈值是旋钮**，`--min-len N` 可调，改动要配反例。
 * **只比 `ninedim/**`**：废料件与 `src/**`／`scripts/**`／`README.md` 的重复**不在**本件面内。
-* **不判**「清空条件」那一半（"该清时点到期 ⇒ 清它"）：那要**人**判"到期没有"，
-  机器只能判"**清之前有没有留一行**"；本件今天**不**判它（如实登记为缺口）。
+* **J-04 只判留痕、不判时机**（如实写）：闸**判不了**"该清时点到没到期"——那是**人**的事；
+  它也**不判**"清得对不对"（件该不该留证）。**别把它读成"废料都清干净了"**。
+* ★ **J-04 的一个如实缺口**：**件与它的登记行一起删掉**（连一行 已清 都没留、登记行也没了）⇒
+  本件**判不了**——盘上与索引里都**没有残留**可比（没有任何"曾存在过"的痕迹）。
+  那一半只能靠 **git 历史**（`git log --diff-filter=D -- ninedim/99-废料/`）与审计去追；
+  本件**不冒充覆盖**它。★ 同理，"已清痕"须与**件名同行**（同一行同时出现件名与已清痕）才算留痕——
+  只写一句不点名的"已清"没有归属，等于没留（口径在 `cleaned_names()` 的 docstring 里）。
 
 用法
 ----
@@ -52,7 +65,7 @@
 退出码
 ------
     0 = 无违规，**或**显式 `STATUS=SKIP`（在册件为空 ⇒ **未校验 ≠ 通过**）
-    1 = 有违规（J-01／J-02／J-03 任一命中）
+    1 = 有违规（J-01／J-02／J-03／J-04 任一命中）
     2 = 用法错、仓根错
 """
 import argparse
@@ -60,6 +73,7 @@ import contextlib
 import hashlib
 import io
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -200,54 +214,85 @@ def parse_registry(idx_text):
     return rows, None
 
 
+#: 「已清（时点／谁）」的**形态关**：须带**括号说明**（≥2 字）或**日期**——只写"已清"两字不算留痕。
+CLEAN_MARK_RE = re.compile(r"已清\s*(?:[（(][^）)]{2,}[)）]|\d{4}-\d{2}-\d{2})")
+
+
+def cleaned_names(idx_text, names):
+    """索引里**留了「已清（时点／谁）」痕**的件名集合。
+
+    判法（**认结构不认字样**，与本仓同族口径一致）：逐行看——那一行**既有**已清痕、**又出现**某件名，
+    才把该件算作"已留痕"。⇒ 支持两种写法：登记行第四栏里写已清，或**另起一行**写
+    `- 已清（2026-10-09／张三）：`某件.md``（口径原文正是"先在本索引**写一行**"）。
+    """
+    out = set()
+    for ln in idx_text.split("\n"):
+        if not CLEAN_MARK_RE.search(ln):
+            continue
+        for nm in names:
+            if nm in ln:
+                out.add(nm)
+    return out
+
+
 def check_registry(repo):
-    """J-03：把「在册废料件」与登记表**双向**对账，并查**缺栏／重复**。返回违规清单。"""
-    bad = []
+    """登记面 ＋ 清空面。返回 (j03, j04)：j03＝登记违规；j04＝清空留痕违规。
+
+    ★ J-04 的口径（写死）：**机器只能判『清前留没留一行』，判不了『到没到期』（到期由人判）**。
+    """
+    j03, j04 = [], []
     items = junk_items(repo)
     idx = junk_index(repo)
     if idx is None:
         if items:
-            bad.append("缺 `%s`（本夹是**唯一索引**）：有 %d 件在册废料件、却没有任何登记表 ⇒ "
+            j03.append("缺 `%s`（本夹是**唯一索引**）：有 %d 件在册废料件、却没有任何登记表 ⇒ "
                        "「每件必须在本索引登记一行」无从满足" % (JUNK_INDEX_NAME, len(items)))
-        return bad
-    rows, problem = parse_registry(read_text(idx))
+        return j03, j04
+    idx_text = read_text(idx)
+    rows, problem = parse_registry(idx_text)
     if problem:
-        return ["`%s` —— %s" % (rel(repo, idx), problem)]
+        return ["`%s` —— %s" % (rel(repo, idx), problem)], j04
     registered, seen = [], {}
     for ln, cells in rows:
         if len(cells) < len(REG_COLS) or any(not c for c in cells[:len(REG_COLS)]):
-            bad.append("`%s:%d` —— 登记行**缺栏**：须四栏俱全（`%s`），实得 %d 栏 %s"
+            j03.append("`%s:%d` —— 登记行**缺栏**：须四栏俱全（`%s`），实得 %d 栏 %s"
                        % (rel(repo, idx), ln, " ｜ ".join(REG_COLS), len(cells), cells))
             continue
         name = cells[0]
         if name in seen:
-            bad.append("`%s:%d` —— **同名重复登记**（`%s` 已在第 %d 行登记过）"
+            j03.append("`%s:%d` —— **同名重复登记**（`%s` 已在第 %d 行登记过）"
                        % (rel(repo, idx), ln, name, seen[name]))
         seen[name] = ln
         registered.append((ln, name))
     have = {p.name for p in items}
     reg = {n for _, n in registered}
     for name in sorted(have - reg):
-        bad.append("`%s/%s` —— **有件未登记**（§一：没登记就不许进；请在 `%s` 的「%s」表补一行四栏）"
+        j03.append("`%s/%s` —— **有件未登记**（§一：没登记就不许进；请在 `%s` 的「%s」表补一行四栏）"
                    % (JUNK_TOP, name, JUNK_INDEX_NAME, REG_SECTION_KEY))
+
+    # ── J-04 清空面：**件在 ↔ 留痕**必须对得上（两个方向各判一条）──
+    cleaned = cleaned_names(idx_text, have | reg)
+    for name in sorted(have & cleaned):
+        j04.append("`%s/%s` —— **件仍在盘上，索引里却写了「已清（…）」** ⇒ 登记与盘上不符"
+                   "（要么把件清掉、要么把那行已清痕撤掉）" % (JUNK_TOP, name))
     for ln, name in sorted(registered, key=lambda x: x[0]):
-        if name not in have:
-            bad.append("`%s:%d` —— **登记了盘上没有的件** `%s`（清件时忘了划登记行？"
-                       "§一：清之前先写一行「已清（时点／谁）」，不许静默删）"
+        if name not in have and name not in cleaned:
+            j04.append("`%s:%d` —— 登记了件 `%s`，而它**已不在盘上**、索引里**没有任何一行**写"
+                       "「已清（时点／谁）」 ⇒ **静默删**（§一：清之前先写一行，不许静默删）"
                        % (rel(repo, idx), ln, name))
-    return bad
+    return j03, j04
 
 
 # ────────────────────────── 判定 ──────────────────────────
 def evaluate(repo, min_len):
-    """返回 (rows, j01, j02, j03, empty_reason)。
+    """返回 (rows, j01, j02, j03, j04, empty_reason)。
 
-    rows＝被检件（在册件 ＋ 索引件）；j01/j02＝越界命中；j03＝登记面违规；
+    rows＝被检件（在册件 ＋ 索引件）；j01/j02＝越界命中；j03＝登记面；j04＝清空面；
     `empty_reason` 非空 ⇒ **在册件为空**（不许判 PASS）——但**命中优先于空集**。
     """
     items, idx = junk_items(repo), junk_index(repo)
     targets = [("item", p) for p in items] + ([("index", idx)] if idx is not None else [])
-    j03 = check_registry(repo)
+    j03, j04 = check_registry(repo)
     empty_reason = ""
     if not items:
         empty_reason = ("废料夹**没有在册废料件**（只有索引 `%s`）——被检面为空" % JUNK_INDEX_NAME
@@ -270,19 +315,19 @@ def evaluate(repo, min_len):
             for s, ln in sorted(substantive_lines(t, min_len).items(), key=lambda kv: kv[1]):
                 for other in sorted(line_index.get(s, ())):
                     j02.append((r, ln, s, other))
-    elif not j03:
+    elif not j03 and not j04:
         empty_reason = empty_reason or ("比较面为空（`%s/**` 减掉 %s 后没有件）"
                                         % (NINEDIM, "／".join(COMPARE_EXCLUDE_TOPS)))
     rows = [{"path": rel(repo, p), "kind": kind, "lines": len(read_text(p).splitlines()),
              "fp": fingerprint(read_text(p))[:12]} for kind, p in targets]
-    return rows, j01, j02, j03, empty_reason
+    return rows, j01, j02, j03, j04, empty_reason
 
 
 def run(repo, min_len, out=None):
     out = out if out is not None else sys.stdout
-    rows, j01, j02, j03, empty_reason = evaluate(repo, min_len)
+    rows, j01, j02, j03, j04, empty_reason = evaluate(repo, min_len)
     items, idx = junk_items(repo), junk_index(repo)
-    print("== junk_boundary —— 废料夹判据（越界 J-01/J-02 ＋ 登记 J-03）==", file=out)
+    print("== junk_boundary —— 废料夹判据（越界 J-01/J-02 ＋ 登记 J-03 ＋ 清空 J-04）==", file=out)
     print("   仓根：%s" % repo, file=out)
     print("   被检面：`%s/%s/**`（在册件 %d 件；索引件 %s）｜比较面：`%s/**` 减 %s（%d 件）"
           "｜实质行阈值＝%d 字符"
@@ -309,20 +354,26 @@ def run(repo, min_len, out=None):
           file=out)
     for x in j03:
         print("   [RED] %s" % x, file=out)
+    print("── J-04 清空面（机器只判「清前留没留一行」，判不了「到没到期」）%d 条 ──" % len(j04),
+          file=out)
+    for x in j04:
+        print("   [RED] %s" % x, file=out)
 
     print("", file=out)
     print("── 汇总（现算）──", file=out)
-    print("   被检件 %d 件（在册 %d ＋ 索引 %d）；J-01 %d ＋ J-02 %d ＋ J-03 %d ⇒ 红合计 %d"
+    print("   被检件 %d 件（在册 %d ＋ 索引 %d）；J-01 %d ＋ J-02 %d ＋ J-03 %d ＋ J-04 %d ⇒ 红合计 %d"
           % (len(rows), len(items), 1 if idx is not None else 0,
-             len(j01), len(j02), len(j03), len(j01) + len(j02) + len(j03)), file=out)
+             len(j01), len(j02), len(j03), len(j04),
+             len(j01) + len(j02) + len(j03) + len(j04)), file=out)
 
-    # ★ 顺序要紧：**命中优先于空集**——索引里真抄了正件、或真登记了不存在的件，那是真违规，
-    #   不许被"在册件为空"折成 ⏭（否则"拿索引当口袋"与"空登记"都能躲过判据）。
-    if j01 or j02 or j03:
+    # ★ 顺序要紧：**命中优先于空集**——索引里真抄了正件、或真登记/清空得不实，那是真违规，
+    #   不许被"在册件为空"折成 ⏭（否则"拿索引当口袋"与"空登记／静默删"都能躲过判据）。
+    if j01 or j02 or j03 or j04:
         print("STATUS=FAIL", file=out)
-        print("结论 = **红**：%d 条（越界 %d ＋ 登记 %d）⇒ 两处真相／把正件藏进废料／登记不实，"
-              "按 `ninedim/%s/_索引.md` §一§三 处置" % (len(j01) + len(j02) + len(j03),
-                                                        len(j01) + len(j02), len(j03), JUNK_TOP), file=out)
+        print("结论 = **红**：%d 条（越界 %d ＋ 登记 %d ＋ 清空 %d）⇒ 两处真相／把正件藏进废料／"
+              "登记不实／静默删，按 `ninedim/%s/_索引.md` §一§三 处置"
+              % (len(j01) + len(j02) + len(j03) + len(j04), len(j01) + len(j02),
+                 len(j03), len(j04), JUNK_TOP), file=out)
         return 1
     if empty_reason:
         print("   [EMPTY] %s" % empty_reason, file=out)
@@ -489,11 +540,11 @@ def self_test():
             _index_text(["一次性-沙盒-2026-10-08.md", "第二件-沙盒.md"]))
     case("对照⑪（两件**全部登记**、四栏俱全）⇒ 不红", _all_reg, 0, must_in="STATUS=PASS")
 
-    # ── 反例⑫ **登记了盘上没有的件**（反向）⇒ 红并指名那行 ──
+    # ── 反例⑫ **登记了盘上没有的件、且没有已清痕**（＝静默删的形态）⇒ 红并指名那行 ──
     def _ghost(t):
         _mk(t / "ninedim/99-废料/_索引.md",
             _index_text(["一次性-沙盒-2026-10-08.md", "幽灵件-沙盒.md"]))
-    case("反例⑫（J-03：索引里登记了一个**盘上不存在**的件）⇒ 红",
+    case("反例⑫（J-03/J-04：索引里登记了一个**盘上不存在**且**无已清痕**的件）⇒ 红",
          _ghost, 1, must_in="幽灵件-沙盒.md")
 
     # ── 反例⑬ **登记行缺栏**（只写件名）⇒ 红（否则"登记"会退化成只写个件名）──
@@ -515,6 +566,50 @@ def self_test():
         (t / "ninedim/99-废料/_索引.md").unlink()
     case("反例⑮（J-03：**缺 `_索引.md`** 却有在册件）⇒ 红", _no_index, 1, must_in="唯一索引")
 
+    # ══ J-04 清空面（§一 后半句）══
+    # ── 反例⑯ **件仍在盘上、登记却标了「已清（…）」** ⇒ 红并指名（自己打自己脸）──
+    #    ★ 夹具要点：登记行**四栏俱全**（J-03 干净）⇒ 让**只有 J-04** 这一条红，测的是单一面。
+    def _cleaned_but_present(t):
+        _mk(t / "ninedim/99-废料/_索引.md", _index_text(["一次性-沙盒-2026-10-08.md"]) + "\n"
+            "- 已清（2026-10-09／沙盒）：`一次性-沙盒-2026-10-08.md`\n")
+    case("反例⑯（J-04：件**仍在盘上**、索引里却写了「已清（时点／谁）」）⇒ 红并指名",
+         _cleaned_but_present, 1, must_in="一次性-沙盒-2026-10-08.md")
+
+    # ── 反例⑰ **件已不在盘上、登记行没有已清痕**（＝静默删）⇒ 红 ──
+    def _silent_delete(t):
+        (t / "ninedim/99-废料/一次性-沙盒-2026-10-08.md").unlink()   # 件删了，索引那一行照旧（无已清痕）
+    case("反例⑰（J-04：件**已不在盘上**、索引里**没有**「已清（…）」痕迹）⇒ 红（静默删）",
+         _silent_delete, 1, must_in="静默删")
+
+    # ── 反例⑱ **只写「已清」两个字不算留痕**（形态关）⇒ 等同静默删 ⇒ 红 ──
+    #    ★ 夹具要点：**登记行仍在**（否则"静默删"根本无从判——件名都不在册了）；
+    #      删的是盘上的件 ＋ 只留一句不合成语（无括号/无日期）的「已清」。
+    def _bare_cleaned(t):
+        (t / "ninedim/99-废料/一次性-沙盒-2026-10-08.md").unlink()
+        _mk(t / "ninedim/99-废料/_索引.md", _index_text(["一次性-沙盒-2026-10-08.md"]) + "\n"
+            "- 已清：`一次性-沙盒-2026-10-08.md`\n")
+    case("反例⑱（J-04：「已清」**不带括号说明或日期** ⇒ 不算留痕、等同静默删）⇒ 红",
+         _bare_cleaned, 1, must_in="静默删")
+
+    # ── 对照⑲ **件不在 + 留了「已清（时点／谁）」**（正常清理）⇒ 不红 ──
+    def _proper_clean(t):
+        (t / "ninedim/99-废料/一次性-沙盒-2026-10-08.md").unlink()
+        _mk(t / "ninedim/99-废料/_索引.md", _index_text([]) + "\n"
+            "- 已清（2026-10-09／沙盒）：`一次性-沙盒-2026-10-08.md`\n")
+    case("对照⑲（J-04：件不在 ＋ 写了「已清（2026-10-09／沙盒）」＝正常清理）⇒ 不红",
+         _proper_clean, 0, must_in="STATUS=SKIP")
+
+    # ── 对照⑳ **件在 + 无已清痕**（正常在册）⇒ 不红；且**已清痕按件归属**（别件的痕不误伤本件）──
+    def _attribution(t):
+        _mk(t / "ninedim/99-废料/第二件-沙盒.md", "# 第二件\n\n第二件独有内容，与别处都不重复。\n")
+        _mk(t / "ninedim/99-废料/_索引.md",
+            _index_text(["一次性-沙盒-2026-10-08.md", "第二件-沙盒.md"]))
+        (t / "ninedim/99-废料/第二件-沙盒.md").unlink()          # 第二件清了、且留痕
+        _mk(t / "ninedim/99-废料/_索引.md", _index_text(["一次性-沙盒-2026-10-08.md", "第二件-沙盒.md"])
+            + "\n- 已清（2026-10-09／沙盒）：`第二件-沙盒.md`\n")
+    case("对照⑳（J-04：已清痕**按件归属**——只有第二件标了已清，第一件仍在册无痕）⇒ 不红",
+         _attribution, 0, must_in="STATUS=PASS")
+
     bad = 0
     for label, ok, detail in cases:
         print("  %s %s ⇒ %s" % ("✅" if ok else "❌", label, detail))
@@ -526,16 +621,18 @@ def self_test():
         return 1
     print("  => 自证通过：正控绿 ＋ 反例逐条红且**指名到件/到行**"
           "（J-01 整件重复／J-02 逐行重复／索引当口袋／空集 SKIP／阈值过滤／仓根错／"
-          "**J-03 未登记／登记幽灵件／缺栏／重复登记／缺索引**）")
-    print("     （「不应红」的对照 5 处：只在废料一处、只在正件一处、只有骨架短行重复、"
-          "相同内容在过程件 `06-变更/` 里、多件全登记）")
+          "**J-03 未登记／登记幽灵件／缺栏／重复登记／缺索引**／"
+          "**J-04 件在却标已清／静默删／只写「已清」两字不算留痕**）")
+    print("     （「不应红」的对照 %d 处——**由上面逐条打印的行现算**，此处不写死）"
+          % sum(1 for label, _, _ in cases if "对照" in label))
     return 0
 
 
 # ────────────────────────── 入口 ──────────────────────────
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        description="废料夹判据：同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红；每件须在索引登记一行")
+        description="废料夹判据：越界（同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红）"
+                    "＋ 登记（每件须在索引登记一行，四栏俱全）＋ 清空（清前须留痕）")
     ap.add_argument("--repo", default=None, help="仓根；默认从本脚本位置向上找（含 ninedim 与 scripts/verify）")
     ap.add_argument("--min-len", type=int, default=SUBSTANTIVE_MIN_LEN,
                     help="实质行阈值（规范化后字符数；默认 %d）" % SUBSTANTIVE_MIN_LEN)

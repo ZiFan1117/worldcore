@@ -599,13 +599,13 @@ run_tail 1 "模块化尺寸判据自证（正控＋反例；反例必红且指�
 run_registered 20 "模块化尺寸（面①代码／面②文档／面③结构／面④判据脚本）" python3 scripts/verify/module_size_guard.py
 
 echo
-step "⑦o 废料夹（越界：同一条内容既在 99-废料/、又在正文件／记录里 ⇒ 红；登记：每件须在 _索引.md 登记一行且四栏俱全 ⇒ 红）"
+step "⑦o 废料夹（越界：同一条内容两处 ⇒ 红；登记：每件须在 _索引.md 登记一行且四栏俱全 ⇒ 红；清空：写「已清」而件仍在／件没了却没留痕 ⇒ 红）"
 # 为什么有它：`ninedim/99-废料/` 是作者口述要的"平时废料"夹；它的规矩是"进夹必须登记、不得当巨件藏身处"，
 #   而"不得把正件藏进废料"与"不许两处真相"这两条**必须有闸**，否则废料夹会变成第二个真相源。
 # 为什么走 run_registered：现取 STATUS=SKIP（空集＝未校验，不是通过），且新夹刚起步；
 #   rc=2（用法／仓根错）两口径都阻断。★ 本处不复述任何数，一切以本步当场打印为准。
-run_tail 1 "废料夹判据自证（越界＋登记两面；反例必红且指名到件/到行）" python3 scripts/verify/junk_boundary.py --self-test
-run_registered 12 "废料夹（越界 J-01/J-02 ＋ 登记 J-03）" python3 scripts/verify/junk_boundary.py
+run_tail 1 "废料夹判据自证（越界＋登记＋清空三面；反例必红且指名到件/到行）" python3 scripts/verify/junk_boundary.py --self-test
+run_registered 12 "废料夹（越界 J-01/J-02 ＋ 登记 J-03 ＋ 清空 J-04）" python3 scripts/verify/junk_boundary.py
 
 echo
 step "⑧ 规格层守卫（OpenSpec 层）"
