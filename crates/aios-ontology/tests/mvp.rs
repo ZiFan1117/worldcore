@@ -96,14 +96,29 @@ fn unknown_capability_is_refused() {
 }
 
 #[test]
-fn empty_function_table_is_reported_as_a_gap() {
+fn function_table_is_filled_and_every_action_points_at_an_entry() {
+    // ★ 2026-10-13 作者更正：**函数面本来就该有**（原判据「空表是缺口」是错的 —— 它把"没做到"当成了"本该如此"）。
     let ontology = our();
-    assert_eq!(ontology.function_entry_count(), 0, "现取：入口表是空的");
-    assert!(
-        ontology
-            .declared_gaps()
-            .iter()
-            .any(|g| g.contains("零实例")),
-        "空入口表必须被如实报成缺口，不许当成已立"
+    let value = doc();
+    let entries = value["_functions"]["entries"]
+        .as_object()
+        .expect("_functions.entries 是对象");
+    assert_eq!(
+        ontology.function_entry_count(),
+        9,
+        "九条动作各一条函数（现取）"
     );
+    for (name, body) in value["_actions"].as_object().expect("_actions 是对象") {
+        if name.starts_with('_') {
+            continue;
+        }
+        let f = body
+            .get("function")
+            .and_then(|v| v.as_str())
+            .unwrap_or_else(|| panic!("动作 {name} 必须写 function（第五要素）"));
+        assert!(
+            entries.contains_key(f),
+            "动作 {name} 指向的函数 {f} 必须在 _functions.entries 里"
+        );
+    }
 }
