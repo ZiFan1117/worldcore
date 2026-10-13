@@ -11,3 +11,6 @@ crates/aios-ontology/                             # 我方新增 crate（worldco
 crates/aios-cognitive/Cargo.toml                  # 加 aios-ontology 依赖（未登记动作名即拒的权威来源）  T-24
 crates/aios-cognitive/src/translator_engine.rs    # 装上本体闸：构造 Request 前查表，未登记即拒  T-24
 crates/aios-cognitive/tests/action_catalog_gate.rs # 我方新增产品测试（未登记即拒；先红后绿）  T-24
+AGENTS.md                                         # 退役上游 GitNexus 说明书，换成本仓我方规约  T-25
+CLAUDE.md                                         # 退役上游 AIOS 说明书，换成本仓指针件  T-25
+README.md                                         # 退役上游前门，换成本仓前门  T-25
