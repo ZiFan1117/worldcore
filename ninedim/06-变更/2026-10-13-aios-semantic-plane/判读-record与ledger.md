@@ -126,3 +126,21 @@ _types.value_types.record_kind = {
 }
 ```
 ★ 而那 10 处现在写的是内联形式：`param_type = "enum(change,act,notice,job)"`（★ 直接内联，不引新语法）。
+### ★★ 补：全仓现在有 **20 个格子**带取值范围（现取）
+
+| 在哪 | 几个 | 例 |
+|---|---|---|
+| ★ **对象字段** | **5** | `presence.state`＝`enum(installed,registered,running,stopped,retired)`；`port.state`＝`enum(declared,listening,retired)`；`agent.state`／`application.state`＝`enum(installed,running,retired)`；`service.state`＝`enum(running,stopped,retired)` |
+| ★ **动作参数** | **5** | `notice.mute/.unmute.subject`、`job.start/.finish/.cancel.subject` ＝ **`enum(change,act,notice,job)`** |
+| ★ **函数出入** | **10** | 同上 5 条函数的 `inputs.subject` 与 `output_type` |
+| ★ **命名的取值域** | **1** | `_types.value_types.record_kind` |
+
+⇒ ★ 合计 **20 个格子**；★ 其中 **5 个是"对象字段"**（★ 就是作者说的那种），**15 个是"动作参数／函数出入"**。
+⇒ ★★ **所以准确说**：★ **凡是"要填值的格子"都有取值范围** —— ★ 不只是对象里的字段。
+
+### ★ 顺带更正一处过时的话（现取）
+
+| 位置 | 原文 | 现取 |
+|---|---|---|
+| `_types.value_types._本仓今天` | 「★ **一条都没有** —— 本仓没有任何具名值类型面」 | ★ **已加 1 条**（`record_kind`）⇒ 原文是"加它之前"的现取，**已更正** |
+| `_types.value_types._要加` | 「在 `_` 键下加条目＋**配会红判据**；本批只建面」 | ★ **条目已加**；★★ **会红判据仍未配** —— ★ **C7 的九路射程不读 `_types.value_types`** ⇒ **本格今天无人守**（待人裁） |

@@ -9824,7 +9824,9 @@
     ],
     "_依据": "★ 2026-10-13：撤 record 后，`ref(record)` 的 10 处改为本取值域（作者裁定「取值域」）；★ 四值＝`families` 四键。",
     "_照谁": "P 的 `ValueType`（name + base_type + constraints）"
-   }
+   },
+   "_本仓今天（2026-10-13 更正）": "★ **2026-10-13 更正**：本格**已有 1 条**（`record_kind`）—— 原文写「一条都没有」是**加它之前**的现取。★ 全仓带取值域的格子共 **20 个**：对象字段 5（`presence/port/agent/application/service` 的 `state`）、动作参数 5、函数出入 10。",
+   "_要加（现取）": "★ 原写「在 `_` 键下加 `_types.value_types` 的条目＋配会红判据；本批只建面」。★★ **现取**：条目已加 1 条（`record_kind`）；★ 但**会红判据仍未配** —— 判据 C7 的九路射程**不读 `_types.value_types`** ⇒ ★ **本格今天无人守**（待人裁是否补射程）。"
   },
   "value_type_constraints": {
    "pattern": "正则匹配（P 的 ValueType.validate 里用 re.match）",
