@@ -1,6 +1,14 @@
 //! 最小内核的端到端用例（先写会红的反例，再让它绿）。
 
-use aios_worldcore::*;
+use aios_worldcore::core::registry::Registry;
+use aios_worldcore::core::types::{Admit, Event, EventSeq, Reason, Refuse, Registration, Who};
+use aios_worldcore::engine::execute::{DryRun, Exec, Executor};
+use aios_worldcore::engine::instances::Instances;
+use aios_worldcore::engine::ledger::Ledger;
+use aios_worldcore::engine::query::Query;
+use aios_worldcore::engine::store::Store;
+use aios_worldcore::engine::validate::{check_enum, check_refs, check_required, check_shape};
+use aios_worldcore::governance::Governance;
 use serde_json::json;
 
 const ONT: &str = include_str!("../../../crates/aios-ontology/data/ontology.json");

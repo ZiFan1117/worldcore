@@ -8,6 +8,7 @@
 #
 Cargo.toml                                        # 登记我方新增 crate aios-ontology 的 workspace member（T-24）＋★ 2026-10-13 把 [profile.dev]/[profile.test] 的 debug 由 true 改 0（T-79：VM 磁盘 100G 仍放不下全量 test binary —— 82G 都是调试信息；改 0 后显著变小，只影响调试信息、不影响行为）  T-24/T-79
 crates/aios-ontology/                             # 我方新增 crate（worldcore 本体在 AIOS 侧的装载与校验面）  T-24
+crates/aios-worldcore/                       # 我方新增：worldcore 最小内核（core 定义层 / engine 运行层 / governance 治理；照 Palantir foundry-ontology 三目录）  T-94
 crates/aios-cognitive/Cargo.toml                  # 加 aios-ontology 依赖（未登记动作名即拒的权威来源）  T-24
 crates/aios-cognitive/src/translator_engine.rs    # 装上本体闸：构造 Request 前查表，未登记即拒  T-24
 crates/aios-cognitive/tests/action_catalog_gate.rs # 我方新增产品测试（未登记即拒；先红后绿）  T-24
@@ -15,13 +16,12 @@ AGENTS.md                                         # 退役上游 GitNexus 说明
 CLAUDE.md                                         # 退役上游 AIOS 说明书，换成本仓指针件  T-25
 README.md                                         # 退役上游前门，换成本仓前门  T-25
 crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
-crates/aios-worldcore-shared/                    # 我方新增：worldcore 最小内核·共同类型（谁/拒/为什么/要登记的东西/一件事）  T-94
-crates/aios-worldcore-registry/                  # 我方新增：worldcore 面①注册  T-94
-crates/aios-worldcore-instances/                 # 我方新增：worldcore 面②实例注册（未登记即拒）  T-94
-crates/aios-worldcore-validate/                  # 我方新增：worldcore 面③校验  T-94
-crates/aios-worldcore-store/                     # 我方新增：worldcore 面④实例存储  T-94
-crates/aios-worldcore-query/                     # 我方新增：worldcore 面⑤查询  T-94
-crates/aios-worldcore-ledger/                    # 我方新增：worldcore 面⑥账  T-94
-crates/aios-worldcore-execute/                   # 我方新增：worldcore 面⑦执行  T-94
-crates/aios-worldcore-governance/                # 我方新增：worldcore 面⑧治理  T-94
-crates/aios-worldcore/                           # 我方新增：worldcore 门面  T-94
+crates/aios-worldcore-execute/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-governance/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-instances/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-ledger/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-query/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-registry/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-shared/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-store/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
+crates/aios-worldcore-validate/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99

@@ -2,8 +2,8 @@
 //!
 //! 参考 Palantir：`engine/query_engine.py` 的 `filter`／`navigate`／`order_by`／`take`／`all`／`first`／`count`。
 
-use aios_worldcore_shared::Registration;
-use aios_worldcore_store::Store;
+use crate::core::types::Registration;
+use crate::engine::store::Store;
 
 /// 一次查询（链式；最后 `all`／`first`／`count` 取结果）。
 #[derive(Debug)]

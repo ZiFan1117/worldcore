@@ -3,7 +3,7 @@
 //! 参考 Palantir：`engine/audit_log.py` 的 `append`／`get`／`query`／`export_csv`。
 //! 本体口径见 `envelope`（信封）与 `families`（四族 change／act／notice／job）。
 
-use aios_worldcore_shared::{Event, EventSeq, Who};
+use crate::core::types::{Event, EventSeq, Who};
 
 /// 一本账：只追加。
 #[derive(Debug, Default)]

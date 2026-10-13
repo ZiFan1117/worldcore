@@ -4,9 +4,23 @@
 //!
 //! ★ 校六样（每样都能指回本体或本内核的一处）：
 //! ① 类型名在册；② 格名合法；③ 必填齐；④ 值的类型对；⑤ 取值域对；⑥ 引用不悬空。
+//!
+//! ★ **真正的门**是 `spec::ObjectSpec::check_instance`（照本体 `objects.<类>.fields` **逐格**校），
+//! 由面②的 `Instances::register` 调用；下面那四个 `check_*` 是**可单独调用的小件**（各校一样，
+//! 别的面／别的调用点要用就取这一件 —— 门面按名字再导出，故这四个名字与签名一字不动）。
+//!
+//! ★ 一处**如实登记**：本体 `_field_meta.<格>.required` 今天全是 `null` ⇒ 「必填」这一样
+//! **在本体上不咬**（只有显式 `true` 才算必填）。「必须有 name」是本内核自己的规矩
+//! （面②的行以 name 为键），**不是**本体声明的必填 —— 两者在面②里分开判，不混成一条。
 
-use aios_worldcore_registry::Registry;
-use aios_worldcore_shared::{Admit, Reason, Refuse, Registration};
+pub mod field;
+pub mod spec;
+
+use crate::core::registry::Registry;
+use crate::core::types::{Admit, Reason, Refuse, Registration};
+
+pub use field::FieldType;
+pub use spec::{FieldSpec, ObjectSpec};
 
 /// 校「形状」：① 类型名在册 ② 格名合法 ③ 名字合法。
 pub fn check_shape(registry: &Registry, reg: &Registration) -> Admit<()> {

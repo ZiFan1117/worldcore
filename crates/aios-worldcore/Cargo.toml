@@ -4,17 +4,8 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-description = "worldcore 最小内核：门面（八个面 ＋ 共同类型）"
+description = "worldcore 最小内核：core 定义层／engine 运行层／governance 治理（照 Palantir foundry-ontology 三目录）"
 
 [dependencies]
-aios-worldcore-shared = { path = "../aios-worldcore-shared" }
-aios-worldcore-registry = { path = "../aios-worldcore-registry" }
-aios-worldcore-instances = { path = "../aios-worldcore-instances" }
-aios-worldcore-validate = { path = "../aios-worldcore-validate" }
-aios-worldcore-store = { path = "../aios-worldcore-store" }
-aios-worldcore-query = { path = "../aios-worldcore-query" }
-aios-worldcore-ledger = { path = "../aios-worldcore-ledger" }
-aios-worldcore-execute = { path = "../aios-worldcore-execute" }
-aios-worldcore-governance = { path = "../aios-worldcore-governance" }
 aios-ontology = { path = "../aios-ontology" }
 serde_json = { workspace = true }

@@ -6,8 +6,8 @@
 //! ★ 本面只做两件事：① 查动作名在册；② 把活交给注进来的执行体。
 //! ★ **「真的动手」那一段不在这里**（它是底层内核）—— 本面只留一个 `Executor` 口。
 
-use aios_worldcore_registry::Registry;
-use aios_worldcore_shared::{Admit, Reason, Refuse, Who};
+use crate::core::registry::Registry;
+use crate::core::types::{Admit, Reason, Refuse, Who};
 
 /// 干活的执行体（将来接底层内核：装包／起进程／写文件）。
 pub trait Executor {

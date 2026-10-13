@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use aios_worldcore_shared::{Admit, Reason, Refuse, Who};
+use crate::core::types::{Admit, Reason, Refuse, Who};
 
 /// 治理表：谁是什么角色 ＋ 谁能用什么能力。
 #[derive(Debug, Default)]

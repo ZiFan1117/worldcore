@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use aios_worldcore_shared::{Reason, Refuse};
+use crate::core::types::{Reason, Refuse};
 
 /// 已注册的类型表（从本体现取；不缓存到别处，免得漂）。
 #[derive(Debug)]
