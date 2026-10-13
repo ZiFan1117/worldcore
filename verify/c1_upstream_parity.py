@@ -1,42 +1,77 @@
 #!/usr/bin/env python3
-"""C1 —— 本仓与上游的差异，必须只有「我方自有件」。
+"""C1 —— 本仓与上游的差异，必须只有「我方自有件」或「已登记项」。
 
-红＝差分里出现任何**非我方自有件**的路径（内容或 mode 差异）。
-  · 今天它是干嘛的：上一轮实测抓到 76 件假差异（64 个脚本丢了执行位），本条就是那次的判据化。
-  · 我方自有件：路径以 ALLOWED 之一开头。
+红＝差分里出现既不是我方自有件、也没在登记面登记的路径（内容或 mode 差异）。
+  · 我方自有件：路径以 ALLOWED_PREFIXES 之一开头（ninedim/ verify/ .gitattributes PROVENANCE.md）。
+  · 已登记项：逐行列在 REGISTRY（verify/allowed_upstream_edits.txt）。
+      - 以 / 结尾 ＝ **前缀**（整棵子树，例：新增的 crate 目录）
+      - 否则     ＝ **精确路径**（例：改了的 Cargo.toml）
+  · 今天它是干嘛的：2026-10-13 实测抓到 76 件假差异（64 个脚本丢了执行位）；本条是那次的判据化。
 
 用法：
   python verify/c1_upstream_parity.py              跑真仓库
-  python verify/c1_upstream_parity.py --self-test  反例自检（喂假 diff，必须红）
+  python verify/c1_upstream_parity.py --self-test  反例自检（未登记 ⇒ 红；已登记 ⇒ 绿）
 """
+import os
 import subprocess
 import sys
 
 UPSTREAM_REF = "babedc9eb8ee5ce57ba65a89607fb63cad8565ef"   # 我们声明的基线（PROVENANCE.md）
-ALLOWED = ("ninedim/", "verify/", ".gitattributes", "PROVENANCE.md")
+ALLOWED_PREFIXES = ("ninedim/", "verify/", ".gitattributes", "PROVENANCE.md")
+REGISTRY = os.path.join("verify", "allowed_upstream_edits.txt")
 
 NAME = "C1 上游一致性"
 
 
-def judge_names(changed):
+def load_registry(path=REGISTRY):
+    """读登记面 ⇒ (精确路径集, 前缀集)。"""
+    exact, prefixes = set(), set()
+    if not os.path.exists(path):
+        return exact, prefixes
+    with open(path, "r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            entry = line.split("#")[0].strip()
+            if not entry:
+                continue
+            if entry.endswith("/"):
+                prefixes.add(entry)
+            else:
+                exact.add(entry)
+    return exact, prefixes
+
+
+def is_allowed(path, exact, prefixes):
+    if path.startswith(ALLOWED_PREFIXES):
+        return True
+    if path in exact:
+        return True
+    if prefixes and path.startswith(tuple(prefixes)):
+        return True
+    return False
+
+
+def judge_names(changed, exact, prefixes):
     """纯函数：给定差分路径列表，返回违规项。"""
-    return [p for p in changed if not p.startswith(ALLOWED)]
+    return [p for p in changed if not is_allowed(p, exact, prefixes)]
 
 
-def judge_modes(summary_lines):
-    """纯函数：mode 变化里，非我方自有件即违规。"""
+def judge_modes(summary_lines, exact, prefixes):
+    """纯函数：mode 变化里，非自有件且未登记即违规。"""
     bad = []
     for line in summary_lines:
         if "mode change" in line:
             path = line.strip().split()[-1]
-            if not path.startswith(ALLOWED):
+            if not is_allowed(path, exact, prefixes):
                 bad.append(path)
     return bad
 
 
 def run(cmd):
     p = subprocess.run(cmd, capture_output=True, text=True, shell=False)
-    return [l for l in p.stdout.splitlines() if l.strip()], p.returncode
+    return [line for line in p.stdout.splitlines() if line.strip()], p.returncode
 
 
 def real():
@@ -46,25 +81,27 @@ def real():
     summary, rc2 = run(base + ["--summary", UPSTREAM_REF, "HEAD"])
     if rc1 != 0 or rc2 != 0:
         return None, "git diff 取不到（rc %s/%s）——环境问题，不是判断" % (rc1, rc2)
-    bad = judge_names(names) + judge_modes(summary)
-    return bad, "差分 %d 件" % len(names)
+    exact, prefixes = load_registry()
+    bad = judge_names(names, exact, prefixes) + judge_modes(summary, exact, prefixes)
+    return bad, "差分 %d 件；登记面 精确 %d ＋ 前缀 %d" % (len(names), len(exact), len(prefixes))
 
 
 def self_test():
-    """反例：假 diff 里放一个上游文件（distro/...）与一个 mode 变化，必须被判红。"""
-    fake_names = ["ninedim/01-意图环/_索引.md", "distro/installer/aios-installer.sh"]
-    fake_summary = [" mode change 100755 => 100644 distro/build/build-aios-iso.sh"]
-    bad = judge_names(fake_names) + judge_modes(fake_summary)
-    expect = 2
-    if len(bad) != expect:
-        print("  [SELF-TEST FAIL] 反例未被抓到：期望 %d 条违规，实得 %d 条 %s" % (expect, len(bad), bad))
+    """反例与正控：未登记的上游改动必须红；自有件与已登记项必须绿。"""
+    exact, prefixes = {"Cargo.toml"}, {"crates/aios-ontology/"}
+    checks = [
+        ("反例1 未登记上游文件(内容)", len(judge_names(["ninedim/a.md", "distro/installer/aios-installer.sh"], exact, prefixes)), 1),
+        ("反例2 未登记上游文件(mode)", len(judge_modes([" mode change 100755 => 100644 distro/build/build-aios-iso.sh"], exact, prefixes)), 1),
+        ("正控1 自有件+已登记精确路径", len(judge_names(["ninedim/a.md", "PROVENANCE.md", "Cargo.toml"], exact, prefixes)), 0),
+        ("正控2 已登记前缀(新 crate 子树)", len(judge_names(["crates/aios-ontology/src/lib.rs", "crates/aios-ontology/data/ontology.json"], exact, prefixes)), 0),
+        ("正控3 已登记前缀(mode)", len(judge_modes([" mode change 100644 => 100755 crates/aios-ontology/src/bin/demo.rs"], exact, prefixes)), 0),
+    ]
+    bad = [c for c in checks if c[1] != c[2]]
+    if bad:
+        for name, got, want in bad:
+            print("  [SELF-TEST FAIL] %s：期望 %d，实得 %d" % (name, want, got))
         return 1
-    # 正控：只有我方自有件 ⇒ 不许报违规
-    ok = judge_names(["ninedim/a.md", "verify/c1.py", "PROVENANCE.md", ".gitattributes"])
-    if ok:
-        print("  [SELF-TEST FAIL] 正控被误报：%s" % ok)
-        return 1
-    print("  [SELF-TEST OK] 反例抓到 2 条；正控 0 条")
+    print("  [SELF-TEST OK] 反例 2 条各 1；正控 3 条各 0")
     return 0
 
 
@@ -76,13 +113,14 @@ def main(argv):
         print("  [ENV] %s" % note)
         return 2
     if bad:
-        print("  [RED] %s 件非我方自有件的差异（%s）：" % (len(bad), note))
+        print("  [RED] %d 件未登记的上游差异（%s）：" % (len(bad), note))
         for p in bad[:10]:
             print("        - %s" % p)
         if len(bad) > 10:
             print("        … 另有 %d 件" % (len(bad) - 10))
+        print("        （要么改成我方自有件，要么登记进 %s）" % REGISTRY)
         return 1
-    print("  [GREEN] %s，且全部落在我方自有件内" % note)
+    print("  [GREEN] %s，且全部落在我方自有件或登记面内" % note)
     return 0
 
 

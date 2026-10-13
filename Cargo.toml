@@ -37,6 +37,8 @@ members = [
     "crates/aios-marketplace",
     "crates/aios-sdk",
     "crates/aios-design-tokens",
+    # ★ 我方新增（非上游）：worldcore 本体在 AIOS 侧的装载与校验面 —— 见 ninedim/06-变更/2026-10-13-aios-semantic-plane/原子登记-语义面.md
+    "crates/aios-ontology",
 ]
 
 # Crates added later (per §22 MVP golden path order):
