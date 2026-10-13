@@ -20,7 +20,13 @@ pub const CODE_ACTION_CAPABILITY_UNKNOWN: &str = "ext.world.Ontology.ActionCapab
 pub const CODE_FUNCTION_LITERAL_NOT_ALLOWED: &str = "ext.world.Ontology.FunctionLiteralNotAllowed";
 
 /// 五节，照本体 _five_elements._reading_order 逐字：对象 / 关系 / 接口能力 / 动作 / 函数。
-const SECTIONS: [&str; 5] = ["_objects", "_links", "_interfaces", "_actions", "_functions"];
+const SECTIONS: [&str; 5] = [
+    "_objects",
+    "_links",
+    "_interfaces",
+    "_actions",
+    "_functions",
+];
 
 /// 拒。每一条都带本仓现成的错误码。
 #[derive(Debug, PartialEq)]
@@ -30,7 +36,10 @@ pub enum Reject {
     /// 翻译器给出的动作名不在本体里。
     UnknownActionName { action_name: String },
     /// 动作引用的能力没有声明。
-    ActionCapabilityUnknown { action_name: String, capability: String },
+    ActionCapabilityUnknown {
+        action_name: String,
+        capability: String,
+    },
     /// 入口表里出现命令字面量。
     FunctionLiteralNotAllowed { literal: String },
 }
@@ -51,11 +60,20 @@ impl Reject {
 impl fmt::Display for Reject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingSection { section } => write!(f, "{}: 缺节 {}", CODE_MISSING_SECTION, section),
-            Self::UnknownActionName { action_name } => {
-                write!(f, "{}: 动作名 {} 不在本体里", CODE_ACTION_UNKNOWN, action_name)
+            Self::MissingSection { section } => {
+                write!(f, "{}: 缺节 {}", CODE_MISSING_SECTION, section)
             }
-            Self::ActionCapabilityUnknown { action_name, capability } => write!(
+            Self::UnknownActionName { action_name } => {
+                write!(
+                    f,
+                    "{}: 动作名 {} 不在本体里",
+                    CODE_ACTION_UNKNOWN, action_name
+                )
+            }
+            Self::ActionCapabilityUnknown {
+                action_name,
+                capability,
+            } => write!(
                 f,
                 "{}: 动作 {} 引用的能力 {} 未声明",
                 CODE_ACTION_CAPABILITY_UNKNOWN, action_name, capability
@@ -122,7 +140,9 @@ impl Ontology {
         })?;
         for section in SECTIONS {
             if doc.get(section).is_none() {
-                return Err(Reject::MissingSection { section: section.to_string() });
+                return Err(Reject::MissingSection {
+                    section: section.to_string(),
+                });
             }
         }
 
@@ -137,23 +157,40 @@ impl Ontology {
                     .and_then(Value::as_str)
                     .unwrap_or_default()
                     .to_string();
-                let reversible = body.get("reversible").and_then(Value::as_bool).unwrap_or(false);
+                let reversible = body
+                    .get("reversible")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false);
                 let parameters = body
                     .get("parameters")
                     .and_then(Value::as_array)
                     .map(|list| {
                         list.iter()
-                            .filter_map(|p| p.get("name").and_then(Value::as_str).map(str::to_string))
+                            .filter_map(|p| {
+                                p.get("name").and_then(Value::as_str).map(str::to_string)
+                            })
                             .collect()
                     })
                     .unwrap_or_default();
-                actions.insert(name.clone(), Action { capability, reversible, parameters });
+                actions.insert(
+                    name.clone(),
+                    Action {
+                        capability,
+                        reversible,
+                        parameters,
+                    },
+                );
             }
         }
 
         let capabilities = doc["_interfaces"]
             .as_object()
-            .map(|map| map.keys().filter(|k| !k.starts_with('_')).cloned().collect())
+            .map(|map| {
+                map.keys()
+                    .filter(|k| !k.starts_with('_'))
+                    .cloned()
+                    .collect()
+            })
             .unwrap_or_default();
 
         let entries: serde_json::Map<String, Value> = doc["_functions"]
@@ -165,7 +202,11 @@ impl Ontology {
         let host_commands: Vec<String> = doc["_functions"]
             .get("_registered_host_commands")
             .and_then(Value::as_array)
-            .map(|list| list.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .map(|list| {
+                list.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
             .unwrap_or_default();
 
         for name in entries.keys() {
@@ -174,7 +215,12 @@ impl Ontology {
             }
         }
 
-        Ok(Self { actions, capabilities, entries, host_commands })
+        Ok(Self {
+            actions,
+            capabilities,
+            entries,
+            host_commands,
+        })
     }
 
     /// 从文件装载。
@@ -189,6 +235,24 @@ impl Ontology {
     #[must_use]
     pub fn action_names(&self) -> Vec<&str> {
         self.actions.keys().map(String::as_str).collect()
+    }
+
+    /// ★ 动作名是否已登记（供上游在构造动作前查表）。
+    #[must_use]
+    pub fn has_action(&self, action_name: &str) -> bool {
+        self.actions.contains_key(action_name)
+    }
+
+    /// ★ 未登记则给出本体的拒；已登记 ⇒ None。
+    #[must_use]
+    pub fn reject_unknown_action(&self, action_name: &str) -> Option<Reject> {
+        if self.has_action(action_name) {
+            None
+        } else {
+            Some(Reject::UnknownActionName {
+                action_name: action_name.to_string(),
+            })
+        }
     }
 
     /// 本体的能力名。
@@ -211,9 +275,10 @@ impl Ontology {
 
     /// 校验一份 AIOS 翻译器的产出（translator_system_prompt.txt 的那个 JSON 形状）。
     pub fn validate_translation(&self, translator_json: &str) -> Result<Verdict, Reject> {
-        let value: Value = serde_json::from_str(translator_json).map_err(|_| Reject::UnknownActionName {
-            action_name: "<不是合法 JSON>".to_string(),
-        })?;
+        let value: Value =
+            serde_json::from_str(translator_json).map_err(|_| Reject::UnknownActionName {
+                action_name: "<不是合法 JSON>".to_string(),
+            })?;
         let action_name = value
             .get("action_name")
             .and_then(Value::as_str)
@@ -242,7 +307,10 @@ impl Ontology {
         Ok(Verdict {
             action_name,
             capability: action.capability.clone(),
-            confidence: value.get("confidence").and_then(Value::as_f64).unwrap_or(0.0),
+            confidence: value
+                .get("confidence")
+                .and_then(Value::as_f64)
+                .unwrap_or(0.0),
             missing_required_parameters,
         })
     }

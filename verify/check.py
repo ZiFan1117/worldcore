@@ -12,7 +12,12 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CRITERIA = ["c1_upstream_parity.py", "c2_domain_files_only.py", "c3_action_name_gate.py"]
+CRITERIA = [
+    "c1_upstream_parity.py",
+    "c2_domain_files_only.py",
+    "c3_action_name_gate.py",
+    "c4_eol_consistency.py",
+]
 
 
 def main(argv):

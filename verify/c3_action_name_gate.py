@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """C3 —— 未登记的动作名必须被拒（语义面第一条真判据）。
 
-要判的是：**AIOS 认知核的翻译链，在把 action_name 塞进 Request 之前，查过能力表、且表里没有就拒。**
+要判的是：**AIOS 认知核的翻译链，在把 action_name 塞进 Request 之前，查过权威表、且表里没有就拒。**
+
+★ **本条是文本级代理**：它只能证明「查表的符号与拒绝的符号同时出现在构造 Request 的那个文件里」，
+   **不能**证明它编得过、也不能证明拒真的发生。**真正的证**是我方产品测试
+   `crates/aios-cognitive/tests/action_catalog_gate.rs`（在 VM 上跑，先红后绿）。
 
 三条同时成立才算绿（今天三条都不成立 ⇒ 本条**应当先红**，接线之后转绿）：
   A. crates/aios-cognitive/src 里出现**能力表**符号（CapabilityCatalog / action_kind）
@@ -17,9 +21,24 @@ import re
 import sys
 
 TARGET = os.path.join("crates", "aios-cognitive", "src")
-TABLE_SYMS = ("CapabilityCatalog", "action_kind", "declared_actions")
+# ★ 权威查表符号族（2026-10-13 扩）：本体面（我们自己的权威）＋ 上游既有的能力表族。
+TABLE_SYMS = (
+    "Ontology",              # aios_ontology::Ontology —— 我们注入的权威
+    "gate_action_name",      # 我们的闸函数
+    "validate_action_name",  # 引擎上的查表口
+    "has_action",
+    "CapabilityCatalog",
+    "action_kind",
+    "declared_actions",
+)
 # ★ 只认「针对动作名的拒绝」——不认泛泛的 rejected（英文注释里到处是，会假命中）
-REJECT_SYMS = ("UnknownAction", "UNKNOWN_ACTION", "UNKNOWN_ACTION_KIND", "ActionUnknown", "invalid_action", "ActionNotDeclared")
+REJECT_SYMS = (
+    "TranslationRefused",     # 本仓既有的拒（closed taxonomy，不新增变体）
+    "UnknownActionName",      # 本体的拒
+    "CODE_ACTION_UNKNOWN",    # 本体的错误码常量
+    "UnknownAction",
+    "UNKNOWN_ACTION_KIND",
+)
 BUILD_SYMS = ("Request::new", "Request {")
 
 NAME = "C3 未登记动作名即拒"

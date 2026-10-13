@@ -35,7 +35,12 @@ fn rejects_aios_prompt_example_file_read() {
     let err = ontology
         .validate_translation(r#"{"action_name":"file.read","parameters":{},"confidence":1.0,"reasoning":"AIOS 提示词里的例子"}"#)
         .expect_err("file.read 不在我们本体里，必须拒");
-    assert_eq!(err, Reject::UnknownActionName { action_name: "file.read".to_string() });
+    assert_eq!(
+        err,
+        Reject::UnknownActionName {
+            action_name: "file.read".to_string()
+        }
+    );
     assert_eq!(err.code(), CODE_ACTION_UNKNOWN);
 }
 
@@ -51,7 +56,9 @@ fn rejection_is_driven_by_the_ontology_not_hardcoded() {
     value["_interfaces"]["file.read"] = serde_json::json!({"kind": "invoke", "what": "读一个文件"});
     let ontology = Ontology::load_str(&value.to_string()).expect("改造后的本体仍应装载");
     let verdict = ontology
-        .validate_translation(r#"{"action_name":"file.read","parameters":{"path":"/etc/hostname"}}"#)
+        .validate_translation(
+            r#"{"action_name":"file.read","parameters":{"path":"/etc/hostname"}}"#,
+        )
         .expect("声明进本体之后，同一个调用必须过");
     assert_eq!(verdict.capability, "file.read");
 }
@@ -61,7 +68,12 @@ fn missing_section_is_refused() {
     let mut value = doc();
     value.as_object_mut().expect("是对象").remove("_actions");
     let err = Ontology::load_str(&value.to_string()).expect_err("缺 _actions 必须拒启");
-    assert_eq!(err, Reject::MissingSection { section: "_actions".to_string() });
+    assert_eq!(
+        err,
+        Reject::MissingSection {
+            section: "_actions".to_string()
+        }
+    );
 }
 
 #[test]
@@ -88,7 +100,10 @@ fn empty_function_table_is_reported_as_a_gap() {
     let ontology = our();
     assert_eq!(ontology.function_entry_count(), 0, "现取：入口表是空的");
     assert!(
-        ontology.declared_gaps().iter().any(|g| g.contains("零实例")),
+        ontology
+            .declared_gaps()
+            .iter()
+            .any(|g| g.contains("零实例")),
         "空入口表必须被如实报成缺口，不许当成已立"
     );
 }

@@ -15,9 +15,20 @@ fn main() {
 
     if args.is_empty() {
         println!("本体摘要");
-        println!("  动作名 {} 条: {}", ontology.action_names().len(), ontology.action_names().join(", "));
-        println!("  能力   {} 条: {}", ontology.capability_names().len(), ontology.capability_names().join(", "));
-        println!("  入口表 {} 条（现取 0 —— 本体自己登记的缺口）", ontology.function_entry_count());
+        println!(
+            "  动作名 {} 条: {}",
+            ontology.action_names().len(),
+            ontology.action_names().join(", ")
+        );
+        println!(
+            "  能力   {} 条: {}",
+            ontology.capability_names().len(),
+            ontology.capability_names().join(", ")
+        );
+        println!(
+            "  入口表 {} 条（现取 0 —— 本体自己登记的缺口）",
+            ontology.function_entry_count()
+        );
         println!("  已登记宿主命令 {} 条", ontology.host_command_count());
         for gap in ontology.declared_gaps() {
             println!("  缺口: {gap}");
@@ -26,7 +37,11 @@ fn main() {
     }
 
     let action_name = &args[0];
-    let parameters = if args.len() > 1 { args[1].clone() } else { "{}".to_string() };
+    let parameters = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        "{}".to_string()
+    };
     let translated = format!(
         "{{\"action_name\":\"{action_name}\",\"parameters\":{parameters},\"confidence\":1.0,\"reasoning\":\"MVP 演示\"}}"
     );

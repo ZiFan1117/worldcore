@@ -25,6 +25,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use aios_action::{ActionEnvelope, Identity, Request, Trace};
+use aios_ontology::Ontology;
 
 use crate::adapter::ollama::{OllamaAdapter, OllamaError, OllamaGenerateRequest};
 use crate::adapter::vllm::{VllmAdapter, VllmCompletionRequest, VllmError};
@@ -82,7 +83,28 @@ pub struct TranslatorEngine {
     ollama_adapter: Option<Arc<OllamaAdapter>>,
     vllm_adapter: Option<Arc<VllmAdapter>>,
     evidence_emitter: Option<Arc<CognitiveEvidenceEmitter>>,
+    /// ★ 我方新增（非上游）：本体 —— 未登记动作名的权威判据。None ＝ 不校验（原行为）。
+    ontology: Option<Arc<Ontology>>,
     min_confidence: f64,
+}
+
+/// ★ 我方新增（非上游）：**未登记动作名即拒**。
+///
+/// 权威来源是本体（A-SEM-01）——不是系统提示词里的自由字符串。
+/// 已登记 ⇒ `Ok(())`；未登记 ⇒ [`CognitiveError::TranslationRefused`]，理由带本体错误码。
+///
+/// # Errors
+/// 动作名不在本体的 `_actions` 里时返回 [`CognitiveError::TranslationRefused`]。
+pub fn gate_action_name(ontology: &Ontology, action_name: &str) -> Result<(), CognitiveError> {
+    ontology.reject_unknown_action(action_name).map_or_else(
+        || Ok(()),
+        |reject| {
+            Err(CognitiveError::TranslationRefused(format!(
+                "{}: {action_name}",
+                reject.code()
+            )))
+        },
+    )
 }
 
 impl TranslatorEngine {
@@ -94,6 +116,7 @@ impl TranslatorEngine {
             ollama_adapter: None,
             vllm_adapter: None,
             evidence_emitter: None,
+            ontology: None,
             min_confidence: DEFAULT_MIN_CONFIDENCE,
         }
     }
@@ -117,6 +140,25 @@ impl TranslatorEngine {
     pub fn with_evidence_emitter(mut self, emitter: Arc<CognitiveEvidenceEmitter>) -> Self {
         self.evidence_emitter = Some(emitter);
         self
+    }
+
+    /// ★ 我方新增（非上游）：注入本体 —— 从此**未登记的动作名一律拒**。
+    ///
+    /// 不注入时行为与注入前逐字相同（本笔不改变默认路径）。
+    #[must_use]
+    pub fn with_ontology(mut self, ontology: Arc<Ontology>) -> Self {
+        self.ontology = Some(ontology);
+        self
+    }
+
+    /// ★ 我方新增（非上游）：查本体；未登记 ⇒ 拒。未注入本体时恒 `Ok(())`。
+    ///
+    /// # Errors
+    /// 动作名不在本体的 `_actions` 里时返回 [`CognitiveError::TranslationRefused`]。
+    pub fn validate_action_name(&self, action_name: &str) -> Result<(), CognitiveError> {
+        self.ontology
+            .as_ref()
+            .map_or(Ok(()), |ontology| gate_action_name(ontology, action_name))
     }
 
     /// Set the minimum confidence threshold (clamped to 0.0–1.0).
@@ -299,6 +341,12 @@ impl TranslatorEngine {
                 "confidence {clamped_confidence} below threshold {}",
                 self.min_confidence
             )));
+        }
+
+        // ★ 我方新增（非上游）：构造动作之前查本体 —— 未登记的动作名即拒（A-SEM-02）。
+        //   未注入本体时不改变行为；注入后这是唯一合法的动作名来源。
+        if let Some(ref ontology) = self.ontology {
+            gate_action_name(ontology, &parsed.action_name)?;
         }
 
         let envelope = ActionEnvelope::new(

@@ -12,6 +12,8 @@ authors.workspace = true
 aios-action   = { path = "../aios-action" }
 aios-evidence  = { path = "../aios-evidence" }
 aios-capability-runtime = { path = "../aios-capability-runtime" }
+# ★ 我方新增（非上游）：本体面 —— 未登记动作名即拒的权威来源
+aios-ontology     = { path = "../aios-ontology" }
 serde          = { workspace = true }
 serde_json     = { workspace = true }
 chrono         = { workspace = true }
