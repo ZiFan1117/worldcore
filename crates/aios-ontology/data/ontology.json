@@ -33,7 +33,7 @@
  },
  "families": {
   "change": {
-   "_comment": "变更：世界状态发生了变化。★ **未实现**（判词 · 形式本体 Y-2）：本条名字取的是它所关于的那一过程（occurrent），而家族在实现上是账本里的一行记录（信息内容实体）；本体的『记录／信息内容』这一类**今天不存在**（`_objects` 六类里无 event／record），『这条记录**关于**哪件事』在声明面上**无落点**。真修＝往 `_objects` 加『记录／信息内容』一类（`_` 键）⇒ **零身份代价**（`src/ontology_definition/mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。本批只写提案，见 `ninedim/06-变更/2026-10-08-ontology-decl-fix/提案.md`。",
+   "_comment": "变更：世界状态发生了变化。★ **未实现**（判词 · 形式本体 Y-2）：本条名字取的是它所关于的那一过程（occurrent），而家族在实现上是账本里的一行记录（信息内容实体）；本体的『记录／信息内容』这一类**今天不存在**（`objects` 六类里无 event／record），『这条记录**关于**哪件事』在声明面上**无落点**。真修＝往 `objects` 加『记录／信息内容』一类（`_` 键）⇒ **零身份代价**（`src/ontology_definition/mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。本批只写提案，见 `ninedim/06-变更/2026-10-08-ontology-decl-fix/提案.md`。",
    "required": [
     "subject",
     "path",
@@ -79,13 +79,13 @@
  "flags": [],
  "_five_elements": {
   "_why_underscore": "★ 五要素分节一律挂在 `_` 前缀顶层键下。口径（本项目已定案）：`Ontology::vocab_hash` **递归剔除** `_` 开头的键 ⇒ 在 `_` 键下加分节**不换词表身份**（`fnv1a64:6a96abfa9a969462` 保持不变），而装载器照常读得到它们、存在性判据照做。**不许**为了加节去动任何非 `_` 顶层键。",
-  "_why_concepts_stays": "`concepts`（世界里的实体与字段）是**已有的非 `_` 顶层键**，它今天参与词表身份 ⇒ 本批**原样冻结**。它的**权威读法**已迁到下面的 `_objects`（装载器优先读 `_objects`，`concepts` 作为**冻结映射**保留是为了不改身份）。两份不同源的地方：`concepts` 缺 `instance_mode`／`_nested`，那两样只在 `_objects` 里。",
-  "_reading_order": "装载器逐节读：对象＝`_objects`（缺则退回冻结的 `concepts` 段）、关系＝`_links`、接口·能力＝`_interfaces`、动作＝`_actions`、函数＝`_functions`。**任一节缺失 ⇒ 拒启**（错误码 `ext.world.Ontology.MissingSection`）。"
+  "_why_concepts_stays": "`concepts`（世界里的实体与字段）是**已有的非 `_` 顶层键**，它今天参与词表身份 ⇒ 本批**原样冻结**。它的**权威读法**已迁到下面的 `objects`（装载器优先读 `objects`，`concepts` 作为**冻结映射**保留是为了不改身份）。两份不同源的地方：`concepts` 缺 `instance_mode`／`_nested`，那两样只在 `objects` 里。",
+  "_reading_order": "装载器逐节读：对象＝`objects`（缺则退回冻结的 `concepts` 段）、关系＝`links`、接口·能力＝`interfaces`、动作＝`actions`、函数＝`functions`。**任一节缺失 ⇒ 拒启**（错误码 `ext.world.Ontology.MissingSection`）。"
  },
- "_objects": {
+ "objects": {
   "_element": "对象（Object）—— 类型 → 属性（值类型参与校验）",
   "_comment": "『世界里存在什么』。字段值是**机器可读的类型声明**（`bool`／`string`／`integer`／`number`／`array`／`object`／`ref(<类型>)`／`enum(a,b,…)`）；**不是**这几种写法的自由度说明文字一律**放行**（本体没声明类型口径，判据不替它发明）。",
-  "_declared_gaps": "★ **未实现／未接入**（本批只登记，非 `_` 键一字未动；判词 · 形式本体 Y-1／Y-2／判-1.5）：① **缺主体类型**——`world://user`／`world://agent/dsh` 已按能力拿到许可（`_permissions.grants`），而 `user`／`agent` 两类**不在这六类里**；判据 `UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。② **缺『记录／信息内容』这一类**——`change`／`act`／`notice` 在实现上是账本行（见 `families.*._comment`）。③ **缺 agent／user／世界级资源对象** ⇒ 『谁参与了这次过程』问不出（`envelope.actor` 只是字符串）。④ `concepts`（非 `_` 键）是**冻结映射**：它缺 `instance_mode`／`_nested`，权威读法是本节。⇒ 真修①②＝往 `_objects` 加类型（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
+  "_declared_gaps": "★ **未实现／未接入**（本批只登记，非 `_` 键一字未动；判词 · 形式本体 Y-1／Y-2／判-1.5）：① **缺主体类型**——`world://user`／`world://agent/dsh` 已按能力拿到许可（`_permissions.grants`），而 `user`／`agent` 两类**不在这六类里**；判据 `UndeclaredRelationEndpoint` 只盯 `links` 两端，**不盯许可主体**。② **缺『记录／信息内容』这一类**——`change`／`act`／`notice` 在实现上是账本行（见 `families.*._comment`）。③ **缺 agent／user／世界级资源对象** ⇒ 『谁参与了这次过程』问不出（`envelope.actor` 只是字符串）。④ `concepts`（非 `_` 键）是**冻结映射**：它缺 `instance_mode`／`_nested`，权威读法是本节。⇒ 真修①②＝往 `objects` 加类型（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
   "_meta_legend": "六类各自的 `_meta`：**照形状取自 CCO 的 TTL 一个类七样**（`.refs/依赖料/CCO/src/cco-iris/InformationEntityOntology.ttl` 的 `cco:ont00000003` 块逐字：`rdf:type owl:Class`／`rdfs:subClassOf`／`owl:disjointWith`／`rdfs:label \"…\"@en`／`skos:altLabel \"…\"@en`／`skos:definition \"…\"@en`／`cco:ont00001760 \"…\"^^xsd:anyURI`）⇒ ① 数字号 `id` ② `label`（带语言）③ `altLabel` ④ `definition` ⑤ `anchor`（父类）⑥ `disjointWith`（互斥）⑦ `module`（模件归属）；**外加本仓的第八样 `anchor_note`**（锚的出处注，**CCO 的七样里没有它**，是本仓加的）。★ **四处如实登记**：① `id` 是**本仓自编的本地号**——既不是外部 IRI，也不是 CCO 的号；② `anchor` 全体是**提案值**（裁-1 未裁，由评审席定），每条的 `anchor_note` 写明它照的是哪个 BFO 类、以及**另一种读法**；③ `disjointWith` 是**声明**——**本仓今天没有判据判它成不成立**；④ `module` 填的是 `ninedim/config.json` 的**原子号**（本仓的『模件』今天是原子），**照的是 CCO 那一格的形状、不是它的取值**。",
   "surface": {
    "_meta": {
@@ -117,7 +117,7 @@
     "module": "A-01 ontology_definition",
     "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Workspace（判定为重叠 ⇒ 合并；语义是否完全同一件事仍待裁）",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -208,7 +208,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -300,7 +300,7 @@
       "Human"
      ]
     },
-    "definition": "人——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "人——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
     "anchor_note": "照形状取自 BFO 2020：`material entity`（`.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 逐字 `rdfs:label \"material entity\"@en`，父 `BFO_0000004 independent continuant`）——人是**物质实体**。★ 提案值·待裁。",
     "disjointWith": [
@@ -312,7 +312,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -364,7 +364,7 @@
       "Agent"
      ]
     },
-    "definition": "智能体——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "智能体——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`（逐字 `rdfs:label`，父 `BFO_0000002 continuant`）——智能体是**软件**：它是**可被复制到别处**的信息内容（同一份可有多份载体），不是某一台机器。★ 提案值·待裁。",
     "disjointWith": [
@@ -376,7 +376,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -441,7 +441,7 @@
       "Application"
      ]
     },
-    "definition": "应用——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "应用——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——应用是**软件**（同 `agent` 之理）。★ 提案值·待裁。",
     "disjointWith": [
@@ -454,7 +454,7 @@
     "module": "A-01 ontology_definition",
     "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Application（语义重叠 ⇒ 合并，不新增类）",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -510,7 +510,7 @@
       "Service"
      ]
     },
-    "definition": "系统服务——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "系统服务——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——系统服务是**软件**（同 `agent` 之理）。★ 提案值·待裁。",
     "disjointWith": [
@@ -522,7 +522,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -578,7 +578,7 @@
       "Device"
      ]
     },
-    "definition": "设备——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "设备——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
     "anchor_note": "照形状取自 BFO 2020：`material entity`——设备是**硬件**。★ 提案值·待裁。",
     "disjointWith": [
@@ -590,7 +590,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -642,7 +642,7 @@
       "Workflow"
      ]
     },
-    "definition": "工作流——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "工作流——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——工作流是**计划**（一段可执行的说明），它是信息内容，由某个主体发起。★ 提案值·待裁。",
     "disjointWith": [
@@ -654,7 +654,7 @@
     ],
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     }
    },
@@ -691,7 +691,7 @@
     }
    }
   },
-  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
+  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
   "ledger": {
    "_meta": {
     "id": "wc:ont00000030",
@@ -699,7 +699,7 @@
      "zh": "账本",
      "en": "Ledger"
     },
-    "definition": "★ 2026-10-13 **作者裁定补立**：世界里那**唯一的一处**系统性记录 —— 只追加的语义事件文件。★ 依据（作者原话逐字）：「**你要说是账本，可以说是单独的一个类，这个可以**……可能最后**整个计算机里头只有这么一处**」。★ 素材：`envelope.fields.seq` 逐字「integer # 在账本中的位置，全局单增，由世界分配」；`_actions.ledger.compact`（压实账本，不可逆）。",
+    "definition": "★ 2026-10-13 **作者裁定补立**：世界里那**唯一的一处**系统性记录 —— 只追加的语义事件文件。★ 依据（作者原话逐字）：「**你要说是账本，可以说是单独的一个类，这个可以**……可能最后**整个计算机里头只有这么一处**」。★ 素材：`envelope.fields.seq` 逐字「integer # 在账本中的位置，全局单增，由世界分配」；`actions.ledger.compact`（压实账本，不可逆）。",
     "_裁定": "★ 人签 2026-10-13：「取值域 唯一」⇒ ① 撤 record 后 10 处类型改取值域；② ledger 用 instance_mode=one。",
     "disjointWith": [
      "presence",
@@ -725,34 +725,34 @@
    "_field_meta": {}
   }
  },
- "_links": {
+ "links": {
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
-  "_comment": "『哪两类对象之间允许存在什么连接』。这是**一等声明**，不是外键。两端的类型必须已在 `_objects` 里声明，否则 `ext.world.Ontology.UndeclaredRelationEndpoint`。★ **关系是【世界里的一条记录】，不是两个应用之间的连线** —— 应用之间永远没有直连；两个应用「有关系」这件事，是世界从它自己的记录里【算】出来的（`C10 投递：「该给谁」由世界算`）。",
-  "_declared_gaps": "★ **未实现／未接入**（判词 · 形式本体 Y-3a／判-2）：① **生产路径零读**——`Ontology::links()` 只有**定义处**（`src/ontology_definition/mod.rs`）与**一处测试调用**（`scripts/test/ontology_elements.rs` 的 `m04`）；世界**不执行**基数与方向性，也**没有**『从 `change` 折出关系实例』这条推断规则 ⇒ 主张『关系实例在账本里』今天**无载体**（把本节整节删空、装载照常通过）。② **时间性关系写成静态声明**——`runs-on`／`speaks-on` 是随时间变的关系，而 `LinkDecl` 四格里**没有**有效区间／起止 `seq` ⇒ 现取读法是**恒真**；BFO 2020 有出路（temporalized relations 分册，本地料 `.refs/bfo-2020/…/bfo-temporalized-relations.owl`），本仓未采用。③ **同词两义**：本节的 `part-of` 与 `_objects.<类型>.part_of`（内嵌标记的父类型名）共用 `part of` 一词；`_links` 那一条改名**不换身份**，内嵌那一格（`_objects.<类型>.part_of`）改名**同样不换身份**——`_objects` 也是 `_` 前缀键、被整枝剔除（`mod.rs:2149-2164`）；两者的代价都只是改代码里的读法，不是身份（只写提案）。",
-  "_2026-10-12_边的口径更正": "★ **2026-10-12 更正**：本批新加的 13 条边**第一版写错了**——本席把**边名的后半截**（如 `invokes`）当成**类型名**塞进了 `from`/`to`，Rust 装载器当场报 `ext.world.Ontology.UndeclaredRelationEndpoint: 关系 `action-invokes` 的 `from` 端指向未声明的类型 `invokes``。**★ `_links` 的 `from`/`to` 必须是【已声明的类型名】**（判据就是装载器自己）。现已逐条改成两端都是已声明类。★ **其中 `capability-borne-by-presence` 这条顺带补上了一个挂了很久的缺口**：`_interfaces._declared_gaps` 逐字「① **缺「承载者」**——本节 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in`」——本批在 `_links` 里立了 `capability-borne-by-presence`（**能力由在场者承载**）。★ **但如实说**：它今天只是**声明**（`_links` 的基数与方向**本就不执行**），**不是**「承载者那一格已经补全」——`_interfaces` 自己的 `bearer` 栏**仍然没有**。",
+  "_comment": "『哪两类对象之间允许存在什么连接』。这是**一等声明**，不是外键。两端的类型必须已在 `objects` 里声明，否则 `ext.world.Ontology.UndeclaredRelationEndpoint`。★ **关系是【世界里的一条记录】，不是两个应用之间的连线** —— 应用之间永远没有直连；两个应用「有关系」这件事，是世界从它自己的记录里【算】出来的（`C10 投递：「该给谁」由世界算`）。",
+  "_declared_gaps": "★ **未实现／未接入**（判词 · 形式本体 Y-3a／判-2）：① **生产路径零读**——`Ontology::links()` 只有**定义处**（`src/ontology_definition/mod.rs`）与**一处测试调用**（`scripts/test/ontology_elements.rs` 的 `m04`）；世界**不执行**基数与方向性，也**没有**『从 `change` 折出关系实例』这条推断规则 ⇒ 主张『关系实例在账本里』今天**无载体**（把本节整节删空、装载照常通过）。② **时间性关系写成静态声明**——`runs-on`／`speaks-on` 是随时间变的关系，而 `LinkDecl` 四格里**没有**有效区间／起止 `seq` ⇒ 现取读法是**恒真**；BFO 2020 有出路（temporalized relations 分册，本地料 `.refs/bfo-2020/…/bfo-temporalized-relations.owl`），本仓未采用。③ **同词两义**：本节的 `part-of` 与 `objects.<类型>.part_of`（内嵌标记的父类型名）共用 `part of` 一词；`links` 那一条改名**不换身份**，内嵌那一格（`objects.<类型>.part_of`）改名**同样不换身份**——`objects` 也是 `_` 前缀键、被整枝剔除（`mod.rs:2149-2164`）；两者的代价都只是改代码里的读法，不是身份（只写提案）。",
+  "_2026-10-12_边的口径更正": "★ **2026-10-12 更正**：本批新加的 13 条边**第一版写错了**——本席把**边名的后半截**（如 `invokes`）当成**类型名**塞进了 `from`/`to`，Rust 装载器当场报 `ext.world.Ontology.UndeclaredRelationEndpoint: 关系 `action-invokes` 的 `from` 端指向未声明的类型 `invokes``。**★ `links` 的 `from`/`to` 必须是【已声明的类型名】**（判据就是装载器自己）。现已逐条改成两端都是已声明类。★ **其中 `capability-borne-by-presence` 这条顺带补上了一个挂了很久的缺口**：`interfaces._declared_gaps` 逐字「① **缺「承载者」**——本节 `kind`／`what` 里**没有** bearer／domain，`links` 里**没有** `bears`／`inheres-in`」——本批在 `links` 里立了 `capability-borne-by-presence`（**能力由在场者承载**）。★ **但如实说**：它今天只是**声明**（`links` 的基数与方向**本就不执行**），**不是**「承载者那一格已经补全」——`interfaces` 自己的 `bearer` 栏**仍然没有**。",
   "device-bound-to-human": {
    "from": "device",
    "to": "human",
    "_依据": "★ 依据＝现取字段 `device.bound_to = ref(human)`（全仓唯一的 ref(...) 字段）",
-   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+   "_恢复自": "★ 2026-10-13：links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
   },
   "service-runs-on-device": {
    "from": "service",
    "to": "device",
    "_依据": "★ 依据＝旧边 `runs-on`（presence→presence，语法「跑在…上」）的语义继承：服务跑在设备上",
-   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+   "_恢复自": "★ 2026-10-13：links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
   },
   "application-speaks-on-port": {
    "from": "application",
    "to": "port",
    "_依据": "★ 依据＝旧边 `speaks-on`（presence→port）的语义继承：应用通过端口说话",
-   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+   "_恢复自": "★ 2026-10-13：links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
   }
  },
- "_interfaces": {
+ "interfaces": {
   "_element": "接口·能力（Interface）—— 可读／可配／可调",
   "_comment": "『这类东西能被怎样对待』。条文落在**能力**上（不是落在具体类型／具体对象上）——授权只在 `_permissions` 里按**能力名**给。★ **现取口径**：**真正的写闸是 `policy.json.writes`**（按对象地址前缀），本节只管**能力名**这一路（见 `_permissions._comment`）。",
-  "_declared_gaps": "★ **未实现**（判词 · 形式本体 Y-1／判-1.1）：① **缺「承载者」**——本节的 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in` ⇒ 按形式本体（BFO 的 realizable entity 必须 inhere in 某个 independent continuant），问不出『这块能力长在谁身上』；今天的承载者只活在命名约定 `A.B` 的前缀里（字符串约定，无声明面、无判据）。② **本节的名字按字面不是可实现倾向**，而是**声明文本**（IAO 的指令性信息实体一侧），而许可**已经照着这些名字发出**（`_permissions.grants`）⇒ 法律在**没有承载者的可实现倾向**上发许可证。③ `notice.payload` 的形状**不由本节声明**（见 `_subscribe._declared_gaps`）。④ 本节的 `what` 是**人读散文**，**没有任何判据读它**（过程／仿真判词 §七 改法 1 逐字点名）。真修①＝往本节加 `bearer`（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
+  "_declared_gaps": "★ **未实现**（判词 · 形式本体 Y-1／判-1.1）：① **缺「承载者」**——本节的 `kind`／`what` 里**没有** bearer／domain，`links` 里**没有** `bears`／`inheres-in` ⇒ 按形式本体（BFO 的 realizable entity 必须 inhere in 某个 independent continuant），问不出『这块能力长在谁身上』；今天的承载者只活在命名约定 `A.B` 的前缀里（字符串约定，无声明面、无判据）。② **本节的名字按字面不是可实现倾向**，而是**声明文本**（IAO 的指令性信息实体一侧），而许可**已经照着这些名字发出**（`_permissions.grants`）⇒ 法律在**没有承载者的可实现倾向**上发许可证。③ `notice.payload` 的形状**不由本节声明**（见 `_subscribe._declared_gaps`）。④ 本节的 `what` 是**人读散文**，**没有任何判据读它**（过程／仿真判词 §七 改法 1 逐字点名）。真修①＝往本节加 `bearer`（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
   "_not_roles_legend": "`not_roles`：照形状取自 AXN 的**成对声明**（`roles` 与 `not_roles` 并列，后者写『它不是什么』）。★ **本仓加的字段**（AXN 那一族里没有 `_not_roles_legend`）；★ `not_roles` 全体是**声明**——本仓今天**没有判据判它的取值成不成立**（`check_anchor.py` 只判『在不在、是不是非空数组』）。",
   "notice.mute": {
    "not_roles": [
@@ -849,10 +849,10 @@
   },
   "_承诺与实现": "★ 出处：**席E 的件主表 #1**（借来的）——AAS 规范逐字「A capability is the implementation-independent description of the potential of an asset to achieve a certain effect in the physical or virtual world.」，它给的落点＝**`DeadCapability` 判据（「声明了却不实现会红」）**；并接本仓 `A-7` 逐字「**要么有实现，要么明标「非原子」**」。★ 本格 `实现状态` 的取值：`has_entry`（`src/**` 按名命中）／`未定（原因＝…）`。★ **按名未命中 ≠ 没实现**（可能以别的名字实现）——**如实写成「未定（原因＝…）」**，照 `_evidence_form`：**不许只写「未核」两个字**。★ 判据 `scripts/verify/check_commitment.py`（`C-1`／`C-2`／`C-3`）。"
  },
- "_actions": {
+ "actions": {
   "_element": "动作（Action）—— ★ 本节的 `reversible` 一律读作「**存在一条补偿路径**」（由调用方**再写一条普通 `change`**），**不是**世界提供撤销／回滚 API（v1 没有回滚 API）。",
   "_comment": "『怎么改』。动作是**唯一**的写入通道。每一条动作必须**引用一个已声明的能力**（`capability` 字段）——引用了不存在的能力 ⇒ `ext.world.Ontology.ActionCapabilityUnknown`。★ **现取更正**（判词 · 安全与授权 重一／形式本体 判-3.7）：写入通道其实**不止一条**——`change` 直接改字段（其『效果』只由 `after` 表达），`act` 只写『请求→结果』（**不改任何状态格**）；而**撤回**（`change` ＋ `retract_seq`）**不在本节里**，却能取消任意一条已生效的 `change`。⇒ 本句『唯一的写入通道』**不许**被读成『凡写入必过本节』。",
-  "_declared_gaps": "★ **未实现**（判词 · 形式本体 判-1.2／判-3；过程与仿真 §1.3）：① **一行三种范畴**——动作名是 **process type**、`capability` 引用的是**可实现倾向／信息实体**侧、`reversible` 是**道义模态**。② **缺整套过程本体构件**：`pre`／`eff`／`objective`／后置条件／participant／时长**都没有槽位** ⇒ 世界**答不出**『这个动作会做什么』（效果只存在于将来那条 `change` 的 `after` 里；`_functions.entries` 空表）。③ 『请求 → 结果』这条因果边**只有 `trace`**，而 `trace` 不做引用完整性校验。④ **撤回无授权面**（见 `_permissions._declared_gaps`）。⑤ 本节九条与 `_interfaces` 九条**名字一一相同** ⇒ 『动作引用一个已声明的能力』在出厂法律里是**零信息边**。",
+  "_declared_gaps": "★ **未实现**（判词 · 形式本体 判-1.2／判-3；过程与仿真 §1.3）：① **一行三种范畴**——动作名是 **process type**、`capability` 引用的是**可实现倾向／信息实体**侧、`reversible` 是**道义模态**。② **缺整套过程本体构件**：`pre`／`eff`／`objective`／后置条件／participant／时长**都没有槽位** ⇒ 世界**答不出**『这个动作会做什么』（效果只存在于将来那条 `change` 的 `after` 里；`functions.entries` 空表）。③ 『请求 → 结果』这条因果边**只有 `trace`**，而 `trace` 不做引用完整性校验。④ **撤回无授权面**（见 `_permissions._declared_gaps`）。⑤ 本节九条与 `interfaces` 九条**名字一一相同** ⇒ 『动作引用一个已声明的能力』在出厂法律里是**零信息边**。",
   "notice.mute": {
    "capability": "notice.mute",
    "reversible": true,
@@ -872,7 +872,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.notice.mute"
   },
   "notice.unmute": {
@@ -893,7 +893,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.notice.unmute"
   },
   "job.start": {
@@ -912,7 +912,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.start"
   },
   "job.finish": {
@@ -931,7 +931,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.finish"
   },
   "job.cancel": {
@@ -950,7 +950,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.cancel"
   },
   "ledger.compact": {
@@ -971,7 +971,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.ledger.compact"
   },
   "world.rekey": {
@@ -990,7 +990,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.world.rekey"
   },
   "world.migrate": {
@@ -1009,7 +1009,7 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.world.migrate"
   },
   "presence.report": {
@@ -1030,12 +1030,12 @@
    ],
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
-   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+   "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.presence.report"
   },
   "_抄自P_禁抄什么": "★★ **`effects` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-4`**）。\nP 的 `ActionType.effects`（`ActionEffect(\"edit_object\", \"Asset\", {\"status\": \"escalated\"})`）把**效果当【声明】**；而本仓的裁定逐字（`纲领-操作模型三流派对照-03` §7.4）：\n> **PDDL 把效果当【声明】（为了离线算未来）；本仓把效果当【记录】（为了事后能复算）。前者换来预测，后者换来复算——两者不能白拿。**\n⇒ **抄了 `effects` 就等于在世界里立【第二处真相】**（模型说 A、运行结果 B）。\n★ 本仓效果的正确落点：**账本事件的 `before`／`after`**（`families.change` 的必填格）。"
  },
- "_functions": {
+ "functions": {
   "_element": "函数（Function）—— **只有入口名**（引用到底层函数）。★ 本节的『函数』**不是** BFO 意义的 `function`（那是一种可实现倾向，长在有物理构造、且为着实现某类过程而被有意设计出来的承载者上）；本节是一串**入口引用**（信息实体侧）——**同名不同物**（判词 · 形式本体 G-4 甲／判-1.3）。",
   "_comment": "『怎么算』。函数**不改本体**——要落地只能被某个动作引用、由该动作执行。本表**只收入口名**：它是一张**引用表**，代码不进本体。",
   "_no_command_literal": "★ 判据：入口表里出现**命令字面量**（带空格、带 `/` 的路径、带引号，或**已登记的宿主包管理器命令名**）⇒ 红（`ext.world.Ontology.FunctionLiteralNotAllowed`）。理由：命令今天硬编码在 Rust 里（`src/carrier/**`），把 `pacman` 这类字面量抄进本体等于让本体长出**第二份**可执行事实。",
@@ -1113,7 +1113,7 @@
      "subject": "ref(ledger)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 ledger 不在 _objects 里"
+    "_note": "output_type 未定：前置名 ledger 不在 objects 里"
    },
    "fn.world.rekey": {
     "function_id": "fn.world.rekey",
@@ -1123,7 +1123,7 @@
      "subject": "ref(world)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 world 不在 _objects 里"
+    "_note": "output_type 未定：前置名 world 不在 objects 里"
    },
    "fn.world.migrate": {
     "function_id": "fn.world.migrate",
@@ -1133,7 +1133,7 @@
      "subject": "ref(world)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 world 不在 _objects 里"
+    "_note": "output_type 未定：前置名 world 不在 objects 里"
    },
    "fn.presence.report": {
     "function_id": "fn.presence.report",
@@ -1146,14 +1146,14 @@
     "_note": "output_type=presence"
    }
   },
-  "_抄自P_禁抄什么": "★★ **`implementation` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-7`**）。\nP 的 `OntologyFunction` 带**真代码**（`implementation: Callable[..., Any]`，`execute()` 直接跑，`describe()` 逐字注「JSON-serializable **for MCP tool listing**」）；而本仓逐字（`_functions._comment`）：\n> **本表只收入口名：它是一张引用表，代码不进本体。**\n⇒ **抄了就等于把代码塞进法律。**",
+  "_抄自P_禁抄什么": "★★ **`implementation` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-7`**）。\nP 的 `OntologyFunction` 带**真代码**（`implementation: Callable[..., Any]`，`execute()` 直接跑，`describe()` 逐字注「JSON-serializable **for MCP tool listing**」）；而本仓逐字（`functions._comment`）：\n> **本表只收入口名：它是一张引用表，代码不进本体。**\n⇒ **抄了就等于把代码塞进法律。**",
   "_shape": "照 P（.refs/依赖料/foundry-ontology-open/foundry_ontology/core/function.py）的 OntologyFunction.describe() 形状： function_id / display_name / description / inputs / output_type；★ 本仓禁抄 implementation 与 effects。"
  },
  "_permissions": {
   "_element": "许可条文（**不是**能力本身：授权授在**能力**上）",
-  "_comment": "『谁能把某个能力授给谁／从谁收回』。条文并入本体，但**授权对象只能是 `_interfaces` 里已声明的能力**——授在**具体类型**或**具体对象**上 ⇒ 红（`ext.world.Ontology.GrantNotOnCapability`）。★★ **本段不是世界的总闸**（现取口径，判词 · 安全与授权 题 1）：真正决定『谁能改世界』的写闸是 `src/gate/policy.json` 的 `writes`，它**按对象地址前缀**授权（`authorize_write`）；本段的 `grants` **只在 `act` 家族**被判（`src/lib.rs` 的 `check_presence_levels` 读 `scope`），**`change` 与 `notice` 两个家族根本不经过本段**。⇒ 读『授权只授在能力上』这句话时，**不许**把它读成『世界只有这一个授权面』。",
+  "_comment": "『谁能把某个能力授给谁／从谁收回』。条文并入本体，但**授权对象只能是 `interfaces` 里已声明的能力**——授在**具体类型**或**具体对象**上 ⇒ 红（`ext.world.Ontology.GrantNotOnCapability`）。★★ **本段不是世界的总闸**（现取口径，判词 · 安全与授权 题 1）：真正决定『谁能改世界』的写闸是 `src/gate/policy.json` 的 `writes`，它**按对象地址前缀**授权（`authorize_write`）；本段的 `grants` **只在 `act` 家族**被判（`src/lib.rs` 的 `check_presence_levels` 读 `scope`），**`change` 与 `notice` 两个家族根本不经过本段**。⇒ 读『授权只授在能力上』这句话时，**不许**把它读成『世界只有这一个授权面』。",
   "_default_closed": "★ 判据：`default` 必须**显式**写 `\"deny\"`。缺 `default` 或写成别的词 ⇒ 红（`ext.world.Ontology.PermissionDefaultOpen`）——默认允许不是安全默认，是法律没写全。",
-  "_declared_gaps": "★ **未实现／未接入**（判词 · 安全与授权；**本批没做（不是做不到）**：VM `newworld` 一直有 `cargo 1.98.1`＋`bash`（`AGENTS.md` 2026-10-12 已更正「本机无 cargo」那句只对宿主成立） ⇒ 下列是**判词读数，未在真二进制上跑过**）：① **`who` 无读者**——它被装载器解析进 `PermissionDecl.who`，而**没有任何生产消费者读它**（判『许可』只读 `scope`）⇒ 该格**只作条文、无执行体**，写与不写在程序上等价。② **`_grant_via_ledger` 声称的路没有执行体**——`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**（登记型红，接在 `check.sh` 上不阻断全闸）。③ **撤回没有授权面**——`change` ＋ `retract_seq` 能取消任意一条已生效的 `change`，而撤回**不是**本节的能力、不是 `_actions` 的动作，`change` 分支**不读本节、也不查两级**。④ **`notice` 家族不查能力**——只判『非 `gate.` 前缀 ＋ 在册』⇒ 任一在册主体可伪造 `job.completed`。⑤ **『一条 grant ＋ 一次重启』即可放宽一项能力**：全程**无判据会红、无账本事件、无签字要求**；『谁有资格改本段』今天**只有流程答案**（『改本段＝改法律（走评审）』），**没有机器答案**。⑥ `ledger.compact` 的 `scope` ＝ `[\"world://*\"]` 把一项**不可逆**能力授给了**每一个**主体（纵深只剩 `policy.json.irreversible_actors` 一层）。⑦ `who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型在 `_objects` 里不存在**（见 `_objects._declared_gaps`）。⇒ 真修③④要动代码（`src/lib.rs`／`src/agent/**`）；⑤要动流程（判据＋签字要求）；**⑥⑦的声明面修法反而是零身份代价**（`_permissions`／`_objects` 都是 `_` 键）⇒ 本批**只写提案**（法律口径取舍待批）。",
+  "_declared_gaps": "★ **未实现／未接入**（判词 · 安全与授权；**本批没做（不是做不到）**：VM `newworld` 一直有 `cargo 1.98.1`＋`bash`（`AGENTS.md` 2026-10-12 已更正「本机无 cargo」那句只对宿主成立） ⇒ 下列是**判词读数，未在真二进制上跑过**）：① **`who` 无读者**——它被装载器解析进 `PermissionDecl.who`，而**没有任何生产消费者读它**（判『许可』只读 `scope`）⇒ 该格**只作条文、无执行体**，写与不写在程序上等价。② **`_grant_via_ledger` 声称的路没有执行体**——`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**（登记型红，接在 `check.sh` 上不阻断全闸）。③ **撤回没有授权面**——`change` ＋ `retract_seq` 能取消任意一条已生效的 `change`，而撤回**不是**本节的能力、不是 `actions` 的动作，`change` 分支**不读本节、也不查两级**。④ **`notice` 家族不查能力**——只判『非 `gate.` 前缀 ＋ 在册』⇒ 任一在册主体可伪造 `job.completed`。⑤ **『一条 grant ＋ 一次重启』即可放宽一项能力**：全程**无判据会红、无账本事件、无签字要求**；『谁有资格改本段』今天**只有流程答案**（『改本段＝改法律（走评审）』），**没有机器答案**。⑥ `ledger.compact` 的 `scope` ＝ `[\"world://*\"]` 把一项**不可逆**能力授给了**每一个**主体（纵深只剩 `policy.json.irreversible_actors` 一层）。⑦ `who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型在 `objects` 里不存在**（见 `objects._declared_gaps`）。⇒ 真修③④要动代码（`src/lib.rs`／`src/agent/**`）；⑤要动流程（判据＋签字要求）；**⑥⑦的声明面修法反而是零身份代价**（`_permissions`／`objects` 都是 `_` 键）⇒ 本批**只写提案**（法律口径取舍待批）。",
   "default": "deny",
   "grants": {
    "notice.mute": {
@@ -1194,7 +1194,7 @@
     ]
    },
    "_omarchy_note": "★ 新身份 `world://presence/omarchy`（界面自己的口 `/run/world-core/omarchy.sock`）：**只动 `scope`，不动 `who`**。理由可核——`src/lib.rs::check_presence_levels` 判「许可」时逐字读的是 `p.scope`（`gate::pattern_matches(pat, actor)`），**不读 `who`**；而本段自己的口径写着 `who` ＝『谁能把某个能力授给谁／从谁收回』⇒ 把界面写进 `who` 就是**另外给它一份「发许可证」的权力**，本批**不给**。★ **更正（判词 · 安全与授权 题 1）**：这条论证的**前提今天是假的**——`who` 被装载器读进结构体，而**没有任何生产读者**（判『许可』只读 `scope`）⇒ 写与不写在程序上**完全等价**，『把界面写进 `who` 等于给它发许可证的权力』**不成立**（结论无害，理由是空的）。**现取事实**：本批只动 `scope`，因为 `scope` 才是生效许可；`who` 今天**只作条文、无执行体**（见 `_declared_gaps`）。★ 授权只授在**能力**上（`notice.mute`／`notice.unmute`／`presence.report`），**没有一条授在具体对象上**。★ 拿到许可 ≠ 能说话：`world://presence/*` 还要过第①级**申报**（它名下要有格），两级都过才交回门禁。",
-   "_omarchy_scope_why": "为什么这三条：界面的「点一下」是**一条 `act`**（家族 act，能力＝动作名），不是直接改字段；它今天要用的能力就是「静音／解除静音」，另加它自己报在场状态用的 `presence.report`。★ 与本项目既有口径一致：**能力清单不在这里发明**——名字都取自 `policy.json.capabilities` ∩ 本文件 `_interfaces`。★ **现取更正**（判词 · 安全与授权 题 4 附带）：『两处同集』**在运行期只兑现一半**——`World::open` 只做**单向**（policy ⊆ ontology）；**反向**由 Python 判据 `scripts/verify/cross_contract.py` 的 C-03 承担，**不是拒启**。"
+   "_omarchy_scope_why": "为什么这三条：界面的「点一下」是**一条 `act`**（家族 act，能力＝动作名），不是直接改字段；它今天要用的能力就是「静音／解除静音」，另加它自己报在场状态用的 `presence.report`。★ 与本项目既有口径一致：**能力清单不在这里发明**——名字都取自 `policy.json.capabilities` ∩ 本文件 `interfaces`。★ **现取更正**（判词 · 安全与授权 题 4 附带）：『两处同集』**在运行期只兑现一半**——`World::open` 只做**单向**（policy ⊆ ontology）；**反向**由 Python 判据 `scripts/verify/cross_contract.py` 的 C-03 承担，**不是拒启**。"
   },
   "_presence_report_note": "★ 在场者两级分开（顺序是死的）：①**申报**给的是“依据”（该在场者有没有在世界里申报过——判据＝折叠出的状态里这个主体有没有格）；②**授权**给的是“许可”（`grants.<能力>.scope` 命中该主体；`default: deny`）。**二者不许合并**——一旦合并，等于在场者自己给自己发许可证，世界就不再管着它。报得再全，也不自动拿到任何能力；开放只由许可决定。★ **现取更正（射程）**（判词 · 安全与授权 题 4）：这两级**只在 `act` 分支成立**（申报在前、授权在后）；对 `change` 与 `notice` 两个家族**不成立**——同一主体改走那两个家族即可**绕过**本节的能力许可。「两级都过才交回门禁」这句**只对 `act` 为真**。",
   "_grant_via_ledger": "★ **设计已定·未落地**（判词 · 安全与授权 改法③ 乙）：下面这条路**今天在程序里不存在**——`src/` 里**没有**读『能力格』的代码（`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**）；**今天的授权判定读本段 `grants.<能力>.scope`，不读账本**。⇒ 在落地前，**不许**把下句读成『授予／收回已经在走账本事件』。**设计口径（保留供对照）**：授予／收回是**事实**，走账本事件（`change` 写 `world://user` 的能力格 → 门禁 `authorize_write` 裁决 → 落笔）。本段只是**条文的声明面**：谁**有资格**授予、授给谁。改本段＝改法律（走评审）；改一次授权＝落一条事件（**这句是设计口径，未落地**）。★ 处置两条（判词③）：甲＝落地（让 G-02 有真命中）／乙＝本句改标『设计已定·未落地』。⇒ 本席取**如实登记、不单方面改法律口径**，故 G-02 **仍红**（如实），处置权交评审与法律主人。",
@@ -1221,15 +1221,15 @@
  "_pending_tables": {
   "_element": "本批**只登记、不实现**的四张必配表（防止范围爆炸）。★ **下面 `_declared_gaps` 不是那四张表**——那是本批按三份判词（形式本体 G-1／Y-1／Y-2）追加的**声明面缺口登记**，同样『只登记、不实现』；四张必配表本身**未动**。",
   "_comment": "这四张表今天**不存在**（本体里没有它们的节，代码里也没有读它们的路径）。本批把它们的缺口**如实写在这里**，不落实现、不假装已定。",
-  "value_types_and_units": "**值的类型与单位**：`_objects` 的字段值今天只给**类型词**（`bool`／`enum(…)`），**没有单位**（秒／字节／档位）与量纲。缺口：`at` 声明 `integer  # Unix 秒`，那个『秒』只活在注释里，判据读不到它。",
+  "value_types_and_units": "**值的类型与单位**：`objects` 的字段值今天只给**类型词**（`bool`／`enum(…)`），**没有单位**（秒／字节／档位）与量纲。缺口：`at` 声明 `integer  # Unix 秒`，那个『秒』只活在注释里，判据读不到它。",
   "clock_and_timezone": "**时钟与时区口径**：`at` 是 Unix 秒（UTC 绝对时刻）——这条只在 `envelope.fields` 的说明文字里，**没有**『同一账本在任何时区折叠出同一状态』的判据（今天靠『不读时钟』这条实现事实成立，未立判据）。",
   "identity_and_naming": "**主键·标识与命名规则**：实例名的**唯一性**今天无人判（`world://notice/a` 写两次是两次普通写入）；标识与命名的字符集／长度／大小写口径**没有**任何声明面。\n\n**★ 2026-10-11 补：形状已定（借鉴外部；`_` 键下 ⇒ 零词表身份代价）**\n这套形状**不是我们自创**，逐条有出处：\n\n**一、命名分三段（形状取自 IRDI；`I40-ECLASS` 白皮书 §3.1.2）**\n`<机构码 ICD> - <条目> # <版本>`，示例 `0173 -1#02-AAO677#002`。★ **「三段」是本仓读法**：白皮书只给例子 ＋ 一句「每个注册机构有唯一 `ICD`」，**没有明文规定三段**（全文 `three part`／`three-part`／`consists of three` 各 0 次）。\n⇒ 08 的对应：**机构码**＝世界身份（`world` 版本号 ＋ `vocab_hash` 前缀）｜**条目**＝主体路径（`world://<ns>/<name>`）｜**版本**＝这一版的号。\n\n**二、身份分四层（形状取自 AXN v2 的 `identity_semantics`）**\nL1 `content_hash`＝这一段字节（byte identity）｜**08 现状：没有**（只有摘要链 `chain`，链上一步）；\nL2 `instance_id`＝这一次写入本身（一次命名，永不动）｜**08 现状：有 `id`（去重）但没写「永不动」**；\nL3 `subject_id`＝同一个东西跨多次写入（stable work relation）｜**08 现状：没有**（`path` 只是字符串）；\nL4 `seq`＝在账本里的位置（local presentation address）｜**08 现状：已有**（全局单增，由世界分配）。\n\n**三、四条规矩（可判）**\n- **R-1 名字在命名空间内唯一**：同一 `<ns>` 下，同名不得有两个 `subject_id` 同时处于 `registered` 及以上；冲突 ⇒ **拒写**（照门禁「默认拒绝」）。\n- **R-2 一次命名永不动**（照 AXN `minting_is_once`：`An AXN version is minted ONCE … and does NOT move`）：`instance_id` 一经分配不得改写；改名＝**新名字 ＋ 旧名进 `name_history[]`**。\n- **R-3 漂移 ≠ 身份坏**（照 AXN：`CONTENT DRIFT … and not a broken identifier`）：`content_hash` 与记录不符 ⇒ 报「**内容漂移**」；`instance_id` 找不到出生事件 ⇒ 报「**身份失效**」；**两条分开报，不许合成一句「校验失败」**。\n- **R-4 换空间＝换标识**（照白皮书明文 `Copied in the Submodel namespace getting a new IRDI (allowing modification)`）：一个东西被复制进另一个命名空间时，**给它新标识**，不与原标识混为一谈。\n\n**四、「认得出」≠「是同一个」（照 AXN `identity_vs_recognition`）**\n`world://…` 是**认得出的名字**（recognition）；身份是**内容寻址的哈希**（identity）。两者**分字段存，不可互替**；判据里凡出现「用名字当身份」⇒ 按返工项记。\n★ **今天 `envelope.actor` 正是「名字当身份用」（调用方自填的字符串）** ⇒ R-1／R-2 治不了冒名，**冒名要另一件（身份由系统在连接时给出）**。\n\n**五、旧名永久可解析（照 AXN `legacy_resolution`）**\n`legacy_name`（单个）＋ `name_history[]`（数组，每项带 `retired_at`／`reason`）；解析请求**重定向到现名**。★ 依赖 `clock_and_timezone`（`retired_at` 要有时间口径）。\n\n**★ 未生效的账（必须由人裁，本格不代批）**：以上四条 R 要**真正生效**，得动两处**承重面**——① `envelope.fields.actor` 的口径（加「名字 ≠ 身份」的声明面）；② 实例注册的落点（今天没有「实例」这一层的写入路径）。**这两处都不在 `_` 键下 ⇒ 动它们＝换 `vocab_hash`＝旧账本拒启**（照 `纲领-上位本体锚定与对齐-02` §7.2）。**本格只登记形状，不声称已生效。**\n\n**★ 落地判据（今天写不出可跑的）**：R-1／R-2／R-3／R-4 各需一条会红的判据，而**今天「实例注册」落点未立 ⇒ 四条都配不出可跑的判据**（照 `scripts/verify/check_freeze.py` 的先例：判据可以先立，但必须自证会红；没对象的判据只能标 `rc=2 未落地`）。\n\n**★ 2026-10-11 补：R-3 的\"两条时间轴\"（形状取自 `semantica` 的 `BiTemporalFact`）**\n\n`semantica/kg/temporal_model.py` 逐字（本机 `.refs/依赖仓/semantica/`）：\n```python\nclass TemporalBound(Enum):\n    \"\"\"Sentinel bounds for open-ended temporal intervals.\"\"\"\n    OPEN = \"OPEN\"\n\n@dataclass\nclass BiTemporalFact:\n    valid_from:    Optional[datetime]      # 这条事实**在世界里**什么时候成立\n    valid_until:   Optional[datetime | TemporalBound]\n    recorded_at:   datetime = field(default_factory=_default_recorded_at)   # 我们**什么时候知道**\n    superseded_at: datetime | TemporalBound = TemporalBound.OPEN            # **什么时候被新知识取代**\n```\n\n**⇒ 08 该补的四样（今天一格都没有）**：\n1. **有效轴**：`valid_from`／`valid_until` —— **这条事实在世界里何时成立**；\n2. **记录轴**：`recorded_at` —— **我们何时知道它**（⇒ 这正是 R-3「漂移 ≠ 身份失效」缺的时间落点：\n   **\"值变了\"是有效轴上的事；\"我们改了记录\"是记录轴上的事**——两条轴分开，才谈得上\"分开报\"）；\n3. **取代轴**：`superseded_at` —— **被新知识取代的时刻**（不是删除：**旧值不抹，只标被取代**）；\n4. **哨兵 `OPEN`** —— \"**还没到头**\"要有**独立取值**，**不许用 `null` 兼表\"未定\"与\"无\"**。\n\n★ **依赖**：这四样要用得上，先要有 `_clock`（已落：`epoch=unix`／`precision=s`）——\n**时间口径不定，两条轴就是两个字符串**。\n\n★ **未生效的账**：要真生效得动 `envelope`（加 `recorded_at`／`superseded_at` 两格）⇒ **换 `vocab_hash` ⇒ 承重面，待人裁**。\n**本格只登记形状，不声称已生效。**",
   "version_migration": "**版本迁移面**：`world` 是词表版本（升版即拒启，已实现）；但**事件层的字段含义演进（upcasting）落点未定**——`WC-SRS-001` 的 `REQ-F-027` 只落『加法演进那一层』，`WC-FSR-001` 的 `SL-06`／`CON-04` 记着**待人裁**（责任人＝项目负责人，时点＝S4 中段）。本批不选路。\n\n**★ 2026-10-11 补：形状已定（借鉴外部；`_` 键下 ⇒ 零词表身份代价）**\n形状取自 **`semantica-agi/semantica`** 的 `change_management/ontology_version_manager.py`（逐字见下）；**不是**声称符合它。\n\n**一、两套身份分开（这是本格的核心）**\n\n| 是谁的身份 | 带不带版本 | 08 对应 |\n|---|---|---|\n| **本体身份** | **带**（`{base}/v{version}`） | `world` ＋ `vocab_hash`（今天：**升版即拒启**） |\n| **元素身份** | **不带**（跨版本稳定） | `world://<ns>/<name>`／事件里的字段名与家族名 |\n\n⇒ 借它一句话：**「Version-less element IRIs (stable across versions)」**——**元素的名字跨版本不变，变的是本体那一版的身份**。\n\n**二、多版本共存（今天做不到，登记为方向）**\n借它一句：**「Multiple versions can coexist in same graph database」**。\n08 现状：**一份本体、一个 `vocab_hash`、升版即拒启**（`Ontology::load` 一次一份）。\n⇒ **方向**：账本条上记「它是按哪一版词表写的」，读时按那一版的元素名去解；**不同版本的账本可以并存**，而不是「升版＝把旧的作废」。\n★ **本格只登记方向，不声称已实现**（真要做得动 `Ontology::load` 与 `vocab_hash` 口径＝**承重面，待人裁**）。\n\n**三、迁移怎么留痕（形状取自它的 `ImpactReport` ＋ `MutationRecord`）**\n- **改之前先出影响报告**：分**三类**——`破坏性`（breaking）／`潜在破坏`（potentially breaking）／`安全`（safe）；**只有『破坏性』才走人签**（安全的那类不该占人的时间）。\n- **每个实体一条变更记录**：`操作`（增／改／删）｜`实体`｜**变更后的状态**｜**挂到哪一版**。\n- **旧值不许抹**（与账本只追加同一道理）。\n\n**四、`upcasting` 落点（本仓原来的待裁项）**\n借它的分法，把「事件层字段演进」拆成三种，**分别给落点**：\n1. **加法**（新字段、新家族）：**不动旧账本**——旧事件缺那一格，读时按「该字段自哪一版起有效」补默认；\n2. **改名**（字段名变了、含义没变）：按 `name_history[]` 记（见 `identity_and_naming` 的 R-2）；\n3. **改含义**（同名不同义）：**这是破坏性变更**（走人签），**且必须给迁移映射**（哪一版到哪一版的换算）。\n★ 这三条是**分类法**，不是实现；**真要实现仍要动承重面**（读路径要能按版本解字段）。\n\n**五、落地判据**\n`scripts/verify/check_migration.py`：`V-1` 本体身份带版本（`world` 在且为正整数）｜`V-2` **元素层不许出现版本号**（`world://<ns>/<name>` 里出现 `vN` 后缀 ⇒ 红——那等于把版本焊进元素身份，正是本格要防的）｜`V-3` 三类变更的**档位词表**必须闭合（`破坏性`／`潜在破坏`／`安全`）｜`V-4` 若声明了迁移映射，**每条映射的两端版本都必须在册**。\n★ **`V-4` 今天会以未落地报**——因为没有迁移映射清单；**那是如实状态，不是绿**。",
   "_declared_gaps": {
    "_element": "★ 本批（`2026-10-08-ontology-decl-fix`）按判词**追加**的缺口登记（**零词表身份代价**：全挂在 `_` 键下）。四条**都不实现**；**修它们落在 `_` 键下时零身份代价**——真代价只有一处：动代码（`src/**`）；★ 会换身份的是动**非 `_` 顶层键**（现取 **5 类**：`['concepts','envelope','families','flags','world']`，不是 4 类）——本条修法**不碰它们**。",
-   "capability_bearer": "**能力的承载者**（判词 · 形式本体 G-1／Y-1）：`_interfaces` 的能力**没有** bearer／domain 声明面，`_links` 里**没有** `bears` ⇒ 『这块能力长在谁身上』问不出。**未实现**。真修＝`_interfaces.<能力>` 加 `bearer: ref(<类型>)` ＋ 新增拒启判据 `CapabilityBearerUndeclared`。★ **身份代价＝零**（现取复算，2026-10-09；`D:\\package\\Python312\\python.exe`）：`_interfaces` 与 `_objects` **都是 `_` 前缀键**，被 `strip_comments` **整枝剔除**（`src/ontology_definition/mod.rs:2149-2164` 逐字 `if k.starts_with('_') { continue; }`）；且新类型只在一处出现时 `check_frozen_mirror` 射程表第 5 行逐字「该类型只在一处出现 ⇒ **不判**（纯扩展的常态）」（`mod.rs:637`；代码 `:647-650` 逐字「该类型在 `concepts` 里没有 ⇒ 纯扩展，不判（射程表第 5 行）」）。⇒ 只动 `_` 键的变更**不换词表身份**：BASE＝`fnv1a64:6a96abfa9a969462`（1265 字节）／只动 `_` 键后 **SAME**（这两个读数**可直接引**；其可比性依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**，不是 4 类）；本条修法**不碰它们**。★ **身份读数纪律**：凡写身份读数必须同批写死『改了哪一格』的逐字变更；本席早期流传的『同时改 `concepts` 变体＝`fnv1a64:43583bcc3c45999b`（1302 字节）』与专家席另一口径（`e82b408cf86c3d1a`／1289 字节）**不同 ⇒ 口径未定、不可比**，本件**不再作为读数引用**。⇒ 本批仍**只写提案**，但理由是『取舍要人裁 ＋ 拒启判据要改 `mod.rs`』，**不是**『修不起』。",
-   "permission_subject_types": "**许可主体的类型**（判词 · 形式本体 G-1／判-1.5）：`_permissions.grants.*.who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型**在 `_objects` 里**没有声明**；`UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。**未实现**。真修＝`_objects` 加主体类型（如 `party`）＋ 新增拒启判据 `PermissionSubjectUndeclared`。★ **身份代价＝零**（现取复算）：`_objects` 是 `_` 前缀键 ⇒ 整枝剔除（`mod.rs:2149-2164`）；新类型只在一处出现 ⇒ `check_frozen_mirror` **不判**（`:637`）⇒ 加类型 **不换 hash**（BASE 同值；此读数依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。★ 早期流传的『改 `concepts` 变体＝`43583bcc3c45999b`』**口径未定、不可比**（专家席另一口径得 `e82b408cf86c3d1a`），**不作读数引用**。",
-   "record_and_occurrent": "**记录／信息内容这一类**（判词 · 形式本体 Y-2）：`change`／`act`／`notice` 在实现上是账本里的行（IAO 意义上的信息内容实体），法律里**没有**它们的类型，『这条记录**关于**哪件事』**无声明面**。**未实现**。真修＝在 `_objects` 加『记录／信息内容』一类（必要时在 `_links` 加 `is-about` 一条）——两者**都是 `_` 键** ⇒ **零身份代价**（`mod.rs:2149-2164`／`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。"
+   "capability_bearer": "**能力的承载者**（判词 · 形式本体 G-1／Y-1）：`interfaces` 的能力**没有** bearer／domain 声明面，`links` 里**没有** `bears` ⇒ 『这块能力长在谁身上』问不出。**未实现**。真修＝`interfaces.<能力>` 加 `bearer: ref(<类型>)` ＋ 新增拒启判据 `CapabilityBearerUndeclared`。★ **身份代价＝零**（现取复算，2026-10-09；`D:\\package\\Python312\\python.exe`）：`interfaces` 与 `objects` **都是 `_` 前缀键**，被 `strip_comments` **整枝剔除**（`src/ontology_definition/mod.rs:2149-2164` 逐字 `if k.starts_with('_') { continue; }`）；且新类型只在一处出现时 `check_frozen_mirror` 射程表第 5 行逐字「该类型只在一处出现 ⇒ **不判**（纯扩展的常态）」（`mod.rs:637`；代码 `:647-650` 逐字「该类型在 `concepts` 里没有 ⇒ 纯扩展，不判（射程表第 5 行）」）。⇒ 只动 `_` 键的变更**不换词表身份**：BASE＝`fnv1a64:6a96abfa9a969462`（1265 字节）／只动 `_` 键后 **SAME**（这两个读数**可直接引**；其可比性依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**，不是 4 类）；本条修法**不碰它们**。★ **身份读数纪律**：凡写身份读数必须同批写死『改了哪一格』的逐字变更；本席早期流传的『同时改 `concepts` 变体＝`fnv1a64:43583bcc3c45999b`（1302 字节）』与专家席另一口径（`e82b408cf86c3d1a`／1289 字节）**不同 ⇒ 口径未定、不可比**，本件**不再作为读数引用**。⇒ 本批仍**只写提案**，但理由是『取舍要人裁 ＋ 拒启判据要改 `mod.rs`』，**不是**『修不起』。",
+   "permission_subject_types": "**许可主体的类型**（判词 · 形式本体 G-1／判-1.5）：`_permissions.grants.*.who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型**在 `objects` 里**没有声明**；`UndeclaredRelationEndpoint` 只盯 `links` 两端，**不盯许可主体**。**未实现**。真修＝`objects` 加主体类型（如 `party`）＋ 新增拒启判据 `PermissionSubjectUndeclared`。★ **身份代价＝零**（现取复算）：`objects` 是 `_` 前缀键 ⇒ 整枝剔除（`mod.rs:2149-2164`）；新类型只在一处出现 ⇒ `check_frozen_mirror` **不判**（`:637`）⇒ 加类型 **不换 hash**（BASE 同值；此读数依赖『只改 `_` 键』这一条）。★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。★ 早期流传的『改 `concepts` 变体＝`43583bcc3c45999b`』**口径未定、不可比**（专家席另一口径得 `e82b408cf86c3d1a`），**不作读数引用**。",
+   "record_and_occurrent": "**记录／信息内容这一类**（判词 · 形式本体 Y-2）：`change`／`act`／`notice` 在实现上是账本里的行（IAO 意义上的信息内容实体），法律里**没有**它们的类型，『这条记录**关于**哪件事』**无声明面**。**未实现**。真修＝在 `objects` 加『记录／信息内容』一类（必要时在 `links` 加 `is-about` 一条）——两者**都是 `_` 键** ⇒ **零身份代价**（`mod.rs:2149-2164`／`:637`）；★ 会换身份的是动**非 `_` 顶层键**——现取 **5 类**：`['concepts','envelope','families','flags','world']`；本条修法**不碰它们**。"
   }
  },
  "_meta_layers": {
@@ -1263,7 +1263,7 @@
   },
   "has member part": {
    "iri": "http://purl.obolibrary.org/obo/BFO_0000115",
-   "ours": "_links.part-of",
+   "ours": "links.part-of",
    "gap": "无（本仓的关系名与 BFO 的词不同形，这里只登记落点）"
   },
   "occurs in": {
@@ -1328,7 +1328,7 @@
    "ArtifactOntology": "人工物：含 Computer／Software 一族——本仓的『屏面／格／端口』面照它",
    "EventOntology": "事件：Act／Event／Process——本仓的『作业／变更』面照它",
    "InformationEntityOntology": "信息内容实体：含 Message 一族——本仓的『通告／记录』面照它（补 Y-2 缺口）",
-   "ExtendedRelationOntology": "关系：CCO 自己的关系面——本仓 `_links` 照它",
+   "ExtendedRelationOntology": "关系：CCO 自己的关系面——本仓 `links` 照它",
    "QualityOntology": "性质——本仓『前值／后值』那一格照它",
    "TimeOntology": "时间：CCO 的时间模件（与 W3C OWL-Time 同源）——本仓 `_clock` 照它",
    "UnitsOfMeasureOntology": "单位与量纲——本仓 `_units` 照它",
@@ -1337,10 +1337,10 @@
    "CurrencyUnitOntology": "货币——**本仓暂不采用**"
   },
   "_adopted": {
-   "_objects.surface": [
+   "objects.surface": [
     "https://www.commoncoreontologies.org/ont00002068"
    ],
-   "_objects.port": [
+   "objects.port": [
     "https://www.commoncoreontologies.org/ont00001258",
     "https://www.commoncoreontologies.org/ont00000700"
    ],
@@ -1356,7 +1356,7 @@
     "https://www.commoncoreontologies.org/ont00002013",
     "https://www.commoncoreontologies.org/ont00002010"
    ],
-   "_interfaces（能力）": [
+   "interfaces（能力）": [
     "http://purl.obolibrary.org/obo/BFO_0000034",
     "https://www.commoncoreontologies.org/ont00000971"
    ],
@@ -1371,7 +1371,7 @@
    "envelope.trace（因为什么）": [
     "http://www.w3.org/ns/prov#wasInformedBy"
    ],
-   "_links.part-of": [
+   "links.part-of": [
     "http://purl.obolibrary.org/obo/BFO_0000176",
     "http://purl.obolibrary.org/obo/BFO_0000178"
    ],
@@ -1580,7 +1580,7 @@
     "借什么": "**All classes are things that can have instances** ⇒ 每一个类都要能回答\"谁能实例化它\"。",
     "出处件": ".refs/依赖料/SERC-数字工程本体手册-2.0-正文.txt",
     "出处串": "All classes are things that can have instances",
-    "落到我们哪一格": "_objects／concepts：每条问一次；写进判据",
+    "落到我们哪一格": "objects／concepts：每条问一次；写进判据",
     "状态": "直接抄"
    },
    "每个类**恰好**一个上位父类": {
@@ -1608,7 +1608,7 @@
     "借什么": "**Individuals – particulars typed by classes (e.g. your actual data)** —— 手册直给，不绕。",
     "出处件": ".refs/依赖料/SERC-数字工程本体手册-2.0-正文.txt",
     "出处串": "Individuals – particulars typed by classes",
-    "落到我们哪一格": "`_objects` 六类 ＋ `envelope.actor` 今天只是字符串这一缺口",
+    "落到我们哪一格": "`objects` 六类 ＋ `envelope.actor` 今天只是字符串这一缺口",
     "状态": "改个名就能用"
    },
    "本体的目的**不是描述数据，是描述世界本身**": {
@@ -1629,14 +1629,14 @@
     "借什么": "**Instances (individuals or objects)** 是四件之一——公理那一件在我们这里＝**判据**。",
     "出处件": ".refs/依赖料/SERC-数字工程本体手册-2.0-正文.txt",
     "出处串": "Instances (individuals or objects)",
-    "落到我们哪一格": "`_objects`（类型）＋`_links`（关系）＋账本行（实例）＋判据（公理）",
+    "落到我们哪一格": "`objects`（类型）＋`links`（关系）＋账本行（实例）＋判据（公理）",
     "状态": "改个名就能用"
    },
    "文件是**接口不是存储**": {
     "借什么": "**serve as INTERFACES rather than STORES of data** ⇒ 件是口，不是库。",
     "出处件": ".refs/依赖料/SERC-数字工程本体手册-2.0-正文.txt",
     "出处串": "serve as INTERFACES rather than STORES of data",
-    "落到我们哪一格": "`_catalog`／`_interfaces` 的定位段",
+    "落到我们哪一格": "`_catalog`／`interfaces` 的定位段",
     "状态": "只能借形状"
    },
    "AI 生成的章节**标明生成方式与输入**": {
@@ -1815,7 +1815,7 @@
     "状态": "直接抄"
    },
    "★ **Interface ＝ 多态形状**（被多个 ObjectType 实现）": {
-    "借什么": "**Polymorphic shapes implemented by multiple ObjectTypes** —— 与我们 `_interfaces`（能力）**同名不同义**。",
+    "借什么": "**Polymorphic shapes implemented by multiple ObjectTypes** —— 与我们 `interfaces`（能力）**同名不同义**。",
     "出处件": ".refs/依赖料/foundry-ontology-open/docs/architecture.md",
     "出处串": "Polymorphic shapes implemented by multiple ObjectTypes",
     "落到我们哪一格": "★ 登记为**名不副实**；改名＝承重待人裁",
@@ -6147,10 +6147,10 @@
     "落到我们哪一格": "见 `ninedim/07-待审/2026-10-11-实读-我们上一代稿-语义世界架构-可借鉴清单.md`:270（本批只把「出处可重取」机核化）",
     "状态": "已核出处·待落位"
    },
-   "**有节、条目为空**：`_functions.entries` 现 `{}` @定义面总纲-五构件与实现形态.md:49": {
-    "借什么": "**有节、条目为空**：`_functions.entries` 现 `{}`",
+   "**有节、条目为空**：`functions.entries` 现 `{}` @定义面总纲-五构件与实现形态.md:49": {
+    "借什么": "**有节、条目为空**：`functions.entries` 现 `{}`",
     "出处件": ".refs/语义世界-架构/定义面总纲-五构件与实现形态.md",
-    "出处串": "**有节、条目为空**：`_functions.entries` 现 `{}`",
+    "出处串": "**有节、条目为空**：`functions.entries` 现 `{}`",
     "落到我们哪一格": "见 `ninedim/07-待审/2026-10-11-实读-我们上一代稿-语义世界架构-可借鉴清单.md`:272（本批只把「出处可重取」机核化）",
     "状态": "已核出处·待落位"
    },
@@ -8033,7 +8033,7 @@
   "_layers": {
    "①顶层": "BFO／ISO 21838-2（`_anchor` 是对照视图）",
    "②中层": "本表（照 CCO 的 12 件模件）",
-   "③领域": "语义世界／计算机系统（`_objects`／`_links`）",
+   "③领域": "语义世界／计算机系统（`objects`／`links`）",
    "④应用": "gate／ledger／readmodel（`src/`）"
   },
   "_cut": "**按\"范畴＋功能\"切，不按应用切**。CCO 的 `Material Artifact`（←`BFO_0000040`）与 `Artifact Function`（←`BFO_0000034`）是**两根**，不是两百家单位各一根。",
@@ -8042,7 +8042,7 @@
     "cco": "AgentOntology",
     "bfo_root": "BFO_0000004",
     "state": "缺（E4 待人裁）",
-    "note": "本仓 `actor` 是自填字符串；`_permissions` 的主体类型不在 `_objects` 里"
+    "note": "本仓 `actor` 是自填字符串；`_permissions` 的主体类型不在 `objects` 里"
    },
    "人工物": {
     "cco": "ArtifactOntology",
@@ -8075,7 +8075,7 @@
     "cco": "ExtendedRelationOntology",
     "bfo_root": null,
     "state": "立目",
-    "note": "CCO 用 RO（Relation Ontology）＋扩展／模态两份；我们 `_links` 4 条此前无上位目"
+    "note": "CCO 用 RO（Relation Ontology）＋扩展／模态两份；我们 `links` 4 条此前无上位目"
    },
    "设施": {
     "cco": "FacilityOntology",
@@ -8135,15 +8135,15 @@
    "_decisions": "记录",
    "families": "发生",
    "flags": "能力",
-   "_interfaces": "能力",
-   "_actions": "能力",
-   "_functions": "能力",
+   "interfaces": "能力",
+   "actions": "能力",
+   "functions": "能力",
    "_permissions": "能力",
-   "_links": "关系",
+   "links": "关系",
    "_units": "性质与度量",
    "_clock": "时间",
    "_subscribe": "信息实体",
-   "_objects": {
+   "objects": {
     "_by_entry": {
      "surface": [
       "人工物",
@@ -8288,7 +8288,7 @@
    "unit": "今天无主（单位取自 UCUM／QUDT，是**外部标准**，不归本仓任何主体）",
    "identity": "今天无主（身份由**身份服务**给，而本仓今天**没有身份服务**——见 `_identity.layers`）"
   },
-  "_unowned_note": "★ **这不是「我们决定不要主」，是「今天确实没有主」**——照实登记，**不编**。要真正立属主 ＝ 动 `_objects` 与授权面 ⇒ **承重，待人裁**（席D 附表二把它列为【未受理】）。　★ **2026-10-12 追加**：本批新立的 13 个类**全部**列进本表——照判据 `check_naming.py` 的 **`N-3`** 逐字：「每个类**要么**在 `owners` 里有主，**要么**明写在 `_unowned` 里带理由。★ 两样都没有 ⇒ **红**」。**本席没有替它们发明属主**（那要动承重面），**只如实登记「今天无主」**。"
+  "_unowned_note": "★ **这不是「我们决定不要主」，是「今天确实没有主」**——照实登记，**不编**。要真正立属主 ＝ 动 `objects` 与授权面 ⇒ **承重，待人裁**（席D 附表二把它列为【未受理】）。　★ **2026-10-12 追加**：本批新立的 13 个类**全部**列进本表——照判据 `check_naming.py` 的 **`N-3`** 逐字：「每个类**要么**在 `owners` 里有主，**要么**明写在 `_unowned` 里带理由。★ 两样都没有 ⇒ **红**」。**本席没有替它们发明属主**（那要动承重面），**只如实登记「今天无主」**。"
  },
  "_section_map": {
   "_comment": "★ **十二节的归属表**（写死在这里，供人读、也供判据读）。**判据**：本表声明的 `_` 分节键集合 == 文件里**实际存在**的 `_` 分节键集合（实际＝全部顶层 `_` 键 − `_not_domain_sections` 里列名的键）⇒ 多一处、少一处都拒启（`ext.world.Ontology.SectionMapDrift`）。⇒ **新加一个 `_` 分节却不在本表列名，装不起来。** ★ **「十二节」的读法**（判词 · 形式本体 判-4.4 附）：这里的『十二节』是**散文话题数**，**不是声明面数**——判据判的是 `sections` 里 `keys` 声明到的 **8 个 `_` 分节键**（3 节共用 1 键）⇒ **不许**把『十二节』读成『十二个声明面』。",
@@ -8339,7 +8339,7 @@
     "home": "对象（Object）",
     "attach": "full",
     "keys": [
-     "_objects"
+     "objects"
     ],
     "_note": "『世界里存在什么』：类型 → 属性（值类型参与校验）。冻结映射 `concepts`（非 `_` 键）是它的**身份侧**，两处同名字段的一致性由 `ConceptsDrift` 盯着。"
    },
@@ -8347,7 +8347,7 @@
     "home": "关系（Link）",
     "attach": "full",
     "keys": [
-     "_links"
+     "links"
     ],
     "_note": "命名关系 ＋ 两端类型 ＋ 基数。**端点必须已声明**。"
    },
@@ -8355,7 +8355,7 @@
     "home": "接口·能力（Interface）",
     "attach": "full",
     "keys": [
-     "_interfaces",
+     "interfaces",
      "_subscribe"
     ],
     "_note": "可读／可配／可调。条文落在**能力**上，不落在具体类型／具体对象上。（`_subscribe` 同族：它说的是「**订户可以要什么**」，不是新的领域分节。）"
@@ -8364,7 +8364,7 @@
     "home": "动作（Action）",
     "attach": "full",
     "keys": [
-     "_actions"
+     "actions"
     ],
     "_note": "唯一写入通道；每条动作**必须引用一个已声明的能力**。"
    },
@@ -8373,7 +8373,7 @@
     "attach": "half",
     "_why_half": "**只挂「引用」那一半**：本表只收入口名（引用到底层函数），**代码不进本体**。函数不改本体，要落地只能被某个动作引用、由该动作执行。",
     "keys": [
-     "_functions"
+     "functions"
     ]
    },
    "许可条文": {
@@ -8438,7 +8438,7 @@
  },
  "_units": {
   "_comment": "**机器可读的单位面**。为什么有它：`at`／`last_seen` 的『秒』此前只活在注释里，判据读不到（`_pending_tables.value_types_and_units` 逐字）。本格把『哪个字段、什么单位代码、什么量纲』变成可被判据读的格。形状取自 UCUM（单位用**代码**）＋ QUDT（量纲向量）；★ **不是**声称本仓符合 UCUM／QUDT（照『锚定 ≠ 符合』）。",
-  "_temp": "★ **暂列 `_temp`**：字段与 `_objects` 的关联**尚未接**（那要动字段声明的写法 ⇒ 属于换 `vocab_hash` 的那一笔账，由人裁）。**在接上之前，本格只是『单位已声明』，不是『值已带单位』** ——不许把它读成『单位已经生效』。",
+  "_temp": "★ **暂列 `_temp`**：字段与 `objects` 的关联**尚未接**（那要动字段声明的写法 ⇒ 属于换 `vocab_hash` 的那一笔账，由人裁）。**在接上之前，本格只是『单位已声明』，不是『值已带单位』** ——不许把它读成『单位已经生效』。",
   "units": {
    "s": {
     "ucum_code": "s",
@@ -8552,19 +8552,19 @@
     "装什么": "Object Types・Properties・Link Types・Interfaces",
     "逐字": "Object Types • Properties • Link Types • Interfaces",
     "我们的": {
-     "_objects": "Object Types（6 类）",
+     "objects": "Object Types（6 类）",
      "concepts": "Properties（3 类的字段）",
-     "_links": "Link Types（4 条）",
-     "_interfaces": "★ **同名不同义**——见 `_name_collision`"
+     "links": "Link Types（4 条）",
+     "interfaces": "★ **同名不同义**——见 `_name_collision`"
     },
-    "状态": "齐（但 `_interfaces` 名不副实）"
+    "状态": "齐（但 `interfaces` 名不副实）"
    },
    "KINETIC（执行面）": {
     "装什么": "Action Types・Functions・**Validation Rules**・Effects",
     "逐字": "Action Types • Functions • Validation Rules • Effects",
     "我们的": {
-     "_actions": "Action Types（9 条）",
-     "_functions": "Functions（入口引用）",
+     "actions": "Action Types（9 条）",
+     "functions": "Functions（入口引用）",
      "Validation Rules": "★ **2026-10-12 改准**：本行原写「规则没进本体（结构性缺口）」，**与同文件 EXPORT BRIDGE 那条自相矛盾**（那里逐字说 SHACL 是「先有规则，再有形状：`envelope.required` → `sh:minCount`」）。现取：`envelope.required` **8 项**在册、`families.<家族>.required` **4／3／2**；`check_exports.py` **rc=0，`E-1`…`E-11` 全绿，`E-11` 真解析 395 三元组**。⇒ **验证规则【在】本体里，且已被 SHACL 导出去**。真正的缺口不是「规则没进」，是「**规则进了本体、但没有一条能拦写的执行体**」。",
      "Effects": "写进账本（我们没有单独的 Effects 面）"
     },
@@ -8589,9 +8589,9 @@
    }
   },
   "_name_collision": {
-   "_what": "★ **同名不同义**：我们的 `_interfaces`（能力）↔ 它的 `Interface`（**多态形状**，被多个 ObjectType 实现）。",
+   "_what": "★ **同名不同义**：我们的 `interfaces`（能力）↔ 它的 `Interface`（**多态形状**，被多个 ObjectType 实现）。",
    "_its_verbatim": "Polymorphic shapes implemented by multiple ObjectTypes",
-   "_consequence": "两处都叫 interface，**指的不是一件事**。⇒ 读本仓 `_interfaces` 时**不许**读成「多态形状」；反过来，要补「多态形状」那一格时，**不能拿 `_interfaces` 顶替**（它是能力面）。",
+   "_consequence": "两处都叫 interface，**指的不是一件事**。⇒ 读本仓 `interfaces` 时**不许**读成「多态形状」；反过来，要补「多态形状」那一格时，**不能拿 `interfaces` 顶替**（它是能力面）。",
    "_status": "已登记；要不要改名 ＝ **承重（动非 `_` 键 ⇒ 换 `vocab_hash`）⇒ 待人裁**"
   },
   "_gaps_found": {
@@ -8599,7 +8599,7 @@
    "② 验证规则不算本体": "判据住 `scripts/verify/`、`ninedim/` 只装档案 ⇒ 按它的切法，**KINETIC 层缺一块**。",
    "③ Roles 缺": "`_permissions.grants[*].who` 现取**无读者** ⇒ 有 `who` 无角色面。",
    "④ Markings 缺": "数据分级一格都没有。",
-   "⑤ `_interfaces` 名不副实": "见 `_name_collision`。"
+   "⑤ `interfaces` 名不副实": "见 `_name_collision`。"
   }
  },
  "_governance": {
@@ -8611,7 +8611,7 @@
    "levels": {
     "PUBLIC": "可对外——★ 本仓今天**一件都没有**（出口桥导出的是本体形状，不含任何账本数据）。",
     "INTERNAL": "仓内可读——**今天所有类都落这一档**（见 `by_class`）。",
-    "CONFIDENTIAL": "受控——**今天一件都没有**；★ 但 **`_objects.port.owner_uid`／`_objects.cell.owner` 这两个字段按其性质**该在这一档**（见 `sensitive_fields`），**今天未标**。"
+    "CONFIDENTIAL": "受控——**今天一件都没有**；★ 但 **`objects.port.owner_uid`／`objects.cell.owner` 这两个字段按其性质**该在这一档**（见 `sensitive_fields`），**今天未标**。"
    },
    "by_class": {
     "surface": "INTERNAL",
@@ -8783,7 +8783,7 @@
     "一句话": "空集／恒真 ⇒ 不许判绿：数据面空了、解析出 0 条、条件恒真 ⇒ 结论必须 RED 或「无法判定」，绝不许是绿",
     "出处": "`判据体检规程.md:213-214`：「**G1 ★ 空集／恒真 ⇒ 不许判绿。**」「判据的数据面空了、解析出 0 条、条件恒真时，结论必须是 **RED** 或「**无法判定**」，**绝不许是绿**。」",
     "今天有没有": "只剩半条。字面有：`check_borrowed.py:44`「`_borrowed._items` 是空集 ⇒ 空集不算绿」、`check_judge_teeth.py:59`「T-0 目录里一个判据都没有 ⇒ 空集不算绿」。但没有一条\"通用条\"，也没有 `判据体检规程` 这个载体",
-    "能不能机核": "能。触发＝判据的输入集合基数 `== 0` 时结论不是 RED。误报风险：合法空集（如 `_functions.entries` 允许为空）会假红 ⇒ 必须逐判据声明\"空集合法／非法\"，不许全局套",
+    "能不能机核": "能。触发＝判据的输入集合基数 `== 0` 时结论不是 RED。误报风险：合法空集（如 `functions.entries` 允许为空）会假红 ⇒ 必须逐判据声明\"空集合法／非法\"，不许全局套",
     "执行体": "**无**（登记在案、无执行体；照 `G4`：**不许写成「已防护」**）"
    },
    "判据规矩-2": {
@@ -9366,15 +9366,15 @@
     "现取在哪": "`ninedim/07-待审/2026-10-12-设计缺口-三层与出口桥.md` §2 B 组 ＋ §4；`python3 scripts/verify/check_specs.py`（`P-1`…`P-5`）。"
    },
    "`has_entry` 按名不按行为（待作者裁）": {
-    "格": "`_interfaces`（9 条能力）的 `实现状态` 栏（`check_commitment.py` 的 `C-1`）",
+    "格": "`interfaces`（9 条能力）的 `实现状态` 栏（`check_commitment.py` 的 `C-1`）",
     "缺口": "现取 `has_entry` **3** 条里，**只有 `job.start` 有真执行体**（`src/carrier/providers/job.rs:10`）；`notice.mute` 的命中处是背光 provider 的**能力名清单**（`backlight.rs:94`，`call` 实做的是**背光亮度** get/set）、`ledger.compact` 的命中处是 pacman provider 的**能力名**（`package.rs:69`）⇒ **`has_entry` 按的是【名字】、不按【行为】**。",
     "为什么没做": "★ **要作者裁「名字即契约」还是「行为才算」**——前者改判据口径，后者要真执行面（要 Rust 改动）。两者代价不同，**本席不代裁**。",
-    "要什么才能做": "① 若「**行为才算**」：给三条 `has_entry` 各配一条**会红的**判据（真跑一次那个能力）；② 若「**名字即契约**」：把口径**写进 `_interfaces` 的文档**并让 `C-1` 自陈射程（现取它已自陈「判不了那条状态对不对」，**要把它升成明文口径**）。",
+    "要什么才能做": "① 若「**行为才算**」：给三条 `has_entry` 各配一条**会红的**判据（真跑一次那个能力）；② 若「**名字即契约**」：把口径**写进 `interfaces` 的文档**并让 `C-1` 自陈射程（现取它已自陈「判不了那条状态对不对」，**要把它升成明文口径**）。",
     "现取在哪": "`python3 scripts/verify/check_commitment.py`（`C-1` 绿，自陈射程）；`ninedim/07-待审/2026-10-12-设计缺口-可运行参考实现.md` §3。"
    },
    "上一代那 8 条『立过又丢了』的执行体": {
     "格": "`策划-WC-ATOM-001-v0.1.md` §六（补回记录）与 §6.1／§6.2（明文条文）",
-    "缺口": "**条文补回了、执行体仍缺**——8 条里逐条的现况（2026-10-12 现取）：① 刀法五条＝**已由 A-7 落**；② 切序五刀＝**本条新立的形态，无机械判据**；③ 刀口三验法·第 3 验＝**三处间接落点**（投影守卫／A-7／`_interfaces.not_roles`），**无点名判据**；④ 四档支撑映射＝**`_borrowed` 的 `状态` 栏在用，但没有四档这个名字与判据**；⑤ 判别口诀＝**无机械判据**（本件自己写明）；⑥ 空问责＝**已升成 §6.1 明文口径，无机械判据**（它管的是判据该怎么写，本身不是一条可跑的判据）；⑦ 本体不与门禁平级＝**在位且有机核**（`WC-MODREG-001` 层级列 `M01`＝L1 vs `M05`＝L3；`module_graph` 的 `A-4` 顺带钉谁指得着谁），**但没有一条【点名判这层差】的判据**；⑧ 三问各一本＝**三夹分得住**，无点名判据；⑨ C14 指纹规则＝**有**（`_identity.rules` 的 `R-4` 与账本指纹）；**C15 收据落点＝指不到同义载体**。",
+    "缺口": "**条文补回了、执行体仍缺**——8 条里逐条的现况（2026-10-12 现取）：① 刀法五条＝**已由 A-7 落**；② 切序五刀＝**本条新立的形态，无机械判据**；③ 刀口三验法·第 3 验＝**三处间接落点**（投影守卫／A-7／`interfaces.not_roles`），**无点名判据**；④ 四档支撑映射＝**`_borrowed` 的 `状态` 栏在用，但没有四档这个名字与判据**；⑤ 判别口诀＝**无机械判据**（本件自己写明）；⑥ 空问责＝**已升成 §6.1 明文口径，无机械判据**（它管的是判据该怎么写，本身不是一条可跑的判据）；⑦ 本体不与门禁平级＝**在位且有机核**（`WC-MODREG-001` 层级列 `M01`＝L1 vs `M05`＝L3；`module_graph` 的 `A-4` 顺带钉谁指得着谁），**但没有一条【点名判这层差】的判据**；⑧ 三问各一本＝**三夹分得住**，无点名判据；⑨ C14 指纹规则＝**有**（`_identity.rules` 的 `R-4` 与账本指纹）；**C15 收据落点＝指不到同义载体**。",
     "为什么没做": "★ **本批射程没排到**（不是做不到）：① 第 ② 步的三刀（层次文案／出口桥自述面／8 条补回）＋ 第 ③ 步的接线（249 错 → 0）＋ 第 ④ 步的逐原子读数 ＋ 第 ⑤ 步的欠账登记，已用满本批轮次；② 其中 ⑥ 与 ⑤ 两条**本身就难机械判**（一条管判据该怎么写、一条是形态选择），**要先把它们的可判定形态想清**，否则写出来的判据会踩 §6.1 的【空问责】。",
     "要什么才能做": "逐条各配一条会红的判据（照 §6.1：**观测点必须在我们这侧**）：② 切序五刀 → 判 `WC-MODREG-001` 每行有没有「第 0 刀」栏（谁承担说法）；③ 第 3 验 → 判每个**派生夹**（`gui_projection` 这类）有没有一条「它能删」的现取证据；④ 四档 → 判 `_borrowed._items` 的 `状态` **取值落在四档闭集内**（现取是散的自由文本）；⑤ 判别口诀 → **形态判据**（先想清库／进程／算法／内核原语怎么从代码上看出来）；⑥ 空问责 → **判据的判据**（扫 `scripts/verify/*.py` 的 docstring 有没有写观测点在哪）；⑦ 层差 → 判 `WC-MODREG-001` 层级列里**本体那一层 ≠ 门禁那一层**；⑧ 三问 → 判「三问」出现处**都带件名**（本条自己的要求）；⑨ C15 → 先定「收据」是什么，再配判据。",
     "现取在哪": "文本：`ninedim/01-意图环/01-策划/策划-WC-ATOM-001-v0.1.md` §六／§6.1／§6.2；判据：`python3 scripts/verify/check_atoms.py`（`A-5` 只判补回节在位且带坐标，**不判执行体**——本条即它判不到的那一半）；层差那一半的现取：`WC-MODREG-001` §2 的层级列 ＋ `module_graph.py` 的 `A-4`。",
@@ -9408,7 +9408,7 @@
  "_types": {
   "_what": "★ 类型系统（照 P 的 core/data_types.py 抄面）。P 的 PropertyType 是十三值枚举，ValueType 是带约束的语义包装。",
   "_照谁": "`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/data_types.py` （`class PropertyType(Enum)` 十三值 ＋ `@dataclass class ValueType`）；作者 2026-10-12 令「必须包含它」。",
-  "_本仓的口径（说清，免得被读成已实现）": "本仓的 fields 值是类型声明串（bool／string／integer／number／array／object／ref(<类型>)／enum(a,b,…)），_objects._comment 逐字：「不是这几种写法的自由度说明文字一律放行」。⇒ 本仓没有 P 那种枚举化的基础类型表 —— 本格是照面抄的对照表，不是「本仓支持这十三种」。",
+  "_本仓的口径（说清，免得被读成已实现）": "本仓的 fields 值是类型声明串（bool／string／integer／number／array／object／ref(<类型>)／enum(a,b,…)），objects._comment 逐字：「不是这几种写法的自由度说明文字一律放行」。⇒ 本仓没有 P 那种枚举化的基础类型表 —— 本格是照面抄的对照表，不是「本仓支持这十三种」。",
   "base_types": {
    "string": {
     "本仓写法": "string",
@@ -9508,7 +9508,7 @@
  "_shared_properties": {
   "_what": "★ 可复用属性表（照 P 的 SharedProperty）。P 那一格带 used_by: list[str]。",
   "_照谁": "`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/object_type.py` 的 SharedProperty。",
-  "_本仓的读法": "本表从现取的 _objects.*.fields 里算出来（读数，不是另写一份）——凡在 ≥2 个类型里出现的字段名，都进本表。★ 本表不改变任何类型的行为，它是抽共享属性之前必须先看的对账表。",
+  "_本仓的读法": "本表从现取的 objects.*.fields 里算出来（读数，不是另写一份）——凡在 ≥2 个类型里出现的字段名，都进本表。★ 本表不改变任何类型的行为，它是抽共享属性之前必须先看的对账表。",
   "_今天": "共 8 个重名字段。",
   "properties": {
    "did": {
@@ -9608,7 +9608,7 @@
    }
   },
   "_判据": "scripts/verify/check_p_coverage.py 的 P-1（SharedProperty 要有落点）。",
-  "_本仓的读法（2026-10-13 重算）": "★ 本表从现取 `_objects.*.fields` 算出来（凡在 ≥2 个类型里出现的字段名）；★ 撤并后已按**活类**重算。今天条目 = 6。"
+  "_本仓的读法（2026-10-13 重算）": "★ 本表从现取 `objects.*.fields` 算出来（凡在 ≥2 个类型里出现的字段名）；★ 撤并后已按**活类**重算。今天条目 = 6。"
  },
  "_抄自P": {
   "_what": "★ 对账表：P 的构件，本仓抄了哪些、哪些明写不抄、哪些禁抄。作者 2026-10-12 令「必须包含它」——★ 本表就是「包含」的账：要么有面、要么明写为什么不要。",
@@ -9619,7 +9619,7 @@
    "AuditLog": "★ 不抄它、也不缺它：本仓的账本（src/ledger/）比 P 的 AuditLog 更强——P 的是内存里的 list[AuditEntry] ＋ export_csv；本仓的是只追加的账本 ＋ 摘要链。"
   },
   "不抄": {
-   "ObjectStore": "★★ 不抄：P 的 update() 就地合并（inst.properties = merged; inst.version += 1）、delete() 真删（del self._objects[...] ＋ DELETE FROM objects）。而本仓的根本设计是「账本只追加」：改＝再记一笔 change，删＝写一条撤回（ledger-integrity.spec.md 逐字「SHALL NOT 声称提供回滚操作」）⇒ 抄它就是拆掉本仓的地基。",
+   "ObjectStore": "★★ 不抄：P 的 update() 就地合并（inst.properties = merged; inst.version += 1）、delete() 真删（del self.objects[...] ＋ DELETE FROM objects）。而本仓的根本设计是「账本只追加」：改＝再记一笔 change，删＝写一条撤回（ledger-integrity.spec.md 逐字「SHALL NOT 声称提供回滚操作」）⇒ 抄它就是拆掉本仓的地基。",
    "OntologyQuery": "★ 该抄，本批未抄：P 的 filter/navigate/order_by/take 里，navigate(link_type_id) 是对的（逐字注释「navigate ontology links, not SQL joins」）。本席 2026-10-12 核过：本仓今天没有沿关系走的出口（16 个子命令里一个都没有）⇒ 这是代码活（新出口），另批。",
    "ActionExecutor": "★ 不抄：它按 ActionType.effects 改世界，而 effects 是禁抄项（见下）⇒ 依赖禁抄项的件一并禁抄。本仓的写入通道是账本事件＋门禁（World::commit_verbatim 五步）。",
    "OntoGuardBridge": "★ 不抄：它导出成别人的格式（github.com/cloudbadal007/ontoguard-ai），与本仓无关；本仓的出口是 OWL／SHACL。",
@@ -9627,9 +9627,9 @@
   },
   "禁抄": {
    "ActionEffect": "★★ 禁抄。P 的 ActionEffect(effect_type, target, changes) 把效果当声明；本仓裁定逐字（纲领-操作模型三流派对照-03 §7.4）：「PDDL 把效果当声明（为了离线算未来）；本仓把效果当记录（为了事后能复算）。前者换来预测，后者换来复算——两者不能白拿。」⇒ 抄了它＝在世界里立第二处真相。★ 判据：check_ops_shape.py 的 A-4。",
-   "implementation": "★★ 禁抄。P 的 OntologyFunction.implementation 带真代码（execute() 直接跑）。本仓逐字（_functions._comment）：「本表只收入口名：它是一张引用表，代码不进本体。」★ 判据：check_ops_shape.py 的 A-7。",
+   "implementation": "★★ 禁抄。P 的 OntologyFunction.implementation 带真代码（execute() 直接跑）。本仓逐字（functions._comment）：「本表只收入口名：它是一张引用表，代码不进本体。」★ 判据：check_ops_shape.py 的 A-7。",
    "ObjectStore就地改真删": "★★ 禁抄。见上「不抄」的 ObjectStore 一条——与「账本只追加」根本冲突。",
-   "Interface当形状契约": "★ 半禁。P 的 Interface 是多态形状（required_properties ＋ check_compliance()）；本仓的 _interfaces 是能力（kind ＋ what）——两者语义不同。本批把 P 的 required_properties 那一面（形状）当待补登记，不硬塞进 _interfaces。"
+   "Interface当形状契约": "★ 半禁。P 的 Interface 是多态形状（required_properties ＋ check_compliance()）；本仓的 interfaces 是能力（kind ＋ what）——两者语义不同。本批把 P 的 required_properties 那一面（形状）当待补登记，不硬塞进 interfaces。"
   },
   "_判据": "scripts/verify/check_p_coverage.py 的 P-4（引擎出口有账）／P-5（禁抄有理由）。"
  },
@@ -9640,7 +9640,7 @@
   "唯一说法": {
    "账本": "只追加的事件日志；世界的唯一真相。★ 本体界没有这个概念（OWL 不做事件溯源）⇒ 这是本仓自己的词，照 ledger 译。",
    "个体": "★ 世界里的那一条东西（如 world://cell/hello）。本体界叫 ABox／Individual。★★ 2026-10-13 **作者更正**：**个体由本体得出**（本体给它的类型与形状）；★ **账本只是系统性记录**，不是个体的来源 —— 因为个体答不了「我在哪一刻是什么」，那才要账本来指。",
-   "类": "本体里声明的类型（_objects.<类>，现取 19 个）。本体界叫 TBox。",
+   "类": "本体里声明的类型（objects.<类>，现取 19 个）。本体界叫 TBox。",
    "投影": "渲染出口（project language 给程序读／project visual 给人看／日后 project voice）—— 把世界渲染成某一种形态。★ 和「个体」不是一回事：个体是世界里的东西，投影是把它渲染出来的那条路。",
    "快照": "加速用的持久副本（checkpoint 那一族），非真相；它与账本不一致时以账本为准（checkpoint verify 逐条核）。",
    "撤回": "再写一条补偿事件；★ 不是「跳回」—— 账本只追加，所以「回到之前」这件事是靠折到某个 seq 实现的，不是靠截断账本。"
@@ -9660,13 +9660,13 @@
  },
  "_storage_class_map": {
   "_element": "storage-class-map",
-  "_comment": "★ 我方新增（2026-10-13）：上游 AIOS-FS 的 ObjectKind（存储层类型）与我们 _objects 的关系登记。口径：本节点挂在 _ 前缀下 ⇒ 不换词表身份（见 _five_elements._why_underscore）。",
+  "_comment": "★ 我方新增（2026-10-13）：上游 AIOS-FS 的 ObjectKind（存储层类型）与我们 objects 的关系登记。口径：本节点挂在 _ 前缀下 ⇒ 不换词表身份（见 _five_elements._why_underscore）。",
   "_source": "crates/aios-fs/src/object.rs 的 ObjectKind（原有 10 类 ＋ 我方新增 NOTICE/JOB）",
   "_authority": "★ 语义权威在本体（本节点）；上游枚举是派生物。处置逐条见 ninedim/06-变更/2026-10-13-aios-semantic-plane/对照-上游10类与我们19类.md",
   "entries": {
    "PROJECT": {
     "ours": null,
-    "how": "★ 2026-10-13 撤并：本体的 _objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
+    "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
    },
    "APPLICATION": {
     "ours": "application",
@@ -9682,7 +9682,7 @@
    },
    "POLICY": {
     "ours": null,
-    "how": "★ 2026-10-13 撤并：本体的 `_objects.None` 已撤（规定面误补成的类）；条文仍活在其同名 `_` 节里"
+    "how": "★ 2026-10-13 撤并：本体的 `objects.None` 已撤（规定面误补成的类）；条文仍活在其同名 `_` 节里"
    },
    "MODEL": {
     "ours": null,
@@ -9706,11 +9706,11 @@
    },
    "NOTICE": {
     "ours": null,
-    "how": "★ 2026-10-13 撤并：本体的 `_objects.notice` 已撤（它是「规定面误补成的类」）；通告现为 `_families.notice`（记录的一族）"
+    "how": "★ 2026-10-13 撤并：本体的 `objects.notice` 已撤（它是「规定面误补成的类」）；通告现为 `_families.notice`（记录的一族）"
    },
    "JOB": {
     "ours": null,
-    "how": "★ 2026-10-13 撤并：本体的 _objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
+    "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
    }
   },
   "_ours_missing": [
@@ -9732,8 +9732,8 @@
    "surface",
    "workflow"
   ],
-  "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `_objects`（19→25），已撤回**（依据：不在 `_objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`_proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `_objects` 19 类一致）。",
-  "_ours_only_来历": "★ 2026-10-13 重算（原 18 项里 13 项是已撤的类）：本表是**现取**，从 `_objects` 算出来，不是另写一份。"
+  "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `objects`（19→25），已撤回**（依据：不在 `objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`_proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `objects` 19 类一致）。",
+  "_ours_only_来历": "★ 2026-10-13 重算（原 18 项里 13 项是已撤的类）：本表是**现取**，从 `objects` 算出来，不是另写一份。"
  },
  "_public_cells": {
   "_what": "★ 2026-10-13 新增：上游 `Object`（10 类共用的外壳）逐格对照 —— 它的「对象定义」就是这个外壳，10 类只是标签。",
@@ -9744,7 +9744,7 @@
     "说明": "与我们 identity.canonical_id 同一角色"
    },
    "kind": {
-    "判": "★ 由我们 _objects 决定",
+    "判": "★ 由我们 objects 决定",
     "说明": "这正是 T-30 的靶子：不认识即拒"
    },
    "created_at": {
@@ -9884,9 +9884,9 @@
   "_待裁": "★ 既有的 12 个类各列 5 项、新 6 类各列 6 项 —— 这些**是否真是互斥对**需逐对复核（本题待人裁）。"
  },
  "_proposed_objects": {
-  "_what": "★ 2026-10-13 **本席自认越权，撤回后留档**：下列 6 类曾被直接加进 `_objects`（19→25），**依据仅为「上游 ObjectKind 的 10 个抽屉」**，",
-  "_为什么撤回": "① ★ 不在 `_objects._declared_gaps` 点名的缺口里（那 13 类补立的唯一依据）；② ★ 与同仓 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突——那份件写「本体的 `_objects` 今天 19 类，其中没有 package／network／firmware 类」；③ ★ 口径冲突——上游那 10 类是**存储抽屉**，我们不认它当语义权威，本席却拿它当「我们该有的类」。",
-  "_怎么才该补": "★ 走 `_declared_gaps` 的正规做法：**先写提案点名为缺口、经人裁、再补进 `_objects`**（判据 C6 同批更新）。",
+  "_what": "★ 2026-10-13 **本席自认越权，撤回后留档**：下列 6 类曾被直接加进 `objects`（19→25），**依据仅为「上游 ObjectKind 的 10 个抽屉」**，",
+  "_为什么撤回": "① ★ 不在 `objects._declared_gaps` 点名的缺口里（那 13 类补立的唯一依据）；② ★ 与同仓 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突——那份件写「本体的 `objects` 今天 19 类，其中没有 package／network／firmware 类」；③ ★ 口径冲突——上游那 10 类是**存储抽屉**，我们不认它当语义权威，本席却拿它当「我们该有的类」。",
+  "_怎么才该补": "★ 走 `_declared_gaps` 的正规做法：**先写提案点名为缺口、经人裁、再补进 `objects`**（判据 C6 同批更新）。",
   "entries": {
    "project": {
     "_meta": {
@@ -10264,10 +10264,10 @@
     }
    }
   },
-  "_裁定": "★ **人签 2026-10-13**（作者原话：「按你的建议吧」）：**本节点内这 6 个类一个都不补**（不进 `_objects`）。★ 裁定依据：① **补了全产品 0 个读者**（现取：只有 `aios-cognitive` 依赖 `aios-ontology`，而它不读 `_objects`）；② 不在 `_objects._declared_gaps` 点名的缺口里。★ **本节点只作留档**；★ 要补须先有读者、并走「提案 → 点名为缺口 → 人裁 → 再补」。"
+  "_裁定": "★ **人签 2026-10-13**（作者原话：「按你的建议吧」）：**本节点内这 6 个类一个都不补**（不进 `objects`）。★ 裁定依据：① **补了全产品 0 个读者**（现取：只有 `aios-cognitive` 依赖 `aios-ontology`，而它不读 `objects`）；② 不在 `objects._declared_gaps` 点名的缺口里。★ **本节点只作留档**；★ 要补须先有读者、并走「提案 → 点名为缺口 → 人裁 → 再补」。"
  },
  "_retired_objects": {
-  "_what": "★ 2026-10-13 起：**从 `_objects` 撤下来的类**留档于此（★ 撤不等于删信息：内容仍活在其对应的 `_` 节里）。",
+  "_what": "★ 2026-10-13 起：**从 `objects` 撤下来的类**留档于此（★ 撤不等于删信息：内容仍活在其对应的 `_` 节里）。",
   "entries": {
    "notice": {
     "_meta": {
@@ -10297,7 +10297,7 @@
      ],
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      }
     },
@@ -10340,13 +10340,13 @@
        "Clock"
       ]
      },
-     "definition": "时钟——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "时钟——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
      "anchor_note": "照形状取自 BFO 2020：`material entity`——★ **时钟是人工物，不是时间区域**（本席第一版想锚 `BFO_0000008 temporal region`，那是**把被量的东西当成量它的东西**）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10399,13 +10399,13 @@
        "Unit"
       ]
      },
-     "definition": "单位——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "单位——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
      "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——单位是**信息内容**（UCUM 的代码、QUDT 的量纲都是可复制的说明）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10458,13 +10458,13 @@
        "Identity"
       ]
      },
-     "definition": "身份——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "身份——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
      "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——身份是**信息内容**（四层身份 `content_hash`／`instance_id`／`subject_id`／`seq` 都是可复制的说明）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10513,13 +10513,13 @@
        "Action"
       ]
      },
-     "definition": "动作——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "动作——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
      "anchor_note": "照形状取自 BFO 2020：`process`——一次动作是**发生**（有起止、有参与者）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10572,13 +10572,13 @@
        "Capability"
       ]
      },
-     "definition": "能力——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "能力——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000034",
      "anchor_note": "照形状取自 BFO 2020：`function`（`BFO_0000034`，父 `BFO_0000016 disposition`）——★ 与 `_layers` 的 EXPORT BRIDGE 同一处口径：「**形状取自** BFO `function`，**不是它就是它**」（BFO 的 realizable entity 必须 inhere in 某个 independent continuant，而本仓今天缺「承载者」）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10631,13 +10631,13 @@
        "Permission"
       ]
      },
-     "definition": "许可——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "definition": "许可——本批（2026-10-12）按 `objects._declared_gaps` 点名的缺口补立的类。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000023",
      "anchor_note": "照形状取自 BFO 2020：`role`（`BFO_0000023`，父 `BFO_0000017 realizable entity`）——许可是**角色式的授予**（谁能把哪个能力授给谁）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
@@ -10704,7 +10704,7 @@
      ],
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      }
     },
@@ -10778,14 +10778,14 @@
        "Record"
       ]
      },
-     "definition": "★ 账本里的**那一条发生**（信息内容实体）：由某个主体（who）在某个序号（at_seq）与时刻（at_time）写下，其类别落在 of_kind（change／act／notice／job）。★ **2026-10-13 撤并**：`notice`／`job` **不再是独立的类**，它们是本类 `of_kind` 的取值（★ 依据：本体 `_objects._declared_gaps` ② 逐字「缺『记录／信息内容』这一类」）。★★ **待裁**：`at_time`／`who` 与账本信封的 `envelope.at`／`actor` **有重复** —— 谁为准，待人裁。",
+     "definition": "★ 账本里的**那一条发生**（信息内容实体）：由某个主体（who）在某个序号（at_seq）与时刻（at_time）写下，其类别落在 of_kind（change／act／notice／job）。★ **2026-10-13 撤并**：`notice`／`job` **不再是独立的类**，它们是本类 `of_kind` 的取值（★ 依据：本体 `objects._declared_gaps` ② 逐字「缺『记录／信息内容』这一类」）。★★ **待裁**：`at_time`／`who` 与账本信封的 `envelope.at`／`actor` **有重复** —— 谁为准，待人裁。",
      "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
-     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
+     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
      "disjointWith": null,
      "module": "A-01 ontology_definition",
      "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      },
      "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。",
@@ -10867,7 +10867,7 @@
      ],
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      }
     },
@@ -11013,7 +11013,7 @@
      ],
      "module": "A-01 ontology_definition",
      "_field_meta_说明": {
-      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
       "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
      }
     },
@@ -11036,7 +11036,7 @@
       "workflow"
      ],
      "_照谁": "★ **2026-10-12 新建**（作者：「**根据上传的这个主体**」）。**主体种类的【目标闭集】。**取值照 `.refs/依赖仓/AI-Native-Linux` 的 AIOS `SubjectKind`（逐字「**Closed enum**」）——**只取 6 个**：`human`／`agent`／`application`／`service`／`device`／`workflow`。★ **不取** AIOS 的 `REMOTE_OPERATOR`／`LOCAL_OPERATOR`：那两个是**通道／环境**（远程通道、本地控制台），**不是主体种类**——照本仓 `_identity.actors`「**身份 ≠ 作者**」同一条道理。",
-     "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `_objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
+     "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
      "_判据": "`scripts/verify/check_classification.py` 的 `C-1`：`closed_set` 非空、是**闭集**（列表）、且取值都不是空串。"
     },
     "_field_meta": {
@@ -11089,20 +11089,20 @@
     }
    }
   },
-  "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除",
-  "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：_links.action-invokes-capability 删除；_links.capability-borne-by-presence 删除；_links.identity-identifies-presence 删除；_links.permission-grants-capability 删除；_links.record-records-action 删除；_links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null",
-  "_撤并登记（第三批）": "★ 撤 job 同批改了 17 处：_storage_class_map.PROJECT.ours -> null；_storage_class_map.JOB.ours -> null；_property_types.STRING.used_by 去 1 条；_property_types.INTEGER.used_by 去 3 条；_property_types._P无对应 去 1 条；_actions.job.start.param_type -> ref(record)；_actions.job.finish.param_type -> ref(record)；_actions.job.cancel.param_type -> ref(record)；_functions.fn.job.start.inputs.subject -> ref(record)；_functions.fn.job.start.output_type -> record；_functions.fn.job.finish.inputs.subject -> ref(record)；_functions.fn.job.finish.output_type -> record；_functions.fn.job.cancel.inputs.subject -> ref(record)；_functions.fn.job.cancel.output_type -> record；_governance.markings.by_class.job 删除；_modules._by_entry.job 删除；_standards._adopted[_objects.job] 删除",
-  "_撤并登记（第四批）": "★ 2026-10-13 撤 record、补 ledger；改了 25 处：families.job 新增；_objects.ledger 新增（instance_mode=one，★ 本体第一个 one）；_objects.record 撤 → _retired_objects；_actions.notice.mute.subject -> 取值域；_actions.notice.unmute.subject -> 取值域；_actions.job.start.subject -> 取值域；_actions.job.finish.subject -> 取值域；_actions.job.cancel.subject -> 取值域；_functions.fn.notice.mute.inputs.subject -> 取值域；_functions.fn.notice.mute.output_type -> 取值域；_functions.fn.notice.unmute.inputs.subject -> 取值域；_functions.fn.notice.unmute.output_type -> 取值域；_functions.fn.job.start.inputs.subject -> 取值域；_functions.fn.job.start.output_type -> 取值域；_functions.fn.job.finish.inputs.subject -> 取值域；_functions.fn.job.finish.output_type -> 取值域；_functions.fn.job.cancel.inputs.subject -> 取值域；_functions.fn.job.cancel.output_type -> 取值域；_types.value_types.record_kind 新增；_storage_class_map.EVIDENCE_REF.ours -> ledger；_property_types.STRING.used_by 去 1 条 record.*；_property_types.INTEGER.used_by 去 1 条 record.*；_property_types.TIMESTAMP.used_by 去 1 条 record.*；_modules._by_entry.record 删除；_modules._by_entry.ledger 新增",
+  "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；links.part-of 删除；links.clock-stamps-notice 删除；actions.notice.mute.param_type -> ref(record)；actions.notice.unmute.param_type -> ref(record)；functions.fn.notice.mute.inputs.subject -> ref(record)；functions.fn.notice.mute.output_type -> record；functions.fn.notice.unmute.inputs.subject -> ref(record)；functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[objects.notice] 删除",
+  "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：links.action-invokes-capability 删除；links.capability-borne-by-presence 删除；links.identity-identifies-presence 删除；links.permission-grants-capability 删除；links.record-records-action 删除；links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null",
+  "_撤并登记（第三批）": "★ 撤 job 同批改了 17 处：_storage_class_map.PROJECT.ours -> null；_storage_class_map.JOB.ours -> null；_property_types.STRING.used_by 去 1 条；_property_types.INTEGER.used_by 去 3 条；_property_types._P无对应 去 1 条；actions.job.start.param_type -> ref(record)；actions.job.finish.param_type -> ref(record)；actions.job.cancel.param_type -> ref(record)；functions.fn.job.start.inputs.subject -> ref(record)；functions.fn.job.start.output_type -> record；functions.fn.job.finish.inputs.subject -> ref(record)；functions.fn.job.finish.output_type -> record；functions.fn.job.cancel.inputs.subject -> ref(record)；functions.fn.job.cancel.output_type -> record；_governance.markings.by_class.job 删除；_modules._by_entry.job 删除；_standards._adopted[objects.job] 删除",
+  "_撤并登记（第四批）": "★ 2026-10-13 撤 record、补 ledger；改了 25 处：families.job 新增；objects.ledger 新增（instance_mode=one，★ 本体第一个 one）；objects.record 撤 → _retired_objects；actions.notice.mute.subject -> 取值域；actions.notice.unmute.subject -> 取值域；actions.job.start.subject -> 取值域；actions.job.finish.subject -> 取值域；actions.job.cancel.subject -> 取值域；functions.fn.notice.mute.inputs.subject -> 取值域；functions.fn.notice.mute.output_type -> 取值域；functions.fn.notice.unmute.inputs.subject -> 取值域；functions.fn.notice.unmute.output_type -> 取值域；functions.fn.job.start.inputs.subject -> 取值域；functions.fn.job.start.output_type -> 取值域；functions.fn.job.finish.inputs.subject -> 取值域；functions.fn.job.finish.output_type -> 取值域；functions.fn.job.cancel.inputs.subject -> 取值域；functions.fn.job.cancel.output_type -> 取值域；_types.value_types.record_kind 新增；_storage_class_map.EVIDENCE_REF.ours -> ledger；_property_types.STRING.used_by 去 1 条 record.*；_property_types.INTEGER.used_by 去 1 条 record.*；_property_types.TIMESTAMP.used_by 去 1 条 record.*；_modules._by_entry.record 删除；_modules._by_entry.ledger 新增",
   "_撤并登记（第四批·补）": "★ 收尾：_storage_class_map.MEMORY.ours -> null；_property_types._P无对应 去 1 条 record.*",
-  "_surface_cells 说明": "★ 原 `_objects.cell`（格）的字段形状（撤并后留在这里）：owner=ref(surface)／order／shown／label／value／tooltip／style／component／agentAction／localAction／enabled／retract_seq。★ 它现在由 `surface.cells`（array(object)）承载。",
-  "_撤并登记（第五批）": "★ 2026-10-13 撤 cell（并进 surface）；改了 9 处：surface.fields.cells 新增（array(object)）；_objects.cell 撤 → _retired_objects；_links.cell-of 删除；_property_types.STRING.used_by 去 7 条 cell.*；_property_types.INTEGER.used_by 去 2 条 cell.*；_property_types.BOOLEAN.used_by 去 2 条 cell.*；_property_types.OBJECT_REFERENCE.used_by 去 1 条 cell.*；_governance.markings.by_class.cell 删除；_modules._by_entry.cell 删除",
-  "_撤并登记（第六批）": "★ 2026-10-13 撤 presence（并成 _presence 状态面）；改了 18 处：_presence 节新建（含搬来的 _subject_kinds）；_objects.presence 撤 → _retired_objects；_links.runs-on 删除；_links.speaks-on 删除；_links.human-declares-presence 删除；_links.agent-declares-presence 删除；_links.application-declares-presence 删除；_links.service-declares-presence 删除；_links.device-declares-presence 删除；_links.workflow-declares-presence 删除；_actions.presence.report.param_type -> 取值域(6 种主体)；_functions.fn.presence.report.inputs.subject -> 取值域；_functions.fn.presence.report.output_type -> 取值域；_property_types.STRING.used_by 去 2 条 presence.*；_property_types.TIMESTAMP.used_by 去 1 条 presence.*；_governance.markings.by_class.presence 删除；_modules._by_entry.presence 删除；_governance.roles.roster.presence 删除（★ 但 subject_to_role 的实名照旧）",
-  "_撤并登记（第六批·补）": "★ 收尾：_property_types._P无对应 去 2 条；_standards._adopted[_objects.presence] 删除",
-  "_撤并登记（第七批·合表与补边）": "★ 2026-10-13：concepts 删除（合表）→ 留档 _retired_sections.concepts；_links.device-bound-to-human 新增（device -> human）；_links.service-runs-on-device 新增（service -> device）；_links.application-speaks-on-port 新增（application -> port）"
+  "_surface_cells 说明": "★ 原 `objects.cell`（格）的字段形状（撤并后留在这里）：owner=ref(surface)／order／shown／label／value／tooltip／style／component／agentAction／localAction／enabled／retract_seq。★ 它现在由 `surface.cells`（array(object)）承载。",
+  "_撤并登记（第五批）": "★ 2026-10-13 撤 cell（并进 surface）；改了 9 处：surface.fields.cells 新增（array(object)）；objects.cell 撤 → _retired_objects；links.cell-of 删除；_property_types.STRING.used_by 去 7 条 cell.*；_property_types.INTEGER.used_by 去 2 条 cell.*；_property_types.BOOLEAN.used_by 去 2 条 cell.*；_property_types.OBJECT_REFERENCE.used_by 去 1 条 cell.*；_governance.markings.by_class.cell 删除；_modules._by_entry.cell 删除",
+  "_撤并登记（第六批）": "★ 2026-10-13 撤 presence（并成 _presence 状态面）；改了 18 处：_presence 节新建（含搬来的 _subject_kinds）；objects.presence 撤 → _retired_objects；links.runs-on 删除；links.speaks-on 删除；links.human-declares-presence 删除；links.agent-declares-presence 删除；links.application-declares-presence 删除；links.service-declares-presence 删除；links.device-declares-presence 删除；links.workflow-declares-presence 删除；actions.presence.report.param_type -> 取值域(6 种主体)；functions.fn.presence.report.inputs.subject -> 取值域；functions.fn.presence.report.output_type -> 取值域；_property_types.STRING.used_by 去 2 条 presence.*；_property_types.TIMESTAMP.used_by 去 1 条 presence.*；_governance.markings.by_class.presence 删除；_modules._by_entry.presence 删除；_governance.roles.roster.presence 删除（★ 但 subject_to_role 的实名照旧）",
+  "_撤并登记（第六批·补）": "★ 收尾：_property_types._P无对应 去 2 条；_standards._adopted[objects.presence] 删除",
+  "_撤并登记（第七批·合表与补边）": "★ 2026-10-13：concepts 删除（合表）→ 留档 _retired_sections.concepts；links.device-bound-to-human 新增（device -> human）；links.service-runs-on-device 新增（service -> device）；links.application-speaks-on-port 新增（application -> port）"
  },
  "_presence": {
   "_what": "★ **在场状态面**（2026-10-13 撤 `presence` 类后立；作者裁定「甲」：在场是那 6 种主体的一个状态面，不是独立的类）。",
-  "_why": "★ `presence` 撤并的理由：它不满足「能独立存在」—— ★ `_links` 9 条边里 8 条围着它，其中 6 条写着「6 种主体各自申报在场」。",
+  "_why": "★ `presence` 撤并的理由：它不满足「能独立存在」—— ★ `links` 9 条边里 8 条围着它，其中 6 条写着「6 种主体各自申报在场」。",
   "subject_kinds": {
    "_what": "主体种类的**目标闭集**（闭集 ⇒ 未知取值要报红，不许静默收下）。",
    "closed_set": [
@@ -11114,7 +11114,7 @@
     "workflow"
    ],
    "_照谁": "★ **2026-10-12 新建**（作者：「**根据上传的这个主体**」）。**主体种类的【目标闭集】。**取值照 `.refs/依赖仓/AI-Native-Linux` 的 AIOS `SubjectKind`（逐字「**Closed enum**」）——**只取 6 个**：`human`／`agent`／`application`／`service`／`device`／`workflow`。★ **不取** AIOS 的 `REMOTE_OPERATOR`／`LOCAL_OPERATOR`：那两个是**通道／环境**（远程通道、本地控制台），**不是主体种类**——照本仓 `_identity.actors`「**身份 ≠ 作者**」同一条道理。",
-   "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `_objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
+   "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
    "_判据": "`scripts/verify/check_classification.py` 的 `C-1`：`closed_set` 非空、是**闭集**（列表）、且取值都不是空串。"
   },
   "states": [
@@ -11131,8 +11131,8 @@
  "_retired_sections": {
   "concepts": {
    "_what": "★ 2026-10-13 **作者裁定合表**：「要合成一张表，也不引用，就踏踏实实地弄成一张表。从来没有说是要弄两张的」（原文如此）。",
-   "_原设计说明（08 仓 ontology_definition/mod.rs:156-180 逐字摘要）": "「两处来源：身份 与 读路径 各认一处（本批的刻意处置）」——`_objects`＝读路径、不参与 vocab_hash；`concepts`＝身份、参与 vocab_hash；因出厂 vocab_hash 是内容地址已被断言钉死，故分两处；并如实声明「两份今天可能各说各话」。",
-   "_本仓现口径": "★ **只有一张：`_objects`**。★ `concepts` 已删（内容留档于此）⇒ ★ **实体清单不再有第二个载体**。",
+   "_原设计说明（08 仓 ontology_definition/mod.rs:156-180 逐字摘要）": "「两处来源：身份 与 读路径 各认一处（本批的刻意处置）」——`objects`＝读路径、不参与 vocab_hash；`concepts`＝身份、参与 vocab_hash；因出厂 vocab_hash 是内容地址已被断言钉死，故分两处；并如实声明「两份今天可能各说各话」。",
+   "_本仓现口径": "★ **只有一张：`objects`**。★ `concepts` 已删（内容留档于此）⇒ ★ **实体清单不再有第二个载体**。",
    "原 concepts 内容": {
     "_comment": "世界里有哪些实体、各有哪些字段（最小集；扩展走账本里的词表定义事件）",
     "notice": {

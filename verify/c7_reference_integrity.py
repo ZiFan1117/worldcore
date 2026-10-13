@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """C7 —— 本体内部**引用完整性**（射程已扩到「所有指向类名的地方」）。
 
-红＝本体里任何**指向类名的引用**，其类名**不在 `_objects` 里**，且**未登记在 `verify/c7_known_pending.txt`**。
+红＝本体里任何**指向类名的引用**，其类名**不在 `objects` 里**，且**未登记在 `verify/c7_known_pending.txt`**。
 
 射程（2026-10-13 扩，承总迁移方案 §四 第 0 步）：
   ① `_storage_class_map.entries.*.ours`
   ② `_property_types.types.*.used_by`（形如 `<类名>.<字段>`）
   ③ `_property_types._P无对应而我方在用的[].字段`
-  ④ ★ `_links.<边>.from` / `.to`（★ `_links._comment` 逐字：两端的类型必须已在 `_objects` 里声明）
+  ④ ★ `_links.<边>.from` / `.to`（★ `_links._comment` 逐字：两端的类型必须已在 `objects` 里声明）
   ⑤ ★ `_actions.<动作>.parameters[].param_type` 里的 `ref(<类名>)`
   ⑥ ★ `_functions.entries.*.inputs.*` 与 `.output_type` 里的 `ref(<类名>)` / 裸类名
   ⑦ ★ `_governance.markings.by_class` 的键
@@ -65,7 +65,7 @@ def refs_of(doc):
         if f:
             out.append(("_property_types._P无对应", f.split(".")[0]))
 
-    for edge, body in (doc.get("_links") or {}).items():
+    for edge, body in (doc.get("links") or {}).items():
         if edge.startswith("_") or not isinstance(body, dict):
             continue
         for end in ("from", "to"):
@@ -73,7 +73,7 @@ def refs_of(doc):
             if isinstance(v, str) and v:
                 out.append(("_links." + edge + "." + end, v))
 
-    for act, body in (doc.get("_actions") or {}).items():
+    for act, body in (doc.get("actions") or {}).items():
         if act.startswith("_") or not isinstance(body, dict):
             continue
         for pm in (body.get("parameters") or []):
@@ -81,7 +81,7 @@ def refs_of(doc):
             if t:
                 out.append(("_actions." + act + ".param_type", t))
 
-    for fn, body in ((doc.get("_functions") or {}).get("entries") or {}).items():
+    for fn, body in ((doc.get("functions") or {}).get("entries") or {}).items():
         for key, val in ((body or {}).get("inputs") or {}).items():
             t = _from_ref(val)
             if t:
@@ -96,7 +96,7 @@ def refs_of(doc):
     for cls in ((doc.get("_governance") or {}).get("markings") or {}).get("by_class") or {}:
         out.append(("_governance.markings.by_class", cls))
 
-    for cls in (((doc.get("_modules") or {}).get("assignment") or {}).get("_objects") or {}).get("_by_entry") or {}:
+    for cls in (((doc.get("_modules") or {}).get("assignment") or {}).get("objects") or {}).get("_by_entry") or {}:
         out.append(("_modules._by_entry", cls))
 
     for key in (doc.get("_standards") or {}).get("_adopted") or {}:
@@ -106,32 +106,32 @@ def refs_of(doc):
 
 
 def judge(doc, registered=frozenset()):
-    """纯函数：返回 [(来源, 类名)] —— 指向 _objects 里不存在的类（且未登记）。"""
-    known = set(k for k in (doc.get("_objects") or {}) if not k.startswith("_"))
+    """纯函数：返回 [(来源, 类名)] —— 指向 objects 里不存在的类（且未登记）。"""
+    known = set(k for k in (doc.get("objects") or {}) if not k.startswith("_"))
     return [(src, cls) for src, cls in refs_of(doc)
             if cls and cls not in known and cls not in registered]
 
 
 def self_test():
-    base = {"_objects": {"human": {}, "agent": {}, "record": {}}}
+    base = {"objects": {"human": {}, "agent": {}, "record": {}}}
     cases = []
     d1 = dict(base); d1["_storage_class_map"] = {"entries": {"H": {"ours": "human"}, "G": {"ours": "nowhere"}}}
     cases.append(("反例1 映射表", len(judge(d1)), 1))
     d2 = dict(base); d2["_property_types"] = {"types": {"STRING": {"used_by": ["human.name", "gone.field"]}}}
     cases.append(("反例2 派生表", len(judge(d2)), 1))
-    d3 = dict(base); d3["_links"] = {"part-of": {"from": "notice", "to": "record"}}
+    d3 = dict(base); d3["links"] = {"part-of": {"from": "notice", "to": "record"}}
     cases.append(("反例3 边端点", len(judge(d3)), 1))
-    d4 = dict(base); d4["_actions"] = {"notice.mute": {"parameters": [{"param_type": "ref(notice)"}]}}
+    d4 = dict(base); d4["actions"] = {"notice.mute": {"parameters": [{"param_type": "ref(notice)"}]}}
     cases.append(("反例4 动作参数", len(judge(d4)), 1))
-    d5 = dict(base); d5["_functions"] = {"entries": {"f": {"inputs": {"s": "ref(notice)"}, "output_type": "notice"}}}
+    d5 = dict(base); d5["functions"] = {"entries": {"f": {"inputs": {"s": "ref(notice)"}, "output_type": "notice"}}}
     cases.append(("反例5 函数出入（2 条：inputs 是 ref()，output_type 是裸类名）", len(judge(d5)), 2))
     d6 = dict(base); d6["_governance"] = {"markings": {"by_class": {"notice": "INTERNAL"}}}
     cases.append(("反例6 密级按类", len(judge(d6)), 1))
-    d7 = dict(base); d7["_modules"] = {"assignment": {"_objects": {"_by_entry": {"notice": ["发生"]}}}}
+    d7 = dict(base); d7["_modules"] = {"assignment": {"objects": {"_by_entry": {"notice": ["发生"]}}}}
     cases.append(("反例7 归目", len(judge(d7)), 1))
     d8 = dict(base); d8["_standards"] = {"_adopted": {"_objects.notice": {}}}
     cases.append(("反例8 标准采纳", len(judge(d8)), 1))
-    good = dict(base); good["_links"] = {"part-of": {"from": "record", "to": "agent"}}
+    good = dict(base); good["links"] = {"part-of": {"from": "record", "to": "agent"}}
     cases.append(("正控1 边端点都在", len(judge(good)), 0))
     cases.append(("正控2 登记在册可放行", len(judge(d3, frozenset({"notice"}))), 0))
     bad = [(n, got, want) for n, got, want in cases if got != want]
@@ -162,11 +162,11 @@ def main(argv):
     bad = judge(doc, frozenset(registered))
     total = len(refs_of(doc))
     if bad:
-        print("  [RED] 共 %d 条结构化引用中，**%d 条指向 _objects 里不存在的类**（且未登记）：" % (total, len(bad)))
+        print("  [RED] 共 %d 条结构化引用中，**%d 条指向 objects 里不存在的类**（且未登记）：" % (total, len(bad)))
         for src, cls in bad[:14]:
             print("        %s -> %s" % (src, cls))
         return 1
-    print("  [GREEN] %d 条结构化引用（九路射程）全部指向 _objects 里存在的类（或已登记）" % total)
+    print("  [GREEN] %d 条结构化引用（九路射程）全部指向 objects 里存在的类（或已登记）" % total)
     return 0
 
 

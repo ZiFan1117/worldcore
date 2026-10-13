@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """C6 —— 每个对象类必须「有定义、可指认」（本轮"重新梳理"的抓手）。
 
-红＝_objects 里任一类满足下列任一条：
+红＝objects 里任一类满足下列任一条：
   ① _meta.definition 缺失，或**是占位话**（含 缺口补立/待补/TBD/占位）⇒ 那一类**实际上没定义**；
   ② 该类的 fields 里**没有任何"指认格"**（name／id／canonical_id／code／key／wf_id／subject／path …）
      ⇒ 那一类**说不出「这一对怎么区分」**。
@@ -48,7 +48,7 @@ def collect():
     with open(ONTOLOGY, "r", encoding="utf-8") as fh:
         doc = json.load(fh)
     out = []
-    for k, v in doc["_objects"].items():
+    for k, v in doc["objects"].items():
         if k.startswith("_"):
             continue
         m = v.get("_meta") or {}

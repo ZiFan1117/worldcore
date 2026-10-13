@@ -21,11 +21,11 @@ pub const CODE_FUNCTION_LITERAL_NOT_ALLOWED: &str = "ext.world.Ontology.Function
 
 /// 五节，照本体 _five_elements._reading_order 逐字：对象 / 关系 / 接口能力 / 动作 / 函数。
 const SECTIONS: [&str; 5] = [
-    "_objects",
-    "_links",
-    "_interfaces",
-    "_actions",
-    "_functions",
+    "objects",
+    "links",
+    "interfaces",
+    "actions",
+    "functions",
 ];
 
 /// 拒。每一条都带本仓现成的错误码。
@@ -147,7 +147,7 @@ impl Ontology {
         }
 
         let mut actions = BTreeMap::new();
-        if let Some(map) = doc["_actions"].as_object() {
+        if let Some(map) = doc["actions"].as_object() {
             for (name, body) in map {
                 if name.starts_with('_') {
                     continue;
@@ -183,7 +183,7 @@ impl Ontology {
             }
         }
 
-        let capabilities = doc["_interfaces"]
+        let capabilities = doc["interfaces"]
             .as_object()
             .map(|map| {
                 map.keys()
@@ -193,13 +193,13 @@ impl Ontology {
             })
             .unwrap_or_default();
 
-        let entries: serde_json::Map<String, Value> = doc["_functions"]
+        let entries: serde_json::Map<String, Value> = doc["functions"]
             .get("entries")
             .and_then(Value::as_object)
             .cloned()
             .unwrap_or_default();
 
-        let host_commands: Vec<String> = doc["_functions"]
+        let host_commands: Vec<String> = doc["functions"]
             .get("_registered_host_commands")
             .and_then(Value::as_array)
             .map(|list| {

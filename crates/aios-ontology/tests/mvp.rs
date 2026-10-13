@@ -48,12 +48,12 @@ fn rejects_aios_prompt_example_file_read() {
 fn rejection_is_driven_by_the_ontology_not_hardcoded() {
     // 牙齿：把 file.read 声明进本体（动作 + 能力），同一个调用必须从拒变过。
     let mut value = doc();
-    value["_actions"]["file.read"] = serde_json::json!({
+    value["actions"]["file.read"] = serde_json::json!({
         "capability": "file.read",
         "reversible": false,
         "parameters": [{"name": "path", "required": true}]
     });
-    value["_interfaces"]["file.read"] = serde_json::json!({"kind": "invoke", "what": "读一个文件"});
+    value["interfaces"]["file.read"] = serde_json::json!({"kind": "invoke", "what": "读一个文件"});
     let ontology = Ontology::load_str(&value.to_string()).expect("改造后的本体仍应装载");
     let verdict = ontology
         .validate_translation(
@@ -66,12 +66,12 @@ fn rejection_is_driven_by_the_ontology_not_hardcoded() {
 #[test]
 fn missing_section_is_refused() {
     let mut value = doc();
-    value.as_object_mut().expect("是对象").remove("_actions");
+    value.as_object_mut().expect("是对象").remove("actions");
     let err = Ontology::load_str(&value.to_string()).expect_err("缺 _actions 必须拒启");
     assert_eq!(
         err,
         Reject::MissingSection {
-            section: "_actions".to_string()
+            section: "actions".to_string()
         }
     );
 }
@@ -79,7 +79,7 @@ fn missing_section_is_refused() {
 #[test]
 fn command_literal_in_entry_table_is_refused() {
     let mut value = doc();
-    value["_functions"]["entries"] = serde_json::json!({"pacman": {"what": "装包"}});
+    value["functions"]["entries"] = serde_json::json!({"pacman": {"what": "装包"}});
     let err = Ontology::load_str(&value.to_string()).expect_err("入口表里放命令字面量必须红");
     assert!(matches!(err, Reject::FunctionLiteralNotAllowed { .. }));
 }
@@ -87,7 +87,7 @@ fn command_literal_in_entry_table_is_refused() {
 #[test]
 fn unknown_capability_is_refused() {
     let mut value = doc();
-    value["_actions"]["notice.mute"]["capability"] = serde_json::json!("nonexistent.cap");
+    value["actions"]["notice.mute"]["capability"] = serde_json::json!("nonexistent.cap");
     let ontology = Ontology::load_str(&value.to_string()).expect("装载照旧");
     let err = ontology
         .validate_translation(r#"{"action_name":"notice.mute"}"#)
@@ -100,7 +100,7 @@ fn function_table_is_filled_and_every_action_points_at_an_entry() {
     // ★ 2026-10-13 作者更正：**函数面本来就该有**（原判据「空表是缺口」是错的 —— 它把"没做到"当成了"本该如此"）。
     let ontology = our();
     let value = doc();
-    let entries = value["_functions"]["entries"]
+    let entries = value["functions"]["entries"]
         .as_object()
         .expect("_functions.entries 是对象");
     assert_eq!(
@@ -108,7 +108,7 @@ fn function_table_is_filled_and_every_action_points_at_an_entry() {
         9,
         "九条动作各一条函数（现取）"
     );
-    for (name, body) in value["_actions"].as_object().expect("_actions 是对象") {
+    for (name, body) in value["actions"].as_object().expect("actions 是对象") {
         if name.starts_with('_') {
             continue;
         }
