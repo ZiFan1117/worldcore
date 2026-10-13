@@ -100,3 +100,54 @@
 | 1 | 上游 fs **不认识的对象类型静默降级成 `File`** | ★ 改成**拒**（T-30） |
 | 2 | 上游 runtime **不挂策略核就放行** | ★ **强制挂载**（判据 C5 已立，现状 10 件已登记） |
 | 3 | P 的 `can_execute` **默认放行**（动作没写角色＝人人可做） | ★ **借形状、改默认**（我们 `default = deny` 不动） |
+---
+
+## §七 ★★ 已按令补齐 / 借入（本笔执行，四要素在下）
+
+| # | 补什么 | 读数 |
+|---|---|---|
+| **1** | ★ **101 个字段全部补 `base_type`**（照 P 的 `ValueType`：`name + base_type + constraints + validate`） | 填了 **101** 条 |
+| **2** | ★ **借入 P 的 `PropertyType` 13 类**（新节 `_property_types`） | 13 类；★ **有用的 6 类**；★ **今天没用上的 7 类**：`DECIMAL`／`DATE`／`DATETIME`／`GEOHASH`／`GEOSHAPE`／`ATTACHMENT`／`MARKING` |
+| **3** | ★★ **两处"我们比 P 宽"（如实）** | ① `enum(...)` —— ★ **P 没有 ENUM**（我们用 `STRING + constraints{options}` 顶上）；② ★ **`array(string)` —— P 的类型系统根本没有数组** |
+| **4** | ★ **互斥口径统一**（新节 `_disjoint_policy`） | 口径：**本体的类两两互斥**；`disjointWith` 只是**逐类投影**；★ **未列即互斥** ⇒ 「7 个元类缺表」**不再是缺口**（那是按口径省略，已逐类显式标注 `_disjoint_note`） |
+
+**读数（四要素）**：`cd /root/aios && CARGO_TARGET_DIR=/root/.ct-fs cargo test -p aios-ontology --offline` ⇒ `test result: ok. 8 passed; 0 failed` ⇒ **rc=0** ⇒ 2026-10-13（VM `leap16`）。
+
+---
+
+## §八 ★★★ 世界观提案：**这个世界该有哪几类东西**（作者问「你认为哪几类东西吗？别人也提出了自己的想法」）
+
+### 八.1 我的提案：按"东西的角色"分**六组**（26 类）
+
+| 组 | 类 | 为什么在一组 |
+|---|---|---|
+| ★ **① 发生**（occurrent：有始有终） | `notice`／`job`／`action`／`workflow` | 都是"会发生、会结束"的东西 |
+| ★ **② 记录**（信息内容：被保存/被引用） | `record`／`memory`／`file`／`model`／`package` | 都是"存下来、可被引用"的东西 |
+| ★ **③ 主体**（谁） | `human`／`agent`／`identity`／`permission`／`capability` | "谁能做什么" |
+| ★ **④ 使能**（零件与刻度） | `application`／`service`／`device`／`port`／`clock`／`unit` | "让它跑起来的东西" |
+| ★ **⑤ 界面**（给人看的） | `surface`／`cell`／`presence` | "看得见的" |
+| ★ **⑥ 容器/归属** | `project`／`config` | "把别的圈起来" |
+
+★ **`config` 在提案里归「⑥ 容器/归属」** ⇒ ★ **意味着我支持它是个体（乙）**：它圈住的是"某作用域下的一组值"。
+★ **`project` 归「⑥ 容器」** ⇒ ★ 它**天然该有一条包含边**（`project` —包含→ `job`）⇒ ★ 这正是"五要素联动"里缺的那条。
+
+### 八.2 ★ 对照"别人的想法"（三类，性质完全不同）
+
+| 来源 | 它给的是什么 | 拿它当"世界观"会怎样 |
+|---|---|---|
+| **上游 AIOS-FS（10 个抽屉）** | **按"存储用途"凑的 10 类**：`Project`／`Application`／`File`／`Memory`／`Policy`／`Model`／`Package`／`EvidenceRef`／`Workspace`／`Config` | ★ **它的世界比我们窄**：我们 25 类里 **18 类它一个都没有**；★ 而且它那 10 个里有 **3 个其实不是"东西的种类"而是"角色"**：`Policy`＝我们的 `_permissions` 那一节、`EvidenceRef`＝`record` 的一个用法、`Workspace`＝`surface` |
+| **P（`foundry-ontology-open`）** | ★ **元模型**：`ObjectType`／`LinkType`／`ActionType`／`OntologyFunction`／`Interface`（＋`ValueType`／`Marking`／`Role`） | ★ **它给"怎么描述"，不给"有什么"** ⇒ ★ **不能拿它当名单**；★ **但它的形状（尤其 `ValueType` 的约束面、`Marking` 的密级、`Role` 的 RBAC）可以整块借** |
+| ★ **BFO**（我们 `_meta.anchor` 用的） | **顶层范畴**：`continuant`／`occurrent`／`process`… | ★ 正是"**发生 vs 连续体**"这个分法的出处 ⇒ ★ **我们的六组里，①发生 与 ②–⑥ 的分界就是从它来的** |
+
+⇒ ★★ **一句话**：**上游给"存储抽屉"、P 给"描述形状"、BFO 给"顶层范畴"；★ 只有我们自己要给"名单"。**
+
+### 八.3 ★ 附带一处发现（关于"通告算不算个体"，作者问的那个）
+
+| 层 | 是什么 | 例 |
+|---|---|---|
+| **类型** | `notice`（本体的一类） | "通告"这一**类**东西 |
+| **个体** | 该类型的一个实例（`instance_mode: many`） | "2026-10-13 那条通告（seq=7）" |
+
+★ **你的直觉抓到了一处真张力，而且本体自己早登记过**：`notice._meta.definition` 逐字里有
+「另有『**它是一条记录**（信息内容实体）』这一读法（判词 · 形式本体 **Y-2**）……**提案值·待裁-1**：若取那一读法，锚点应改 `BFO_0000031 generically dependent continuant`」
+⇒ ★ 即：**"一条通告"在实现上就是账本里的一行** ⇒ **"那一类发生"与"那条记录"贴得极近** ⇒ ★ 这是**已挂着的待裁-1**，本件不新增结论。

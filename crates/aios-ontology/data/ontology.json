@@ -140,13 +140,17 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -200,31 +204,41 @@
       "done"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "step": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "steps_total": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "step_label": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -287,13 +301,17 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "category": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "state": {
      "required": null,
@@ -305,19 +323,25 @@
       "retired"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "did": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "★无对应（P 的类型系统没有数组）",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "last_seen": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "TIMESTAMP",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -368,31 +392,41 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "role": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "order": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "visible": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -448,73 +482,97 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "OBJECT_REFERENCE",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "order": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "shown": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "label": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "value": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "tooltip": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "style": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "component": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "agentAction": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "localAction": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "enabled": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -565,31 +623,41 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "path": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "identity": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "mode": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "owner_uid": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "state": {
      "required": null,
@@ -599,13 +667,17 @@
       "retired"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -651,19 +723,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "did": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "last_seen": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "TIMESTAMP",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -710,19 +788,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "did": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "manifest": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "state": {
      "required": null,
@@ -732,7 +816,9 @@
       "retired"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -779,13 +865,17 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "did": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "state": {
      "required": null,
@@ -795,7 +885,9 @@
       "retired"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -841,13 +933,17 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "unit": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "state": {
      "required": null,
@@ -857,7 +953,9 @@
       "retired"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -903,19 +1001,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "cert": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "bound_to": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "OBJECT_REFERENCE",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -961,19 +1065,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "wf_id": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "parent_action": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -995,13 +1105,14 @@
     "definition": "记录——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "of_kind": "enum(change,act,notice)",
@@ -1020,25 +1131,33 @@
       "notice"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "at_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "at_time": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "TIMESTAMP",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "who": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1060,12 +1179,13 @@
     "definition": "能力——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000034",
     "anchor_note": "照形状取自 BFO 2020：`function`（`BFO_0000034`，父 `BFO_0000016 disposition`）——★ 与 `_layers` 的 EXPORT BRIDGE 同一处口径：「**形状取自** BFO `function`，**不是它就是它**」（BFO 的 realizable entity 必须 inhere in 某个 independent continuant，而本仓今天缺「承载者」）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "name": "string",
@@ -1078,19 +1198,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "what": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "reversible": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1112,12 +1238,13 @@
     "definition": "动作——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
     "anchor_note": "照形状取自 BFO 2020：`process`——一次动作是**发生**（有起止、有参与者）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "capability": "string",
@@ -1130,19 +1257,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "verb": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "request_id": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1164,12 +1297,13 @@
     "definition": "许可——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000023",
     "anchor_note": "照形状取自 BFO 2020：`role`（`BFO_0000023`，父 `BFO_0000017 realizable entity`）——许可是**角色式的授予**（谁能把哪个能力授给谁）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "who": "string",
@@ -1182,19 +1316,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "what": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "scope": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "★无对应（P 的类型系统没有数组）",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1216,12 +1356,13 @@
     "definition": "时钟——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
     "anchor_note": "照形状取自 BFO 2020：`material entity`——★ **时钟是人工物，不是时间区域**（本席第一版想锚 `BFO_0000008 temporal region`，那是**把被量的东西当成量它的东西**）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "epoch": "integer",
@@ -1234,19 +1375,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "tz": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "precision": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1268,12 +1415,13 @@
     "definition": "单位——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——单位是**信息内容**（UCUM 的代码、QUDT 的量纲都是可复制的说明）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "code": "string",
@@ -1286,19 +1434,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "dimension": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "system": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1320,12 +1474,13 @@
     "definition": "身份——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——身份是**信息内容**（四层身份 `content_hash`／`instance_id`／`subject_id`／`seq` 都是可复制的说明）。★ 提案值·待裁。",
-    "disjointWith": [],
+    "disjointWith": null,
     "module": "A-01 ontology_definition",
     "_field_meta_说明": {
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
+    },
+    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
    },
    "fields": {
     "canonical_id": "string",
@@ -1337,7 +1492,9 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "layer": {
      "required": null,
@@ -1348,7 +1505,9 @@
       "L4"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
+     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "base_type": "STRING + constraints{options}",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1385,31 +1544,41 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "status": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "started_at": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "TIMESTAMP",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "owner": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1445,31 +1614,41 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "content_ref": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "size": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "mime": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "retract_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1504,25 +1683,33 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "?未映射",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "content": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "confidence": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "FLOAT",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "at_seq": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "INTEGER",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1557,25 +1744,33 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "artifact_ref": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "version": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "checksum": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1610,25 +1805,33 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "version": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "source": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "installed": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "BOOLEAN",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   },
@@ -1662,19 +1865,25 @@
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "value": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
     "scope": {
      "required": null,
      "options": null,
      "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+     "base_type": "STRING",
+     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     }
    }
   }
@@ -10918,5 +11127,210 @@
    }
   },
   "_已知冲突": "★ _shared_properties.properties.did.语域一致 = false（presence 是 array(string)、application/human/agent 是 string）—— 本仓 2026-10-12 已登记：不是笔误，是真实差异；融合前须先裁。"
+ },
+ "_property_types": {
+  "_what": "★ 2026-10-13 新增：字段类型系统 —— 照抄 P（foundry-ontology-open）`core/data_types.py` 的 PropertyType 13 类。",
+  "_照谁": "`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/data_types.py`（逐字 13 个成员）",
+  "_本仓口径": "只抄**类型名与约束形状**；★ 不引 P 的运行时（我方 B-3：只导出、不推理）。",
+  "types": {
+   "STRING": {
+    "used_by": [
+     "job.step_label",
+     "presence.name",
+     "presence.category",
+     "surface.name",
+     "surface.role",
+     "cell.label",
+     "cell.value",
+     "cell.tooltip",
+     "cell.style",
+     "cell.component",
+     "cell.agentAction",
+     "cell.localAction",
+     "port.name",
+     "port.path",
+     "port.identity",
+     "port.mode",
+     "human.name",
+     "human.did",
+     "agent.name",
+     "agent.did",
+     "agent.manifest",
+     "application.name",
+     "application.did",
+     "service.name",
+     "service.unit",
+     "device.name",
+     "device.cert",
+     "workflow.name",
+     "workflow.wf_id",
+     "workflow.parent_action",
+     "record.who",
+     "capability.name",
+     "capability.what",
+     "action.capability",
+     "action.verb",
+     "action.request_id",
+     "permission.who",
+     "permission.what",
+     "clock.tz",
+     "clock.precision",
+     "unit.code",
+     "unit.dimension",
+     "unit.system",
+     "identity.canonical_id",
+     "project.name",
+     "project.status",
+     "project.owner",
+     "file.path",
+     "file.content_ref",
+     "file.mime",
+     "memory.content",
+     "model.name",
+     "model.artifact_ref",
+     "model.version",
+     "model.checksum",
+     "package.name",
+     "package.version",
+     "package.source",
+     "config.key",
+     "config.value",
+     "config.scope"
+    ]
+   },
+   "INTEGER": {
+    "used_by": [
+     "notice.retract_seq",
+     "job.step",
+     "job.steps_total",
+     "job.retract_seq",
+     "surface.order",
+     "surface.retract_seq",
+     "cell.order",
+     "cell.retract_seq",
+     "port.owner_uid",
+     "port.retract_seq",
+     "record.at_seq",
+     "clock.epoch",
+     "project.retract_seq",
+     "file.size",
+     "file.retract_seq",
+     "memory.at_seq"
+    ]
+   },
+   "FLOAT": {
+    "used_by": [
+     "memory.confidence"
+    ]
+   },
+   "DECIMAL": {
+    "used_by": []
+   },
+   "BOOLEAN": {
+    "used_by": [
+     "notice.muted",
+     "surface.visible",
+     "cell.shown",
+     "cell.enabled",
+     "capability.reversible",
+     "package.installed"
+    ]
+   },
+   "DATE": {
+    "used_by": []
+   },
+   "DATETIME": {
+    "used_by": []
+   },
+   "TIMESTAMP": {
+    "used_by": [
+     "presence.last_seen",
+     "human.last_seen",
+     "record.at_time",
+     "project.started_at"
+    ]
+   },
+   "GEOHASH": {
+    "used_by": []
+   },
+   "GEOSHAPE": {
+    "used_by": []
+   },
+   "ATTACHMENT": {
+    "used_by": []
+   },
+   "MARKING": {
+    "used_by": []
+   },
+   "OBJECT_REFERENCE": {
+    "used_by": [
+     "cell.owner",
+     "device.bound_to"
+    ]
+   }
+  },
+  "_P无对应而我方在用的": [
+   {
+    "字段": "job.status",
+    "类型串": "enum(todo,doing,done)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "presence.state",
+    "类型串": "enum(installed,registered,running,stopped,retired)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "presence.did",
+    "类型串": "array(string)",
+    "说明": "★无对应（P 的类型系统没有数组）"
+   },
+   {
+    "字段": "port.state",
+    "类型串": "enum(declared,listening,retired)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "agent.state",
+    "类型串": "enum(installed,running,retired)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "application.state",
+    "类型串": "enum(installed,running,retired)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "service.state",
+    "类型串": "enum(running,stopped,retired)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "record.of_kind",
+    "类型串": "enum(change,act,notice)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "permission.scope",
+    "类型串": "array(string)",
+    "说明": "★无对应（P 的类型系统没有数组）"
+   },
+   {
+    "字段": "identity.layer",
+    "类型串": "enum(L1,L2,L3,L4)",
+    "说明": "STRING + constraints{options}"
+   },
+   {
+    "字段": "memory.subject",
+    "类型串": "ref",
+    "说明": "?未映射"
+   }
+  ]
+ },
+ "_disjoint_policy": {
+  "_what": "★ 2026-10-13 新增：互斥表的口径（此前 12 类各列 5 个、7 个元类空、新 6 类各列 6 个 —— 同一种东西三个数）。",
+  "口径": "★ **本体的类两两互斥**：一个个体不可能同时属于两类。`_meta.disjointWith` 列表只是**逐类投影**（列最要紧的几项）；★ **未列出的类，视为与本体其它所有类互斥**。",
+  "后果": "⇒ 「缺 disjointWith」不再是缺口（那是**按口径省略**）；⇒ 新 6 类列 6 项、既有列 5 项，**都合法**（都是投影）。",
+  "_待裁": "★ 若作者要「显式全列」（每类列其余 24 项，共 600 条），本口径应作废 —— 待人裁。"
  }
 }
