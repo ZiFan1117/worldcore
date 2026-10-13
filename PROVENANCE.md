@@ -19,6 +19,8 @@
 | 本地怎么来的 | 08 仓 `.refs/依赖仓/AI-Native-Linux` 的 checkout **去掉 `.git` 后整树拷贝** |
 | ★ 一件要紧事实 | **那份 clone 是 shallow（`depth 1`／`rev-list --count HEAD = 1`）** ⇒ **本仓不带上游历史**；联网后要历史就 `git remote add upstream https://github.com/ai-os-dot-net/AI-Native-Linux.git && git fetch upstream` |
 
+★ **底座状态：暂用（未裁）** —— 2026-10-13 作者选择**先不裁**：要缝的认知核与底座无关（`crates/` 992 件／341,732 行里只有 1 行提 `zypper`，且是注释；且自带 pacman／dnf-rpm／deb-apt 三个桥），而换底座会作废 `distro/` 那 37,518 行。等 08 仓盒 `2026-10-13-adopt-aios` 的 T-11（Arch VM 实测底座无关性）读数再定。
+
 ## 三、与 08 仓同链
 
 | 项 | 值 |
