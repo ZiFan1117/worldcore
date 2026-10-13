@@ -129,6 +129,55 @@
 
 ---
 
+## 十、公开路线图（`site/src/pages/roadmap.astro`）与仓内现状的**漂移**
+
+> 来源：作者给的 `https://ai-os.net/roadmap/`。★ **线上我这边取不到**（fetch 失败，如实）；但**源件在本地**：`site/src/pages/roadmap.astro`（23,710 B／327 行），**以源件为准**。
+
+### 十.1 它公开的十修订之弧（逐字摘要）
+
+| 修订 | 名 | 公开状态 | 公开说法（摘要） |
+|---|---|---|---|
+| Rev.1 | Vision | Origin（done） | 原始架构愿景与规范合同：typed actions／policy kernel／append-only evidence on Linux |
+| Rev.2 | Constitutional core | **Implemented**（done） | 11 层 L0–L10 作为可工作的 Rust，**每层 REAL(E2+)**，四道 cargo 门绿 |
+| Rev.3 | Five governed planes | Spec complete（done） | S16–S28：安全加固／app capsules／内核可移植／驱动固件胶囊／原生 AI 终端；**644 records，34 invariants** |
+| Rev.4 | Bootable distribution | Boots in QEMU（done） | GRUB2 ISO on **openSUSE Leap 16**，QEMU 可起，KDE Plasma 变体；★ **installer／专用内核流水线／真机验证仍是 hardening（未完成）** |
+| Rev.5 | Live cognition | ★ **Planned** | 认知核接本地模型（Ollama／vLLM） |
+| Rev.6 | Daily-driver desktop | ★ **Planned** | KDE 真桌面＋Web/CLI/voice＋受治 capsule（Linux/Windows/Android） |
+| Rev.7 | Fleet, cluster & cloud | ★ **Planned** | 容器/K8s 当受治胶囊、fleet/集群远执行、云镜像 |
+| Rev.8 | Certified hardening | ★ **Planned** | measured boot、SELinux/STIG/NIST/CIS、FIPS、EU AI Act |
+| Rev.9 | Ecosystem & marketplace | ★ **Planned** | 公开签名仓库、发布者信任链、胶囊市场、app passport、SDK |
+| Rev.10 | Autonomous AI-OS | ★ **Planned** | 自治 fleet、自愈、跨机认知、规模化宪法治理 |
+
+### 十.2 ★★ 三处漂移（**公开路线图落后于仓内代码**）
+
+| # | 公开路线图说 | 仓内现取 | 判 |
+|---|---|---|---|
+| 1 | 弧线**止于 Rev.10** | ★ 仓里已有 **Rev.11／Rev.12／Rev.13** 的规格与门禁：`REV12-DISTRIBUTION-SPEC.md`、`REV13-ENTERPRISE-SPEC.md`、`ENTERPRISE-EXIT-GATES.md`（**8 道阻断门**）、R13.1–R13.8 | ★ **少两代** |
+| 2 | **Rev.5–Rev.8 全标 `Planned`** | `.ai/tasks.json` 记 **Rev.5 完成**（Ollama 适配器）、**Rev.6 多项完成**（KDE Wayland／Wine／Waydroid／eBPF／voice）、**Rev.7 in_progress**（云镜像 completed）、**Rev.8 in_progress**（`selinux.rs` 1135→2721 行） | ★ **公开说 Planned、内部说完成/进行中** |
+| 3 | Rev.4 说 **installer／专用内核流水线／真机验证仍是 hardening** | 仓内 `distro/installer/`（14 阶段）、`distro/build/tests/` **28 个 gate**、R13.6 装机与恢复模式都已在 | ★ **公开保守到失真** |
+
+★ 与我方 §四-第 3 类的发现一致（crate 数有 19／34／36 三个版本；README 写「没有 ISO／CI」而实际有 8 道门）。⇒ **口径：以 `distro/`／`crates/`／`.ai/tasks.json` 为准，不以外站叙述为准**（＝我们「以件为准」同一条）。
+
+### 十.3 ★ 它的公开决策与 deferred 表，**与我方同向**（逐字摘要）
+
+| 它公开的决策 | 与我方哪一条同向 |
+|---|---|
+| **Catalog-bound cognition**：「The Capability Translator is a **compiler over known capability manifests, not a prompt-to-shell system**」 | 我方「动作名查本体」 |
+| **Default-deny policy**：hard denies／exact request approvals／simulation／evidence-linked decisions | 我方 `default = deny` |
+| **INV-002 has six sites**：AI proposes, never executes，**mechanically enforced across six concrete code sites** | 我方「AI 只提议、不执行」 |
+| **Recovery without cognition**：L1 引导与恢复**永不依赖** L5 LLM | 我方 INV-001 同款 |
+| **deferred：无实测不称认证**（no STIG certified／no FIPS validated／no EU AI Act compliant） | 我方「绝不把没做到写成做到了」 |
+| **deferred：IDL 里不开开放词汇**（every typed surface stays **closed-enum**） | 我方「封闭词表／不许开开放词汇」 |
+
+### 十.4 ★★ 由此得到的最强一句（建议写进提案）
+
+> **我方接线清单要做的那些活（未登记即拒／参数级校验／证据进链／策略规则真生效），恰好是它在 Rev.2 就公开承诺过的东西**（Catalog-bound cognition／Default-deny／INV-002 六处／append-only evidence）。
+> ⇒ **我们不是「给它加一个新方向」，而是「催它兑现它自己写下的承诺」。**
+
+★ 这也解释了一个矛盾：**它公开标 `Implemented` 的 Rev.2，与我方实读出的「关键线没接」（§一 八条）之间，差的正是「承诺」与「兑现」。**
+
+---
+
 ## 七、未读的面（如实）
 
 1. `crates/` **651 个非测试 `.rs`**：四席合计逐行精读约 25 件；**未读** `pipeline.rs`（108 KB）、`selinux.rs`（94 KB）、`record.rs`（3993 行中 427 变体逐条）、各 crate `tests/`。
