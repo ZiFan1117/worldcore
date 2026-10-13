@@ -1511,382 +1511,7 @@
     }
    }
   },
-  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
-  "project": {
-   "_meta": {
-    "id": "wc:ont00000020",
-    "label": {
-     "zh": "项目",
-     "en": "Project"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Project`（逐字 task or work project）。一组有始有终的工作。★ 与 `job`（活计）的边界**待裁**：job 有 step/steps_total，project 更可能是它的容器。",
-    "_融合自上游": "上游 Project（task or work project）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "name": "string",
-    "status": "string",
-    "started_at": "integer  # UNIX 秒",
-    "owner": "string",
-    "retract_seq": "integer"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "name": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "status": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "started_at": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "TIMESTAMP",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "owner": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "retract_seq": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "file": {
-   "_meta": {
-    "id": "wc:ont00000021",
-    "label": {
-     "zh": "文件",
-     "en": "File"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::File`（逐字 file-like object）。★ 注意：上游把**不认识的对象类型静默降级成 File**（`in_memory.rs:999`）—— 本类是**正常类**，不承担那个兜底角色（那条要改成「拒」）。",
-    "_融合自上游": "上游 File（file-like object）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "path": "string",
-    "content_ref": "string",
-    "size": "integer",
-    "mime": "string",
-    "retract_seq": "integer"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "path": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "content_ref": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "size": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "mime": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "retract_seq": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "memory": {
-   "_meta": {
-    "id": "wc:ont00000022",
-    "label": {
-     "zh": "认知记忆",
-     "en": "Memory"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Memory`（逐字 cognitive memory object）。★ 与 `record`（账本条目）的边界**待裁**：record 是「发生过什么」的记录，memory 是「记住什么」。",
-    "_融合自上游": "上游 Memory（cognitive memory object）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "subject": "ref",
-    "content": "string",
-    "confidence": "number",
-    "at_seq": "integer"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "subject": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "?未映射",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "content": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "confidence": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "FLOAT",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "at_seq": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "model": {
-   "_meta": {
-    "id": "wc:ont00000023",
-    "label": {
-     "zh": "模型产物",
-     "en": "Model"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Model`（逐字 model artifact）。",
-    "_融合自上游": "上游 Model（model artifact）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "name": "string",
-    "artifact_ref": "string",
-    "version": "string",
-    "checksum": "string"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "name": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "artifact_ref": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "version": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "checksum": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "package": {
-   "_meta": {
-    "id": "wc:ont00000024",
-    "label": {
-     "zh": "软件包",
-     "en": "Package"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Package`（逐字 software package）。★ 与 `application`／`service` 的边界待裁（包是「装什么」，应用是「跑什么」）。",
-    "_融合自上游": "上游 Package（software package）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "name": "string",
-    "version": "string",
-    "source": "string",
-    "installed": "bool"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "name": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "version": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "source": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "installed": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "BOOLEAN",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "config": {
-   "_meta": {
-    "id": "wc:ont00000025",
-    "label": {
-     "zh": "配置",
-     "en": "Config"
-    },
-    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Config`（逐字 configuration object）。★ **口径待裁**：按我们「个体由本体得出、账本只是记录」的口径，配置**更应当是一条变更事件**而不是一等对象；本类先按你的令「没重叠就补充进来」补上，**处置待人裁**。",
-    "_融合自上游": "上游 Config（configuration object）",
-    "disjointWith": [
-     "notice",
-     "job",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition"
-   },
-   "fields": {
-    "key": "string",
-    "value": "string",
-    "scope": "string"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "key": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "value": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "scope": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  }
+  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。"
  },
  "_links": {
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
@@ -11334,5 +10959,387 @@
   "现口径": "★ **默认：类可重叠**（一个个体可同属多类）；★ **互斥只在 `_meta.disjointWith` 里逐对显式声明**；★ **未声明 ＝ 不互斥**。",
   "后果": "⇒ 各 `_meta.disjointWith` 列表的含义从「投影」改为「**已声明的互斥对**」；⇒ 空列表/`null` ＝ **没声明互斥**（不是缺口，也不是省略）。",
   "_待裁": "★ 既有的 12 个类各列 5 项、新 6 类各列 6 项 —— 这些**是否真是互斥对**需逐对复核（本题待人裁）。"
+ },
+ "_proposed_objects": {
+  "_what": "★ 2026-10-13 **本席自认越权，撤回后留档**：下列 6 类曾被直接加进 `_objects`（19→25），**依据仅为「上游 ObjectKind 的 10 个抽屉」**，",
+  "_为什么撤回": "① ★ 不在 `_objects._declared_gaps` 点名的缺口里（那 13 类补立的唯一依据）；② ★ 与同仓 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突——那份件写「本体的 `_objects` 今天 19 类，其中没有 package／network／firmware 类」；③ ★ 口径冲突——上游那 10 类是**存储抽屉**，我们不认它当语义权威，本席却拿它当「我们该有的类」。",
+  "_怎么才该补": "★ 走 `_declared_gaps` 的正规做法：**先写提案点名为缺口、经人裁、再补进 `_objects`**（判据 C6 同批更新）。",
+  "entries": {
+   "project": {
+    "_meta": {
+     "id": "wc:ont00000020",
+     "label": {
+      "zh": "项目",
+      "en": "Project"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Project`（逐字 task or work project）。一组有始有终的工作。★ 与 `job`（活计）的边界**待裁**：job 有 step/steps_total，project 更可能是它的容器。",
+     "_融合自上游": "上游 Project（task or work project）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "name": "string",
+     "status": "string",
+     "started_at": "integer  # UNIX 秒",
+     "owner": "string",
+     "retract_seq": "integer"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "name": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "status": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "started_at": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "TIMESTAMP",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "owner": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "retract_seq": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "file": {
+    "_meta": {
+     "id": "wc:ont00000021",
+     "label": {
+      "zh": "文件",
+      "en": "File"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::File`（逐字 file-like object）。★ 注意：上游把**不认识的对象类型静默降级成 File**（`in_memory.rs:999`）—— 本类是**正常类**，不承担那个兜底角色（那条要改成「拒」）。",
+     "_融合自上游": "上游 File（file-like object）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "path": "string",
+     "content_ref": "string",
+     "size": "integer",
+     "mime": "string",
+     "retract_seq": "integer"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "path": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "content_ref": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "size": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "mime": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "retract_seq": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "memory": {
+    "_meta": {
+     "id": "wc:ont00000022",
+     "label": {
+      "zh": "认知记忆",
+      "en": "Memory"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Memory`（逐字 cognitive memory object）。★ 与 `record`（账本条目）的边界**待裁**：record 是「发生过什么」的记录，memory 是「记住什么」。",
+     "_融合自上游": "上游 Memory（cognitive memory object）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "subject": "ref",
+     "content": "string",
+     "confidence": "number",
+     "at_seq": "integer"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "subject": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "?未映射",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "content": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "confidence": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "FLOAT",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "at_seq": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "model": {
+    "_meta": {
+     "id": "wc:ont00000023",
+     "label": {
+      "zh": "模型产物",
+      "en": "Model"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Model`（逐字 model artifact）。",
+     "_融合自上游": "上游 Model（model artifact）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "name": "string",
+     "artifact_ref": "string",
+     "version": "string",
+     "checksum": "string"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "name": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "artifact_ref": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "version": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "checksum": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "package": {
+    "_meta": {
+     "id": "wc:ont00000024",
+     "label": {
+      "zh": "软件包",
+      "en": "Package"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Package`（逐字 software package）。★ 与 `application`／`service` 的边界待裁（包是「装什么」，应用是「跑什么」）。",
+     "_融合自上游": "上游 Package（software package）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "name": "string",
+     "version": "string",
+     "source": "string",
+     "installed": "bool"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "name": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "version": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "source": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "installed": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "BOOLEAN",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "config": {
+    "_meta": {
+     "id": "wc:ont00000025",
+     "label": {
+      "zh": "配置",
+      "en": "Config"
+     },
+     "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Config`（逐字 configuration object）。★ **口径待裁**：按我们「个体由本体得出、账本只是记录」的口径，配置**更应当是一条变更事件**而不是一等对象；本类先按你的令「没重叠就补充进来」补上，**处置待人裁**。",
+     "_融合自上游": "上游 Config（configuration object）",
+     "disjointWith": [
+      "notice",
+      "job",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition"
+    },
+    "fields": {
+     "key": "string",
+     "value": "string",
+     "scope": "string"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "key": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "value": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "scope": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   }
+  }
  }
 }
