@@ -1,7 +1,7 @@
 //! 面⑧：**治理** —— 谁能看、谁能改、谁能做。
 //!
 //! ★ 干活口径学 AIOS 的策略核（crates/aios-policy：pipeline.rs 的十二步决策流水线、
-//! kernel.rs 的 InMemoryPolicyKernel、decision.rs 的决策记录）—— **学它怎么组织这件事，
+//! kernel.rs 的那个默认内存策略核、decision.rs 的决策记录）—— **学它怎么组织这件事，
 //! 不用它的名字**。三条：① **闭阶梯、逐步短路**（它的 PipelineState 只有 Continue 与
 //! ShortCircuit 两个值，没有第三种）；② **地板默认拒**（它 S2.3 §11 —— 没有更早的一级
 //! 定下结论时**一定**产出默认拒；本仓对应本体 permissions.default 逐字 deny）；
@@ -250,112 +250,4 @@ fn hits(declared: &str, subject: &str) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
-
-    /// 拿真本体改一处（只动 permissions.default）当反例夹具。
-    fn law_with_default(value: &str) -> String {
-        let mut doc: serde_json::Value = serde_json::from_str(ONT).expect("本体该能解析");
-        doc["permissions"]["default"] = serde_json::Value::String(value.to_string());
-        doc.to_string()
-    }
-
-    /// ★★ 反例①：**地板默认拒**。让它红的改法：删掉地板那一级 ⇒ 本用例红。
-    #[test]
-    fn floor_denies_when_nothing_was_granted() {
-        let gov = Governance::new();
-        let who = Who::new("world://user/zhang");
-        let e = gov
-            .can_execute(&who, "package.install")
-            .expect_err("没授过必须拒");
-        assert_eq!(
-            e.reason,
-            Reason::NotPermitted {
-                capability: "package.install".into()
-            }
-        );
-        assert_eq!(e.code(), "worldcore.Refuse.NotPermitted");
-        let log = gov.rulings();
-        assert_eq!(log.len(), 1, "每答一次留一条裁定");
-        assert_eq!(log[0].step, Step::Floor);
-        assert!(!log[0].allowed);
-    }
-
-    /// ★★ 反例②：**法律没显式写 deny ⇒ 装载即拒**（本体 _default_closed）。
-    /// 让它红的改法：from_ontology 不查 permissions.default ⇒ 本用例红。
-    #[test]
-    fn law_without_explicit_deny_is_refused() {
-        let e = Governance::from_ontology(&law_with_default("allow")).expect_err("allow 不安全");
-        assert_eq!(e.code(), "worldcore.Refuse.BadValue");
-        assert_eq!(e.what, "allow");
-        let mut doc: serde_json::Value = serde_json::from_str(ONT).expect("本体该能解析");
-        doc["permissions"]["default"].take();
-        assert_eq!(
-            Governance::from_ontology(&doc.to_string())
-                .expect_err("缺 ⇒ 拒")
-                .what,
-            "<缺>"
-        );
-    }
-
-    /// ★★ 反例③：**出厂法条那一级真的在判**。让它红的改法：删掉第二级 ⇒ 本用例红。
-    #[test]
-    fn declared_scope_decides_and_class_prefix_matches() {
-        let gov = Governance::from_ontology(ONT).expect("出厂本体该装得上");
-        assert!(gov
-            .can_execute(&Who::new("world://presence/omarchy"), "notice.mute")
-            .is_ok());
-        assert!(
-            gov.can_execute(&Who::new("world://user/zhang"), "notice.mute")
-                .is_ok(),
-            "段前缀"
-        );
-        assert!(
-            gov.can_execute(&Who::new("world://nobody"), "notice.mute")
-                .is_err(),
-            "地板拒"
-        );
-        assert!(
-            gov.can_execute(&Who::new("world://agent/dsh"), "job.start")
-                .is_err(),
-            "无此项"
-        );
-        assert_eq!(gov.rulings()[0].step, Step::Declared);
-    }
-
-    /// ★★ 反例④：**角色不是许可**（本体逐字：授权授在能力上）。
-    /// 让它红的改法：让 has_role 冒充 can_execute ⇒ 本用例红。
-    #[test]
-    fn a_role_is_not_a_grant() {
-        let gov = Governance::from_ontology(ONT).expect("出厂本体该装得上");
-        let zhang = Who::new("world://user/zhang");
-        assert!(
-            gov.has_role(&zhang, "human"),
-            "roster 写 world://user ⇒ human"
-        );
-        assert!(
-            gov.can_execute(&zhang, "job.start").is_err(),
-            "有角色不等于有权"
-        );
-    }
-
-    /// ★ 正控：运行时授过 ⇒ 第一级，且**逐主体逐能力**。
-    #[test]
-    fn grant_is_the_first_step_and_is_exact() {
-        let mut gov = Governance::new();
-        let zhang = Who::new("world://user/zhang");
-        let li = Who::new("world://user/li");
-        gov.grant(&zhang, "job.start");
-        assert!(gov.can_execute(&zhang, "job.start").is_ok(), "授过该放行");
-        assert!(gov.can_execute(&li, "job.start").is_err(), "授甲不等于授乙");
-        assert!(
-            gov.can_execute(&zhang, "world.rekey").is_err(),
-            "授一个不等于授全部"
-        );
-        let log = gov.rulings();
-        assert_eq!(log[0].step, Step::Granted);
-        assert_eq!(log[0].code, "worldcore.Allow.Granted");
-    }
-}
+mod tests;
