@@ -51,6 +51,10 @@ def main(argv):
         print("[%s] %s" % (mark, name))
         for line in out.splitlines():
             print("        " + line)
+    _tree = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", shell=False).stdout.splitlines()
+    print("    工作树：%d 个未提交改动（★ 判据读的是**工作树**，不是 HEAD）" % len(_tree))
+
     print("=== 结论：%s（rc=%d）===" % ({0: "全绿", 1: "有红", 2: "有环境问题（未校验）"}.get(worst, "?"), worst))
     return worst
 
