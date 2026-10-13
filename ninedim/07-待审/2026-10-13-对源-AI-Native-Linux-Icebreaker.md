@@ -149,6 +149,71 @@ Linux 内核                 内核强制访问控制 ＝ 最终强制
 
 ---
 
+## 十、二轮实读（2026-10-13 **拉取到本地之后**新增）
+
+**拉到哪**：`D:\Code\_refs\AI-Native-Linux-Icebreaker`（★ 宿主到 GitHub 现在通了；`git ls-remote` 出 refs）。
+
+| 项 | 现取 |
+|---|---|
+| HEAD／提交数 | **`adfe33e` ／ 424 个提交** |
+| 最后提交 | **2026-09-27** `Merge pull request #38 … docs/apache-2-license` |
+| 工作树 | **850 件 ／ 233.7 MB** |
+| ★ 提交按月 | **2026-05: 17 ／ 06: 133 ／ 07: 237 ／ 08: 26 ／ 09: 11** |
+| 最大目录 | `privileged-brain` 90 件／**92.2 MB**；`icebreaker-claude-state` 97 件／26.2 MB；`docs` 69 件／13.8 MB；`dual-brain` 386 件／3.4 MB |
+
+**二轮读了**：`AI_Native_OS_Whitepaper.md` §2／§3／§8／§12 ＋ `CLAUDE.md`（全文，35 KB）＋ `incremental/GROUND_TRUTH.md` §1／§2。
+
+### 十.1 ★★ 最值得借的一条：**「不许重复回归」＋ 失败总账 ＋ 三步强制**
+
+它 `CLAUDE.md` 的 **BP-13** 逐字：
+
+> 「**Two prior month-long sprints on this project failed because bugs kept resurfacing across rebuilds**; … a lesson learned on Vn **must be in code, tests, and gates before Vn+1 ships**.」
+> 「**A bug that gets fixed without steps 1-3 is a bug we will find again. That is the definition of the failure mode this project exists to kill.**」
+
+**三步（逐字摘要）**：① **回归测试**（先对修复前的代码失败）；② **失败账条目**（症状 → 根因 → 修复 → 版本 → **回归守卫的名字**）；③ **复现验证**（**重跑原始症状**，不只是测试套件）。
+
+★ **与我方对照**：我方有「加判据先写会红的反例」（`AGENTS.md` 硬约束 9）与「旧值作废不抹」，**但没有**：
+1. **一条修复必须命名它的「回归守卫」**；
+2. **一份专门的「真实失败总账」**（`incremental/GROUND_TRUTH.md` **167 KB**，且逐字「**That ledger is not cleaned up for marketing.**」）；
+3. **重跑原始症状**（而非只跑测试套件）这一条**强制**。
+⇒ **建议整体借这一条**（借形式；「失败账」是工程纪律，不是它的发明点）。
+
+### 十.2 ★ 新增可借（6 条，逐条带它的原话）
+
+| # | 借什么 | 它的原话（摘要） | 为什么对我方有用 |
+|---|---|---|---|
+| 1 | ★ **外部影响文本必须消毒**（BP-3） | 「Strip ANSI escapes and C0/C1 control characters and neutralize CR/LF before rendering it to a TTY or log. Raw model/document text rendered to a terminal is a **prompt-spoofing vector**（**it can redraw an approval prompt**）」 | ★ **我方没想到这一格**：我们的投影／渲染面若把模型文本原样渲染，**审批提示可被重画** |
+| 2 | ★ **人类闸门的完整性**（BP-4） | 「flush the input buffer before reading（**no pre-buffered/pasted bytes may decide**）、require a single intentional keypress、enforce the approval lockout on a **monotonic clock**、default to **deny** on timeout / non-TTY / interrupt、reserve an always-available deny key（Esc）」 | 我方有「按不可逆性加摩擦」，但**没有这五条具体的闸门完整性** |
+| 3 | ★ **风险只能升不能降，且做成运行时断言**（BP-5） | 「An ML/LLM/policy pass may **raise** an operation's risk tier; it may **never lower** the rule-based floor. **Encode this as a runtime assertion, not a convention.**」 | 与我方「AI 不许造权威」同源，但**落成运行时断言** |
+| 4 | ★ **安全决策只用结构化事实**（BP-6） | 「the fields a human relies on … come from validated schema and the sandbox COW preview. **Model-authored free-text … must never be the basis of the risk label or the decision**」 | ★ 我方「七问」里若某些格子**来自模型自由文本**，就不许当判据基础 |
+| 5 | ★ **延迟预算不可谈判** | 「Landlock <1ms／Seccomp <1ms／COW overlay <5ms／MCP 往返 <5ms／**总额外开销 <10ms**／**Tier 0/1 全链路 p95 <100ms**」 | ★ **正好补我方「性能无读数」那一格**：先有预算，再有读数 |
+| 6 | ★ **测试后门不许在发布二进制里** | 「cargo feature 默认 **off**；生产二进制里 `MCPD_FS_TEST_ROOTS` 的出现次数必须为 **0**（CI 用 strings 断言）」 | ★ 可借形状：**用 `strings` 断言生产二进制里没有测试后门** |
+
+### 十.3 ★ 一条反面教材（**对我方直接适用**）
+
+它的 `GROUND_TRUTH.md §1` 状态板里有一条 **RED**（V6.3）逐字：
+
+> 「**RED — SIGSYS in fs.write** — **29/29 automated gates PASS** but UTM boot 2026-07-07: `# create Hello.txt` → mcpd killed by SIGSYS in `__GI_fsync()`. Root cause: seccomp allowlist missing `SYS_fsync`; **the QEMU gate never exercised fs.write**.」
+
+⇒ ★★ **「自动门全绿、真机一跑就红」** —— **这正是我方的风险**：我方判据也全是「自动门」，**端到端／真机路径没跑过**（本会话四席实读也证明：AIOS 的执行面根本没接线）。⇒ **这一条要写进我方提案的「风险」栏。**
+
+### 十.4 他的诚实机制（两条，逐字）
+
+1. `GROUND_TRUTH.md` 开头：「**This document is the single source of truth for the incremental rebuild.** If code, chat history, or memory disagrees with this file — **this file wins**.」
+2. 白皮书有专节 **§10.5 Audit acknowledgment (2026-07-10)**（文档诚实性说明）。
+
+⇒ 与我方「**以件为准，不以叙述为准**」同源；但**他明确规定「文件赢了」**（连聊天记录与记忆都要让路）——★ **这个优先级写法可直接借**。
+
+### 十.5 二轮新增未读面（如实）
+
+1. 白皮书**其余章节未读**（§1／§4–§7／§9／§10／§11／§13／§14）；
+2. `docs/IMPLEMENTATION_PLAN.md`（60 KB）／`docs/ARCHITECTURE.md`（37 KB）／`ai_terminal_design.md`（64 KB）**未读**；
+3. `GROUND_TRUTH.md` **仅读 §1–§2**（全文含 Failure Log 与 Version Ladder V6–V6.x）；
+4. **源码未读**：`src/mcpd/`（66 件）、`dual-brain/`（386 件）、`cx-distro/`（56 件）；
+5. **未跑任何构建／测试**（只是克隆到本地）。
+
+---
+
 ## 九、未读面（如实）
 
 1. **白皮书 `AI_Native_OS_Whitepaper.md`（64,838 B）未读**；PDF 未读；`Multi_Brain_OS_Architecture_Enhancements.txt`／`Patent_Prep_1_Plain_Language_Explanation.txt` 未读。
