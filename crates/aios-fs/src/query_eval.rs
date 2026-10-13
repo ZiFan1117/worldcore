@@ -414,9 +414,6 @@ const fn object_kind_token(kind: ObjectKind) -> &'static str {
         ObjectKind::EvidenceRef => "EVIDENCE_REF",
         ObjectKind::Workspace => "WORKSPACE",
         ObjectKind::Config => "CONFIG",
-        // ★ 我方新增（非上游本体）
-        ObjectKind::Notice => "NOTICE",
-        ObjectKind::Job => "JOB",
     }
 }
 
