@@ -342,7 +342,8 @@
      "cell",
      "port"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Workspace（判定为重叠 ⇒ 合并；语义是否完全同一件事仍待裁）"
    },
    "fields": {
     "name": "string",
@@ -744,7 +745,8 @@
      "device",
      "workflow"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Application（语义重叠 ⇒ 合并，不新增类）"
    },
    "fields": {
     "name": "string",
@@ -970,7 +972,8 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）"
    },
    "fields": {
     "of_kind": "enum(change,act,notice)",
@@ -1311,7 +1314,332 @@
     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
    }
   },
-  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。"
+  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
+  "project": {
+   "_meta": {
+    "id": "wc:ont00000020",
+    "label": {
+     "zh": "项目",
+     "en": "Project"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Project`（逐字 task or work project）。一组有始有终的工作。★ 与 `job`（活计）的边界**待裁**：job 有 step/steps_total，project 更可能是它的容器。",
+    "_融合自上游": "上游 Project（task or work project）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "name": "string",
+    "status": "string",
+    "started_at": "integer  # UNIX 秒",
+    "owner": "string",
+    "retract_seq": "integer"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "name": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "status": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "started_at": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "owner": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "retract_seq": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  },
+  "file": {
+   "_meta": {
+    "id": "wc:ont00000021",
+    "label": {
+     "zh": "文件",
+     "en": "File"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::File`（逐字 file-like object）。★ 注意：上游把**不认识的对象类型静默降级成 File**（`in_memory.rs:999`）—— 本类是**正常类**，不承担那个兜底角色（那条要改成「拒」）。",
+    "_融合自上游": "上游 File（file-like object）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "path": "string",
+    "content_ref": "string",
+    "size": "integer",
+    "mime": "string",
+    "retract_seq": "integer"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "path": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "content_ref": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "size": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "mime": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "retract_seq": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  },
+  "memory": {
+   "_meta": {
+    "id": "wc:ont00000022",
+    "label": {
+     "zh": "认知记忆",
+     "en": "Memory"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Memory`（逐字 cognitive memory object）。★ 与 `record`（账本条目）的边界**待裁**：record 是「发生过什么」的记录，memory 是「记住什么」。",
+    "_融合自上游": "上游 Memory（cognitive memory object）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "subject": "ref",
+    "content": "string",
+    "confidence": "number",
+    "at_seq": "integer"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "subject": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "content": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "confidence": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "at_seq": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  },
+  "model": {
+   "_meta": {
+    "id": "wc:ont00000023",
+    "label": {
+     "zh": "模型产物",
+     "en": "Model"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Model`（逐字 model artifact）。",
+    "_融合自上游": "上游 Model（model artifact）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "name": "string",
+    "artifact_ref": "string",
+    "version": "string",
+    "checksum": "string"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "name": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "artifact_ref": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "version": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "checksum": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  },
+  "package": {
+   "_meta": {
+    "id": "wc:ont00000024",
+    "label": {
+     "zh": "软件包",
+     "en": "Package"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Package`（逐字 software package）。★ 与 `application`／`service` 的边界待裁（包是「装什么」，应用是「跑什么」）。",
+    "_融合自上游": "上游 Package（software package）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "name": "string",
+    "version": "string",
+    "source": "string",
+    "installed": "bool"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "name": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "version": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "source": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "installed": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  },
+  "config": {
+   "_meta": {
+    "id": "wc:ont00000025",
+    "label": {
+     "zh": "配置",
+     "en": "Config"
+    },
+    "definition": "★ 2026-10-13 融合自上游 `ObjectKind::Config`（逐字 configuration object）。★ **口径待裁**：按我们「个体由本体得出、账本只是记录」的口径，配置**更应当是一条变更事件**而不是一等对象；本类先按你的令「没重叠就补充进来」补上，**处置待人裁**。",
+    "_融合自上游": "上游 Config（configuration object）",
+    "disjointWith": [
+     "notice",
+     "job",
+     "presence",
+     "surface",
+     "cell",
+     "port"
+    ],
+    "module": "A-01 ontology_definition"
+   },
+   "fields": {
+    "key": "string",
+    "value": "string",
+    "scope": "string"
+   },
+   "instance_mode": "many",
+   "_field_meta": {
+    "key": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "value": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    },
+    "scope": {
+     "required": null,
+     "options": null,
+     "is_primary_key": null,
+     "_依据": "★ 新补：本格今天没有依据（field_meta 照我们既有类的形状给位，值待人裁）"
+    }
+   }
+  }
  },
  "_links": {
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
@@ -10513,5 +10841,44 @@
    "unit",
    "identity"
   ]
+ },
+ "_public_cells": {
+  "_what": "★ 2026-10-13 新增：上游 `Object`（10 类共用的外壳）逐格对照 —— 它的「对象定义」就是这个外壳，10 类只是标签。",
+  "_source": "crates/aios-fs/src/object.rs 的 ObjectInit/Object（字段逐名现取）",
+  "cells": {
+   "object_id": {
+    "判": "吸收",
+    "说明": "与我们 identity.canonical_id 同一角色"
+   },
+   "kind": {
+    "判": "★ 由我们 _objects 决定",
+    "说明": "这正是 T-30 的靶子：不认识即拒"
+   },
+   "created_at": {
+    "判": "吸收为公共格",
+    "说明": "我们今天只有 record.at_time，没有类级公共时间格"
+   },
+   "created_by": {
+    "判": "吸收为公共格",
+    "说明": "同上的主体格"
+   },
+   "current_pointer_id": {
+    "判": "★ 冲突：不进语义面",
+    "说明": "它是「指针＝事实源」；我们口径「个体由本体得出、账本只是记录」"
+   },
+   "metadata": {
+    "判": "不进语义面",
+    "说明": "上游自己规定 metadata 永远非权威 ✓ 一致"
+   },
+   "privacy_class": {
+    "判": "融合借鉴",
+    "说明": "我们缺隐私级；它 5 级且默认 Sensitive"
+   },
+   "scope_binding": {
+    "判": "融合借鉴",
+    "说明": "SYSTEM/GROUP/USER ＋ group_id/user_id；我们缺作用域格"
+   }
+  },
+  "_已知冲突": "★ _shared_properties.properties.did.语域一致 = false（presence 是 array(string)、application/human/agent 是 string）—— 本仓 2026-10-12 已登记：不是笔误，是真实差异；融合前须先裁。"
  }
 }
