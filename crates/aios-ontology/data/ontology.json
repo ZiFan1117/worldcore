@@ -76,29 +76,6 @@
    ]
   }
  },
- "concepts": {
-  "_comment": "世界里有哪些实体、各有哪些字段（最小集；扩展走账本里的词表定义事件）",
-  "notice": {
-   "fields": {
-    "muted": "bool",
-    "retract_seq": "integer"
-   }
-  },
-  "job": {
-   "fields": {
-    "status": "enum(todo,doing,done)"
-   }
-  },
-  "presence": {
-   "fields": {
-    "name": "string",
-    "category": "string",
-    "state": "enum(installed,registered,running,stopped,retired)",
-    "did": "array(string)",
-    "last_seen": "integer  # UNIX 秒"
-   }
-  }
- },
  "flags": [],
  "_five_elements": {
   "_why_underscore": "★ 五要素分节一律挂在 `_` 前缀顶层键下。口径（本项目已定案）：`Ontology::vocab_hash` **递归剔除** `_` 开头的键 ⇒ 在 `_` 键下加分节**不换词表身份**（`fnv1a64:6a96abfa9a969462` 保持不变），而装载器照常读得到它们、存在性判据照做。**不许**为了加节去动任何非 `_` 顶层键。",
@@ -752,7 +729,25 @@
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
   "_comment": "『哪两类对象之间允许存在什么连接』。这是**一等声明**，不是外键。两端的类型必须已在 `_objects` 里声明，否则 `ext.world.Ontology.UndeclaredRelationEndpoint`。★ **关系是【世界里的一条记录】，不是两个应用之间的连线** —— 应用之间永远没有直连；两个应用「有关系」这件事，是世界从它自己的记录里【算】出来的（`C10 投递：「该给谁」由世界算`）。",
   "_declared_gaps": "★ **未实现／未接入**（判词 · 形式本体 Y-3a／判-2）：① **生产路径零读**——`Ontology::links()` 只有**定义处**（`src/ontology_definition/mod.rs`）与**一处测试调用**（`scripts/test/ontology_elements.rs` 的 `m04`）；世界**不执行**基数与方向性，也**没有**『从 `change` 折出关系实例』这条推断规则 ⇒ 主张『关系实例在账本里』今天**无载体**（把本节整节删空、装载照常通过）。② **时间性关系写成静态声明**——`runs-on`／`speaks-on` 是随时间变的关系，而 `LinkDecl` 四格里**没有**有效区间／起止 `seq` ⇒ 现取读法是**恒真**；BFO 2020 有出路（temporalized relations 分册，本地料 `.refs/bfo-2020/…/bfo-temporalized-relations.owl`），本仓未采用。③ **同词两义**：本节的 `part-of` 与 `_objects.<类型>.part_of`（内嵌标记的父类型名）共用 `part of` 一词；`_links` 那一条改名**不换身份**，内嵌那一格（`_objects.<类型>.part_of`）改名**同样不换身份**——`_objects` 也是 `_` 前缀键、被整枝剔除（`mod.rs:2149-2164`）；两者的代价都只是改代码里的读法，不是身份（只写提案）。",
-  "_2026-10-12_边的口径更正": "★ **2026-10-12 更正**：本批新加的 13 条边**第一版写错了**——本席把**边名的后半截**（如 `invokes`）当成**类型名**塞进了 `from`/`to`，Rust 装载器当场报 `ext.world.Ontology.UndeclaredRelationEndpoint: 关系 `action-invokes` 的 `from` 端指向未声明的类型 `invokes``。**★ `_links` 的 `from`/`to` 必须是【已声明的类型名】**（判据就是装载器自己）。现已逐条改成两端都是已声明类。★ **其中 `capability-borne-by-presence` 这条顺带补上了一个挂了很久的缺口**：`_interfaces._declared_gaps` 逐字「① **缺「承载者」**——本节 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in`」——本批在 `_links` 里立了 `capability-borne-by-presence`（**能力由在场者承载**）。★ **但如实说**：它今天只是**声明**（`_links` 的基数与方向**本就不执行**），**不是**「承载者那一格已经补全」——`_interfaces` 自己的 `bearer` 栏**仍然没有**。"
+  "_2026-10-12_边的口径更正": "★ **2026-10-12 更正**：本批新加的 13 条边**第一版写错了**——本席把**边名的后半截**（如 `invokes`）当成**类型名**塞进了 `from`/`to`，Rust 装载器当场报 `ext.world.Ontology.UndeclaredRelationEndpoint: 关系 `action-invokes` 的 `from` 端指向未声明的类型 `invokes``。**★ `_links` 的 `from`/`to` 必须是【已声明的类型名】**（判据就是装载器自己）。现已逐条改成两端都是已声明类。★ **其中 `capability-borne-by-presence` 这条顺带补上了一个挂了很久的缺口**：`_interfaces._declared_gaps` 逐字「① **缺「承载者」**——本节 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in`」——本批在 `_links` 里立了 `capability-borne-by-presence`（**能力由在场者承载**）。★ **但如实说**：它今天只是**声明**（`_links` 的基数与方向**本就不执行**），**不是**「承载者那一格已经补全」——`_interfaces` 自己的 `bearer` 栏**仍然没有**。",
+  "device-bound-to-human": {
+   "from": "device",
+   "to": "human",
+   "_依据": "★ 依据＝现取字段 `device.bound_to = ref(human)`（全仓唯一的 ref(...) 字段）",
+   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+  },
+  "service-runs-on-device": {
+   "from": "service",
+   "to": "device",
+   "_依据": "★ 依据＝旧边 `runs-on`（presence→presence，语法「跑在…上」）的语义继承：服务跑在设备上",
+   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+  },
+  "application-speaks-on-port": {
+   "from": "application",
+   "to": "port",
+   "_依据": "★ 依据＝旧边 `speaks-on`（presence→port）的语义继承：应用通过端口说话",
+   "_恢复自": "★ 2026-10-13：_links 曾被清到 0 条（撤 presence 带走 8 条）；本笔按作者令「要重新补边儿」补回有依据的"
+  }
  },
  "_interfaces": {
   "_element": "接口·能力（Interface）—— 可读／可配／可调",
@@ -11142,7 +11137,8 @@
   "_surface_cells 说明": "★ 原 `_objects.cell`（格）的字段形状（撤并后留在这里）：owner=ref(surface)／order／shown／label／value／tooltip／style／component／agentAction／localAction／enabled／retract_seq。★ 它现在由 `surface.cells`（array(object)）承载。",
   "_撤并登记（第五批）": "★ 2026-10-13 撤 cell（并进 surface）；改了 9 处：surface.fields.cells 新增（array(object)）；_objects.cell 撤 → _retired_objects；_links.cell-of 删除；_property_types.STRING.used_by 去 7 条 cell.*；_property_types.INTEGER.used_by 去 2 条 cell.*；_property_types.BOOLEAN.used_by 去 2 条 cell.*；_property_types.OBJECT_REFERENCE.used_by 去 1 条 cell.*；_governance.markings.by_class.cell 删除；_modules._by_entry.cell 删除",
   "_撤并登记（第六批）": "★ 2026-10-13 撤 presence（并成 _presence 状态面）；改了 18 处：_presence 节新建（含搬来的 _subject_kinds）；_objects.presence 撤 → _retired_objects；_links.runs-on 删除；_links.speaks-on 删除；_links.human-declares-presence 删除；_links.agent-declares-presence 删除；_links.application-declares-presence 删除；_links.service-declares-presence 删除；_links.device-declares-presence 删除；_links.workflow-declares-presence 删除；_actions.presence.report.param_type -> 取值域(6 种主体)；_functions.fn.presence.report.inputs.subject -> 取值域；_functions.fn.presence.report.output_type -> 取值域；_property_types.STRING.used_by 去 2 条 presence.*；_property_types.TIMESTAMP.used_by 去 1 条 presence.*；_governance.markings.by_class.presence 删除；_modules._by_entry.presence 删除；_governance.roles.roster.presence 删除（★ 但 subject_to_role 的实名照旧）",
-  "_撤并登记（第六批·补）": "★ 收尾：_property_types._P无对应 去 2 条；_standards._adopted[_objects.presence] 删除"
+  "_撤并登记（第六批·补）": "★ 收尾：_property_types._P无对应 去 2 条；_standards._adopted[_objects.presence] 删除",
+  "_撤并登记（第七批·合表与补边）": "★ 2026-10-13：concepts 删除（合表）→ 留档 _retired_sections.concepts；_links.device-bound-to-human 新增（device -> human）；_links.service-runs-on-device 新增（service -> device）；_links.application-speaks-on-port 新增（application -> port）"
  },
  "_presence": {
   "_what": "★ **在场状态面**（2026-10-13 撤 `presence` 类后立；作者裁定「甲」：在场是那 6 种主体的一个状态面，不是独立的类）。",
@@ -11171,5 +11167,35 @@
   "_states_依据": "★ 原文取 `presence.fields.state` 的枚举（撤类前现取）。",
   "_实名照旧（要紧）": "★★ `world://presence/omarchy`／`world://presence/pcmanfm` 这两个**实名不改** —— ★ 那里的 `presence` 是**命名空间段**，不是类名。★ 它们在 `_permissions.grants.*.scope` 里共 4 处。",
   "_与 concepts 的关系（★ 待人批）": "★★ `concepts.presence`（非 `_` 键、参与 `vocab_hash`）**今天仍在** ⇒ ★ 按本体口径这是 `ConceptsDrift`（身份侧与读路径不一致）⇒ ★ **动 `concepts` ＝ 换词表身份 ⇒ 要走评审** ⇒ ★ **待人批**。"
+ },
+ "_retired_sections": {
+  "concepts": {
+   "_what": "★ 2026-10-13 **作者裁定合表**：「要合成一张表，也不引用，就踏踏实实地弄成一张表。从来没有说是要弄两张的」（原文如此）。",
+   "_原设计说明（08 仓 ontology_definition/mod.rs:156-180 逐字摘要）": "「两处来源：身份 与 读路径 各认一处（本批的刻意处置）」——`_objects`＝读路径、不参与 vocab_hash；`concepts`＝身份、参与 vocab_hash；因出厂 vocab_hash 是内容地址已被断言钉死，故分两处；并如实声明「两份今天可能各说各话」。",
+   "_本仓现口径": "★ **只有一张：`_objects`**。★ `concepts` 已删（内容留档于此）⇒ ★ **实体清单不再有第二个载体**。",
+   "原 concepts 内容": {
+    "_comment": "世界里有哪些实体、各有哪些字段（最小集；扩展走账本里的词表定义事件）",
+    "notice": {
+     "fields": {
+      "muted": "bool",
+      "retract_seq": "integer"
+     }
+    },
+    "job": {
+     "fields": {
+      "status": "enum(todo,doing,done)"
+     }
+    },
+    "presence": {
+     "fields": {
+      "name": "string",
+      "category": "string",
+      "state": "enum(installed,registered,running,stopped,retired)",
+      "did": "array(string)",
+      "last_seen": "integer  # UNIX 秒"
+     }
+    }
+   }
+  }
  }
 }
