@@ -20,13 +20,7 @@ pub const CODE_ACTION_CAPABILITY_UNKNOWN: &str = "ext.world.Ontology.ActionCapab
 pub const CODE_FUNCTION_LITERAL_NOT_ALLOWED: &str = "ext.world.Ontology.FunctionLiteralNotAllowed";
 
 /// 五节，照本体 _five_elements._reading_order 逐字：对象 / 关系 / 接口能力 / 动作 / 函数。
-const SECTIONS: [&str; 5] = [
-    "objects",
-    "links",
-    "interfaces",
-    "actions",
-    "functions",
-];
+const SECTIONS: [&str; 5] = ["objects", "links", "interfaces", "actions", "functions"];
 
 /// 拒。每一条都带本仓现成的错误码。
 #[derive(Debug, PartialEq)]
