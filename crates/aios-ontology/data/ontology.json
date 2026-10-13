@@ -9513,7 +9513,6 @@
   "properties": {
    "did": {
     "used_by": [
-     "presence",
      "human",
      "agent",
      "application"
@@ -9529,7 +9528,6 @@
    },
    "last_seen": {
     "used_by": [
-     "presence",
      "human"
     ],
     "各处类型": {
@@ -9541,7 +9539,6 @@
    },
    "name": {
     "used_by": [
-     "presence",
      "surface",
      "port",
      "human",
@@ -9549,8 +9546,7 @@
      "application",
      "service",
      "device",
-     "workflow",
-     "capability"
+     "workflow"
     ],
     "各处类型": {
      "presence": "string",
@@ -9569,8 +9565,7 @@
    },
    "order": {
     "used_by": [
-     "surface",
-     "cell"
+     "surface"
     ],
     "各处类型": {
      "surface": "integer",
@@ -9581,10 +9576,7 @@
    },
    "retract_seq": {
     "used_by": [
-     "notice",
-     "job",
      "surface",
-     "cell",
      "port"
     ],
     "各处类型": {
@@ -9599,7 +9591,6 @@
    },
    "state": {
     "used_by": [
-     "presence",
      "port",
      "agent",
      "application",
@@ -9614,33 +9605,10 @@
     },
     "语域一致": false,
     "_说明": "★ 照 P 的 SharedProperty（A property that can be reused across multiple ObjectTypes ＋ used_by）建面。★★ 各处类型不一致 ⇒ 抽共享属性之前必须先裁：同名字段在不同类型上是不同类型（本席 2026-10-12 实测：同一格 did 在 presence 上是 array(string)、在 application 上是 string）——不是笔误，是真实差异，抄共享属性会把它抹平。"
-   },
-   "what": {
-    "used_by": [
-     "capability",
-     "permission"
-    ],
-    "各处类型": {
-     "capability": "string",
-     "permission": "string"
-    },
-    "语域一致": true,
-    "_说明": "★ 照 P 的 SharedProperty（A property that can be reused across multiple ObjectTypes ＋ used_by）建面。各处类型逐字一致 ⇒ 可以直接抽成共享属性。"
-   },
-   "who": {
-    "used_by": [
-     "record",
-     "permission"
-    ],
-    "各处类型": {
-     "record": "string",
-     "permission": "string"
-    },
-    "语域一致": true,
-    "_说明": "★ 照 P 的 SharedProperty（A property that can be reused across multiple ObjectTypes ＋ used_by）建面。各处类型逐字一致 ⇒ 可以直接抽成共享属性。"
    }
   },
-  "_判据": "scripts/verify/check_p_coverage.py 的 P-1（SharedProperty 要有落点）。"
+  "_判据": "scripts/verify/check_p_coverage.py 的 P-1（SharedProperty 要有落点）。",
+  "_本仓的读法（2026-10-13 重算）": "★ 本表从现取 `_objects.*.fields` 算出来（凡在 ≥2 个类型里出现的字段名）；★ 撤并后已按**活类**重算。今天条目 = 6。"
  },
  "_抄自P": {
   "_what": "★ 对账表：P 的构件，本仓抄了哪些、哪些明写不抄、哪些禁抄。作者 2026-10-12 令「必须包含它」——★ 本表就是「包含」的账：要么有面、要么明写为什么不要。",
@@ -9754,26 +9722,18 @@
    "config"
   ],
   "_ours_only": [
-   "notice",
-   "job",
-   "presence",
-   "surface",
-   "cell",
-   "port",
-   "human",
    "agent",
-   "service",
+   "application",
    "device",
-   "workflow",
-   "record",
-   "capability",
-   "action",
-   "permission",
-   "clock",
-   "unit",
-   "identity"
+   "human",
+   "ledger",
+   "port",
+   "service",
+   "surface",
+   "workflow"
   ],
-  "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `_objects`（19→25），已撤回**（依据：不在 `_objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`_proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `_objects` 19 类一致）。"
+  "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `_objects`（19→25），已撤回**（依据：不在 `_objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`_proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `_objects` 19 类一致）。",
+  "_ours_only_来历": "★ 2026-10-13 重算（原 18 项里 13 项是已撤的类）：本表是**现取**，从 `_objects` 算出来，不是另写一份。"
  },
  "_public_cells": {
   "_what": "★ 2026-10-13 新增：上游 `Object`（10 类共用的外壳）逐格对照 —— 它的「对象定义」就是这个外壳，10 类只是标签。",
