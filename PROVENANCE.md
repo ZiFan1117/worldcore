@@ -14,6 +14,8 @@
 | 上游 | `https://github.com/ai-os-dot-net/AI-Native-Linux.git` |
 | 取的那一版 | `babedc9eb8ee5ce57ba65a89607fb63cad8565ef`（2026-07-19 13:08:14 +0300，`Merge branch 'feature/r13.8-support-lifecycle' into 'main'`） |
 | 许可 | **Apache-2.0**（上游 `LICENSE` 随树进来，未改） |
+| **发行底座** | **`openSUSE Leap 16.x`（主版 16.0）**，x86_64 —— **[spec-locked]**：`distro/build/REV13-ENTERPRISE-SPEC.md:54-55` 逐字「`Base family \| openSUSE Leap 16.x`」「`Primary release \| openSUSE Leap 16.0`」；`distro/build/build-opensuse-rootfs.sh:10` 逐字「The default is openSUSE Leap 16.0, x86_64, with a 24-month support window」；EOL 默认 **2027-10-31** |
+| 桌面与 init | KDE Plasma ＋ SDDM；systemd（`distro/systemd/` 下的 unit）；根为**不可变只读 ＋ dm-verity（A/B）** |
 | 本地怎么来的 | 08 仓 `.refs/依赖仓/AI-Native-Linux` 的 checkout **去掉 `.git` 后整树拷贝** |
 | ★ 一件要紧事实 | **那份 clone 是 shallow（`depth 1`／`rev-list --count HEAD = 1`）** ⇒ **本仓不带上游历史**；联网后要历史就 `git remote add upstream https://github.com/ai-os-dot-net/AI-Native-Linux.git && git fetch upstream` |
 
