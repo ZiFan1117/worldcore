@@ -62,6 +62,18 @@
    "optional": [
     "payload"
    ]
+  },
+  "job": {
+   "_comment": "作业：一次由主体请求、由载体执行、留下起止与结果的发生。★ 2026-10-13 撤并：`job` 不再是独立的类（它答不出三问：零指认格）；它是本族之一。",
+   "required": [
+    "status",
+    "subject"
+   ],
+   "optional": [
+    "step",
+    "steps_total",
+    "step_label"
+   ]
   }
  },
  "concepts": {
@@ -943,83 +955,39 @@
     }
    }
   },
-  "record": {
+  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
+  "ledger": {
    "_meta": {
-    "id": "wc:ont00000013",
+    "id": "wc:ont00000030",
     "label": {
-     "zh": "记录",
-     "en": "Record"
+     "zh": "账本",
+     "en": "Ledger"
     },
-    "altLabel": {
-     "zh": [
-      "记录"
-     ],
-     "en": [
-      "Record"
-     ]
-    },
-    "definition": "★ 账本里的**那一条发生**（信息内容实体）：由某个主体（who）在某个序号（at_seq）与时刻（at_time）写下，其类别落在 of_kind（change／act／notice／job）。★ **2026-10-13 撤并**：`notice`／`job` **不再是独立的类**，它们是本类 `of_kind` 的取值（★ 依据：本体 `_objects._declared_gaps` ② 逐字「缺『记录／信息内容』这一类」）。★★ **待裁**：`at_time`／`who` 与账本信封的 `envelope.at`／`actor` **有重复** —— 谁为准，待人裁。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
-    "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。",
-    "_定义来历": "★ 2026-10-13 本席起草（原文是占位话「本批按缺口补立的类」）；★ 属承诺面，待人签。"
+    "definition": "★ 2026-10-13 **作者裁定补立**：世界里那**唯一的一处**系统性记录 —— 只追加的语义事件文件。★ 依据（作者原话逐字）：「**你要说是账本，可以说是单独的一个类，这个可以**……可能最后**整个计算机里头只有这么一处**」。★ 素材：`envelope.fields.seq` 逐字「integer # 在账本中的位置，全局单增，由世界分配」；`_actions.ledger.compact`（压实账本，不可逆）。",
+    "_裁定": "★ 人签 2026-10-13：「取值域 唯一」⇒ ① 撤 record 后 10 处类型改取值域；② ledger 用 instance_mode=one。",
+    "disjointWith": [
+     "presence",
+     "surface",
+     "cell",
+     "port",
+     "human",
+     "agent",
+     "application",
+     "service",
+     "device",
+     "workflow"
+    ],
+    "module": "A-01 ontology_definition"
    },
    "fields": {
-    "of_kind": "enum(change,act,notice,job)",
-    "at_seq": "integer",
-    "at_time": "integer  # UNIX 秒",
-    "who": "string"
+    "path": "string",
+    "compaction_seq": "integer",
+    "entries_total": "integer",
+    "retract_seq": "integer"
    },
-   "instance_mode": "many",
-   "_2026-10-12_字段改名之由": "★ **2026-10-12 改名**：本类第一版的字段是 \\kind\\／\\seq\\／\\\u0007t\\／\\\u0007ctor\\——**四个全是信封核心字段名**，Rust 装载器当场报 \\ext.world.Ontology.CoreCollision: 扩展项与核心字段重名\\。★ 书 §2.7 逐字：「核心之外由命名空间扩展，各方在自己的空间里定义自己的概念；核心之内不取交集，也不做删减」⇒ **扩展项 SHALL NOT 与核心字段重名**。★ 口径：**记录**是账本一行的**表示**，它引用信封的字段，但**不许占用核心名**——故改成 \\of_kind\\／\\\u0007t_seq\\／\\\u0007t_time\\／\\who\\。★ **判据是装载器自己**（CoreCollision），本席**没有改判据**。",
-   "_field_meta": {
-    "of_kind": {
-     "required": null,
-     "options": [
-      "change",
-      "act",
-      "notice",
-      "job"
-     ],
-     "is_primary_key": null,
-     "_依据": "★ 2026-10-13：`families` 三键 ＋ `job`（作业）—— 撤并后「记录的一族」的取值域",
-     "base_type": "STRING + constraints{options}",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "at_seq": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "at_time": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "TIMESTAMP",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "who": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。"
+   "instance_mode": "one",
+   "_field_meta": {}
+  }
  },
  "_links": {
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
@@ -1202,7 +1170,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(record)",
+     "param_type": "enum(change,act,notice,job)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `notice` ⇒ 类型取 `ref(notice)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1223,7 +1191,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(record)",
+     "param_type": "enum(change,act,notice,job)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `notice` ⇒ 类型取 `ref(notice)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1242,7 +1210,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(record)",
+     "param_type": "enum(change,act,notice,job)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1261,7 +1229,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(record)",
+     "param_type": "enum(change,act,notice,job)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1280,7 +1248,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(record)",
+     "param_type": "enum(change,act,notice,job)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1398,9 +1366,9 @@
     "display_name": "把一条通告静音",
     "description": "动作 notice.mute 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(record)"
+     "subject": "enum(change,act,notice,job)"
     },
-    "output_type": "record",
+    "output_type": "enum(change,act,notice,job)",
     "_note": "output_type=notice"
    },
    "fn.notice.unmute": {
@@ -1408,9 +1376,9 @@
     "display_name": "解除静音",
     "description": "动作 notice.unmute 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(record)"
+     "subject": "enum(change,act,notice,job)"
     },
-    "output_type": "record",
+    "output_type": "enum(change,act,notice,job)",
     "_note": "output_type=notice"
    },
    "fn.job.start": {
@@ -1418,9 +1386,9 @@
     "display_name": "起一个作业",
     "description": "动作 job.start 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(record)"
+     "subject": "enum(change,act,notice,job)"
     },
-    "output_type": "record",
+    "output_type": "enum(change,act,notice,job)",
     "_note": "output_type=job"
    },
    "fn.job.finish": {
@@ -1428,9 +1396,9 @@
     "display_name": "结束一个作业",
     "description": "动作 job.finish 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(record)"
+     "subject": "enum(change,act,notice,job)"
     },
-    "output_type": "record",
+    "output_type": "enum(change,act,notice,job)",
     "_note": "output_type=job"
    },
    "fn.job.cancel": {
@@ -1438,9 +1406,9 @@
     "display_name": "取消一个作业",
     "description": "动作 job.cancel 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(record)"
+     "subject": "enum(change,act,notice,job)"
     },
-    "output_type": "record",
+    "output_type": "enum(change,act,notice,job)",
     "_note": "output_type=job"
    },
    "fn.ledger.compact": {
@@ -8531,7 +8499,7 @@
       "主体",
       "信息实体"
      ],
-     "record": [
+     "ledger": [
       "记录",
       "信息实体"
      ]
@@ -9845,7 +9813,18 @@
   "value_types": {
    "_what": "P 的 ValueType：name／base_type／constraints／description ＋ validate()。",
    "_本仓今天": "★ 一条都没有 —— 本仓没有任何具名值类型面。",
-   "_要加": "在 _ 键下加 _types.value_types 的条目＋配会红判据；本批只建面。"
+   "_要加": "在 _ 键下加 _types.value_types 的条目＋配会红判据；本批只建面。",
+   "record_kind": {
+    "base_type": "string",
+    "options": [
+     "change",
+     "act",
+     "notice",
+     "job"
+    ],
+    "_依据": "★ 2026-10-13：撤 record 后，`ref(record)` 的 10 处改为本取值域（作者裁定「取值域」）；★ 四值＝`families` 四键。",
+    "_照谁": "P 的 `ValueType`（name + base_type + constraints）"
+   }
   },
   "value_type_constraints": {
    "pattern": "正则匹配（P 的 ValueType.validate 里用 re.match）",
@@ -10062,8 +10041,8 @@
     "how": "待裁：是否新增 file"
    },
    "MEMORY": {
-    "ours": "record",
-    "how": "待裁：是否新增 memory"
+    "ours": null,
+    "how": "★ 2026-10-13：record 已撤（它不是类）；本类在我们本体里**无对应**（候选 memory 仍在 _proposed_objects 待裁）"
    },
    "POLICY": {
     "ours": null,
@@ -10078,8 +10057,8 @@
     "how": "待裁：是否新增 package"
    },
    "EVIDENCE_REF": {
-    "ours": "record",
-    "how": "map：事实＝只追加账本"
+    "ours": "ledger",
+    "how": "★ 2026-10-13：record 撤（它不是类）；证据引用指向**账本** ⇒ 改 ledger"
    },
    "WORKSPACE": {
     "ours": "surface",
@@ -10202,8 +10181,7 @@
      "device.cert",
      "workflow.name",
      "workflow.wf_id",
-     "workflow.parent_action",
-     "record.who"
+     "workflow.parent_action"
     ]
    },
    "INTEGER": {
@@ -10213,8 +10191,7 @@
      "cell.order",
      "cell.retract_seq",
      "port.owner_uid",
-     "port.retract_seq",
-     "record.at_seq"
+     "port.retract_seq"
     ]
    },
    "FLOAT": {
@@ -10239,8 +10216,7 @@
    "TIMESTAMP": {
     "used_by": [
      "presence.last_seen",
-     "human.last_seen",
-     "record.at_time"
+     "human.last_seen"
     ]
    },
    "GEOHASH": {
@@ -10291,11 +10267,6 @@
    {
     "字段": "service.state",
     "类型串": "enum(running,stopped,retired)",
-    "说明": "STRING + constraints{options}"
-   },
-   {
-    "字段": "record.of_kind",
-    "类型串": "enum(change,act,notice)",
     "说明": "STRING + constraints{options}"
    }
   ],
@@ -11188,10 +11159,88 @@
       "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
      }
     }
+   },
+   "record": {
+    "_meta": {
+     "id": "wc:ont00000013",
+     "label": {
+      "zh": "记录",
+      "en": "Record"
+     },
+     "altLabel": {
+      "zh": [
+       "记录"
+      ],
+      "en": [
+       "Record"
+      ]
+     },
+     "definition": "★ 账本里的**那一条发生**（信息内容实体）：由某个主体（who）在某个序号（at_seq）与时刻（at_time）写下，其类别落在 of_kind（change／act／notice／job）。★ **2026-10-13 撤并**：`notice`／`job` **不再是独立的类**，它们是本类 `of_kind` 的取值（★ 依据：本体 `_objects._declared_gaps` ② 逐字「缺『记录／信息内容』这一类」）。★★ **待裁**：`at_time`／`who` 与账本信封的 `envelope.at`／`actor` **有重复** —— 谁为准，待人裁。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
+     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。",
+     "_定义来历": "★ 2026-10-13 本席起草（原文是占位话「本批按缺口补立的类」）；★ 属承诺面，待人签。"
+    },
+    "fields": {
+     "of_kind": "enum(change,act,notice,job)",
+     "at_seq": "integer",
+     "at_time": "integer  # UNIX 秒",
+     "who": "string"
+    },
+    "instance_mode": "many",
+    "_2026-10-12_字段改名之由": "★ **2026-10-12 改名**：本类第一版的字段是 \\kind\\／\\seq\\／\\\u0007t\\／\\\u0007ctor\\——**四个全是信封核心字段名**，Rust 装载器当场报 \\ext.world.Ontology.CoreCollision: 扩展项与核心字段重名\\。★ 书 §2.7 逐字：「核心之外由命名空间扩展，各方在自己的空间里定义自己的概念；核心之内不取交集，也不做删减」⇒ **扩展项 SHALL NOT 与核心字段重名**。★ 口径：**记录**是账本一行的**表示**，它引用信封的字段，但**不许占用核心名**——故改成 \\of_kind\\／\\\u0007t_seq\\／\\\u0007t_time\\／\\who\\。★ **判据是装载器自己**（CoreCollision），本席**没有改判据**。",
+    "_field_meta": {
+     "of_kind": {
+      "required": null,
+      "options": [
+       "change",
+       "act",
+       "notice",
+       "job"
+      ],
+      "is_primary_key": null,
+      "_依据": "★ 2026-10-13：`families` 三键 ＋ `job`（作业）—— 撤并后「记录的一族」的取值域",
+      "base_type": "STRING + constraints{options}",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "at_seq": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "at_time": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "TIMESTAMP",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "who": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
    }
   },
   "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除",
   "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：_links.action-invokes-capability 删除；_links.capability-borne-by-presence 删除；_links.identity-identifies-presence 删除；_links.permission-grants-capability 删除；_links.record-records-action 删除；_links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null",
-  "_撤并登记（第三批）": "★ 撤 job 同批改了 17 处：_storage_class_map.PROJECT.ours -> null；_storage_class_map.JOB.ours -> null；_property_types.STRING.used_by 去 1 条；_property_types.INTEGER.used_by 去 3 条；_property_types._P无对应 去 1 条；_actions.job.start.param_type -> ref(record)；_actions.job.finish.param_type -> ref(record)；_actions.job.cancel.param_type -> ref(record)；_functions.fn.job.start.inputs.subject -> ref(record)；_functions.fn.job.start.output_type -> record；_functions.fn.job.finish.inputs.subject -> ref(record)；_functions.fn.job.finish.output_type -> record；_functions.fn.job.cancel.inputs.subject -> ref(record)；_functions.fn.job.cancel.output_type -> record；_governance.markings.by_class.job 删除；_modules._by_entry.job 删除；_standards._adopted[_objects.job] 删除"
+  "_撤并登记（第三批）": "★ 撤 job 同批改了 17 处：_storage_class_map.PROJECT.ours -> null；_storage_class_map.JOB.ours -> null；_property_types.STRING.used_by 去 1 条；_property_types.INTEGER.used_by 去 3 条；_property_types._P无对应 去 1 条；_actions.job.start.param_type -> ref(record)；_actions.job.finish.param_type -> ref(record)；_actions.job.cancel.param_type -> ref(record)；_functions.fn.job.start.inputs.subject -> ref(record)；_functions.fn.job.start.output_type -> record；_functions.fn.job.finish.inputs.subject -> ref(record)；_functions.fn.job.finish.output_type -> record；_functions.fn.job.cancel.inputs.subject -> ref(record)；_functions.fn.job.cancel.output_type -> record；_governance.markings.by_class.job 删除；_modules._by_entry.job 删除；_standards._adopted[_objects.job] 删除",
+  "_撤并登记（第四批）": "★ 2026-10-13 撤 record、补 ledger；改了 25 处：families.job 新增；_objects.ledger 新增（instance_mode=one，★ 本体第一个 one）；_objects.record 撤 → _retired_objects；_actions.notice.mute.subject -> 取值域；_actions.notice.unmute.subject -> 取值域；_actions.job.start.subject -> 取值域；_actions.job.finish.subject -> 取值域；_actions.job.cancel.subject -> 取值域；_functions.fn.notice.mute.inputs.subject -> 取值域；_functions.fn.notice.mute.output_type -> 取值域；_functions.fn.notice.unmute.inputs.subject -> 取值域；_functions.fn.notice.unmute.output_type -> 取值域；_functions.fn.job.start.inputs.subject -> 取值域；_functions.fn.job.start.output_type -> 取值域；_functions.fn.job.finish.inputs.subject -> 取值域；_functions.fn.job.finish.output_type -> 取值域；_functions.fn.job.cancel.inputs.subject -> 取值域；_functions.fn.job.cancel.output_type -> 取值域；_types.value_types.record_kind 新增；_storage_class_map.EVIDENCE_REF.ours -> ledger；_property_types.STRING.used_by 去 1 条 record.*；_property_types.INTEGER.used_by 去 1 条 record.*；_property_types.TIMESTAMP.used_by 去 1 条 record.*；_modules._by_entry.record 删除；_modules._by_entry.ledger 新增",
+  "_撤并登记（第四批·补）": "★ 收尾：_storage_class_map.MEMORY.ours -> null；_property_types._P无对应 去 1 条 record.*"
  }
 }
