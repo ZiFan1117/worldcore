@@ -11,6 +11,13 @@ import os
 import subprocess
 import sys
 
+# ★ 输出与子进程都强制 UTF-8：本机默认 GBK，否则入口自己印中文就崩（2026-10-13 实测）
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+CHILD_ENV = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 CRITERIA = [
     "c1_upstream_parity.py",
@@ -27,7 +34,8 @@ def main(argv):
     for name in CRITERIA:
         path = os.path.join(HERE, name)
         cmd = [sys.executable, path] + (["--self-test"] if self_test else [])
-        p = subprocess.run(cmd, capture_output=True, text=True)
+        p = subprocess.run(cmd, capture_output=True, text=True, env=CHILD_ENV,
+                           encoding="utf-8", errors="replace")
         out = (p.stdout or "").strip()
         rows.append((name, p.returncode, out))
         if p.returncode == 1:

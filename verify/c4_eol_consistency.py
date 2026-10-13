@@ -21,6 +21,13 @@ import os
 import subprocess
 import sys
 
+# ★ 输出归一：本机（简中 Windows）默认 stdout 编码是 GBK，印中文会 UnicodeEncodeError 崩掉；
+#   判据必须在「没有 PYTHONUTF8 / PYTHONIOENCODING」的机器上也能跑（2026-10-13 被 teammate b 抓到）。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+
 NAME = "C4 纯行尾差异检测"
 
 
@@ -41,7 +48,7 @@ def judge(pairs):
 def collect():
     names = subprocess.run(
         ["git", "-c", "core.quotepath=false", "diff", "--name-only", "HEAD"],
-        capture_output=True, text=True, shell=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", shell=False,
     ).stdout.split()
     pairs = []
     for path in names:

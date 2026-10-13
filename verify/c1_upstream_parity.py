@@ -16,6 +16,13 @@ import os
 import subprocess
 import sys
 
+# ★ 输出归一：本机（简中 Windows）默认 stdout 编码是 GBK，印中文会 UnicodeEncodeError 崩掉；
+#   判据必须在「没有 PYTHONUTF8 / PYTHONIOENCODING」的机器上也能跑（2026-10-13 被 teammate b 抓到）。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+
 UPSTREAM_REF = "babedc9eb8ee5ce57ba65a89607fb63cad8565ef"   # 我们声明的基线（PROVENANCE.md）
 ALLOWED_PREFIXES = ("ninedim/", "verify/", ".gitattributes", "PROVENANCE.md")
 REGISTRY = os.path.join("verify", "allowed_upstream_edits.txt")
@@ -70,8 +77,11 @@ def judge_modes(summary_lines, exact, prefixes):
 
 
 def run(cmd):
-    p = subprocess.run(cmd, capture_output=True, text=True, shell=False)
-    return [line for line in p.stdout.splitlines() if line.strip()], p.returncode
+    # ★ 必须显式指定编码：默认走系统编码（简中 Windows ＝ GBK），
+    #   遇到非 ASCII 的 git 输出会解码失败 ⇒ p.stdout 变 None ⇒ 崩（2026-10-13 被 teammate b 抓到）
+    p = subprocess.run(cmd, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", shell=False)
+    return [line for line in (p.stdout or "").splitlines() if line.strip()], p.returncode
 
 
 def real():
