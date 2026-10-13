@@ -6,7 +6,7 @@
 #   · 否则      ＝ 精确路径
 # 空白行与 # 开头的行忽略。
 #
-Cargo.toml                                        # 登记我方新增 crate aios-ontology 的 workspace member  T-24
+Cargo.toml                                        # 登记我方新增 crate aios-ontology 的 workspace member（T-24）＋★ 2026-10-13 把 [profile.dev]/[profile.test] 的 debug 由 true 改 0（T-79：VM 磁盘 100G 仍放不下全量 test binary —— 82G 都是调试信息；改 0 后显著变小，只影响调试信息、不影响行为）  T-24/T-79
 crates/aios-ontology/                             # 我方新增 crate（worldcore 本体在 AIOS 侧的装载与校验面）  T-24
 crates/aios-cognitive/Cargo.toml                  # 加 aios-ontology 依赖（未登记动作名即拒的权威来源）  T-24
 crates/aios-cognitive/src/translator_engine.rs    # 装上本体闸：构造 Request 前查表，未登记即拒  T-24
