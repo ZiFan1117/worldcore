@@ -10611,7 +10611,7 @@
   "_为什么建": "作者 2026-10-12 令：「你不要叫读模型了，把所有的内容全改了，该叫人家本体叫什么，你用大家统一的说法。」★ 现取病根：同一个东西本仓同时用四个词 —— 投影 1736 处／实例 854 处／读模型 769 处／个体 320 处（2026-10-12 全仓现数）⇒ 谁多谁少都没定，这就是「该统一」的真凭据。",
   "唯一说法": {
    "账本": "只追加的事件日志；世界的唯一真相。★ 本体界没有这个概念（OWL 不做事件溯源）⇒ 这是本仓自己的词，照 ledger 译。",
-   "个体": "★ 世界里的那一条东西（如 world://cell/hello）。本体界叫 ABox／Individual。★ 它是账本折出来的（派生物）—— 因为它答不了「我在哪一刻是什么」，那要账本来指。",
+   "个体": "★ 世界里的那一条东西（如 world://cell/hello）。本体界叫 ABox／Individual。★★ 2026-10-13 **作者更正**：**个体由本体得出**（本体给它的类型与形状）；★ **账本只是系统性记录**，不是个体的来源 —— 因为个体答不了「我在哪一刻是什么」，那才要账本来指。",
    "类": "本体里声明的类型（_objects.<类>，现取 19 个）。本体界叫 TBox。",
    "投影": "渲染出口（project language 给程序读／project visual 给人看／日后 project voice）—— 把世界渲染成某一种形态。★ 和「个体」不是一回事：个体是世界里的东西，投影是把它渲染出来的那条路。",
    "快照": "加速用的持久副本（checkpoint 那一族），非真相；它与账本不一致时以账本为准（checkpoint verify 逐条核）。",
@@ -10804,24 +10804,7 @@
      "unit.code",
      "unit.dimension",
      "unit.system",
-     "identity.canonical_id",
-     "project.name",
-     "project.status",
-     "project.owner",
-     "file.path",
-     "file.content_ref",
-     "file.mime",
-     "memory.content",
-     "model.name",
-     "model.artifact_ref",
-     "model.version",
-     "model.checksum",
-     "package.name",
-     "package.version",
-     "package.source",
-     "config.key",
-     "config.value",
-     "config.scope"
+     "identity.canonical_id"
     ]
    },
    "INTEGER": {
@@ -10837,17 +10820,11 @@
      "port.owner_uid",
      "port.retract_seq",
      "record.at_seq",
-     "clock.epoch",
-     "project.retract_seq",
-     "file.size",
-     "file.retract_seq",
-     "memory.at_seq"
+     "clock.epoch"
     ]
    },
    "FLOAT": {
-    "used_by": [
-     "memory.confidence"
-    ]
+    "used_by": []
    },
    "DECIMAL": {
     "used_by": []
@@ -10858,8 +10835,7 @@
      "surface.visible",
      "cell.shown",
      "cell.enabled",
-     "capability.reversible",
-     "package.installed"
+     "capability.reversible"
     ]
    },
    "DATE": {
@@ -10872,8 +10848,7 @@
     "used_by": [
      "presence.last_seen",
      "human.last_seen",
-     "record.at_time",
-     "project.started_at"
+     "record.at_time"
     ]
    },
    "GEOHASH": {
@@ -10945,13 +10920,9 @@
     "字段": "identity.layer",
     "类型串": "enum(L1,L2,L3,L4)",
     "说明": "STRING + constraints{options}"
-   },
-   {
-    "字段": "memory.subject",
-    "类型串": "ref",
-    "说明": "?未映射"
    }
-  ]
+  ],
+  "_撤回后已清": "★ 2026-10-13（T-46）：本节原含 **25 条** 指向已撤回 6 类（project/file/memory/model/package/config）的结构化引用，**已删除**（承专家甲读数：「撤回不完整——_property_types 仍有 25 条结构化引用指向已撤的 6 个类」）。"
  },
  "_disjoint_policy": {
   "_what": "★ 2026-10-13 **按 W3C OWL 2 更正**：类之间**默认不互斥**。",
