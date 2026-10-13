@@ -1,0 +1,26 @@
+# 底线：**不改上游文件的行尾**（2026-10-13 立）
+#
+# 为什么：实测 `babedc9e` 上游树自己就混着 CRLF（例：distro/build/build-aios-iso.sh 有 2322 处 CR，
+# 与上游逐字节相同）。若在此强推 eol=lf，等于**我方单方面改了上游文件的行尾** ⇒ 与上游对比永远有假差异，
+# 分层乙的「手工搬 + 搬账」就废了。
+# 口径：本仓 core.autocrlf=false（checkout 什么就是什么），此处**只标二进制**，文本一律不动。
+#
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.gguf binary
+*.iso  binary
+*.img  binary
+*.vdi  binary
+*.zst  binary
+*.xz   binary
+*.gz   binary
+*.zip  binary
+*.tar  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
