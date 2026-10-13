@@ -9669,51 +9669,76 @@
    "entries": {
     "PROJECT": {
      "ours": null,
-     "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
+     "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 project 在 notes._proposed_objects，未采纳（0 读者）"
     },
     "APPLICATION": {
      "ours": "application",
-     "how": "merge：★ 唯一真对应"
+     "how": "merge：★ 唯一真对应",
+     "登记状态": "映射到本体类",
+     "_为什么是这个状态": "→ objects.application"
     },
     "FILE": {
-     "ours": "port",
-     "how": "待裁：是否新增 file"
+     "ours": null,
+     "how": "待裁：是否新增 file",
+     "_更正": "★ 2026-10-13 更正：原写 ours=port 是**错映射**（File 不是端口）；我方**无对应**（候选 file 仍在 notes._proposed_objects，未采纳）",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 file 在 notes._proposed_objects，未采纳"
     },
     "MEMORY": {
      "ours": null,
-     "how": "★ 2026-10-13：record 已撤（它不是类）；本类在我们本体里**无对应**（候选 memory 仍在 notes._proposed_objects 待裁）"
+     "how": "★ 2026-10-13：record 已撤（它不是类）；本类在我们本体里**无对应**（候选 memory 仍在 notes._proposed_objects 待裁）",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 memory 在 notes._proposed_objects，未采纳"
     },
     "POLICY": {
      "ours": null,
-     "how": "★ 2026-10-13 撤并：本体的 `objects.None` 已撤（规定面误补成的类）；条文仍活在其同名 `_` 节里"
+     "how": "★ 2026-10-13 撤并：本体的 `objects.None` 已撤（规定面误补成的类）；条文仍活在其同名 `_` 节里",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "我方的策略住在 permissions／governance（规定面），不是对象类"
     },
     "MODEL": {
      "ours": null,
-     "how": "待裁：可作 capability 的载体"
+     "how": "待裁：可作 capability 的载体",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 model 在 notes._proposed_objects，未采纳"
     },
     "PACKAGE": {
      "ours": null,
-     "how": "待裁：是否新增 package"
+     "how": "待裁：是否新增 package",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 package 在 notes._proposed_objects，未采纳"
     },
     "EVIDENCE_REF": {
      "ours": "ledger",
-     "how": "★ 2026-10-13：record 撤（它不是类）；证据引用指向**账本** ⇒ 改 ledger"
+     "how": "★ 2026-10-13：record 撤（它不是类）；证据引用指向**账本** ⇒ 改 ledger",
+     "登记状态": "映射到本体类",
+     "_为什么是这个状态": "→ objects.ledger"
     },
     "WORKSPACE": {
      "ours": "surface",
-     "how": "待裁：语义是否同一件事"
+     "how": "待裁：语义是否同一件事",
+     "登记状态": "映射到本体类",
+     "_为什么是这个状态": "→ objects.surface"
     },
     "CONFIG": {
      "ours": null,
-     "how": "待裁：按我们口径配置应是变更事件，最可能不建个体"
+     "how": "待裁：按我们口径配置应是变更事件，最可能不建个体",
+     "登记状态": "我方无对应（已登记）",
+     "_为什么是这个状态": "候选 config 在 notes._proposed_objects，未采纳"
     },
     "NOTICE": {
      "ours": null,
-     "how": "★ 2026-10-13 撤并：本体的 `objects.notice` 已撤（它是「规定面误补成的类」）；通告现为 `_families.notice`（记录的一族）"
+     "how": "★ 2026-10-13 撤并：本体的 `objects.notice` 已撤（它是「规定面误补成的类」）；通告现为 `_families.notice`（记录的一族）",
+     "登记状态": "已撤并（留痕）",
+     "_为什么是这个状态": "notice 类已撤（T-57）；家族仍在 families.notice"
     },
     "JOB": {
      "ours": null,
-     "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
+     "how": "★ 2026-10-13 撤并：本体的 objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值",
+     "登记状态": "已撤并（留痕）",
+     "_为什么是这个状态": "job 类已撤（T-60）；家族仍在 families.job"
     }
    },
    "_ours_missing": [
@@ -9736,7 +9761,10 @@
     "workflow"
    ],
    "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `objects`（19→25），已撤回**（依据：不在 `objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`notes._proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `objects` 19 类一致）。",
-   "_ours_only_来历": "★ 2026-10-13 重算（原 18 项里 13 项是已撤的类）：本表是**现取**，从 `objects` 算出来，不是另写一份。"
+   "_ours_only_来历": "★ 2026-10-13 重算（原 18 项里 13 项是已撤的类）：本表是**现取**，从 `objects` 算出来，不是另写一份。",
+   "_登记面的规则（2026-10-13 立）": "★ **本表就是「登记面」**：凡载体层（aios-fs 的 ObjectKind）收到的类型，都要在这里**有登记状态**。★ **未登记 ⇒ 拒**（T-30）。★ 状态四档：映射到本体类 ／ 我方无对应（已登记） ／ 已撤并（留痕） ／ 未登记（⇒ 拒）。",
+   "_登记面的权威": "★ **本体**（作者令：「围绕着我们本体转」）—— ★ 不是上游闭枚举，也不是载体自己。",
+   "_下游怎么用（★ 待做）": "★★ **生成**：★ 从本表**生成** aios-fs 侧的登记表（生成物；★ 由判据盯它不漂），**不是**让 aios-fs 依赖 aios-ontology（那会把依赖方向反过来）。"
   },
   "_public_cells": {
    "_what": "★ 2026-10-13 新增：上游 `Object`（10 类共用的外壳）逐格对照 —— 它的「对象定义」就是这个外壳，10 类只是标签。",
