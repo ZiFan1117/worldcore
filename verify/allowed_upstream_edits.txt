@@ -14,9 +14,4 @@ crates/aios-cognitive/tests/action_catalog_gate.rs # 我方新增产品测试（
 AGENTS.md                                         # 退役上游 GitNexus 说明书，换成本仓我方规约  T-25
 CLAUDE.md                                         # 退役上游 AIOS 说明书，换成本仓指针件  T-25
 README.md                                         # 退役上游前门，换成本仓前门  T-25
-crates/aios-fs/src/object.rs                      # ★ 把我们的两个对象类（Notice/Job）插进上游闭枚举 ObjectKind  T-29
-crates/aios-fs/src/in_memory.rs                   # ★ 字符串→类型入口认我们的名（NOTICE/JOB）  T-29
-crates/aios-fs/tests/our_object_kinds.rs          # 我方新增测试（我们的对象类能否成为个体类型）  T-29
-crates/aios-fs/src/query_eval.rs                    # ★ 补 ObjectKind 新变体的 token 分支（Notice/Job）  T-29
-crates/aios-fs/src/service/conversions.rs          # ★ 补 proto 双向转换分支（Notice/Job）  T-29
-crates/aios-fs/proto/aios.fs.v1alpha1.proto        # ★ proto 枚举加 NOTICE/JOB（否则 gRPC 面上丢身份）  T-29
+crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
