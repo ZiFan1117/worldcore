@@ -1,0 +1,460 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionDivider from '../components/SectionDivider.astro';
+import StatCard from '../components/StatCard.astro';
+
+const pillars = [
+  {
+    title: 'Capability Translator',
+    desc: 'Maps intent to known typed capabilities through catalog-bound translation, not shell generation.',
+  },
+  {
+    title: 'Latency Tiering',
+    desc: 'Routes simple commands through deterministic paths and escalates only when cognition is needed.',
+  },
+  {
+    title: 'AIOS-FS Contracts',
+    desc: 'Defines immutable objects, versions, chunks, pointer promotion, semantic views, and conflicts.',
+  },
+  {
+    title: 'Policy Kernel',
+    desc: 'Default-deny decision engine with hard denies, request-bound approvals, and simulation.',
+  },
+];
+
+const surfaces = [
+  { title: 'KDE Desktop', desc: 'Native Plasma shell, KRunner workflows, widgets, panels, tray, Wayland.' },
+  { title: 'Web Interface', desc: 'Remote and tablet access to the same state, same workflows, same cognitive core.' },
+  { title: 'CLI + Voice', desc: 'Low-friction text and voice surfaces over the same semantic runtime.' },
+];
+
+const bootFlow = [
+  'Install a minimal Linux base with a generic kernel.',
+  'Map the exact hardware, firmware, buses, devices, drivers, and threat surface.',
+  'Fetch trusted kernel sources and prepare a host-specific configuration.',
+  'Build a hardened kernel in a sandbox with reproducible evidence.',
+  'Boot the new kernel atomically and keep a recovery path through the base system.',
+];
+
+const runtimeFlow = [
+  { step: 'Goal', value: 'prepare Rust dev environment' },
+  { step: 'Plan', value: 'toolchain, IDE, checks, sample project' },
+  { step: 'Typed Action', value: 'package.install, file.write, service.enable' },
+  { step: 'Policy', value: 'approval, deny rules, scoped permissions' },
+  { step: 'Verify', value: 'cargo works, editor launches, evidence saved' },
+];
+
+const fsCells = [
+  { label: '/root', value: 'Recovery island. Small, protected, boring, always bootable.' },
+  { label: '/aios', value: 'Semantic filesystem root for apps, memory, state, evidence, and user work.' },
+  { label: 'App cells', value: 'Every application gets an isolated read/write work area and declared capabilities.' },
+  { label: 'Read-only base', value: 'System image is immutable by default. Changes are layered, audited, and reversible.' },
+];
+
+const rev3Planes = [
+  {
+    title: 'Explicit Security Posture',
+    desc: 'Four profiles — DEV_RELAXED, SECURE_DEFAULT, STIG_ALIGNED, AIRGAP_HIGH — plus a FIPS_STRICT overlay. Measured boot (TPM + firmware dual chain, IMA/EVM, dm-verity), a SELinux MAC plane, a STIG/NIST/CIS control map with scanner, SBOM/provenance/VEX, and GDPR right-to-erasure by crypto-shred.',
+  },
+  {
+    title: 'Governed App Capsules',
+    desc: 'Every app is a bounded capsule with rollback and evidence. Windows apps and games run through per-app Wine/Proton capsules. Package-agnostic intake (Package Rosetta) does shadow install with a package passport across deb, rpm, flatpak, snap, appimage, nix, oci, and source.',
+  },
+  {
+    title: 'Kernel Personality & Portability',
+    desc: 'Linux is the gold path. BSD, RTOS, microVM, WASI, and unikernel personalities are admitted only through a signed KernelCapabilityMatrix — never by pretending all kernels are equal. A need-driven adaptive kernel forge builds with canary boot.',
+  },
+  {
+    title: 'Driver & Firmware Capsules',
+    desc: 'Drivers are high-risk capsules: solved, lab-tested, signed, canary-booted, and rollbackable. Never "run the vendor script as root." Firmware moves through the same disciplined capsule plane.',
+  },
+  {
+    title: 'Native AI Control Plane',
+    desc: 'Three terminal modes — LX, MIX, AI — over a typed-action fabric, with EU AI Act technical controls and AI evaluation & model governance. "AI proposes, never executes": never root, never self-approves, never mutates evidence.',
+  },
+];
+
+const rev2Real = [
+  'The §22 golden path runs end-to-end with no stubs: recovery-safe boot, mount /aios, a versioned AIOS-FS object, a semantic view, one verified typed action, an append-only evidence chain, and a rendered result.',
+  'Every layer is REAL with E2+ evidence: cognitive core, policy kernel, capability runtime, AIOS-FS, vault broker, renderers (CLI / KDE / Web), network, hardware, and distribution.',
+  'The constitution is enforced in code, not prose — AI proposes-never-executes (INV-002 at six sites), recovery without cognition, secrets-as-capabilities, append-only evidence.',
+  'M20 discharged the last deferred surfaces: the L5 cognitive agent / plan / memory RPCs and the 22 Tier-3 verification primitives are now real and tested.',
+];
+
+const rev2Contracts = [
+  { label: 'L0', title: 'Constitutional Core', desc: '24 invariants, evidence grades E0–E5, status taxonomy, signed bundle loaded at boot.' },
+  { label: 'L1', title: 'Boot & Recovery', desc: 'First-boot stages, recovery boundary, dedicated kernel pipeline, fail-closed installer.' },
+  { label: 'L2', title: 'AIOS-FS', desc: 'Object model, query/view language, namespace layout, conflict resolution.' },
+  { label: 'L3', title: 'Service Graph Runtime', desc: 'Unit manifests, A/B promotion FSM, capability runtime gRPC, adapter model.' },
+  { label: 'L4', title: 'Policy + Identity + Vault', desc: 'Default-deny kernel, identity model, vault broker (use-without-reveal), approvals, override.' },
+  { label: 'L5', title: 'Cognitive Core', desc: 'Intent / planning / proposing FSM, capability translator, latency tiering, model router.' },
+  { label: 'L6', title: 'Apps + Compatibility', desc: 'Cross-ecosystem runtime, package object model, compatibility knowledge, sandbox composition.' },
+  { label: 'L7', title: 'Renderers', desc: 'Surface composition, shared UI schema, visual language, KDE Plasma + Web + CLI.' },
+  { label: 'L8', title: 'Network + Hardware', desc: 'Hardware graph, network policy, DNS/VPN, firmware trust, GPU resource model.' },
+  { label: 'L9', title: 'Observability', desc: 'Evidence log (FOREVER hash chain), verification grammar, failure handling, telemetry.' },
+  { label: 'L10', title: 'Distribution', desc: 'Repository model, marketplace, external bridges (Flathub/OCI/distro repos).' },
+  { label: 'XX', title: 'Cross-Cutting', desc: 'Action envelope, MVP golden path, constitutional meta-principles, ProxGuard reference.' },
+];
+
+const inv002Sites = [
+  { code: 'L4.2', site: 'Vault hard-deny', record: 'SUBJECT_KIND_REJECTED_FOR_VAULT' },
+  { code: 'L10', site: 'Package install gate', record: 'APP_AI_DIRECT_INSTALL_ATTEMPTED_BLOCKED' },
+  { code: 'L8.1', site: 'Network egress', record: 'AI_DIRECT_INTERNET_DENIED' },
+  { code: 'L3', site: 'Capability runtime queue', record: 'AI_INTERACTIVE_QUEUE_DOWNGRADE' },
+  { code: 'L5', site: 'Cognitive proposing FSM', record: 'AGENT_DIRECT_FS_WRITE_BLOCKED' },
+  { code: 'L0', site: 'Self-grading prohibition', record: 'AGENT_SELF_GRADING_BLOCKED' },
+];
+
+const proxguardCapabilities = [
+  'proxguard.service.simulate',
+  'proxguard.service.deploy',
+  'proxguard.dns.plan',
+  'proxguard.dns.apply',
+  'proxguard.gateway.route',
+  'proxguard.audit.read',
+];
+
+const proxguardAlignment = [
+  { aios: 'INV-002', proxguard: 'AI is OPTIONAL; AI output is advisory only', match: 'AI proposes, never executes' },
+  { aios: 'INV-002 site map', proxguard: 'Allowlisted CLI ops; no shell execution', match: 'Typed actions, not commands' },
+  { aios: 'INV-005', proxguard: 'sim.evidence_pack + prod.audit_event append-only', match: 'Evidence append-only' },
+  { aios: 'L3 / L9 boundary', proxguard: 'Production never calls orchestrator/simulation', match: 'Strict executor / evidence split' },
+  { aios: 'S15.3 Adapter Model', proxguard: 'RuntimeAdapter ABC: Docker / Kubernetes / Nomad', match: 'Runtime abstraction by adapter' },
+  { aios: 'Closed vocabulary', proxguard: 'Pinned error codes E001..E9xx', match: 'Closed-enum reject discipline' },
+];
+---
+
+<BaseLayout
+  title="AI-OS.NET - AI-Native Linux Distribution"
+  description="AI-OS.NET is an AI-native Linux distribution and a governed operating-system platform: goals become typed, policy-checked, verified system actions on top of a standard Linux substrate. Rev.2 — the constitutional core — is implemented; the workspace has since grown to 36 Rust crates with 7,000+ tests passing, and a bootable ISO on an openSUSE Leap 16 base now boots in QEMU; a ten-revision roadmap leads to an autonomous AI-OS."
+>
+  <section class="relative overflow-hidden py-28 md:py-32">
+    <div class="hero-glow"></div>
+    <div class="mx-auto grid max-w-content items-center gap-12 px-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <div>
+        <div class="animate inline-block rounded-badge bg-[rgba(206,40,103,0.08)] px-3 py-1.5">
+          <span class="font-body text-[11px] font-medium text-[#ce2867]">36 crates · 7,000+ tests · bootable ISO · gates green</span>
+        </div>
+        <h1 class="animate mt-6 font-heading text-[44px] font-bold leading-tight text-[var(--text)] md:text-[64px]" style="animation-delay:100ms">
+          AI-Native Linux.<br />A governed OS platform.
+        </h1>
+        <p class="animate mt-6 max-w-[680px] font-body text-[18px] leading-relaxed text-[var(--muted)]" style="animation-delay:200ms">
+          Revision 2 locked the constitutional core — 11 architectural layers of typed actions, policy decisions, AIOS-FS objects, verification, and append-only evidence — and it is implemented. From there the workspace grew into a real distribution — today 36 Rust crates with 7,000+ tests passing and all four cargo gates green: a bootable GRUB2 ISO on an openSUSE Leap 16 base that boots in QEMU, a KDE Plasma desktop variant, and a signed build-and-verify pipeline on self-hosted GitLab CI. The constitutional rule, "AI proposes, never executes," still leads.
+        </p>
+        <p class="animate mt-4 font-body text-[13px] text-[var(--muted)]" style="animation-delay:250ms">
+          An <a href="https://iconys.bg/products/ai-os" target="_blank" rel="noopener" class="text-[var(--text)] hover:text-[var(--accent)] transition-colors">iconys Engineering Intelligence</a> Linux distribution project.
+        </p>
+        <div class="animate mt-10 flex flex-col gap-4 sm:flex-row" style="animation-delay:300ms">
+          <a href="/features" class="btn btn-hero btn-primary no-underline">Explore the platform</a>
+          <a href="/roadmap" class="btn btn-hero no-underline border border-[var(--border)]">View the roadmap</a>
+        </div>
+      </div>
+
+      <div class="animate card card-lg relative overflow-hidden" style="animation-delay:200ms">
+        <div class="absolute right-6 top-6 h-2 w-2 rounded-full bg-[var(--accent)]"></div>
+        <div class="mx-auto max-w-[380px] py-2">
+          <img
+            src="/aios-hero.svg"
+            width="512"
+            height="512"
+            alt="AI-OS.NET — network octopus logo"
+            class="h-auto w-full drop-shadow-[0_2px_12px_rgba(206,40,103,0.16)]"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <div class="mt-8 rounded-[8px] border border-[var(--border)] bg-[var(--bg)] p-5">
+          <pre class="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[var(--muted)]">Human Goal
+  -&gt; Cognitive Core
+  -&gt; Semantic Runtime
+  -&gt; Policy Kernel
+  -&gt; Capability Runtime
+  -&gt; Linux / Cloud / Devices</pre>
+        </div>
+        <p class="mt-5 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+          One cognitive layer. Many render targets. One shared operational state.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-[var(--surface-1)] py-16">
+    <div class="mx-auto grid max-w-content grid-cols-2 gap-8 px-8 lg:grid-cols-4">
+      <div class="animate stagger-1">
+        <StatCard number="36" label="Rust Crates" description="One Cargo workspace — L0–L10 core plus the distribution layer" />
+      </div>
+      <div class="animate stagger-2">
+        <StatCard number="7,000+" label="Tests Passing" description="0 failed; all four cargo gates green" />
+      </div>
+      <div class="animate stagger-3">
+        <StatCard number="11" label="Layers REAL (E2+)" description="Every layer backed by evidence, not just spec" />
+      </div>
+      <div class="animate stagger-4">
+        <StatCard number="0" label="Deferred Surfaces" description="M20 discharged the last — cognition + verification" />
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="REVISION 2 — WHAT'S REAL TODAY" />
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+          Not a promise.<br />Working code.
+        </h2>
+        <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          Revision 2 is implemented. The eleven-layer L0–L10 model — now part of a 36-crate workspace with 7,000+ tests passing and all four cargo gates green — is running code, not a specification: the cognitive shell, policy kernel, and append-only evidence log, plus a bootable ISO that boots in QEMU.
+        </p>
+        <div class="mt-6 rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)] p-5">
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--accent)]">§22 golden path — FULL-REAL</span>
+          <pre class="mt-3 whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[var(--muted)]">recovery-safe boot
+  -&gt; mount /aios
+  -&gt; versioned AIOS-FS object
+  -&gt; semantic view
+  -&gt; verified typed action
+  -&gt; append-only evidence chain
+  -&gt; rendered result</pre>
+        </div>
+        <a href="/roadmap" class="mt-6 inline-block btn no-underline border border-[var(--border)]">View the full roadmap →</a>
+      </div>
+      <div class="grid grid-cols-1 gap-4">
+        {rev2Real.map((item, i) => (
+          <div class={`card animate stagger-${(i % 6) + 1}`}>
+            <div class="mb-3 h-2 w-2 rounded-full bg-[var(--accent)]"></div>
+            <p class="font-body text-[13px] leading-relaxed text-[var(--muted)]">{item}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="REVISION 3 — FIVE GOVERNED PLANES" />
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+      <div>
+        <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+          From constitution<br />to platform.
+        </h2>
+        <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          Rev.2 is the proven foundation. Rev.3 turns that constitutional core into a governed, AI-native operating-system platform — adding five planes that each stay inside the same discipline: typed, policy-checked, evidenced, rollbackable. This is contract-grade specification; the planes are pinned at CONTRACT grade with clean Capella traceability.
+        </p>
+        <p class="mt-4 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+          Zero forbidden layer inversions, zero consumes cycles, append-only evidence. Ten new invariants (INV-025..034) extend the constitution to cover the platform layer.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {rev3Planes.map((plane, i) => (
+          <div class={`card animate stagger-${(i % 6) + 1}`}>
+            <span class="font-mono text-[12px] text-[var(--accent)]">0{i + 1}</span>
+            <h3 class="mt-3 font-heading text-[17px] font-semibold text-[var(--text)]">{plane.title}</h3>
+            <p class="mt-2 font-body text-[13px] leading-relaxed text-[var(--muted)]">{plane.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture" class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="CORE IDEA" />
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+          A distribution,<br />not an assistant.
+        </h2>
+        <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          AIOS is a real Linux distribution. Linux stays the execution substrate — kernel, drivers, scheduler, syscalls — and AIOS adds a typed distribution layer on top: capability translation, latency routing, AIOS-FS object truth, policy decisions, verification, evidence, and sandbox composition. Rev.2 is the foundation that pins the layer; Rev.3 is the platform layer built on it.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {pillars.map((p, i) => (
+          <div class={`card animate stagger-${i + 1}`}>
+            <div class="mb-3 h-2 w-2 rounded-full bg-[var(--accent)]"></div>
+            <h3 class="font-heading text-[16px] font-semibold text-[var(--text)]">{p.title}</h3>
+            <p class="mt-2 font-body text-[13px] leading-relaxed text-[var(--muted)]">{p.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="runtime" class="bg-[var(--surface-1)] py-16">
+    <div class="mx-auto max-w-content px-8">
+      <SectionDivider label="EXECUTION MODEL" />
+      <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+        <div>
+          <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+            Goals become verified<br />typed actions.
+          </h2>
+          <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+            AI never directly executes shell commands. It proposes semantic operations. The Policy Kernel checks them. The Capability Runtime performs them through typed adapters. Verification proves the result.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 gap-3">
+          {runtimeFlow.map((item, i) => (
+            <div class={`animate stagger-${i + 1} grid grid-cols-[120px_1fr] gap-4 rounded-[8px] border border-[var(--border)] bg-[var(--bg)] p-4`}>
+              <span class="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--accent)]">{item.step}</span>
+              <span class="font-body text-[13px] text-[var(--muted)]">{item.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="CONSTITUTIONAL CORE" />
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+      <div>
+        <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+          AI proposes,<br />never executes.
+        </h2>
+        <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          INV-002 is the headline rule. Six independent enforcement sites turn it from aspirational language into a measurable runtime property. Every bypass attempt produces permanent forensic evidence — bounded AI agency becomes auditable, not just promised.
+        </p>
+        <p class="mt-4 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+          Tier 5 audit cycle 2: zero findings on the six-site enforcement map. The constitutional core is mechanically intact.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 gap-3">
+        {inv002Sites.map((site, i) => (
+          <div class={`animate stagger-${(i % 6) + 1} grid grid-cols-[60px_1fr_auto] items-center gap-4 rounded-[8px] border border-[var(--border)] bg-[var(--bg)] p-4`}>
+            <span class="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--accent)]">{site.code}</span>
+            <span class="font-body text-[13px] text-[var(--text)]">{site.site}</span>
+            <span class="font-mono text-[11px] text-[var(--muted)]">{site.record}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="REVISION 2 CONTRACTS BY LAYER" />
+    <p class="mx-auto mt-6 max-w-narrow text-center font-body text-[14px] leading-[1.7] text-[var(--muted)]">
+      The proven foundation. Eleven layers pinned at contract grade — the constitutional core that Rev.3's five governed planes build on.
+    </p>
+    <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {rev2Contracts.map((contract, i) => (
+        <div class={`card animate stagger-${(i % 6) + 1}`}>
+          <span class="font-mono text-[12px] text-[var(--accent)]">{contract.label}</span>
+          <h3 class="mt-3 font-heading text-[17px] font-semibold text-[var(--text)]">{contract.title}</h3>
+          <p class="mt-2 font-body text-[13px] leading-relaxed text-[var(--muted)]">{contract.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-[var(--surface-1)] py-16">
+    <div class="mx-auto max-w-content px-8">
+      <SectionDivider label="REFERENCE SYSTEM APP" />
+      <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <div class="inline-block rounded-badge bg-[rgba(206,40,103,0.08)] px-3 py-1.5">
+            <span class="font-body text-[11px] font-medium text-[#ce2867]">/aios/apps/proxguard</span>
+          </div>
+          <h2 class="mt-6 font-heading text-[28px] font-bold text-[var(--text)]">
+            Independent convergence<br />on the same disciplines.
+          </h2>
+          <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+            ProxGuard is a deterministic, auditable application control plane built independently from AIOS. Its constitution reaches the same architectural rules from the opposite direction — sim/prod separation, append-only evidence, typed-not-shell, AI-as-proposer.
+          </p>
+          <p class="mt-4 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+            Two systems converging on the same constitution without coordination is positive validation of the architecture. ProxGuard becomes the first sandboxed AIOS system app at <span class="font-mono text-[12px] text-[var(--text)]">/aios/apps/proxguard</span>, exposing typed capabilities while AIOS holds authority in policy, vault, sandbox, verification, and evidence.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {proxguardCapabilities.map((capability, i) => (
+            <div class={`animate stagger-${(i % 6) + 1} rounded-[8px] border border-[var(--border)] bg-[var(--bg)] p-4`}>
+              <span class="font-mono text-[11px] text-[var(--accent)]">{capability}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <h3 class="font-heading text-[18px] font-semibold text-[var(--text)]">Architectural alignment matrix</h3>
+        <div class="mt-4 grid grid-cols-1 gap-3">
+          {proxguardAlignment.map((row, i) => (
+            <div class={`animate stagger-${(i % 6) + 1} grid grid-cols-1 items-center gap-2 rounded-[8px] border border-[var(--border)] bg-[var(--bg)] p-4 md:grid-cols-[120px_1fr_1fr] md:gap-4`}>
+              <span class="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--accent)]">{row.aios}</span>
+              <span class="font-body text-[13px] text-[var(--text)]">{row.proxguard}</span>
+              <span class="font-body text-[12px] text-[var(--muted)]">{row.match}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="FIRST BOOT" />
+    <div class="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1fr]">
+      <div>
+        <div class="inline-block rounded-badge bg-[rgba(206,40,103,0.08)] px-3 py-1.5">
+          <span class="font-body text-[11px] font-medium text-[#ce2867]">Bootable ISO · openSUSE Leap 16 base · boots in QEMU</span>
+        </div>
+        <h2 class="mt-6 font-heading text-[28px] font-bold text-[var(--text)]">
+          Generic boot.<br />Dedicated host.
+        </h2>
+        <p class="mt-4 font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          The crates are no longer only a workspace — a real GRUB2 ISO on an openSUSE Leap 16 enterprise base now boots in QEMU. The base starts with a stable generic Linux kernel; after installation, AI-OS builds a machine-specific hardened kernel in a sandbox, validates it, and switches only after evidence passes.
+        </p>
+        <p class="mt-4 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+          A signed distribution pipeline — check, test, lint, build, assemble, verify — and an unattended installer with update and rollback are landing on the self-hosted GitLab CI. Enterprise hardening (Secure Boot / TPM measured boot, SELinux, dm-verity) is in progress; nothing here claims certification it has not earned.
+        </p>
+      </div>
+      <div class="flex flex-col gap-3">
+        {bootFlow.map((step, i) => (
+          <div class={`card card-compact animate stagger-${i + 1}`}>
+            <span class="font-mono text-[12px] text-[var(--accent)]">0{i + 1}</span>
+            <p class="mt-1 font-body text-[13px] leading-relaxed text-[var(--muted)]">{step}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="filesystem" class="bg-[var(--surface-1)] py-16">
+    <div class="mx-auto max-w-content px-8">
+      <SectionDivider label="AIOS-FS" />
+      <div class="mt-8 text-center">
+        <h2 class="font-heading text-[28px] font-bold text-[var(--text)]">
+          Recovery stays boring.<br />The new system lives in /aios.
+        </h2>
+        <p class="mx-auto mt-4 max-w-narrow font-body text-[15px] leading-[1.7] text-[var(--muted)]">
+          AIOS-FS is a semantic filesystem direction: read-only base, isolated app cells, persistent evidence, typed metadata, and human-readable recovery outside the cognitive layer.
+        </p>
+      </div>
+      <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {fsCells.map((cell, i) => (
+          <div class={`card animate stagger-${i + 1}`}>
+            <span class="font-mono text-[12px] text-[var(--accent)]">{cell.label}</span>
+            <p class="mt-3 font-body text-[13px] leading-relaxed text-[var(--muted)]">{cell.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-content px-8 py-16">
+    <SectionDivider label="UNIFIED UX" />
+    <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+      {surfaces.map((surface, i) => (
+        <div class={`card card-lg animate stagger-${i + 1}`}>
+          <h3 class="font-heading text-[18px] font-semibold text-[var(--text)]">{surface.title}</h3>
+          <p class="mt-3 font-body text-[13px] leading-relaxed text-[var(--muted)]">{surface.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-[var(--surface-1)] py-16 text-center">
+    <h2 class="animate font-heading text-[32px] font-bold text-[var(--text)]">Not commands.<br />A governed platform.</h2>
+    <p class="animate mx-auto mt-4 max-w-narrow font-body text-[15px] leading-relaxed text-[var(--muted)]" style="animation-delay:200ms">
+          Revision 2 is the proven constitutional core: action envelopes, capability translation, latency tiers, AIOS-FS, policy, verification, evidence, and sandbox composition. Revision 3 builds on it with five governed planes — security posture, app capsules, kernel portability, driver capsules, and a native AI control plane.
+    </p>
+    <div class="animate mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row" style="animation-delay:400ms">
+      <a href="/features" class="btn btn-hero btn-primary no-underline">Explore the platform</a>
+      <a href="/roadmap" class="btn btn-hero no-underline border border-[var(--border)]">View the roadmap</a>
+    </div>
+  </section>
+</BaseLayout>

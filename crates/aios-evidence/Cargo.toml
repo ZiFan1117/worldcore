@@ -1,0 +1,83 @@
+[package]
+name = "aios-evidence"
+description = "AIOS S3.1 — Evidence Log foundation (rev.2 aios.evidence.v1alpha1). EvidenceReceipt envelope + append-only hash chain encoding INV-005 at the type level."
+edition.workspace = true
+rust-version.workspace = true
+# T-015 / M2 closure: first feature-complete milestone for the evidence-log
+# crate. M2 ships the full append/seal/query/subscribe/persistence/redaction/
+# privacy/compaction pipeline per S3.1. The version is independent of the
+# workspace `0.0.1` to signal milestone parity without forcing every other
+# in-tree crate (still pre-M1 in many cases) into a coordinated bump. The
+# API is NOT yet stable — Wave 14+ payload schemas, cold-tier offload, and
+# the policy-kernel/capability-runtime wiring queue for M3+.
+version = "0.1.0"
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+# First cross-crate consumer of `aios-action` — uses EvidenceReceiptId, ActionId,
+# and the canonical BLAKE3 + JCS helpers (see `aios_action::canonical`).
+aios-action = { path = "../aios-action" }
+
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+serde_jcs   = { workspace = true }
+thiserror   = { workspace = true }
+blake3      = { workspace = true }
+tracing     = { workspace = true }
+chrono      = { workspace = true }
+# T-008: closed `RecordType` covers 427 variants; strum derives provide
+# compile-time `EnumIter` + `EnumCount` so coverage tests run without
+# hand-maintaining a parallel variant table.
+strum        = { workspace = true }
+strum_macros = { workspace = true }
+# T-009: Ed25519 receipt signing path (S3.1 §5.2 / §11.3 / §28.5). Production
+# signing keys are issued by S5.2 Vault Broker for the constitutional subject
+# `_system:service:evidence-segment-signer`; the broker hands the evidence-log
+# service a capability that performs the sign operation. The dependency here
+# carries the verifier surface and the test-only ephemeral keygen path.
+ed25519-dalek = { workspace = true }
+# T-011: gRPC service surface (S3.1 §9 / §17). tonic provides the runtime
+# server/client transports; prost is the generated-code dependency (proto3
+# message types); tokio is the async runtime (mandatory for tonic). The
+# in-memory backend uses tokio_stream to bridge the server-streaming RPCs
+# (`Subscribe`, `Query`) onto its internal channel state. async-trait is
+# required because tonic 0.12 still emits trait methods that return `impl
+# Future` via macro expansion; downstream impls must declare `#[async_trait]`.
+tonic        = { workspace = true }
+prost        = { workspace = true }
+prost-types  = { workspace = true }
+tokio        = { workspace = true }
+tokio-stream = { workspace = true }
+async-trait  = { workspace = true }
+# T-012: RocksDB persistence backend (S3.1 §7.2 / §11.4). 6 column families,
+# WAL sync = true, WAL_recovery_mode = AbsoluteConsistency. The RocksDB
+# handle is internally thread-safe for reads — we wrap it in `Arc<DB>` and
+# share it across the gRPC handler tasks.
+rocksdb     = { workspace = true }
+
+[build-dependencies]
+# T-011: tonic-build invokes `protoc` and emits the Rust server stubs
+# (`evidence_log_server::*`) + client stubs (`evidence_log_client::*`) into
+# `OUT_DIR`. See `build.rs` for the invocation; see `src/service/mod.rs` for
+# the `include_proto!` glue. The `protoc-bin-vendored` crate provides a
+# pre-built protoc binary so the build does not require a system install.
+tonic-build         = { workspace = true }
+protoc-bin-vendored = { workspace = true }
+
+[dev-dependencies]
+# Tests mint ephemeral Ed25519 keypairs via the OS CSPRNG. Production never
+# does — keys come from S5.2 (see receipt.rs module-level doc).
+rand_core = { workspace = true }
+# Integration tests for the gRPC roundtrip need the async runtime macros
+# (`#[tokio::test]`) and the client transport channel.
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+# T-012: persistence tests create ephemeral RocksDB directories. `tempfile`
+# returns a `TempDir` whose `Drop` impl recursively deletes the contents on
+# scope exit — keeping test runs hermetic.
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

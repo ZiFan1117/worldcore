@@ -1,0 +1,20 @@
+[Unit]
+Description=AI-OS.NET Evidence Log
+Documentation=https://ai-os.net/docs/evidence-log
+Before=aios-capability-runtime.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/aios/aios-system run-service aios-evidence-log --config /etc/aios/config.toml
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# /var/lib/aios/state: run-service writes its readiness state file there
+ReadWritePaths=/var/lib/aios/evidence /run/aios /var/lib/aios/state
+NoNewPrivileges=yes
+SELinuxContext=-system_u:system_r:aios_evidence_log_t:s0
+
+[Install]
+WantedBy=multi-user.target

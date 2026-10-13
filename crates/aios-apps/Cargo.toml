@@ -1,0 +1,51 @@
+[package]
+name = "aios-apps"
+description = "AIOS L6 Apps/Packages/Compatibility typed skeleton — PackageObjectKind, EcosystemRuntime, OrchestrationKind, CompatibilityRating, SessionContainerState."
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+build = "build.rs"
+
+[dependencies]
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+chrono         = { workspace = true }
+strum          = { workspace = true }
+strum_macros   = { workspace = true }
+thiserror      = { workspace = true }
+ulid           = { workspace = true }
+blake3         = { workspace = true }
+ed25519-dalek  = { workspace = true }
+tokio          = { workspace = true }
+tracing        = { workspace = true }
+async-trait    = { workspace = true }
+tonic          = { workspace = true }
+prost          = { workspace = true }
+prost-types    = { workspace = true }
+aios-action              = { path = "../aios-action" }
+aios-capability-runtime   = { path = "../aios-capability-runtime" }
+aios-sgr                  = { path = "../aios-sgr" }
+aios-sandbox              = { path = "../aios-sandbox" }
+aios-evidence             = { path = "../aios-evidence" }
+# L6 → L5 (legal: depend on lower layers only; aios-cognitive has no dep on
+# aios-apps, so this is acyclic). Backs the cognitive proposal seam in
+# `cognitive_bridge` — see COGNITIVE_PROPOSER_CONTRACT in environment_plan.
+aios-cognitive            = { path = "../aios-cognitive" }
+
+[build-dependencies]
+tonic-build          = { workspace = true }
+protoc-bin-vendored  = { workspace = true }
+
+[dev-dependencies]
+serde_json     = { workspace = true }
+rand_core      = { workspace = true }
+tokio          = { workspace = true }
+tokio-stream   = { workspace = true }
+tonic          = { workspace = true }
+prost-types    = { workspace = true }
+
+[lints]
+workspace = true

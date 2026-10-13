@@ -1,0 +1,66 @@
+[package]
+name = "aios-renderer-kde"
+description = "AIOS L7 KDE Plasma renderer typed skeleton — NodeKind, CompositionZone, ZoneLayer, VisualToken, KdeSurfaceDescriptor, KdeRendererError (S7.4)"
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+build = "build.rs"
+
+[dependencies]
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+thiserror      = { workspace = true }
+tracing        = { workspace = true }
+chrono         = { workspace = true }
+ulid           = { workspace = true }
+strum          = { workspace = true }
+strum_macros   = { workspace = true }
+tokio          = { workspace = true }
+async-trait    = { workspace = true }
+ed25519-dalek  = { workspace = true }
+blake3         = { workspace = true }
+tonic          = { workspace = true }
+prost          = { workspace = true }
+prost-types    = { workspace = true }
+aios-action    = { path = "../aios-action" }
+aios-apps      = { path = "../aios-apps" }
+aios-evidence  = { path = "../aios-evidence" }
+aios-policy    = { path = "../aios-policy" }
+# Shared design-token vocabulary (color/spacing/radius/typography) — the single
+# source of truth the Web renderer also emits from, giving cross-renderer visual
+# parity (parity proven in aios-design-tokens/tests/parity.rs).
+aios-design-tokens = { path = "../aios-design-tokens" }
+
+# Rev.6: Real Wayland compositor binding for KDE Plasma
+wayland-client         = { version = "0.31", features = ["dlopen"] }
+wayland-protocols      = { version = "0.32", features = ["client", "unstable"] }
+wayland-protocols-wlr  = { version = "0.3", features = ["client"] }
+
+# T-136: optional cxx-qt bridge (off by default → headless CI skips Qt6 build)
+cxx-qt     = { workspace = true, optional = true }
+cxx-qt-lib = { workspace = true, optional = true }
+# cxx must be a DIRECT dependency so cxxbridge-macro is registered with the
+# compiler. When cxx is only transitive, the compiler cannot process the
+# #[cxx::bridge] modules that cxx-qt's proc macro generates at expansion time.
+cxx        = { workspace = true }
+
+[features]
+default = []
+qt-bridge = ["cxx-qt", "cxx-qt-lib"]
+
+[build-dependencies]
+tonic-build          = { workspace = true }
+protoc-bin-vendored  = { workspace = true }
+cxx-qt-build         = { workspace = true }
+
+[dev-dependencies]
+tokio          = { workspace = true }
+tokio-stream   = { workspace = true }
+tonic          = { workspace = true }
+rand_core      = { workspace = true }
+
+[lints]
+workspace = true

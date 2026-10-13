@@ -1,0 +1,59 @@
+[package]
+name = "aios-renderer-web"
+description = "AIOS L7 Web renderer typed skeleton — WebRendererError, ExposureLevel, OriginScheme, WebSurfaceDescriptor (S7.5)"
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+thiserror      = { workspace = true }
+tracing        = { workspace = true }
+chrono         = { workspace = true }
+ulid           = { workspace = true }
+tokio          = { workspace = true, features = ["sync", "macros"] }
+async-trait    = { workspace = true }
+ed25519-dalek  = { workspace = true }
+tonic          = { workspace = true }
+prost          = { workspace = true }
+prost-types    = { workspace = true }
+aios-action    = { path = "../aios-action" }
+aios-evidence  = { path = "../aios-evidence" }
+aios-policy    = { path = "../aios-policy" }
+aios-renderer-kde = { path = "../aios-renderer-kde" }
+aios-apps          = { path = "../aios-apps" }
+aios-renderer-cli  = { path = "../aios-renderer-cli" }
+# Shared design-token vocabulary (color/spacing/radius/typography) — the single
+# source of truth the KDE renderer also emits from, giving cross-renderer visual
+# parity (parity proven in aios-design-tokens/tests/parity.rs).
+aios-design-tokens = { path = "../aios-design-tokens" }
+
+# T-143: HTTPS server + self-signed cert (INV I9 + INV-006)
+rustls        = "0.23"
+rustls-pemfile = "2"
+rcgen         = "0.13"
+hyper         = { version = "1", features = ["server", "http1", "http2"] }
+hyper-util    = { version = "0.1", features = ["tokio", "server"] }
+tokio-rustls  = "0.26"
+http-body-util = "0.1"
+
+# T-145: gRPC-Web bridge transport
+tonic-web = "0.12"
+tower     = { version = "0.5", features = ["util", "limit"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+[build-dependencies]
+tonic-build = { workspace = true }
+protoc-bin-vendored = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }
+tokio-stream = { workspace = true }
+rand_core = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="ftitle fdesc">
+  <title id="ftitle">AI-OS.NET octopus favicon</title>
+  <desc id="fdesc">Simplified geometric octopus silhouette on a dark rounded square, gradient from raspberry to violet.</desc>
+  <defs>
+    <linearGradient id="favMantle" x1="150" y1="118" x2="362" y2="330">
+      <stop offset="0%" stop-color="#ce2867" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="#09090b" />
+
+  <g fill="none" stroke="url(#favMantle)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M196 292C150 320 120 360 130 410C136 440 165 452 190 438" stroke-width="26" />
+    <path d="M232 300C218 336 212 372 222 405" stroke-width="22" />
+    <path d="M280 300C294 336 300 372 290 405" stroke-width="22" />
+    <path d="M316 292C362 320 392 360 382 410C376 440 347 452 322 438" stroke-width="26" />
+  </g>
+
+  <path d="M256 108C334 108 372 162 368 230C366 268 348 294 318 302L194 302C164 294 146 268 144 230C140 162 178 108 256 108Z" fill="url(#favMantle)" />
+
+  <circle cx="212" cy="206" r="27" fill="#f5f5f5" />
+  <circle cx="300" cy="206" r="27" fill="#f5f5f5" />
+  <circle cx="212" cy="206" r="12" fill="#09090b" />
+  <circle cx="300" cy="206" r="12" fill="#09090b" />
+</svg>

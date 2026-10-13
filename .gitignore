@@ -1,0 +1,57 @@
+# Logs from external tooling
+firebase-debug.log
+*.log
+
+# Playwright MCP captures
+.playwright-mcp/
+
+# AI agent / IDE local config (kept empty in tree)
+.agents/
+.codex/
+
+# Local brand/source media workspace.
+# Site-ready public assets live under site/public/.
+logo/
+
+# Private funding / grant research — must NOT be committed to the public repo.
+# (Public grant records live under 003.GRANT_APPLICATIONS/.)
+docs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Future build outputs (placeholders for when implementation begins)
+target/
+node_modules/
+dist/
+.astro/
+/build/
+__pycache__/
+*.pyc
+distro/build/out/
+distro/build/aios-rev*.iso
+distro/first-boot/target/
+.ai/scratch/
+
+# Capella tooling
+tools/capella/.venv/
+tools/capella/.capella-venv/
+tools/capella/output/build_report.json
+tools/capella/output/gap_report.json
+
+# aios-renderer-web Next.js build artefacts
+crates/aios-renderer-web/web-app/node_modules/
+crates/aios-renderer-web/web-app/.next/
+crates/aios-renderer-web/web-app/out/
+crates/aios-renderer-web/web-app/tsconfig.tsbuildinfo
+crates/aios-renderer-web/web-app/pnpm-workspace.yaml
+rust_out
+.gitnexus
+.claude/
+distro/build/aios-rev11-kde*.iso
+
+# Generated compliance audit exports (aios-compliance-export.py)
+distro/compliance/export/

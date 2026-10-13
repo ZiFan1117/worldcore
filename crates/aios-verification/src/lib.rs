@@ -1,0 +1,52 @@
+//! `aios-verification` — typed core skeleton for S2.4 Verification Grammar.
+//!
+//! T-064 intentionally stops at the S2.4 type surface: verification intents,
+//! result records, closed status / primitive vocabularies, and the error
+//! taxonomy. T-068 adds real composition execution while the gRPC surface,
+//! evidence emission, and runtime / renderer integrations remain later M8 tasks.
+
+#![forbid(unsafe_code)]
+
+pub mod engine;
+pub mod error;
+pub mod evidence_emit;
+pub mod evidence_payloads;
+pub mod executor;
+pub mod grammar;
+pub mod grammar_parser;
+pub mod in_memory_engine;
+pub mod intent;
+pub mod primitive;
+pub mod primitives;
+pub mod result;
+pub mod runtime_adapter;
+pub mod service;
+
+pub use engine::{VerificationContext, VerificationEngine};
+pub use error::VerificationError;
+pub use evidence_emit::{
+    InMemoryVerificationEvidenceLog, SubjectRef, VerificationEvidenceEmitter,
+    VerificationEvidenceLog, AIOS_VERIFICATION_SUBJECT,
+};
+pub use evidence_payloads::{
+    PrimitiveExecutedPayload, VerificationResultPayload, VerificationStartedPayload,
+};
+pub use executor::VerificationExecutor;
+pub use grammar::{
+    PrimitiveInvocation, VerificationDuration, VerificationDurationUnit, VerificationGrammar,
+};
+pub use in_memory_engine::{compile_intent, InMemoryVerificationEngine};
+pub use intent::{IntentId, VerificationIntent};
+pub use primitive::VerificationPrimitive;
+pub use primitives::{
+    LocalProbe, MockLocalProbe, MockStateProbe, StateProbe, StdLocalProbe, StdStateProbe,
+};
+pub use result::{PrimitiveResult, VerificationResult, VerificationStatus};
+pub use runtime_adapter::VerificationRuntimeAdapter;
+pub use service::{
+    build_router, serve, VerificationEngineClient, VerificationEngineGrpc,
+    VerificationEngineGrpcServer, VerificationEngineService, SCHEMA_VERSION,
+};
+
+/// Default Rust crate code version reported by the T-073 gRPC service adapter.
+pub const DEFAULT_CODE_VERSION: &str = "0.1.0-T073";

@@ -1,0 +1,526 @@
+{
+  "schema": "aios.compliance.control-map.v1",
+  "revision": "R13.8",
+  "description": "Distro-level CIS + STIG-aligned control map. Each control links a concrete CIS/STIG control to the AIOS mechanism that enforces it and a resolvable enforcement_ref in THIS repository. Validated by validate-controls.py; the crate-level ControlMapRegistry (crates/aios-integration/src/control_map.rs) maps AIOS invariants to external control FAMILIES and owns runtime drift/baseline snapshots. This artifact is the operator-facing, file-grounded counterpart.",
+  "enforcement_ref_format": "repo-relative path, optionally suffixed with '::<literal-marker>' (a substring that MUST be present in the file, e.g. a systemd directive, kernel CONFIG_ flag, or code token). null == documented-only / aspirational.",
+  "mechanism_vocabulary": [
+    "aios-policy",
+    "systemd-hardening",
+    "selinux",
+    "kernel-config",
+    "evidence-log",
+    "boot-integrity",
+    "update-signature"
+  ],
+  "status_vocabulary": ["enforced", "partial", "documented"],
+  "baseline_vocabulary": ["cis", "stig", "eu-ai-act"],
+  "baseline_notes": {
+    "eu-ai-act": "EU Regulation 2024/1688 (AI Act) mapped from the PLATFORM/deployer perspective. AI-OS.NET is a compliance-ENABLING substrate, not a high-risk AI system or a model provider; these entries show which platform mechanisms help a deployer discharge the Act's technical obligations (Art. 12 record-keeping, Art. 14 human oversight, Art. 15 robustness/cybersecurity, Art. 72 post-market monitoring). Article/paragraph obligations that remain the deployer's or the model provider's responsibility are marked 'documented' with a null enforcement_ref. This is NOT a claim that the OS 'is EU AI Act compliant'."
+  },
+  "controls": [
+    {
+      "control_id": "CIS-1.5.1",
+      "title": "Ensure address space layout randomization (ASLR) is enabled",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_RANDOMIZE_BASE=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010420",
+      "title": "Kernel address space layout randomization must be implemented",
+      "baseline": "stig",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_RANDOMIZE_BASE=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-4.4.1",
+      "title": "Ensure loadable kernel modules require a valid signature",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_MODULE_SIG_FORCE=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010371",
+      "title": "Loading of unsigned kernel modules must be disabled",
+      "baseline": "stig",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_MODULE_SIG_FORCE=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.6.1.1",
+      "title": "Ensure SELinux is built into the kernel",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_SECURITY_SELINUX=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.5.2",
+      "title": "Ensure kernel lockdown LSM is available to restrict kernel modification",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_SECURITY_LOCKDOWN_LSM=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.5.4",
+      "title": "Ensure ptrace scope is restricted (Yama LSM present)",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_SECURITY_YAMA=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.5.5",
+      "title": "Ensure a sandboxing LSM (Landlock) is available for unprivileged confinement",
+      "baseline": "cis",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_SECURITY_LANDLOCK=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010287",
+      "title": "Kernel integrity subsystem must be enabled for signature appraisal",
+      "baseline": "stig",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_INTEGRITY=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.6.1.2",
+      "title": "Ensure the SELinux state is enforcing",
+      "baseline": "cis",
+      "aios_mechanism": "selinux",
+      "enforcement_ref": "distro/aios-boot/aios-config.toml::selinux = \"enforcing\"",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010450",
+      "title": "RHEL 8 must enable the SELinux targeted policy in enforcing mode",
+      "baseline": "stig",
+      "aios_mechanism": "selinux",
+      "enforcement_ref": "distro/aios-boot/aios-config.toml::selinux = \"enforcing\"",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.6.1.3",
+      "title": "Ensure a binary SELinux policy is shipped in the base image (R12.6)",
+      "baseline": "cis",
+      "aios_mechanism": "selinux",
+      "enforcement_ref": "distro/build/build-opensuse-rootfs.sh::selinux-policy-targeted",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010171",
+      "title": "System services must run in confined SELinux domains, not unconfined_t",
+      "baseline": "stig",
+      "aios_mechanism": "selinux",
+      "enforcement_ref": "distro/desktop/confine/selinux/aios_renderer.te::aios_renderer_t",
+      "status": "partial",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-040135",
+      "title": "AIOS daemons must apply a SELinux security context (systemd SELinuxContext=)",
+      "baseline": "stig",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-evidence-log.service::SELinuxContext=-system_u:system_r:aios_evidence_log_t",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.1.2.1",
+      "title": "Ensure the root filesystem is protected read-only for services (ProtectSystem=strict)",
+      "baseline": "cis",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-policy-kernel.service::ProtectSystem=strict",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.1.2.2",
+      "title": "Ensure privilege escalation is prevented for services (NoNewPrivileges=yes)",
+      "baseline": "cis",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-capability-runtime.service::NoNewPrivileges=yes",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-040129",
+      "title": "Privilege escalation must be denied to the cognitive core service",
+      "baseline": "stig",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-cognitive-core.service::NoNewPrivileges=yes",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.1.2.3",
+      "title": "Ensure the vault broker runs with a private /tmp (PrivateTmp=yes)",
+      "baseline": "cis",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-vault-broker.service::PrivateTmp=yes",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-3.1.1",
+      "title": "Ensure the network daemon is filesystem-isolated (PrivateTmp=yes)",
+      "baseline": "cis",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-network-daemon.service::PrivateTmp=yes",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010019",
+      "title": "The hardening scanner service must run confined and read-only",
+      "baseline": "stig",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-hardening.service::ProtectSystem=strict",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.3.1",
+      "title": "Ensure filesystem integrity is verified at boot (dm-verity hash tree)",
+      "baseline": "cis",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/build/build-aios-iso.sh::dm_verity_policy",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010359",
+      "title": "A file integrity mechanism must verify the OS image (dm-verity substitutes for AIDE)",
+      "baseline": "stig",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/build/build-aios-iso.sh::dm-verity",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.4.1",
+      "title": "Ensure the boot chain is signed and recorded (boot-chain manifest)",
+      "baseline": "cis",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/build/build-aios-iso.sh::require_boot_signature",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010030",
+      "title": "Measured boot / TPM attestation for the enterprise secure profile",
+      "baseline": "stig",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/aios-boot/aios-config.toml::TPM attestation",
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010010",
+      "title": "OS updates must be delivered as signed releases (detached signature verification)",
+      "baseline": "stig",
+      "aios_mechanism": "update-signature",
+      "enforcement_ref": "distro/update/aios-update.sh::verify_signature",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.2.1",
+      "title": "Ensure the software repository publishes signed artifacts",
+      "baseline": "cis",
+      "aios_mechanism": "update-signature",
+      "enforcement_ref": "distro/repo/aios-repo-publish.sh::sign_file",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010020",
+      "title": "Updates must require N-of-M trusted operator signatures",
+      "baseline": "stig",
+      "aios_mechanism": "update-signature",
+      "enforcement_ref": "distro/aios-boot/aios-config.toml::required_signatures",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-4.1.1",
+      "title": "Ensure a system accounting / audit service is active (append-only evidence log)",
+      "baseline": "cis",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "distro/systemd/aios-evidence-log.service::ExecStart",
+      "status": "enforced",
+      "evidence_record_type": "SEGMENT_SEALED"
+    },
+    {
+      "control_id": "STIG-RHEL-08-030010",
+      "title": "Audit records must be tamper-evident (BLAKE3 hash-chained, append-only)",
+      "baseline": "stig",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "crates/aios-evidence/src/chain.rs::append-only",
+      "status": "enforced",
+      "evidence_record_type": "CHAIN_CHECKPOINT"
+    },
+    {
+      "control_id": "STIG-RHEL-08-030181",
+      "title": "The system must detect and record audit-log tampering",
+      "baseline": "stig",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "crates/aios-evidence/src/record.rs::TAMPER_DETECTED",
+      "status": "enforced",
+      "evidence_record_type": "TAMPER_DETECTED"
+    },
+    {
+      "control_id": "STIG-RHEL-08-040200",
+      "title": "Access enforcement must default to deny (least-privilege policy floor)",
+      "baseline": "stig",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/precedence.rs::Default deny",
+      "status": "enforced",
+      "evidence_record_type": "POLICY_DECISION"
+    },
+    {
+      "control_id": "CIS-5.3.1",
+      "title": "Ensure raw secret material cannot be read by AI agents (hard-deny class)",
+      "baseline": "cis",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/hard_deny.rs::hard-deny",
+      "status": "enforced",
+      "evidence_record_type": "POLICY_DECISION"
+    },
+    {
+      "control_id": "STIG-RHEL-08-010001",
+      "title": "Privileged actions must require operator approval before execution (AI proposes, never executes)",
+      "baseline": "stig",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/precedence.rs::Emergency",
+      "status": "partial",
+      "evidence_record_type": "APPROVAL_REQUESTED"
+    },
+    {
+      "control_id": "STIG-RHEL-08-010550",
+      "title": "The operating system must not permit direct root logins over SSH",
+      "baseline": "stig",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-3.5.1.1",
+      "title": "Ensure a host-based firewall restricts inbound traffic by default",
+      "baseline": "cis",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "CIS-1.5.3",
+      "title": "Ensure core dumps are restricted",
+      "baseline": "cis",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "STIG-RHEL-08-010030b",
+      "title": "All local disk partitions must implement data-at-rest encryption (LUKS)",
+      "baseline": "stig",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-9",
+      "title": "Art. 9 — Risk management: platform runs a continuous hardening/risk scanner as a confined service",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "systemd-hardening",
+      "enforcement_ref": "distro/systemd/aios-hardening.service::ExecStart",
+      "status": "partial",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-10",
+      "title": "Art. 10 — Data governance (training/validation data quality) is a model-provider obligation, not a platform mechanism",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-11",
+      "title": "Art. 11 + Annex IV — Technical documentation: build auto-generates SBOM + signed provenance for each image",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/build/build-aios-iso.sh::provenance.json",
+      "status": "partial",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-11-ANNEX-IV",
+      "title": "Art. 11 Annex IV — Full technical file (system purpose, capabilities, oversight design) must be completed by the deployer/provider",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-12",
+      "title": "Art. 12 — Record-keeping: automatic logging of events over the system lifetime via the append-only evidence log service",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "distro/systemd/aios-evidence-log.service::ExecStart",
+      "status": "enforced",
+      "evidence_record_type": "SEGMENT_SEALED"
+    },
+    {
+      "control_id": "EUAI-ART-12-1",
+      "title": "Art. 12(1) — Logs are tamper-evident and append-only (BLAKE3 hash-chained records)",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "crates/aios-evidence/src/chain.rs::append-only",
+      "status": "enforced",
+      "evidence_record_type": "CHAIN_CHECKPOINT"
+    },
+    {
+      "control_id": "EUAI-ART-12-2",
+      "title": "Art. 12(2) — Traceability: the system detects and records tampering with the automatically generated logs",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "crates/aios-evidence/src/record.rs::TAMPER_DETECTED",
+      "status": "enforced",
+      "evidence_record_type": "TAMPER_DETECTED"
+    },
+    {
+      "control_id": "EUAI-ART-13",
+      "title": "Art. 13 — Transparency to deployers: every AI-proposed action yields an explainable, recorded policy decision path",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/explain.rs::DecisionLog",
+      "status": "partial",
+      "evidence_record_type": "POLICY_DECISION"
+    },
+    {
+      "control_id": "EUAI-ART-13-1",
+      "title": "Art. 13(1) — Interpretable output: AI emits typed action envelopes the deployer can inspect before execution (AI proposes, never executes)",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-action/src/envelope.rs::ActionEnvelope",
+      "status": "partial",
+      "evidence_record_type": "POLICY_DECISION"
+    },
+    {
+      "control_id": "EUAI-ART-14",
+      "title": "Art. 14 — Human oversight: privileged actions are gated on an explicit operator approval decision",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/decision.rs::RequireApproval",
+      "status": "partial",
+      "evidence_record_type": "APPROVAL_REQUESTED"
+    },
+    {
+      "control_id": "EUAI-ART-14-1",
+      "title": "Art. 14(4) — The AI cannot approve its own actions (self-approval-prevention post-filter upgrades ALLOW to REQUIRE_APPROVAL)",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/precedence.rs::AiSelfApprovalUpgrade",
+      "status": "enforced",
+      "evidence_record_type": "APPROVAL_REQUESTED"
+    },
+    {
+      "control_id": "EUAI-ART-14-2",
+      "title": "Art. 14(4)(e) — Stop / override: a hard-deny class makes designated actions non-executable regardless of AI intent",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": "crates/aios-policy/src/hard_deny.rs::hard-deny",
+      "status": "enforced",
+      "evidence_record_type": "POLICY_DECISION"
+    },
+    {
+      "control_id": "EUAI-ART-15",
+      "title": "Art. 15 — Cybersecurity: kernel-level hardening (ASLR) is compiled into the shipped image",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "kernel-config",
+      "enforcement_ref": "distro/aios-boot/kernel-config::CONFIG_RANDOMIZE_BASE=y",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-15-1",
+      "title": "Art. 15 — Robustness/integrity: the OS image is verified at boot via a dm-verity hash tree",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "boot-integrity",
+      "enforcement_ref": "distro/build/build-aios-iso.sh::dm-verity",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-15-2",
+      "title": "Art. 15 — Resilience against tampering: updates are delivered as signed releases with detached-signature verification",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "update-signature",
+      "enforcement_ref": "distro/update/aios-update.sh::verify_signature",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-15-3",
+      "title": "Art. 15 — Robustness via confinement: services run under SELinux in enforcing mode",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "selinux",
+      "enforcement_ref": "distro/aios-boot/aios-config.toml::selinux = \"enforcing\"",
+      "status": "enforced",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-26",
+      "title": "Art. 26 — Deployer obligations (assign human oversight, monitor operation, retain logs) are organisational duties the platform enables but does not discharge",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "aios-policy",
+      "enforcement_ref": null,
+      "status": "documented",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-72",
+      "title": "Art. 72 — Post-market monitoring: a boot-time service health report is produced for operational monitoring",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "distro/systemd/aios-health-report.service::ExecStart",
+      "status": "partial",
+      "evidence_record_type": null
+    },
+    {
+      "control_id": "EUAI-ART-72-1",
+      "title": "Art. 72 — Post-market monitoring data is retained as immutable operational evidence receipts",
+      "baseline": "eu-ai-act",
+      "aios_mechanism": "evidence-log",
+      "enforcement_ref": "crates/aios-evidence/src/receipt.rs::EvidenceReceipt",
+      "status": "partial",
+      "evidence_record_type": null
+    }
+  ]
+}

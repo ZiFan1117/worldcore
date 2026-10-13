@@ -1,0 +1,87 @@
+[package]
+name = "aios-capability-runtime"
+description = "AIOS S10.1 — Capability Runtime core types (rev.2 aios.runtime.v1alpha1)."
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# T-033 — tonic-build runs at compile time to generate Rust server + client
+# stubs from `proto/aios.runtime.v1alpha1.proto`. Mirrors the M3 aios-policy
+# T-023 build script and the M2 aios-evidence T-011 build script.
+build = "build.rs"
+
+[dependencies]
+# T-026 (M4 opening) — types-only skeleton mirrors the M3 T-016 pattern.
+# Cross-crate imports keep the L3 surface authored against the same envelope
+# / id vocabulary the public ingress (S0.1) emits.
+aios-action  = { path = "../aios-action" }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+thiserror    = { workspace = true }
+chrono       = { workspace = true }
+# `EnumCount` provides the compile-time anchor for the §3.1 fourteen-state
+# invariant; `EnumIter` powers the round-trip / wire-form coverage tests.
+strum        = { workspace = true }
+strum_macros = { workspace = true }
+# ULID-based identifiers for adapter manifest ids (`adapter:<...>` prefix is
+# §10.1; ULID is the cross-crate convention from S0.1 §3.2 / aios-action).
+ulid         = { workspace = true }
+# T-027 — async trait surface for the `CapabilityRuntime` contract + interior
+# state for the `InMemoryCapabilityRuntime` harness. Mirrors the M3 T-017
+# pattern in `aios-policy`: `async_trait` for the trait object and `tokio`
+# for the RwLock-backed in-memory action context registry. `macros` + `rt` +
+# `sync` are sufficient for both the runtime's `RwLock<HashMap<..>>` and the
+# integration tests' single-threaded `tokio::test`. Wire-protocol features
+# (`net`, `signal`, ...) are deferred to T-033 (gRPC surface).
+tokio        = { workspace = true }
+async-trait  = { workspace = true }
+# T-028 — Ed25519 manifest signature verification (S10.1 §10.2). Mirrors the
+# aios-policy T-022 trust-store pattern: a `HashMap<String, VerifyingKey>`
+# keyed by `signing_key_id` plus `Verifier::verify(body, signature)` on the
+# canonical signed-body bytes. `base64` is used by some publisher tooling for
+# transport; manifests on the wire carry the signature as `hex_lower`
+# (§10.1 field 12) so we use `base64` only via the workspace alignment.
+ed25519-dalek = { workspace = true }
+base64        = { workspace = true }
+# T-030 — Policy Kernel integration (S10.1 ↔ S2.3). The capability runtime
+# composes an optional `Arc<dyn aios_policy::PolicyKernel>` and threads a
+# `HydratedSubject`-aware `PolicyContext` through pipeline step 2. The path
+# dep mirrors the M3 → M4 layering (L4 → L3 consumes-only edge).
+aios-policy  = { path = "../aios-policy" }
+# T-031 — Evidence Log integration (S10.1 ↔ S3.1). The capability runtime
+# composes an optional `Arc<dyn EvidenceSink>` and emits typed receipts at
+# every §4.2 lifecycle transition. The path dep mirrors the M2 → M4 layering
+# (L0/L9 evidence vocabulary → L3 producer edge per S3.1 §11.4).
+aios-evidence = { path = "../aios-evidence" }
+# T-033 — gRPC `CapabilityRuntime` service surface (S10.1 §5.1). `tonic` is
+# the runtime server/client transport; `prost` carries the generated proto3
+# message types; `prost-types` carries the well-known `Timestamp` /
+# `Empty` types referenced from the proto IDL.
+tonic        = { workspace = true }
+prost        = { workspace = true }
+prost-types  = { workspace = true }
+sha2         = { workspace = true }
+blake3       = { workspace = true }
+
+[build-dependencies]
+# T-033 — tonic-build emits the Rust server + client stubs at compile time;
+# protoc-bin-vendored ships the protobuf compiler binary so the build does
+# not require a system protoc install. Pattern mirrors aios-policy T-023.
+tonic-build         = { workspace = true }
+protoc-bin-vendored = { workspace = true }
+
+[dev-dependencies]
+# T-027 — `tokio::join!` + `#[tokio::test]` in the pipeline test harness for
+# the concurrent submission test. The `macros` feature provides the test
+# attribute; `rt-multi-thread` lets the join! exercise true concurrency
+# rather than cooperative interleaving.
+tokio        = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
+# T-028 — adapter manifest signing in tests: fresh keypairs via
+# `SigningKey::generate(&mut OsRng)` mirror the aios-policy T-022 test pattern.
+rand_core    = { workspace = true }
+
+[lints]
+workspace = true

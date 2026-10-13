@@ -1,0 +1,21 @@
+[Unit]
+Description=AI-OS.NET Service Graph Runtime
+Documentation=https://ai-os.net/docs/sgr-daemon
+After=network.target aios-capability-runtime.service aios-policy-kernel.service
+Requires=aios-capability-runtime.service aios-policy-kernel.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/aios/aios-system run-service aios-sgr-daemon --config /etc/aios/config.toml
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# /var/lib/aios/state: run-service writes its readiness state file there
+ReadWritePaths=/var/lib/aios/sgr /run/aios /var/lib/aios/state
+NoNewPrivileges=yes
+SELinuxContext=-system_u:system_r:aios_sgr_daemon_t:s0
+
+[Install]
+WantedBy=multi-user.target

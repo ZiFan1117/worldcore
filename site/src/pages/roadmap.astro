@@ -1,0 +1,327 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionDivider from '../components/SectionDivider.astro';
+import StatCard from '../components/StatCard.astro';
+
+// The ten-revision arc — Rev.1 origin vision through Rev.10 autonomous AI-OS.
+const revisions = [
+  { rev: 'Rev.1', name: 'Vision', status: 'Origin', done: true, what: 'The original architecture vision and canonical contract — typed actions, a policy kernel and an append-only evidence log on a Linux substrate.' },
+  { rev: 'Rev.2', name: 'Constitutional core', status: 'Implemented', done: true, what: 'The 11-layer L0-L10 model as working Rust — every layer REAL (E2+), all four cargo gates green. The cognitive shell, policy kernel and evidence log exist in code.' },
+  { rev: 'Rev.3', name: 'Five governed planes', status: 'Spec complete', done: true, what: 'S16-S28: security hardening, app capsules, kernel portability, driver/firmware capsules and the native AI terminal — CONTRACT-grade, 644 records, 34 invariants.' },
+  { rev: 'Rev.4', name: 'Bootable distribution', status: 'Boots in QEMU', done: true, what: 'It boots. A GRUB2 ISO on an openSUSE Leap 16 base boots in QEMU today, with a KDE Plasma desktop variant. The installer, dedicated kernel pipeline and real-hardware validation are hardening.' },
+  { rev: 'Rev.5', name: 'Live cognition', status: 'Planned', done: false, what: 'It thinks. The cognitive core live with local models (Ollama / vLLM), external models only through the Vault Broker, a real intent → action → policy → verify → evidence loop on a live machine.' },
+  { rev: 'Rev.6', name: 'Daily-driver desktop', status: 'Planned', done: false, what: 'You can use it. KDE Plasma as the real desktop, Web / CLI / voice surfaces, governed app capsules running Linux, Windows (Wine/Proton) and Android apps day to day.' },
+  { rev: 'Rev.7', name: 'Fleet, cluster & cloud', status: 'Planned', done: false, what: 'It scales. Containers and Kubernetes as governed capsules, fleet and cluster remote execution, many machines under one policy and one evidence chain, cloud images.' },
+  { rev: 'Rev.8', name: 'Certified hardening', status: 'Planned', done: false, what: 'It is trusted. Measured boot, SELinux/STIG/NIST/CIS validated, FIPS, EU AI Act technical controls evidenced at E4/E5, and a real third-party security assessment.' },
+  { rev: 'Rev.9', name: 'Ecosystem & marketplace', status: 'Planned', done: false, what: 'It is an ecosystem. Public signed repositories, the publisher trust chain in production, a capsule marketplace, an app passport, and an SDK for third-party developers.' },
+  { rev: 'Rev.10', name: 'Autonomous AI-OS', status: 'Planned', done: false, what: 'It runs itself. Autonomous fleet operations, self-healing, cross-machine cognition and constitutional governance at scale — the AI-native OS vision fully realized.' },
+];
+
+const phases = [
+  {
+    name: 'Rev.2 — Constitutional Core',
+    status: 'Implemented',
+    items: [
+      '11 layers L0-L10 as working Rust — the constitutional-core crates aios-action … aios-distribution, every layer REAL (E2+)',
+      'All four cargo gates green (check / test / clippy -D warnings / fmt); the wider workspace now runs 7,000+ tests, 0 failed',
+      'Cognitive core, policy kernel, capability runtime, AIOS-FS, vault, renderers, network, hardware, distribution — all REAL (E2+)',
+      'M20 discharged the last deferred surfaces — L5 cognitive RPCs and 22 Tier-3 verification primitives are now real',
+      'A bootable GRUB2 ISO on an openSUSE Leap 16 base now boots in QEMU (Rev.4)',
+    ],
+  },
+  {
+    name: 'Rev.3 — Five Governed Planes',
+    status: 'Spec complete',
+    items: [
+      'Explicit security posture — four profiles + FIPS_STRICT overlay, measured boot, SELinux MAC, STIG/NIST/CIS control map',
+      'Governed app capsules — bounded, rollbackable, evidenced; Windows apps via per-app Wine/Proton capsules',
+      'Kernel personality & portability — Linux gold path; BSD/RTOS/microVM/WASI/unikernel via signed KernelCapabilityMatrix',
+      'Driver & firmware capsules — drivers as high-risk capsules: solved, lab-tested, signed, canary-booted, rollbackable',
+      'Native AI control plane — three terminal modes LX / MIX / AI, typed-action fabric, EU AI Act technical controls',
+    ],
+  },
+  {
+    name: 'Rev.3 Closed Vocabulary',
+    status: 'Locked',
+    items: ['644 typed evidence records (closed enum)', '34 constitutional invariants (24 + 10 new)', '13 plane sections S16-S28', '0 orphan records, 0 consumes cycles, 0 layer inversions'],
+  },
+  {
+    name: 'Rev.2 Contract Pack',
+    status: 'Locked',
+    items: ['11 layers L0-L10 + XX cross-cutting', '52 contract-grade sub-specs', '24 constitutional invariants', '52,000+ specification lines', 'INV-002 enforced at 6 mechanical sites'],
+  },
+  {
+    name: 'Rev.2 Closed Vocabularies',
+    status: 'Locked',
+    items: ['427 RecordTypes (S3.1 master enum)', '32 PropertyTypes (S2.4 verification)', 'Pinned IDs, additive evolution only', 'Reject-on-unknown across IDL surface'],
+  },
+  {
+    name: 'Rev.4 → Rev.10 — The Path to Ship',
+    status: 'Planned',
+    items: [
+      'Rev.4 bootable ISO — boots in QEMU today; installer hardening',
+      'Rev.5 live cognition + local models — it thinks',
+      'Rev.6 daily-driver desktop — it is usable',
+      'Rev.7 fleet / cluster / cloud — it scales',
+      'Rev.8 certified hardening + compliance — it is trusted',
+      'Rev.9 ecosystem + marketplace; Rev.10 autonomous AI-OS',
+    ],
+  },
+];
+
+const sections = [
+  { id: 'S16', name: 'Security Hardening & Compliance', what: 'Four posture profiles + FIPS_STRICT overlay, measured boot, SELinux MAC, STIG/NIST/CIS control map, SBOM/VEX, GDPR crypto-shred.' },
+  { id: 'S17', name: 'App Capsule Runtime', what: 'Every app a bounded capsule with rollback and evidence — install, run, and remove without leaking state.' },
+  { id: 'S18', name: 'Kernel Personality & Portability', what: 'Linux gold path; alternate kernels admitted only through a signed KernelCapabilityMatrix with canary boot.' },
+  { id: 'S19', name: 'Driver & Firmware Capsule Plane', what: 'Drivers as high-risk capsules: solved, lab-tested, signed, canary-booted, rollbackable — never a raw vendor script.' },
+  { id: 'S20', name: 'Native AI Control Plane Terminal', what: 'Three terminal modes LX / MIX / AI over a typed-action fabric. AI proposes, never executes.' },
+  { id: 'S21', name: 'Package Rosetta — Universal App Lab', what: 'Package-agnostic intake with shadow install and package passport across deb/rpm/flatpak/snap/appimage/nix/oci/source.' },
+  { id: 'S22', name: 'Workstation / Gaming / Video Profile', what: 'Windows apps and games via per-app Wine/Proton capsules; creator and gaming workloads as governed profiles.' },
+  { id: 'S23', name: 'Mobile Renderer & Touch Shell', what: 'Mobile and voice surfaces over the shared UI schema, same policy and evidence as the desktop.' },
+  { id: 'S24', name: 'Container & Kubernetes-Native Plane', what: 'Containers and Kubernetes workloads as first-class governed capsules under the same typed-action fabric.' },
+  { id: 'S25', name: 'Fleet / Cluster Remote Execution', what: 'Cluster and fleet operations with the same policy, approval, and append-only evidence as a single host.' },
+  { id: 'S26', name: 'Backup / DR Capsule Mobility', what: 'Backup, disaster recovery, and capsule mobility — recovery never depends on cognition being available.' },
+  { id: 'S27', name: 'AI Evaluation & Model Governance', what: 'AI evaluation harness and model governance; EU AI Act technical controls expressed as typed, evidenced gates.' },
+  { id: 'S28', name: 'Constitutional Time Plane', what: 'Time as a governed, evidenced dimension across the planes — append-only, tamper-evident temporal record.' },
+];
+
+const decisions = [
+  { title: 'Constitutional core, then platform', desc: 'Rev.2 locks the constitutional Linux distro. Rev.3 builds a governed, AI-native OS platform on top of it — five planes, never a rewrite of the core.' },
+  { title: 'Kernels are not equal', desc: 'Linux is the gold path. BSD, RTOS, microVM, WASI, and unikernel are admitted through a signed KernelCapabilityMatrix, never by pretending all kernels behave the same.' },
+  { title: 'Drivers are high-risk capsules', desc: 'A driver is solved, lab-tested, signed, canary-booted, and rollbackable. The system never just runs the vendor install script as root.' },
+  { title: 'Catalog-bound cognition', desc: 'The Capability Translator is a compiler over known capability manifests, not a prompt-to-shell system.' },
+  { title: 'Default-deny policy', desc: 'The Policy Kernel uses hard denies, exact request approvals, simulation, and evidence-linked decisions.' },
+  { title: 'Verification as grammar', desc: 'Success is typed and checked through typed PropertyTypes such as service.active, package.installed, http.ok, and evidence.exists.' },
+  { title: 'Package-agnostic intake', desc: 'Package Rosetta does shadow install and issues a package passport across deb, rpm, flatpak, snap, appimage, nix, oci, and source.' },
+  { title: 'INV-002 has six sites', desc: 'AI proposes, never executes is mechanically enforced across six concrete code sites — never root, never self-approving, never mutating evidence.' },
+  { title: 'Recovery without cognition', desc: 'L1 boot and recovery never depend on L5 LLM availability. The machine recovers offline, then layers cognition on top.' },
+];
+
+const deferred = [
+  'A new kernel from scratch.',
+  'A full RTOS replacement for the desktop.',
+  'Certification claims without a real assessment — no "STIG certified", no "FIPS validated", no "EU AI Act compliant".',
+  'Pretending every kernel personality is equivalent to the Linux gold path.',
+  'AI modifying low-level infrastructure without evidence and rollback.',
+  'A separate web admin panel that diverges from KDE state.',
+  'Open-vocabulary fields in the IDL — every typed surface stays closed-enum.',
+];
+
+const files = [
+  '003.AI-OS.NET--SPECREV.3/00_MASTER_INDEX.md',
+  '003.AI-OS.NET--SPECREV.3/04_invariants.md',
+  '003.AI-OS.NET--SPECREV.3/S16_Security_Hardening_Compliance/00_overview.md',
+  '003.AI-OS.NET--SPECREV.3/S17_App_Capsule_Runtime/00_overview.md',
+  '003.AI-OS.NET--SPECREV.3/S18_Kernel_Personality_Portability/00_overview.md',
+  '003.AI-OS.NET--SPECREV.3/S19_Driver_Firmware_Capsule_Plane/00_overview.md',
+  '003.AI-OS.NET--SPECREV.3/S20_Native_AI_Control_Plane_Terminal/00_overview.md',
+  '003.AI-OS.NET--SPECREV.3/S21_Package_Rosetta_Universal_App_Lab/00_overview.md',
+  'L0_Governance_Evidence_Safety/01_status_evidence_taxonomy.md',
+  'XX_Cross_Cutting/01_action_envelope_lifecycle.md',
+  'L5_Cognitive_Core/02_capability_translator.md',
+  'L2_AIOS_FS/01_object_model.md',
+  'L3_AIOS_SGR_Service_Graph_Runtime/03_capability_runtime_grpc.md',
+  'L4_Policy_Identity_Vault/01_policy_kernel.md',
+  'L4_Policy_Identity_Vault/02_vault_broker.md',
+  'L9_Observability_Admin_Operations/01_evidence_log.md',
+  'L9_Observability_Admin_Operations/02_verification_grammar.md',
+  'XX_Cross_Cutting/02_proxguard_reference_model.md',
+];
+
+const waves = [
+  { wave: 'R3-W1', title: 'Security & measured boot', what: 'Posture profiles, TPM + firmware dual chain, IMA/EVM, dm-verity, SELinux MAC plane land first (S16).' },
+  { wave: 'R3-W2', title: 'App capsules', what: 'Bounded app capsules with rollback and evidence; capsule lifecycle and state isolation (S17).' },
+  { wave: 'R3-W3', title: 'Native AI terminal', what: 'Three terminal modes LX / MIX / AI over the typed-action fabric. AI proposes, never executes (S20).' },
+  { wave: 'R3-W4', title: 'Driver & firmware plane', what: 'Drivers as high-risk capsules — solved, lab-tested, signed, canary-booted, rollbackable (S19).' },
+  { wave: 'R3-W5', title: 'Kernel portability', what: 'Signed KernelCapabilityMatrix, adaptive kernel forge, canary boot for alternate personalities (S18).' },
+  { wave: 'R3-W6', title: 'Package Rosetta', what: 'Package-agnostic intake, shadow install, package passport, Wine/Proton capsules (S21, S22).' },
+  { wave: 'R3-W7', title: 'Form factors', what: 'Mobile renderer, touch and voice shells over the shared UI schema (S23).' },
+  { wave: 'R3-W8', title: 'Cluster, DR, evaluation, time', what: 'Containers/Kubernetes, fleet/cluster, backup/DR, AI evaluation, constitutional time (S24-S28).' },
+];
+---
+
+<BaseLayout
+  title="Roadmap - AI-OS.NET"
+  description="AI-OS.NET is an AI-native Linux distribution and governed OS platform on a ten-revision arc. Rev.2 (11 layers L0-L10) is implemented; the workspace has since grown to 36 crates with 7,000+ tests. Rev.3 (S16-S28, five governed planes, 644 typed records) is spec-complete; Rev.4 boots — a bootable ISO on an openSUSE Leap 16 base runs in QEMU — and Rev.4-Rev.10 carry it on to live cognition, a daily-driver desktop, fleet/cloud scale, certified hardening, an ecosystem, and an autonomous AI-OS."
+>
+  <div class="mx-auto max-w-content px-8 py-16">
+    <div class="text-center">
+      <div class="animate inline-block rounded-badge bg-[rgba(206,40,103,0.08)] px-3 py-1.5">
+        <span class="font-body text-[11px] font-medium text-[#ce2867]">Ten-revision arc · Rev.2 implemented · Rev.4 boots</span>
+      </div>
+      <h1 class="animate mt-6 font-heading text-[40px] font-bold text-[var(--text)] md:text-[52px]" style="animation-delay:100ms">
+        From constitutional core<br />to autonomous AI-OS.
+      </h1>
+      <p class="animate mt-4 max-w-narrow mx-auto font-body text-[18px] leading-relaxed text-[var(--muted)]" style="animation-delay:200ms">
+        The Revision 2 constitutional core is no longer just a contract — it is implemented: 11 layers L0-L10, every layer REAL, all four cargo gates green. The workspace has since grown to 36 Rust crates with 7,000+ tests. Revision 4 has begun: a bootable GRUB2 ISO on an openSUSE Leap 16 base now boots in QEMU. Revisions 4 through 10 are the path to ship: it boots, it thinks, it is usable, it scales, it is trusted, it is an ecosystem, and finally it runs itself.
+      </p>
+    </div>
+
+    <section class="mt-16">
+      <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+        <div class="animate stagger-1"><StatCard number="36" label="Rust Crates" description="L0–L10 core plus the distribution layer" /></div>
+        <div class="animate stagger-2"><StatCard number="7,000+" label="Tests Passing" description="0 failed; all cargo gates green" /></div>
+        <div class="animate stagger-3"><StatCard number="11" label="Layers REAL (E2+)" description="Evidence-backed, not just spec" /></div>
+        <div class="animate stagger-4"><StatCard number="0" label="Deferred Surfaces" description="M20 discharged the last" /></div>
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="THE TEN-REVISION ARC" />
+      <p class="mt-4 max-w-narrow font-body text-[14px] leading-relaxed text-[var(--muted)]">
+        Ten revisions from the origin vision to an autonomous AI-native OS. Rev.1-Rev.3 are done — the vision, an implemented constitutional core, and a spec-complete plane set. Rev.4-Rev.10 build a real shipping distribution and ecosystem on top of it, never a rewrite of the core.
+      </p>
+      <div class="mt-8 overflow-hidden rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)]">
+        <div class="grid grid-cols-[72px_1.3fr_2.6fr] gap-4 border-b border-[var(--border)] px-6 py-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Rev</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Epoch</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">What it delivers</span>
+        </div>
+        {revisions.map(r => (
+          <div class="grid grid-cols-[72px_1.3fr_2.6fr] gap-4 border-b border-[var(--border)] px-6 py-4 last:border-b-0">
+            <span class="font-mono text-[12px] text-[var(--accent)]">{r.rev}</span>
+            <div class="flex flex-col items-start gap-1.5">
+              <span class="font-body text-[13px] font-medium text-[var(--text)]">{r.name}</span>
+              <span class={`rounded-badge px-2 py-0.5 font-mono text-[10px] ${r.done ? 'bg-[rgba(206,40,103,0.08)] text-[var(--accent)]' : 'border border-[var(--border)] text-[var(--muted)]'}`}>{r.status}</span>
+            </div>
+            <span class="font-body text-[13px] leading-relaxed text-[var(--muted)]">{r.what}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="REVISION STATUS" />
+      <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {phases.map((phase, i) => (
+          <div class={`card card-lg animate stagger-${(i % 6) + 1}`}>
+            <div class="flex items-start justify-between gap-4">
+              <h2 class="font-heading text-[20px] font-semibold text-[var(--text)]">{phase.name}</h2>
+              <span class="rounded-badge bg-[rgba(206,40,103,0.08)] px-2 py-1 font-mono text-[11px] text-[var(--accent)]">{phase.status}</span>
+            </div>
+            <ul class="mt-6 flex flex-col gap-2.5">
+              {phase.items.map(item => (
+                <li class="flex items-start gap-2 font-body text-[13px] leading-relaxed text-[var(--muted)]">
+                  <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--accent)]"></span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="REVISION 3 SECTIONS" />
+      <p class="mt-4 max-w-narrow font-body text-[14px] leading-relaxed text-[var(--muted)]">
+        Thirteen plane sections, S16 through S28, each CONTRACT-grade and traceable. They group into five governed planes: security posture, governed app capsules, kernel portability, driver and firmware capsules, and the native AI control plane.
+      </p>
+      <div class="mt-8 overflow-hidden rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)]">
+        <div class="grid grid-cols-[70px_1fr_2fr] gap-4 border-b border-[var(--border)] px-6 py-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Section</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Plane</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Scope</span>
+        </div>
+        {sections.map(s => (
+          <div class="grid grid-cols-[70px_1fr_2fr] gap-4 border-b border-[var(--border)] px-6 py-3 last:border-b-0">
+            <span class="font-mono text-[12px] text-[var(--accent)]">{s.id}</span>
+            <span class="font-body text-[13px] font-medium text-[var(--text)]">{s.name}</span>
+            <span class="font-body text-[13px] leading-relaxed text-[var(--muted)]">{s.what}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="IMPLEMENTATION WAVES" />
+      <p class="mt-4 max-w-narrow font-body text-[14px] leading-relaxed text-[var(--muted)]">
+        The Rev.2 core is implemented. Rev.3 lands in eight waves R3-W1..R3-W8 — security and boot before anything trusts the machine, then capsules, the AI terminal, drivers, kernels, and the higher planes — feeding the Rev.4+ shipping path above.
+      </p>
+      <div class="mt-8 overflow-hidden rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)]">
+        <div class="grid grid-cols-[110px_1fr_2fr] gap-4 border-b border-[var(--border)] px-6 py-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Wave</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Title</span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted)]">Outcome</span>
+        </div>
+        {waves.map(w => (
+          <div class="grid grid-cols-[110px_1fr_2fr] gap-4 border-b border-[var(--border)] px-6 py-3 last:border-b-0">
+            <span class="font-mono text-[12px] text-[var(--accent)]">{w.wave}</span>
+            <span class="font-body text-[13px] font-medium text-[var(--text)]">{w.title}</span>
+            <span class="font-body text-[13px] leading-relaxed text-[var(--muted)]">{w.what}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="DECISIONS LOCKED ACROSS REV.2 AND REV.3" />
+      <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {decisions.map((decision, i) => (
+          <div class={`card animate stagger-${(i % 6) + 1}`}>
+            <h2 class="font-heading text-[16px] font-semibold text-[var(--text)]">{decision.title}</h2>
+            <p class="mt-2 font-body text-[13px] leading-relaxed text-[var(--muted)]">{decision.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="CANONICAL CONTRACT FILES" />
+      <div class="mt-8 rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)] p-6 md:p-8">
+        <ul class="grid grid-cols-1 gap-2 md:grid-cols-2">
+          {files.map(file => (
+            <li class="font-mono text-[11px] leading-relaxed text-[var(--muted)]">{file}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="REFERENCE EXECUTION CONTRACT" />
+      <div class="mt-8 rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)] p-6 md:p-8">
+        <pre class="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[var(--muted)]">User: "restart nginx and verify the site"
+
+Cognitive Core:
+  - routes through latency tier
+  - translates intent through capability catalog
+  - produces ActionEnvelope.request
+
+Policy Kernel:
+  - evaluates exact request hash
+  - allow / approval / deny
+
+Capability Runtime:
+  - restarts nginx through adapter
+  - applies sandbox profile
+  - verifies service.active
+  - appends evidence receipts</pre>
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="REFERENCE SYSTEM APP" />
+      <div class="mt-8 rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)] p-6 md:p-8">
+        <pre class="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[var(--muted)]">ProxGuard:
+  - installs as /aios/apps/proxguard
+  - exposes proxguard.service.*, proxguard.dns.*, proxguard.gateway.*, proxguard.audit.*
+  - keeps private app state
+  - uses AIOS Vault Broker for provider credentials
+  - asks L8 before public exposure
+  - emits AIOS evidence receipts
+  - never bypasses AIOS policy</pre>
+      </div>
+    </section>
+
+    <section class="mt-20">
+      <SectionDivider label="DEFERRED BY DESIGN" />
+      <div class="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
+        {deferred.map((item, i) => (
+          <div class={`animate stagger-${(i % 6) + 1} rounded-[8px] border border-[var(--border)] bg-[var(--surface-1)] p-4`}>
+            <p class="font-body text-[13px] leading-relaxed text-[var(--muted)]">{item}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
