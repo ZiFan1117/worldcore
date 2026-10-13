@@ -47,16 +47,24 @@ def _from_ref(text):
     return m.group(1).strip() if m else None
 
 
+def _sec(doc, name):
+    """取一个节：★ 先看 notes 下、再看顶层（两处都认 —— 名字不决定位置）。"""
+    n = doc.get("notes") or {}
+    if isinstance(n, dict) and name in n:
+        return n[name]
+    return doc.get(name)
+
+
 def refs_of(doc):
     """抽出所有「指向类名」的结构化引用 ⇒ [(引用来源, 类名)]。"""
     out = []
-    sm = doc.get("_storage_class_map") or {}
+    sm = _sec(doc, "_storage_class_map") or {}
     for k, v in (sm.get("entries") or {}).items():
         ours = (v or {}).get("ours")
         if isinstance(ours, str) and ours:
             out.append(("_storage_class_map." + k, ours))
 
-    pt = doc.get("_property_types") or {}
+    pt = _sec(doc, "_property_types") or {}
     for tname, tv in (pt.get("types") or {}).items():
         for entry in ((tv or {}).get("used_by") or []):
             out.append(("_property_types." + tname, str(entry).split(".")[0]))
@@ -96,10 +104,10 @@ def refs_of(doc):
     for cls in ((doc.get("_governance") or {}).get("markings") or {}).get("by_class") or {}:
         out.append(("_governance.markings.by_class", cls))
 
-    for cls in (((doc.get("_modules") or {}).get("assignment") or {}).get("objects") or {}).get("_by_entry") or {}:
+    for cls in (((_sec(doc, "_modules") or {}).get("assignment") or {}).get("objects") or {}).get("_by_entry") or {}:
         out.append(("_modules._by_entry", cls))
 
-    for key in (doc.get("_standards") or {}).get("_adopted") or {}:
+    for key in (_sec(doc, "_standards") or {}).get("_adopted") or {}:
         if key.startswith("_objects."):
             out.append(("_standards._adopted", key.split(".", 1)[1]))
     return out
