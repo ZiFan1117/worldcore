@@ -1112,7 +1112,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "of_kind": "enum(change,act,notice)",
@@ -1185,7 +1185,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "name": "string",
@@ -1244,7 +1244,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "capability": "string",
@@ -1303,7 +1303,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "who": "string",
@@ -1362,7 +1362,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "epoch": "integer",
@@ -1421,7 +1421,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "code": "string",
@@ -1480,7 +1480,7 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13：按 _disjoint_policy 的口径**省略**（未列即互斥），不是缺"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
     "canonical_id": "string",
@@ -11328,9 +11328,11 @@
   ]
  },
  "_disjoint_policy": {
-  "_what": "★ 2026-10-13 新增：互斥表的口径（此前 12 类各列 5 个、7 个元类空、新 6 类各列 6 个 —— 同一种东西三个数）。",
-  "口径": "★ **本体的类两两互斥**：一个个体不可能同时属于两类。`_meta.disjointWith` 列表只是**逐类投影**（列最要紧的几项）；★ **未列出的类，视为与本体其它所有类互斥**。",
-  "后果": "⇒ 「缺 disjointWith」不再是缺口（那是**按口径省略**）；⇒ 新 6 类列 6 项、既有列 5 项，**都合法**（都是投影）。",
-  "_待裁": "★ 若作者要「显式全列」（每类列其余 24 项，共 600 条），本口径应作废 —— 待人裁。"
+  "_what": "★ 2026-10-13 **按 W3C OWL 2 更正**：类之间**默认不互斥**。",
+  "_照谁": "W3C OWL 2 Primer（REC）逐字：class membership is **not exclusive**…one individual **may well belong to several classes simultaneously**；互斥是**单独一节 4.3 Class Disjointness**，即**要显式声明**（owl:disjointWith）。",
+  "更正前（错）": "本节点此前写「本体类两两互斥；未列即互斥」—— ★ **与 OWL 相反**，作废。",
+  "现口径": "★ **默认：类可重叠**（一个个体可同属多类）；★ **互斥只在 `_meta.disjointWith` 里逐对显式声明**；★ **未声明 ＝ 不互斥**。",
+  "后果": "⇒ 各 `_meta.disjointWith` 列表的含义从「投影」改为「**已声明的互斥对**」；⇒ 空列表/`null` ＝ **没声明互斥**（不是缺口，也不是省略）。",
+  "_待裁": "★ 既有的 12 个类各列 5 项、新 6 类各列 6 项 —— 这些**是否真是互斥对**需逐对复核（本题待人裁）。"
  }
 }

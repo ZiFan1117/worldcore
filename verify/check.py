@@ -25,6 +25,7 @@ CRITERIA = [
     "c3_action_name_gate.py",
     "c4_eol_consistency.py",
     "c5_policy_kernel_attached.py",
+    "c6_class_has_identity.py",
 ]
 
 
