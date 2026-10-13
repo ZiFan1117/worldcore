@@ -10712,7 +10712,8 @@
    "clock",
    "unit",
    "identity"
-  ]
+  ],
+  "_撤回留痕": "★ 2026-10-13（T-42）：`project`／`file`／`memory`／`model`／`package`／`config` **曾被本席直接加进 `_objects`（19→25），已撤回**（依据：不在 `_objects._declared_gaps` 点名的缺口里 ＋ 与 `ninedim/06-变更/2026-10-13-aios-semantic-plane/方案-词表合流.md:146` 逐字冲突 ＋ 依据来源错＝拿上游存储抽屉当我们的类）。★ 这 6 个的全文现留档在 **`_proposed_objects`**（待审提案）；★ 本表 `_ours_missing` 因此仍为这 6 个（与现取 `_objects` 19 类一致）。"
  },
  "_public_cells": {
   "_what": "★ 2026-10-13 新增：上游 `Object`（10 类共用的外壳）逐格对照 —— 它的「对象定义」就是这个外壳，10 类只是标签。",
