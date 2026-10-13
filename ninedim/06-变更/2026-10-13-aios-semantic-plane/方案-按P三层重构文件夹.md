@@ -68,3 +68,46 @@ crates/aios-worldcore/                ← ★ 一个 crate（不再拆成 10 个
 
 1. ★ **还没动**结构（★ 等三席交件，免得冲突）；
 2. ★ **没定** `core/types.rs` 是否要再拆（★ 现在 5 个类型合在一个文件，★ 约 200 行 ⇒ 可以）。
+---
+
+## §六 ★★ 更正（作者指着 `lib.rs` 那一行问）：**不要门面**
+
+★ **`lib.rs` 是什么**：★ Rust 规定**每个 crate 必须有** `src/lib.rs`（或 `src/main.rs`）—— ★ **它是 crate 的入口，跑不掉**（★ 不是本席想加的东西）。
+
+### ★★ 但"门面"那一段可以不要
+
+| | ★ 甲：有门面（`pub use` 一堆） | ★★ 乙：**不要门面**（只三行 `pub mod`） |
+|---|---|---|
+| `lib.rs` 长什么样 | ★ `pub use engine::instances::Instances;` …（几十行导出表） | ★★ 只有三行：`pub mod core;`／`pub mod engine;`／`pub mod governance;` |
+| 外面怎么用 | ★ `aios_worldcore::Instances`（★ 短） | ★★ `aios_worldcore::engine::instances::Instances`（★ **与文件夹一致**） |
+| 好处 | ★ 调用路径短 | ★★ **结构一目了然；`lib.rs` 不会再长；东西住哪一眼就看见** |
+| 坏处 | ★ 要维护一份导出表（★ 加面就得改它） | ★ 路径长一点 |
+
+★★ **作者要的是"就照他的文件夹结构"** ⇒ ★ **那路径就该照文件夹走** ⇒ ★★ **取乙（不要门面）** ✓
+★ 而 `lib.rs` 仍在，★ 但它**只当"根节点"**，★ 不再是"前厅"。
+
+### ★ 顺带：P 那边对应的是什么
+
+★ P 是 Python ⇒ ★ 它的"门面"是 `foundry_ontology/__init__.py`（★ 也有导出）⇒ ★ 但★ **P 的目录结构才是主角**（★ `core/`／`engine/`／`governance/`）✓
+
+### ★★★ 修正后的目标结构
+
+```
+crates/aios-worldcore/
+  src/
+    lib.rs            ★ 只三行：pub mod core; pub mod engine; pub mod governance;
+    core/
+      mod.rs          pub mod types; pub mod registry;
+      types.rs        ★ 共同类型
+      registry.rs     面①
+    engine/
+      mod.rs          pub mod instances; pub mod validate; pub mod store; pub mod query; pub mod ledger; pub mod execute;
+      instances.rs    面②
+      validate.rs     面③
+      store.rs        面④
+      query.rs        面⑤
+      ledger.rs       面⑥
+      execute.rs      面⑦
+    governance/
+      mod.rs          （面⑧ 就在 mod.rs 里，或再开 rbac.rs／markings.rs）
+```
