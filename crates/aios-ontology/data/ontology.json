@@ -1105,356 +1105,6 @@
     }
    }
   },
-  "capability": {
-   "_meta": {
-    "id": "wc:ont00000014",
-    "label": {
-     "zh": "能力",
-     "en": "Capability"
-    },
-    "altLabel": {
-     "zh": [
-      "能力"
-     ],
-     "en": [
-      "Capability"
-     ]
-    },
-    "definition": "能力——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000034",
-    "anchor_note": "照形状取自 BFO 2020：`function`（`BFO_0000034`，父 `BFO_0000016 disposition`）——★ 与 `_layers` 的 EXPORT BRIDGE 同一处口径：「**形状取自** BFO `function`，**不是它就是它**」（BFO 的 realizable entity 必须 inhere in 某个 independent continuant，而本仓今天缺「承载者」）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "name": "string",
-    "what": "string",
-    "reversible": "bool"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "name": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "what": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "reversible": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "BOOLEAN",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "action": {
-   "_meta": {
-    "id": "wc:ont00000015",
-    "label": {
-     "zh": "动作",
-     "en": "Action"
-    },
-    "altLabel": {
-     "zh": [
-      "动作"
-     ],
-     "en": [
-      "Action"
-     ]
-    },
-    "definition": "动作——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
-    "anchor_note": "照形状取自 BFO 2020：`process`——一次动作是**发生**（有起止、有参与者）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "capability": "string",
-    "verb": "string",
-    "request_id": "string"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "capability": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "verb": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "request_id": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "permission": {
-   "_meta": {
-    "id": "wc:ont00000016",
-    "label": {
-     "zh": "许可",
-     "en": "Permission"
-    },
-    "altLabel": {
-     "zh": [
-      "许可"
-     ],
-     "en": [
-      "Permission"
-     ]
-    },
-    "definition": "许可——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000023",
-    "anchor_note": "照形状取自 BFO 2020：`role`（`BFO_0000023`，父 `BFO_0000017 realizable entity`）——许可是**角色式的授予**（谁能把哪个能力授给谁）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "who": "string",
-    "what": "string",
-    "scope": "array(string)"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "who": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "what": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "scope": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "★无对应（P 的类型系统没有数组）",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "clock": {
-   "_meta": {
-    "id": "wc:ont00000017",
-    "label": {
-     "zh": "时钟",
-     "en": "Clock"
-    },
-    "altLabel": {
-     "zh": [
-      "时钟"
-     ],
-     "en": [
-      "Clock"
-     ]
-    },
-    "definition": "时钟——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
-    "anchor_note": "照形状取自 BFO 2020：`material entity`——★ **时钟是人工物，不是时间区域**（本席第一版想锚 `BFO_0000008 temporal region`，那是**把被量的东西当成量它的东西**）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "epoch": "integer",
-    "tz": "string",
-    "precision": "string"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "epoch": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "tz": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "precision": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "unit": {
-   "_meta": {
-    "id": "wc:ont00000018",
-    "label": {
-     "zh": "单位",
-     "en": "Unit"
-    },
-    "altLabel": {
-     "zh": [
-      "单位"
-     ],
-     "en": [
-      "Unit"
-     ]
-    },
-    "definition": "单位——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
-    "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——单位是**信息内容**（UCUM 的代码、QUDT 的量纲都是可复制的说明）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "code": "string",
-    "dimension": "string",
-    "system": "string"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "code": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "dimension": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "system": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
-  "identity": {
-   "_meta": {
-    "id": "wc:ont00000019",
-    "label": {
-     "zh": "身份",
-     "en": "Identity"
-    },
-    "altLabel": {
-     "zh": [
-      "身份"
-     ],
-     "en": [
-      "Identity"
-     ]
-    },
-    "definition": "身份——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
-    "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——身份是**信息内容**（四层身份 `content_hash`／`instance_id`／`subject_id`／`seq` 都是可复制的说明）。★ 提案值·待裁。",
-    "disjointWith": null,
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
-   },
-   "fields": {
-    "canonical_id": "string",
-    "layer": "enum(L1,L2,L3,L4)"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "canonical_id": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "layer": {
-     "required": null,
-     "options": [
-      "L1",
-      "L2",
-      "L3",
-      "L4"
-     ],
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING + constraints{options}",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
   "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。"
  },
  "_links": {
@@ -1517,42 +1167,6 @@
   },
   "workflow-declares-presence": {
    "from": "workflow",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "record-records-action": {
-   "from": "record",
-   "to": "action",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "capability-borne-by-presence": {
-   "from": "capability",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "action-invokes-capability": {
-   "from": "action",
-   "to": "capability",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "permission-grants-capability": {
-   "from": "permission",
-   "to": "capability",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "unit-measures-capability": {
-   "from": "unit",
-   "to": "capability",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "identity-identifies-presence": {
-   "from": "identity",
    "to": "presence",
    "_cardinality": "many_to_many",
    "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
@@ -9016,30 +8630,6 @@
      "record": [
       "记录",
       "信息实体"
-     ],
-     "capability": [
-      "能力",
-      "信息实体"
-     ],
-     "action": [
-      "能力",
-      "发生"
-     ],
-     "permission": [
-      "能力",
-      "身份"
-     ],
-     "clock": [
-      "时间",
-      "人工物"
-     ],
-     "unit": [
-      "性质与度量",
-      "信息实体"
-     ],
-     "identity": [
-      "身份",
-      "信息实体"
      ]
     },
     "_by_entry_为什么是一个串": "★ **2026-10-12 归目从【一个】改为【一串】**（作者：「这 6 类我要再再再再分呀，不可能就这 6 类呀」）。口径照 `_modules._cut` 逐字「**按『范畴＋功能』切，不按应用切**」——一个东西本来就可能同时是**两根**（CCO 的 `Material Artifact` 与 `Artifact Function` 就是两根）。逐类之由：**notice** 既是一次**发生**、又是账本里的**一行记录**、又**关于**某事（信息实体）；**job** 同前两者，且它**有动作**（3 条）⇒ 也是**能力**的落点；**presence** ★ **原归「人工物」是错配**——在场者是**主体**（`_modules.modules.主体` 那一目 今天 `state=缺`，正是这里缺的），且它的申报是一条**信息**；**surface** 是人工物，承载的是**信息**；**cell** 另有 `value`／`style` ⇒ **性质与度量**；**port**（套接字口）是**设施**，且带 `owner_uid`／`identity` ⇒ **身份**。★ 判据 `check_classification.py` 的 `C-3` 判「每类归目 ≥2 且都在 `_modules.modules` 里」。　★★ **2026-10-12 修正（判据拦下的）**：本席第一版把 presence 从「人工物」**移到了**「主体」，⇒ check_modules.py 的 **M-5** 当场红（「人工物 目没挂全：应挂 [presence,port,surface,cell]」）。**判据是对的、我错了**：_modules._cut 逐字说「一个东西本来就可能**同时是两根**」——presence **既是主体**（在场者是谁），**又是人工物**（它是装在机器上的软件）⇒ **该【加】不是【替】**。**★ 处置：把「人工物」加回去（不改判据）**——照硬约束 7「红了不许绕过，禁改判据强度换绿」。"
@@ -10573,8 +10163,8 @@
     "how": "待裁：是否新增 memory"
    },
    "POLICY": {
-    "ours": "permission",
-    "how": "map：我们的是 _permissions 那一节"
+    "ours": null,
+    "how": "★ 2026-10-13 撤并：本体的 `_objects.None` 已撤（规定面误补成的类）；条文仍活在其同名 `_` 节里"
    },
    "MODEL": {
     "ours": null,
@@ -10711,20 +10301,7 @@
      "workflow.name",
      "workflow.wf_id",
      "workflow.parent_action",
-     "record.who",
-     "capability.name",
-     "capability.what",
-     "action.capability",
-     "action.verb",
-     "action.request_id",
-     "permission.who",
-     "permission.what",
-     "clock.tz",
-     "clock.precision",
-     "unit.code",
-     "unit.dimension",
-     "unit.system",
-     "identity.canonical_id"
+     "record.who"
     ]
    },
    "INTEGER": {
@@ -10738,8 +10315,7 @@
      "cell.retract_seq",
      "port.owner_uid",
      "port.retract_seq",
-     "record.at_seq",
-     "clock.epoch"
+     "record.at_seq"
     ]
    },
    "FLOAT": {
@@ -10752,8 +10328,7 @@
     "used_by": [
      "surface.visible",
      "cell.shown",
-     "cell.enabled",
-     "capability.reversible"
+     "cell.enabled"
     ]
    },
    "DATE": {
@@ -10827,16 +10402,6 @@
    {
     "字段": "record.of_kind",
     "类型串": "enum(change,act,notice)",
-    "说明": "STRING + constraints{options}"
-   },
-   {
-    "字段": "permission.scope",
-    "类型串": "array(string)",
-    "说明": "★无对应（P 的类型系统没有数组）"
-   },
-   {
-    "字段": "identity.layer",
-    "类型串": "enum(L1,L2,L3,L4)",
     "说明": "STRING + constraints{options}"
    }
   ],
@@ -11291,8 +10856,359 @@
       "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
      }
     }
+   },
+   "clock": {
+    "_meta": {
+     "id": "wc:ont00000017",
+     "label": {
+      "zh": "时钟",
+      "en": "Clock"
+     },
+     "altLabel": {
+      "zh": [
+       "时钟"
+      ],
+      "en": [
+       "Clock"
+      ]
+     },
+     "definition": "时钟——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
+     "anchor_note": "照形状取自 BFO 2020：`material entity`——★ **时钟是人工物，不是时间区域**（本席第一版想锚 `BFO_0000008 temporal region`，那是**把被量的东西当成量它的东西**）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "epoch": "integer",
+     "tz": "string",
+     "precision": "string"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "epoch": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "tz": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "precision": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "unit": {
+    "_meta": {
+     "id": "wc:ont00000018",
+     "label": {
+      "zh": "单位",
+      "en": "Unit"
+     },
+     "altLabel": {
+      "zh": [
+       "单位"
+      ],
+      "en": [
+       "Unit"
+      ]
+     },
+     "definition": "单位——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
+     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——单位是**信息内容**（UCUM 的代码、QUDT 的量纲都是可复制的说明）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "code": "string",
+     "dimension": "string",
+     "system": "string"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "code": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "dimension": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "system": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "identity": {
+    "_meta": {
+     "id": "wc:ont00000019",
+     "label": {
+      "zh": "身份",
+      "en": "Identity"
+     },
+     "altLabel": {
+      "zh": [
+       "身份"
+      ],
+      "en": [
+       "Identity"
+      ]
+     },
+     "definition": "身份——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
+     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——身份是**信息内容**（四层身份 `content_hash`／`instance_id`／`subject_id`／`seq` 都是可复制的说明）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "canonical_id": "string",
+     "layer": "enum(L1,L2,L3,L4)"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "canonical_id": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "layer": {
+      "required": null,
+      "options": [
+       "L1",
+       "L2",
+       "L3",
+       "L4"
+      ],
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING + constraints{options}",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "action": {
+    "_meta": {
+     "id": "wc:ont00000015",
+     "label": {
+      "zh": "动作",
+      "en": "Action"
+     },
+     "altLabel": {
+      "zh": [
+       "动作"
+      ],
+      "en": [
+       "Action"
+      ]
+     },
+     "definition": "动作——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
+     "anchor_note": "照形状取自 BFO 2020：`process`——一次动作是**发生**（有起止、有参与者）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "capability": "string",
+     "verb": "string",
+     "request_id": "string"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "capability": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "verb": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "request_id": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "capability": {
+    "_meta": {
+     "id": "wc:ont00000014",
+     "label": {
+      "zh": "能力",
+      "en": "Capability"
+     },
+     "altLabel": {
+      "zh": [
+       "能力"
+      ],
+      "en": [
+       "Capability"
+      ]
+     },
+     "definition": "能力——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000034",
+     "anchor_note": "照形状取自 BFO 2020：`function`（`BFO_0000034`，父 `BFO_0000016 disposition`）——★ 与 `_layers` 的 EXPORT BRIDGE 同一处口径：「**形状取自** BFO `function`，**不是它就是它**」（BFO 的 realizable entity 必须 inhere in 某个 independent continuant，而本仓今天缺「承载者」）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "name": "string",
+     "what": "string",
+     "reversible": "bool"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "name": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "what": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "reversible": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "BOOLEAN",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
+   },
+   "permission": {
+    "_meta": {
+     "id": "wc:ont00000016",
+     "label": {
+      "zh": "许可",
+      "en": "Permission"
+     },
+     "altLabel": {
+      "zh": [
+       "许可"
+      ],
+      "en": [
+       "Permission"
+      ]
+     },
+     "definition": "许可——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000023",
+     "anchor_note": "照形状取自 BFO 2020：`role`（`BFO_0000023`，父 `BFO_0000017 realizable entity`）——许可是**角色式的授予**（谁能把哪个能力授给谁）。★ 提案值·待裁。",
+     "disjointWith": null,
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     },
+     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    },
+    "fields": {
+     "who": "string",
+     "what": "string",
+     "scope": "array(string)"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "who": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "what": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "scope": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "★无对应（P 的类型系统没有数组）",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
    }
   },
-  "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除"
+  "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除",
+  "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：_links.action-invokes-capability 删除；_links.capability-borne-by-presence 删除；_links.identity-identifies-presence 删除；_links.permission-grants-capability 删除；_links.record-records-action 删除；_links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null"
  }
 }
