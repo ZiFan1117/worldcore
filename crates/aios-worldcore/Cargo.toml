@@ -9,3 +9,5 @@ description = "worldcore 最小内核：core 定义层／engine 运行层／gove
 [dependencies]
 aios-ontology = { path = "../aios-ontology" }
 serde_json = { workspace = true }
+# ★ 账的封条用真哈希（本体/八面无此依赖；★ 根 Cargo.toml 第 82 行早有 blake3 = "1.5"，故零新增）
+blake3 = { workspace = true }

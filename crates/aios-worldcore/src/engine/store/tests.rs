@@ -1,6 +1,7 @@
 //! 面④（实例存储）的判据 —— ★ 每一条对着一条规矩；**先写会红反例**（红的是什么写在注释里）。
 //!
-//! 跑法（★ 宿主无 cargo，只能在 VM 上跑）：`cargo test -p aios-worldcore store`
+//! 跑法（★ 宿主无 cargo，只能在 VM 上跑）：cargo test -p aios-worldcore store
+//! ★ **如实登记**：本席**没跑过**这些测试（宿主无 cargo）。
 
 use crate::core::types::{EventSeq, Reason, Registration, Who};
 
@@ -25,7 +26,7 @@ fn seed() -> Store {
     s
 }
 
-/// ★★ 会红反例 1：**写＝只追加**。若 `create` 只是往一张表里塞（旧形状），
+/// ★★ 会红反例 1：**写＝只追加**。若 create 只是往一张表里塞（旧形状），
 /// 序列上就没有这一行 ⇒ 红。
 #[test]
 fn t01_create_is_an_append_not_an_insert() {
@@ -164,14 +165,13 @@ fn t06_the_now_is_a_disposable_projection_of_the_log() {
     assert_eq!(s.count(), 1, "三笔写、一块碑 ⇒ 现状一条");
 }
 
-/// ★ 序号全局单增、**永不复用**（本体 `envelope.fields.seq` 逐字）。
+/// ★ 序号全局单增、**永不复用**（本体 envelope.fields.seq 逐字）。
 #[test]
 fn t07_seq_is_global_monotonic_and_never_reused() {
     let mut s = Store::new();
     s.create_as(&who(), "application:a", reg("application", "a"))
         .expect("首笔该成");
-    s.delete_as(&who(), "application:a", "撤")
-        .expect("立碑该成");
+    s.delete_as(&who(), "application:a", "撤").expect("立碑该成");
     s.create_as(&who(), "application:a", reg("application", "a-again"))
         .expect("立碑之后该能再立");
     let seqs: Vec<u64> = s.rows().iter().map(|r| r.seq.0).collect();
@@ -179,7 +179,7 @@ fn t07_seq_is_global_monotonic_and_never_reused() {
     assert_eq!(s.last_write_seq("application:a"), Some(EventSeq(3)));
 }
 
-/// ★★ 会红反例 6：`count`／`search_by_kind`／`keys` 若读的是「一共写过几笔」
+/// ★★ 会红反例 6：count／search_by_kind／keys 若读的是「一共写过几笔」
 /// 而不折现状 ⇒ 红。
 #[test]
 fn t08_reads_fold_the_now_not_the_history() {
@@ -217,4 +217,51 @@ fn t09_update_and_tombstone_name_the_row_they_replace() {
     assert_eq!(s.rows()[2].at_seq, amended, "立碑要对准被立碑那条");
     assert_eq!(s.rows()[2].op, Op::Tombstone);
     assert_eq!(buried, EventSeq(3));
+}
+
+// ==== 新规矩（按类索引／现状指纹）—— 每条一条会红反例 ======================
+
+/// ★★ 会红反例 7（**按类索引**）：更正**换了类** ⇒ 旧类桶里必须没有它。
+/// 让它红的改法：折叠只往新桶加、忘了摘旧桶 ⇒ search_by_kind("application") 还给这一条 ⇒ 红。
+#[test]
+fn t10_the_kind_index_follows_a_kind_change() {
+    let mut s = seed();
+    s.update_as(&who(), "application:htop", reg("surface", "htop"))
+        .expect("更正在册的键该成");
+    assert!(s.search_by_kind("application").is_empty(), "旧类桶里不许留它");
+    assert_eq!(s.search_by_kind("surface"), ["application:htop"], "键不动，类变了");
+    assert_eq!(s.keys(), ["application:htop"]);
+    assert_eq!(s.get("application:htop"), Some(&reg("surface", "htop")));
+}
+
+/// ★★ 会红反例 8（**现状指纹**）：指纹只认**现状**，不认「一共写过几笔」。
+/// 让它红的改法：不给指纹（本用例编译不过）／把历史长度也算进指纹 ⇒ 第二段断言红。
+#[test]
+fn t11_the_fingerprint_is_the_now_not_the_history() {
+    let mut a = Store::new();
+    a.create_as(&who(), "application:x", reg("application", "x"))
+        .expect("该成");
+    a.delete_as(&who(), "application:x", "撤").expect("立碑该成");
+
+    let mut b = Store::new();
+    b.create_as(&who(), "service:y", reg("service", "y"))
+        .expect("该成");
+    b.delete_as(&who(), "service:y", "撤").expect("立碑该成");
+
+    assert_eq!(a.count(), 0);
+    assert_eq!(
+        a.project().fingerprint(),
+        b.project().fingerprint(),
+        "★ 两份序列内容不同、折出来的现状都是空 ⇒ 指纹相同"
+    );
+
+    // ★ 由序列重折（replay）⇒ 指纹逐字相同。
+    let rebuilt = Store::replay(a.rows());
+    assert_eq!(rebuilt.project().fingerprint(), a.project().fingerprint());
+
+    // 现状一变 ⇒ 指纹就变（空现状 vs 活着一条）。
+    let mut c = Store::new();
+    c.create_as(&who(), "application:x", reg("application", "x"))
+        .expect("该成");
+    assert_ne!(c.project().fingerprint(), a.project().fingerprint());
 }

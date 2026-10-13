@@ -29,10 +29,11 @@ pub struct FieldSpec {
     pub required: bool,
 }
 
-/// 一个类的规格：类名 ⇒（格名 ⇒ 规格）。
+/// 一个类的规格：类名 ⇒（格名 ⇒ 规格）＋ 类名 ⇒ 本体的 instance_mode。
 #[derive(Debug)]
 pub struct ObjectSpec {
     kinds: BTreeMap<String, BTreeMap<String, FieldSpec>>,
+    modes: BTreeMap<String, String>,
 }
 
 impl ObjectSpec {
@@ -49,13 +50,17 @@ impl ObjectSpec {
             return Err(Refuse::new(Reason::OntologyNotLoaded, "<objects 缺>"));
         };
         let mut kinds = BTreeMap::new();
+        let mut modes = BTreeMap::new();
         for (kind, body) in objects {
             if kind.starts_with('_') {
                 continue; // ★ `_` 键是说明／登记的缺口，不是类。
             }
             kinds.insert(kind.clone(), fields_of_class(body));
+            if let Some(mode) = body.get("instance_mode").and_then(Value::as_str) {
+                modes.insert(kind.clone(), mode.to_string());
+            }
         }
-        Ok(Self { kinds })
+        Ok(Self { kinds, modes })
     }
 
     /// 类在册吗。
@@ -74,6 +79,15 @@ impl ObjectSpec {
     #[must_use]
     pub fn fields_of(&self, kind: &str) -> Option<&BTreeMap<String, FieldSpec>> {
         self.kinds.get(kind)
+    }
+
+    /// ★ 本体说这一类是**唯一**（`one`）还是**多例**（`many`）—— `objects.<类>.instance_mode` 逐字。
+    ///
+    /// ★ 类不在册 ⇒ `None`；本体没写这一格 ⇒ `None`（**不替本体发明**：没说 ＝ 不限，
+    ///   由登记面按「不限」办）。
+    #[must_use]
+    pub fn instance_mode(&self, kind: &str) -> Option<&str> {
+        self.modes.get(kind).map(String::as_str)
     }
 
     /// ★ 逐格校一个实例：缺必填 ⇒ `MissingField`；值类型／取值域不对 ⇒ `BadValue`；类不在册 ⇒ `UnknownKind`。
