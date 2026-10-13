@@ -24,6 +24,7 @@ CRITERIA = [
     "c2_domain_files_only.py",
     "c3_action_name_gate.py",
     "c4_eol_consistency.py",
+    "c5_policy_kernel_attached.py",
 ]
 
 
