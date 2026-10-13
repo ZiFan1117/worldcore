@@ -16,12 +16,3 @@ AGENTS.md                                         # 退役上游 GitNexus 说明
 CLAUDE.md                                         # 退役上游 AIOS 说明书，换成本仓指针件  T-25
 README.md                                         # 退役上游前门，换成本仓前门  T-25
 crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
-crates/aios-worldcore-execute/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-governance/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-instances/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-ledger/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-query/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-registry/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-shared/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-store/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
-crates/aios-worldcore-validate/  # 已删（T-99 收成三层：并入 crates/aios-worldcore/）—— 覆盖删除带来的差异  T-99
