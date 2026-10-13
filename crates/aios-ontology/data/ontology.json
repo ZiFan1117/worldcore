@@ -110,109 +110,6 @@
   "_comment": "『世界里存在什么』。字段值是**机器可读的类型声明**（`bool`／`string`／`integer`／`number`／`array`／`object`／`ref(<类型>)`／`enum(a,b,…)`）；**不是**这几种写法的自由度说明文字一律**放行**（本体没声明类型口径，判据不替它发明）。",
   "_declared_gaps": "★ **未实现／未接入**（本批只登记，非 `_` 键一字未动；判词 · 形式本体 Y-1／Y-2／判-1.5）：① **缺主体类型**——`world://user`／`world://agent/dsh` 已按能力拿到许可（`_permissions.grants`），而 `user`／`agent` 两类**不在这六类里**；判据 `UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。② **缺『记录／信息内容』这一类**——`change`／`act`／`notice` 在实现上是账本行（见 `families.*._comment`）。③ **缺 agent／user／世界级资源对象** ⇒ 『谁参与了这次过程』问不出（`envelope.actor` 只是字符串）。④ `concepts`（非 `_` 键）是**冻结映射**：它缺 `instance_mode`／`_nested`，权威读法是本节。⇒ 真修①②＝往 `_objects` 加类型（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
   "_meta_legend": "六类各自的 `_meta`：**照形状取自 CCO 的 TTL 一个类七样**（`.refs/依赖料/CCO/src/cco-iris/InformationEntityOntology.ttl` 的 `cco:ont00000003` 块逐字：`rdf:type owl:Class`／`rdfs:subClassOf`／`owl:disjointWith`／`rdfs:label \"…\"@en`／`skos:altLabel \"…\"@en`／`skos:definition \"…\"@en`／`cco:ont00001760 \"…\"^^xsd:anyURI`）⇒ ① 数字号 `id` ② `label`（带语言）③ `altLabel` ④ `definition` ⑤ `anchor`（父类）⑥ `disjointWith`（互斥）⑦ `module`（模件归属）；**外加本仓的第八样 `anchor_note`**（锚的出处注，**CCO 的七样里没有它**，是本仓加的）。★ **四处如实登记**：① `id` 是**本仓自编的本地号**——既不是外部 IRI，也不是 CCO 的号；② `anchor` 全体是**提案值**（裁-1 未裁，由评审席定），每条的 `anchor_note` 写明它照的是哪个 BFO 类、以及**另一种读法**；③ `disjointWith` 是**声明**——**本仓今天没有判据判它成不成立**；④ `module` 填的是 `ninedim/config.json` 的**原子号**（本仓的『模件』今天是原子），**照的是 CCO 那一格的形状、不是它的取值**。",
-  "presence": {
-   "_meta": {
-    "id": "wc:ont00000003",
-    "label": {
-     "zh": "在场者",
-     "en": "Presence"
-    },
-    "altLabel": {
-     "zh": [
-      "参与者",
-      "在场件"
-     ],
-     "en": [
-      "Participant"
-     ]
-    },
-    "definition": "一个持续存在、有名字与类别、其 `state` 在 `installed→registered→running→stopped→retired` 之间迁移的持续体（continuant）。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000002",
-    "anchor_note": "照形状取自 BFO 2020：`continuant`（`.refs/bfo-2020/21838-2/owl/bfo-core.ttl`，逐字 `rdfs:label \"continuant\"@en`，父 `BFO_0000001 entity`）——定义逐字「A continuant is an entity that persists, endures, or continues to exist through time while maintaining its identity」。★ **提案值·待裁-1**（由评审席定）：BFO 逐字要求 `quality`／`disposition` 必须 `inheres in` 一个**独立**持续体，而本条的实例今天按 `(主体, 路径)` 折叠出来、**没有承载者**（判词 · 形式本体学席 Y-1 已登记此缺口）⇒ 若改锚 `BFO_0000004 independent continuant`，本条要先补『承载者』那一格。",
-    "disjointWith": [
-     "notice",
-     "job",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
-   },
-   "fields": {
-    "name": "string",
-    "category": "string",
-    "state": "enum(installed,registered,running,stopped,retired)",
-    "did": "array(string)",
-    "last_seen": "integer  # UNIX 秒"
-   },
-   "instance_mode": "many",
-   "_subject_kinds": {
-    "_what": "主体种类的**目标闭集**（闭集 ⇒ 未知取值要报红，不许静默收下）。",
-    "closed_set": [
-     "human",
-     "agent",
-     "application",
-     "service",
-     "device",
-     "workflow"
-    ],
-    "_照谁": "★ **2026-10-12 新建**（作者：「**根据上传的这个主体**」）。**主体种类的【目标闭集】。**取值照 `.refs/依赖仓/AI-Native-Linux` 的 AIOS `SubjectKind`（逐字「**Closed enum**」）——**只取 6 个**：`human`／`agent`／`application`／`service`／`device`／`workflow`。★ **不取** AIOS 的 `REMOTE_OPERATOR`／`LOCAL_OPERATOR`：那两个是**通道／环境**（远程通道、本地控制台），**不是主体种类**——照本仓 `_identity.actors`「**身份 ≠ 作者**」同一条道理。",
-    "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `_objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
-    "_判据": "`scripts/verify/check_classification.py` 的 `C-1`：`closed_set` 非空、是**闭集**（列表）、且取值都不是空串。"
-   },
-   "_field_meta": {
-    "name": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "category": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "state": {
-     "required": null,
-     "options": [
-      "installed",
-      "registered",
-      "running",
-      "stopped",
-      "retired"
-     ],
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING + constraints{options}",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "did": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "★无对应（P 的类型系统没有数组）",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "last_seen": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "TIMESTAMP",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
   "surface": {
    "_meta": {
     "id": "wc:ont00000004",
@@ -855,58 +752,6 @@
   "_element": "关系（Link）—— 命名关系 ＋ 两端类型 ＋ 基数",
   "_comment": "『哪两类对象之间允许存在什么连接』。这是**一等声明**，不是外键。两端的类型必须已在 `_objects` 里声明，否则 `ext.world.Ontology.UndeclaredRelationEndpoint`。★ **关系是【世界里的一条记录】，不是两个应用之间的连线** —— 应用之间永远没有直连；两个应用「有关系」这件事，是世界从它自己的记录里【算】出来的（`C10 投递：「该给谁」由世界算`）。",
   "_declared_gaps": "★ **未实现／未接入**（判词 · 形式本体 Y-3a／判-2）：① **生产路径零读**——`Ontology::links()` 只有**定义处**（`src/ontology_definition/mod.rs`）与**一处测试调用**（`scripts/test/ontology_elements.rs` 的 `m04`）；世界**不执行**基数与方向性，也**没有**『从 `change` 折出关系实例』这条推断规则 ⇒ 主张『关系实例在账本里』今天**无载体**（把本节整节删空、装载照常通过）。② **时间性关系写成静态声明**——`runs-on`／`speaks-on` 是随时间变的关系，而 `LinkDecl` 四格里**没有**有效区间／起止 `seq` ⇒ 现取读法是**恒真**；BFO 2020 有出路（temporalized relations 分册，本地料 `.refs/bfo-2020/…/bfo-temporalized-relations.owl`），本仓未采用。③ **同词两义**：本节的 `part-of` 与 `_objects.<类型>.part_of`（内嵌标记的父类型名）共用 `part of` 一词；`_links` 那一条改名**不换身份**，内嵌那一格（`_objects.<类型>.part_of`）改名**同样不换身份**——`_objects` 也是 `_` 前缀键、被整枝剔除（`mod.rs:2149-2164`）；两者的代价都只是改代码里的读法，不是身份（只写提案）。",
-  "runs-on": {
-   "from": "presence",
-   "to": "presence",
-   "card": "many",
-   "bidirectional": false,
-   "_cardinality": "one_to_many",
-   "_cardinality_为什么": "`one_to_many` —— **有依据**：本条 `card` 现取为 `\"many\"`，而 `LinkDecl.card` 的注释逐字「`one`（单值）／`many`（多值）」⇒ 映射到 P 的 `Cardinality.ONE_TO_MANY`。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "speaks-on": {
-   "from": "presence",
-   "to": "port",
-   "card": "many",
-   "bidirectional": false,
-   "_cardinality": "one_to_many",
-   "_cardinality_为什么": "`one_to_many` —— **有依据**：本条 `card` 现取为 `\"many\"`，而 `LinkDecl.card` 的注释逐字「`one`（单值）／`many`（多值）」⇒ 映射到 P 的 `Cardinality.ONE_TO_MANY`。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "human-declares-presence": {
-   "from": "human",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "agent-declares-presence": {
-   "from": "agent",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "application-declares-presence": {
-   "from": "application",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "service-declares-presence": {
-   "from": "service",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "device-declares-presence": {
-   "from": "device",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
-  "workflow-declares-presence": {
-   "from": "workflow",
-   "to": "presence",
-   "_cardinality": "many_to_many",
-   "_cardinality_为什么": "★ **本值是【保守默认】，不是读数** —— 本条边**今天没有 `card` 声明**；`many_to_many` 是 P 三值里**最松的那一档**（不排除任何组合）。**填它的目的是把形状建起来**；**真值待裁**。　★ 照 P 的 `Cardinality`（`ONE_TO_ONE`／`ONE_TO_MANY`／`MANY_TO_MANY`）三个值抄 —— 本仓今天的 `card` 是**自由记法**（`LinkDecl.card` 注释逐字「今天**不解释**」），本格把它归一成 P 的三值闭集。判据：`check_ops_shape.py` 的 `A-6`。"
-  },
   "_2026-10-12_边的口径更正": "★ **2026-10-12 更正**：本批新加的 13 条边**第一版写错了**——本席把**边名的后半截**（如 `invokes`）当成**类型名**塞进了 `from`/`to`，Rust 装载器当场报 `ext.world.Ontology.UndeclaredRelationEndpoint: 关系 `action-invokes` 的 `from` 端指向未声明的类型 `invokes``。**★ `_links` 的 `from`/`to` 必须是【已声明的类型名】**（判据就是装载器自己）。现已逐条改成两端都是已声明类。★ **其中 `capability-borne-by-presence` 这条顺带补上了一个挂了很久的缺口**：`_interfaces._declared_gaps` 逐字「① **缺「承载者」**——本节 `kind`／`what` 里**没有** bearer／domain，`_links` 里**没有** `bears`／`inheres-in`」——本批在 `_links` 里立了 `capability-borne-by-presence`（**能力由在场者承载**）。★ **但如实说**：它今天只是**声明**（`_links` 的基数与方向**本就不执行**），**不是**「承载者那一格已经补全」——`_interfaces` 自己的 `bearer` 栏**仍然没有**。"
  },
  "_interfaces": {
@@ -1182,7 +1027,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(presence)",
+     "param_type": "enum(human,agent,application,service,device,workflow)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `presence` ⇒ 类型取 `ref(presence)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1300,9 +1145,9 @@
     "display_name": "在场者报告自己的状态（**申报面**；「有没有许可」不在这里定，由 `_permissions.grants` ＋ `default: deny` 决定）",
     "description": "动作 presence.report 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(presence)"
+     "subject": "enum(human,agent,application,service,device,workflow)"
     },
-    "output_type": "presence",
+    "output_type": "enum(human,agent,application,service,device,workflow)",
     "_note": "output_type=presence"
    }
   },
@@ -1497,11 +1342,6 @@
    "CurrencyUnitOntology": "货币——**本仓暂不采用**"
   },
   "_adopted": {
-   "_objects.presence": [
-    "https://www.commoncoreontologies.org/ont00001017",
-    "http://www.w3.org/ns/prov#Agent",
-    "http://www.w3.org/ns/prov#SoftwareAgent"
-   ],
    "_objects.surface": [
     "https://www.commoncoreontologies.org/ont00002068"
    ],
@@ -8310,11 +8150,6 @@
    "_subscribe": "信息实体",
    "_objects": {
     "_by_entry": {
-     "presence": [
-      "主体",
-      "人工物",
-      "信息实体"
-     ],
      "surface": [
       "人工物",
       "信息实体"
@@ -8784,7 +8619,6 @@
     "CONFIDENTIAL": "受控——**今天一件都没有**；★ 但 **`_objects.port.owner_uid`／`_objects.cell.owner` 这两个字段按其性质**该在这一档**（见 `sensitive_fields`），**今天未标**。"
    },
    "by_class": {
-    "presence": "INTERNAL",
     "surface": "INTERNAL",
     "port": "INTERNAL"
    },
@@ -8827,17 +8661,6 @@
       "下正式结论",
       "签字",
       "批准／驳回（★ 硬约束 6）"
-     ]
-    },
-    "presence": {
-     "名字": "在场者",
-     "说明": "**在场者**——`_objects.presence` 那一族（界面进程等）在账本里的身份。★ 它**不是角色**，是**主体**：本表里列它，是为了把「主体」与「角色」分开。",
-     "能做什么": [
-      "报告在场"
-     ],
-     "不许做什么": [
-      "改法律",
-      "下结论"
      ]
     }
    },
@@ -10003,8 +9826,6 @@
   "types": {
    "STRING": {
     "used_by": [
-     "presence.name",
-     "presence.category",
      "surface.name",
      "surface.role",
      "port.name",
@@ -10054,7 +9875,6 @@
    },
    "TIMESTAMP": {
     "used_by": [
-     "presence.last_seen",
      "human.last_seen"
     ]
    },
@@ -10077,16 +9897,6 @@
    }
   },
   "_P无对应而我方在用的": [
-   {
-    "字段": "presence.state",
-    "类型串": "enum(installed,registered,running,stopped,retired)",
-    "说明": "STRING + constraints{options}"
-   },
-   {
-    "字段": "presence.did",
-    "类型串": "array(string)",
-    "说明": "★无对应（P 的类型系统没有数组）"
-   },
    {
     "字段": "port.state",
     "类型串": "enum(declared,listening,retired)",
@@ -11219,6 +11029,109 @@
       "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
      }
     }
+   },
+   "presence": {
+    "_meta": {
+     "id": "wc:ont00000003",
+     "label": {
+      "zh": "在场者",
+      "en": "Presence"
+     },
+     "altLabel": {
+      "zh": [
+       "参与者",
+       "在场件"
+      ],
+      "en": [
+       "Participant"
+      ]
+     },
+     "definition": "一个持续存在、有名字与类别、其 `state` 在 `installed→registered→running→stopped→retired` 之间迁移的持续体（continuant）。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000002",
+     "anchor_note": "照形状取自 BFO 2020：`continuant`（`.refs/bfo-2020/21838-2/owl/bfo-core.ttl`，逐字 `rdfs:label \"continuant\"@en`，父 `BFO_0000001 entity`）——定义逐字「A continuant is an entity that persists, endures, or continues to exist through time while maintaining its identity」。★ **提案值·待裁-1**（由评审席定）：BFO 逐字要求 `quality`／`disposition` 必须 `inheres in` 一个**独立**持续体，而本条的实例今天按 `(主体, 路径)` 折叠出来、**没有承载者**（判词 · 形式本体学席 Y-1 已登记此缺口）⇒ 若改锚 `BFO_0000004 independent continuant`，本条要先补『承载者』那一格。",
+     "disjointWith": [
+      "notice",
+      "job",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     }
+    },
+    "fields": {
+     "name": "string",
+     "category": "string",
+     "state": "enum(installed,registered,running,stopped,retired)",
+     "did": "array(string)",
+     "last_seen": "integer  # UNIX 秒"
+    },
+    "instance_mode": "many",
+    "_subject_kinds": {
+     "_what": "主体种类的**目标闭集**（闭集 ⇒ 未知取值要报红，不许静默收下）。",
+     "closed_set": [
+      "human",
+      "agent",
+      "application",
+      "service",
+      "device",
+      "workflow"
+     ],
+     "_照谁": "★ **2026-10-12 新建**（作者：「**根据上传的这个主体**」）。**主体种类的【目标闭集】。**取值照 `.refs/依赖仓/AI-Native-Linux` 的 AIOS `SubjectKind`（逐字「**Closed enum**」）——**只取 6 个**：`human`／`agent`／`application`／`service`／`device`／`workflow`。★ **不取** AIOS 的 `REMOTE_OPERATOR`／`LOCAL_OPERATOR`：那两个是**通道／环境**（远程通道、本地控制台），**不是主体种类**——照本仓 `_identity.actors`「**身份 ≠ 作者**」同一条道理。",
+     "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `_objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
+     "_判据": "`scripts/verify/check_classification.py` 的 `C-1`：`closed_set` 非空、是**闭集**（列表）、且取值都不是空串。"
+    },
+    "_field_meta": {
+     "name": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "category": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "state": {
+      "required": null,
+      "options": [
+       "installed",
+       "registered",
+       "running",
+       "stopped",
+       "retired"
+      ],
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING + constraints{options}",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "did": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "★无对应（P 的类型系统没有数组）",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "last_seen": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "TIMESTAMP",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
    }
   },
   "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除",
@@ -11227,6 +11140,36 @@
   "_撤并登记（第四批）": "★ 2026-10-13 撤 record、补 ledger；改了 25 处：families.job 新增；_objects.ledger 新增（instance_mode=one，★ 本体第一个 one）；_objects.record 撤 → _retired_objects；_actions.notice.mute.subject -> 取值域；_actions.notice.unmute.subject -> 取值域；_actions.job.start.subject -> 取值域；_actions.job.finish.subject -> 取值域；_actions.job.cancel.subject -> 取值域；_functions.fn.notice.mute.inputs.subject -> 取值域；_functions.fn.notice.mute.output_type -> 取值域；_functions.fn.notice.unmute.inputs.subject -> 取值域；_functions.fn.notice.unmute.output_type -> 取值域；_functions.fn.job.start.inputs.subject -> 取值域；_functions.fn.job.start.output_type -> 取值域；_functions.fn.job.finish.inputs.subject -> 取值域；_functions.fn.job.finish.output_type -> 取值域；_functions.fn.job.cancel.inputs.subject -> 取值域；_functions.fn.job.cancel.output_type -> 取值域；_types.value_types.record_kind 新增；_storage_class_map.EVIDENCE_REF.ours -> ledger；_property_types.STRING.used_by 去 1 条 record.*；_property_types.INTEGER.used_by 去 1 条 record.*；_property_types.TIMESTAMP.used_by 去 1 条 record.*；_modules._by_entry.record 删除；_modules._by_entry.ledger 新增",
   "_撤并登记（第四批·补）": "★ 收尾：_storage_class_map.MEMORY.ours -> null；_property_types._P无对应 去 1 条 record.*",
   "_surface_cells 说明": "★ 原 `_objects.cell`（格）的字段形状（撤并后留在这里）：owner=ref(surface)／order／shown／label／value／tooltip／style／component／agentAction／localAction／enabled／retract_seq。★ 它现在由 `surface.cells`（array(object)）承载。",
-  "_撤并登记（第五批）": "★ 2026-10-13 撤 cell（并进 surface）；改了 9 处：surface.fields.cells 新增（array(object)）；_objects.cell 撤 → _retired_objects；_links.cell-of 删除；_property_types.STRING.used_by 去 7 条 cell.*；_property_types.INTEGER.used_by 去 2 条 cell.*；_property_types.BOOLEAN.used_by 去 2 条 cell.*；_property_types.OBJECT_REFERENCE.used_by 去 1 条 cell.*；_governance.markings.by_class.cell 删除；_modules._by_entry.cell 删除"
+  "_撤并登记（第五批）": "★ 2026-10-13 撤 cell（并进 surface）；改了 9 处：surface.fields.cells 新增（array(object)）；_objects.cell 撤 → _retired_objects；_links.cell-of 删除；_property_types.STRING.used_by 去 7 条 cell.*；_property_types.INTEGER.used_by 去 2 条 cell.*；_property_types.BOOLEAN.used_by 去 2 条 cell.*；_property_types.OBJECT_REFERENCE.used_by 去 1 条 cell.*；_governance.markings.by_class.cell 删除；_modules._by_entry.cell 删除",
+  "_撤并登记（第六批）": "★ 2026-10-13 撤 presence（并成 _presence 状态面）；改了 18 处：_presence 节新建（含搬来的 _subject_kinds）；_objects.presence 撤 → _retired_objects；_links.runs-on 删除；_links.speaks-on 删除；_links.human-declares-presence 删除；_links.agent-declares-presence 删除；_links.application-declares-presence 删除；_links.service-declares-presence 删除；_links.device-declares-presence 删除；_links.workflow-declares-presence 删除；_actions.presence.report.param_type -> 取值域(6 种主体)；_functions.fn.presence.report.inputs.subject -> 取值域；_functions.fn.presence.report.output_type -> 取值域；_property_types.STRING.used_by 去 2 条 presence.*；_property_types.TIMESTAMP.used_by 去 1 条 presence.*；_governance.markings.by_class.presence 删除；_modules._by_entry.presence 删除；_governance.roles.roster.presence 删除（★ 但 subject_to_role 的实名照旧）",
+  "_撤并登记（第六批·补）": "★ 收尾：_property_types._P无对应 去 2 条；_standards._adopted[_objects.presence] 删除"
+ },
+ "_presence": {
+  "_what": "★ **在场状态面**（2026-10-13 撤 `presence` 类后立；作者裁定「甲」：在场是那 6 种主体的一个状态面，不是独立的类）。",
+  "_why": "★ `presence` 撤并的理由：它不满足「能独立存在」—— ★ `_links` 9 条边里 8 条围着它，其中 6 条写着「6 种主体各自申报在场」。",
+  "subject_kinds": {
+   "_what": "主体种类的**目标闭集**（闭集 ⇒ 未知取值要报红，不许静默收下）。",
+   "closed_set": [
+    "human",
+    "agent",
+    "application",
+    "service",
+    "device",
+    "workflow"
+   ],
+   "_照谁": "★ **2026-10-12 新建**（作者：「**根据上传的这个主体**」）。**主体种类的【目标闭集】。**取值照 `.refs/依赖仓/AI-Native-Linux` 的 AIOS `SubjectKind`（逐字「**Closed enum**」）——**只取 6 个**：`human`／`agent`／`application`／`service`／`device`／`workflow`。★ **不取** AIOS 的 `REMOTE_OPERATOR`／`LOCAL_OPERATOR`：那两个是**通道／环境**（远程通道、本地控制台），**不是主体种类**——照本仓 `_identity.actors`「**身份 ≠ 作者**」同一条道理。",
+   "_与 fields.category 的关系（如实）": "★★ **与 `fields.category` 的关系（如实，不许读成「已经收紧了」）**：`presence.fields.category` **今天仍然是 `string`**。**为什么不顺手把它收紧成闭集**：`concepts`（**身份侧、非 `_` 键、参与 `vocab_hash`**）与 `_objects`（读路径）**必须逐字一致**，否则装载器报 `ext.world.Ontology.ConceptsDrift`（本席 2026-10-12 试过，**当场红**）。而 **`concepts` 是非 `_` 键 ⇒ 动它＝换词表身份**，`ConceptsDrift` 的处置逐字写着那是「**框架变更，走评审**」。⇒ 本格是**【目标闭集】**（判据 `check_classification.py` 的 `C-1` 判它）；**把 `fields.category` 真正收紧，要等承重那一批**（见 `ninedim/07-待审/2026-10-12-方案-实体分类重归.md` 第二步）。★ 今天实际用到的是 `application`（`world://presence/omarchy`／`pcmanfm` 都是应用／界面）；其余取值**留位**。",
+   "_判据": "`scripts/verify/check_classification.py` 的 `C-1`：`closed_set` 非空、是**闭集**（列表）、且取值都不是空串。"
+  },
+  "states": [
+   "installed",
+   "registered",
+   "running",
+   "stopped",
+   "retired"
+  ],
+  "_states_依据": "★ 原文取 `presence.fields.state` 的枚举（撤类前现取）。",
+  "_实名照旧（要紧）": "★★ `world://presence/omarchy`／`world://presence/pcmanfm` 这两个**实名不改** —— ★ 那里的 `presence` 是**命名空间段**，不是类名。★ 它们在 `_permissions.grants.*.scope` 里共 4 处。",
+  "_与 concepts 的关系（★ 待人批）": "★★ `concepts.presence`（非 `_` 键、参与 `vocab_hash`）**今天仍在** ⇒ ★ 按本体口径这是 `ConceptsDrift`（身份侧与读路径不一致）⇒ ★ **动 `concepts` ＝ 换词表身份 ⇒ 要走评审** ⇒ ★ **待人批**。"
  }
 }
