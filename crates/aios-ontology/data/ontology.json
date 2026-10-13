@@ -98,94 +98,6 @@
   "_comment": "『世界里存在什么』。字段值是**机器可读的类型声明**（`bool`／`string`／`integer`／`number`／`array`／`object`／`ref(<类型>)`／`enum(a,b,…)`）；**不是**这几种写法的自由度说明文字一律**放行**（本体没声明类型口径，判据不替它发明）。",
   "_declared_gaps": "★ **未实现／未接入**（本批只登记，非 `_` 键一字未动；判词 · 形式本体 Y-1／Y-2／判-1.5）：① **缺主体类型**——`world://user`／`world://agent/dsh` 已按能力拿到许可（`_permissions.grants`），而 `user`／`agent` 两类**不在这六类里**；判据 `UndeclaredRelationEndpoint` 只盯 `_links` 两端，**不盯许可主体**。② **缺『记录／信息内容』这一类**——`change`／`act`／`notice` 在实现上是账本行（见 `families.*._comment`）。③ **缺 agent／user／世界级资源对象** ⇒ 『谁参与了这次过程』问不出（`envelope.actor` 只是字符串）。④ `concepts`（非 `_` 键）是**冻结映射**：它缺 `instance_mode`／`_nested`，权威读法是本节。⇒ 真修①②＝往 `_objects` 加类型（`_` 键）⇒ **零身份代价**（`mod.rs:2149-2164` 整枝剔除；`:637` 射程表第 5 行「该类型只在一处出现 ⇒ 不判」）；★ 会换身份的是动**非 `_` 顶层键**——现取 `sorted(k for k in d if not k.startswith('_'))` ＝ `['concepts','envelope','families','flags','world']`（**5 类**）；本条修法**不碰它们**。只写提案。",
   "_meta_legend": "六类各自的 `_meta`：**照形状取自 CCO 的 TTL 一个类七样**（`.refs/依赖料/CCO/src/cco-iris/InformationEntityOntology.ttl` 的 `cco:ont00000003` 块逐字：`rdf:type owl:Class`／`rdfs:subClassOf`／`owl:disjointWith`／`rdfs:label \"…\"@en`／`skos:altLabel \"…\"@en`／`skos:definition \"…\"@en`／`cco:ont00001760 \"…\"^^xsd:anyURI`）⇒ ① 数字号 `id` ② `label`（带语言）③ `altLabel` ④ `definition` ⑤ `anchor`（父类）⑥ `disjointWith`（互斥）⑦ `module`（模件归属）；**外加本仓的第八样 `anchor_note`**（锚的出处注，**CCO 的七样里没有它**，是本仓加的）。★ **四处如实登记**：① `id` 是**本仓自编的本地号**——既不是外部 IRI，也不是 CCO 的号；② `anchor` 全体是**提案值**（裁-1 未裁，由评审席定），每条的 `anchor_note` 写明它照的是哪个 BFO 类、以及**另一种读法**；③ `disjointWith` 是**声明**——**本仓今天没有判据判它成不成立**；④ `module` 填的是 `ninedim/config.json` 的**原子号**（本仓的『模件』今天是原子），**照的是 CCO 那一格的形状、不是它的取值**。",
-  "job": {
-   "_meta": {
-    "id": "wc:ont00000002",
-    "label": {
-     "zh": "作业",
-     "en": "Job"
-    },
-    "altLabel": {
-     "zh": [
-      "任务",
-      "长活儿"
-     ],
-     "en": [
-      "Task",
-      "Long-running job"
-     ]
-    },
-    "definition": "一个由某个主体请求、由载体执行、并在世界上留下起止与结果的那一类发生（occurrent）；它有 `status`／`step` 两格。",
-    "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
-    "anchor_note": "照形状取自 BFO 2020：`process`（`.refs/bfo-2020/21838-2/owl/bfo-core.ttl`，逐字 `rdfs:label \"process\"@en`，父 `BFO_0000003 occurrent`）——定义逐字「p is a process means p is an occurrent that has some temporal proper part and for some time t, p has some material entity as participant」。★ **提案值·待裁-1**（由评审席定）：锚到 `process` 是**照它所指的那件事**，不是照账本里那一行记录（同 Y-2 的口径）。",
-    "disjointWith": [
-     "notice",
-     "presence",
-     "surface",
-     "cell",
-     "port"
-    ],
-    "module": "A-01 ontology_definition",
-    "_field_meta_说明": {
-     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
-    }
-   },
-   "fields": {
-    "status": "enum(todo,doing,done)",
-    "step": "integer",
-    "steps_total": "integer",
-    "step_label": "string",
-    "retract_seq": "integer"
-   },
-   "instance_mode": "many",
-   "_field_meta": {
-    "status": {
-     "required": null,
-     "options": [
-      "todo",
-      "doing",
-      "done"
-     ],
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING + constraints{options}",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "step": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "steps_total": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "step_label": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "STRING",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    },
-    "retract_seq": {
-     "required": null,
-     "options": null,
-     "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
-     "base_type": "INTEGER",
-     "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
-    }
-   }
-  },
   "presence": {
    "_meta": {
     "id": "wc:ont00000003",
@@ -1059,7 +971,7 @@
     "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
    },
    "fields": {
-    "of_kind": "enum(change,act,notice)",
+    "of_kind": "enum(change,act,notice,job)",
     "at_seq": "integer",
     "at_time": "integer  # UNIX 秒",
     "who": "string"
@@ -1072,10 +984,11 @@
      "options": [
       "change",
       "act",
-      "notice"
+      "notice",
+      "job"
      ],
      "is_primary_key": null,
-     "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+     "_依据": "★ 2026-10-13：`families` 三键 ＋ `job`（作业）—— 撤并后「记录的一族」的取值域",
      "base_type": "STRING + constraints{options}",
      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
     },
@@ -1328,7 +1241,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(job)",
+     "param_type": "ref(record)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1347,7 +1260,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(job)",
+     "param_type": "ref(record)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1366,7 +1279,7 @@
    "parameters": [
     {
      "name": "subject",
-     "param_type": "ref(job)",
+     "param_type": "ref(record)",
      "required": true,
      "options": null,
      "_依据": "**读数**：`families.change` 的必填格是 `subject`／`path`／`before`／`after`（`ontology.json` 的 `families.change`）⇒ 凡写世界的动作都要一个主体地址；本条动作名前置是 `job` ⇒ 类型取 `ref(job)`。★ **本表今天只有这一个参数**：`path`／`before`／`after` 属 `change` 家族的**信封格**，不由动作声明 —— 那段对应关系**今天没有声明面**（如实登记，待裁）。"
@@ -1504,9 +1417,9 @@
     "display_name": "起一个作业",
     "description": "动作 job.start 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(job)"
+     "subject": "ref(record)"
     },
-    "output_type": "job",
+    "output_type": "record",
     "_note": "output_type=job"
    },
    "fn.job.finish": {
@@ -1514,9 +1427,9 @@
     "display_name": "结束一个作业",
     "description": "动作 job.finish 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(job)"
+     "subject": "ref(record)"
     },
-    "output_type": "job",
+    "output_type": "record",
     "_note": "output_type=job"
    },
    "fn.job.cancel": {
@@ -1524,9 +1437,9 @@
     "display_name": "取消一个作业",
     "description": "动作 job.cancel 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
     "inputs": {
-     "subject": "ref(job)"
+     "subject": "ref(record)"
     },
-    "output_type": "job",
+    "output_type": "record",
     "_note": "output_type=job"
    },
    "fn.ledger.compact": {
@@ -1761,11 +1674,6 @@
    "CurrencyUnitOntology": "货币——**本仓暂不采用**"
   },
   "_adopted": {
-   "_objects.job": [
-    "https://www.commoncoreontologies.org/ont00000005",
-    "http://www.w3.org/ns/prov#Activity",
-    "http://purl.obolibrary.org/obo/BFO_0000015"
-   ],
    "_objects.presence": [
     "https://www.commoncoreontologies.org/ont00001017",
     "http://www.w3.org/ns/prov#Agent",
@@ -8579,11 +8487,6 @@
    "_subscribe": "信息实体",
    "_objects": {
     "_by_entry": {
-     "job": [
-      "发生",
-      "记录",
-      "能力"
-     ],
      "presence": [
       "主体",
       "人工物",
@@ -9063,7 +8966,6 @@
     "CONFIDENTIAL": "受控——**今天一件都没有**；★ 但 **`_objects.port.owner_uid`／`_objects.cell.owner` 这两个字段按其性质**该在这一档**（见 `sensitive_fields`），**今天未标**。"
    },
    "by_class": {
-    "job": "INTERNAL",
     "presence": "INTERNAL",
     "surface": "INTERNAL",
     "cell": "INTERNAL",
@@ -10147,8 +10049,8 @@
   "_authority": "★ 语义权威在本体（本节点）；上游枚举是派生物。处置逐条见 ninedim/06-变更/2026-10-13-aios-semantic-plane/对照-上游10类与我们19类.md",
   "entries": {
    "PROJECT": {
-    "ours": "job",
-    "how": "待裁：并入 job 还是新增 project"
+    "ours": null,
+    "how": "★ 2026-10-13 撤并：本体的 _objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
    },
    "APPLICATION": {
     "ours": "application",
@@ -10191,8 +10093,8 @@
     "how": "★ 2026-10-13 撤并：本体的 `_objects.notice` 已撤（它是「规定面误补成的类」）；通告现为 `_families.notice`（记录的一族）"
    },
    "JOB": {
-    "ours": "job",
-    "how": "ours-added：我方已插进上游枚举（T-29）"
+    "ours": null,
+    "how": "★ 2026-10-13 撤并：本体的 _objects.job 已撤（与 notice 同型：它是「一次发生」，不是「一类东西」）；作业现为 record.of_kind 的一个取值"
    }
   },
   "_ours_missing": [
@@ -10271,7 +10173,6 @@
   "types": {
    "STRING": {
     "used_by": [
-     "job.step_label",
      "presence.name",
      "presence.category",
      "surface.name",
@@ -10306,9 +10207,6 @@
    },
    "INTEGER": {
     "used_by": [
-     "job.step",
-     "job.steps_total",
-     "job.retract_seq",
      "surface.order",
      "surface.retract_seq",
      "cell.order",
@@ -10364,11 +10262,6 @@
    }
   },
   "_P无对应而我方在用的": [
-   {
-    "字段": "job.status",
-    "类型串": "enum(todo,doing,done)",
-    "说明": "STRING + constraints{options}"
-   },
    {
     "字段": "presence.state",
     "类型串": "enum(installed,registered,running,stopped,retired)",
@@ -11206,9 +11099,98 @@
       "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
      }
     }
+   },
+   "job": {
+    "_meta": {
+     "id": "wc:ont00000002",
+     "label": {
+      "zh": "作业",
+      "en": "Job"
+     },
+     "altLabel": {
+      "zh": [
+       "任务",
+       "长活儿"
+      ],
+      "en": [
+       "Task",
+       "Long-running job"
+      ]
+     },
+     "definition": "一个由某个主体请求、由载体执行、并在世界上留下起止与结果的那一类发生（occurrent）；它有 `status`／`step` 两格。",
+     "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
+     "anchor_note": "照形状取自 BFO 2020：`process`（`.refs/bfo-2020/21838-2/owl/bfo-core.ttl`，逐字 `rdfs:label \"process\"@en`，父 `BFO_0000003 occurrent`）——定义逐字「p is a process means p is an occurrent that has some temporal proper part and for some time t, p has some material entity as participant」。★ **提案值·待裁-1**（由评审席定）：锚到 `process` 是**照它所指的那件事**，不是照账本里那一行记录（同 Y-2 的口径）。",
+     "disjointWith": [
+      "notice",
+      "presence",
+      "surface",
+      "cell",
+      "port"
+     ],
+     "module": "A-01 ontology_definition",
+     "_field_meta_说明": {
+      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+     }
+    },
+    "fields": {
+     "status": "enum(todo,doing,done)",
+     "step": "integer",
+     "steps_total": "integer",
+     "step_label": "string",
+     "retract_seq": "integer"
+    },
+    "instance_mode": "many",
+    "_field_meta": {
+     "status": {
+      "required": null,
+      "options": [
+       "todo",
+       "doing",
+       "done"
+      ],
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING + constraints{options}",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "step": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "steps_total": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "step_label": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "STRING",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     },
+     "retract_seq": {
+      "required": null,
+      "options": null,
+      "is_primary_key": null,
+      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。",
+      "base_type": "INTEGER",
+      "_P的ValueType形状": "name+base_type+constraints+validate（照 P 的 data_types.py）"
+     }
+    }
    }
   },
   "_撤并登记": "★ 撤 `notice` 时同批改了 14 处：_storage_class_map.NOTICE.ours -> null；_property_types.INTEGER.used_by 去掉 1 条 notice.*；_property_types.BOOLEAN.used_by 去掉 1 条 notice.*；_links.part-of 删除；_links.clock-stamps-notice 删除；_actions.notice.mute.param_type -> ref(record)；_actions.notice.unmute.param_type -> ref(record)；_functions.fn.notice.mute.inputs.subject -> ref(record)；_functions.fn.notice.mute.output_type -> record；_functions.fn.notice.unmute.inputs.subject -> ref(record)；_functions.fn.notice.unmute.output_type -> record；_governance.markings.by_class.notice 删除；_modules._by_entry.notice 删除；_standards._adopted[_objects.notice] 删除",
-  "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：_links.action-invokes-capability 删除；_links.capability-borne-by-presence 删除；_links.identity-identifies-presence 删除；_links.permission-grants-capability 删除；_links.record-records-action 删除；_links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null"
+  "_撤并登记（第二批）": "★ 2026-10-13 撤 clock/unit/identity/action/capability/permission 六个类时，同批改了 17 处：_links.action-invokes-capability 删除；_links.capability-borne-by-presence 删除；_links.identity-identifies-presence 删除；_links.permission-grants-capability 删除；_links.record-records-action 删除；_links.unit-measures-capability 删除；_modules._by_entry.clock 删除；_modules._by_entry.unit 删除；_modules._by_entry.identity 删除；_modules._by_entry.action 删除；_modules._by_entry.capability 删除；_modules._by_entry.permission 删除；_property_types.STRING.used_by 去掉 13 条；_property_types.INTEGER.used_by 去掉 1 条；_property_types.BOOLEAN.used_by 去掉 1 条；_property_types._P无对应 去掉 2 条；_storage_class_map.POLICY.ours -> null",
+  "_撤并登记（第三批）": "★ 撤 job 同批改了 17 处：_storage_class_map.PROJECT.ours -> null；_storage_class_map.JOB.ours -> null；_property_types.STRING.used_by 去 1 条；_property_types.INTEGER.used_by 去 3 条；_property_types._P无对应 去 1 条；_actions.job.start.param_type -> ref(record)；_actions.job.finish.param_type -> ref(record)；_actions.job.cancel.param_type -> ref(record)；_functions.fn.job.start.inputs.subject -> ref(record)；_functions.fn.job.start.output_type -> record；_functions.fn.job.finish.inputs.subject -> ref(record)；_functions.fn.job.finish.output_type -> record；_functions.fn.job.cancel.inputs.subject -> ref(record)；_functions.fn.job.cancel.output_type -> record；_governance.markings.by_class.job 删除；_modules._by_entry.job 删除；_standards._adopted[_objects.job] 删除"
  }
 }
