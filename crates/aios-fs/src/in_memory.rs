@@ -996,6 +996,11 @@ fn object_kind_from_delta(delta: &serde_json::Value) -> ObjectKind {
         Some("EVIDENCE_REF") => ObjectKind::EvidenceRef,
         Some("WORKSPACE") => ObjectKind::Workspace,
         Some("CONFIG") => ObjectKind::Config,
+        // ★ 我方新增（非上游本体）：认我们本体的两个对象类（见 crates/aios-ontology 的 _objects）
+        Some("NOTICE") => ObjectKind::Notice,
+        Some("JOB") => ObjectKind::Job,
+        // ★ 注意（如实登记）：本行是**静默降级** —— 不认识的类型不拒，直接当 File。
+        //   改成「不登记即拒」要动本函数签名（返回 Result），留作下一笔。
         Some("FILE" | _) | None => ObjectKind::File,
     }
 }

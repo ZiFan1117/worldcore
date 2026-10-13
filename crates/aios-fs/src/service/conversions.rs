@@ -235,6 +235,9 @@ pub const fn object_kind_to_proto(kind: ObjectKind) -> proto::ObjectKindProto {
         ObjectKind::EvidenceRef => proto::ObjectKindProto::EvidenceRef,
         ObjectKind::Workspace => proto::ObjectKindProto::Workspace,
         ObjectKind::Config => proto::ObjectKindProto::Config,
+        // ★ 我方新增（非上游本体）
+        ObjectKind::Notice => proto::ObjectKindProto::Notice,
+        ObjectKind::Job => proto::ObjectKindProto::Job,
     }
 }
 
@@ -250,6 +253,9 @@ pub fn object_kind_from_proto(kind: proto::ObjectKindProto) -> Result<ObjectKind
         proto::ObjectKindProto::EvidenceRef => Ok(ObjectKind::EvidenceRef),
         proto::ObjectKindProto::Workspace => Ok(ObjectKind::Workspace),
         proto::ObjectKindProto::Config => Ok(ObjectKind::Config),
+        // ★ 我方新增（非上游本体）
+        proto::ObjectKindProto::Notice => Ok(ObjectKind::Notice),
+        proto::ObjectKindProto::Job => Ok(ObjectKind::Job),
         proto::ObjectKindProto::ObjectKindUnspecified => {
             Err(Status::invalid_argument("object kind is unspecified"))
         }

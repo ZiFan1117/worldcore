@@ -92,6 +92,12 @@ pub enum ObjectKind {
     Workspace,
     /// `CONFIG` — configuration object.
     Config,
+    /// ★ **我方新增（非上游本体）** —— worldcore 本体的对象类：`notice`（通告）。
+    /// 依据：`crates/aios-ontology/data/ontology.json` 的 `_objects.notice`。
+    Notice,
+    /// ★ **我方新增（非上游本体）** —— worldcore 本体的对象类：`job`（活计）。
+    /// 依据：`crates/aios-ontology/data/ontology.json` 的 `_objects.job`。
+    Job,
 }
 
 /// Privacy classification imported from S1.2 §5.

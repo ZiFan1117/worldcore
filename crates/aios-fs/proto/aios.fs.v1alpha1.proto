@@ -27,6 +27,9 @@ enum ObjectKindProto {
   EVIDENCE_REF            = 8;
   WORKSPACE               = 9;
   CONFIG                  = 10;
+  // ★ 我方新增（非上游）：worldcore 本体的对象类（见 crates/aios-ontology 的 _objects）
+  NOTICE                  = 11;
+  JOB                     = 12;
 }
 
 enum PrivacyClassProto {
