@@ -19,10 +19,14 @@ pub struct Registry {
     families: BTreeSet<String>,
     functions: BTreeSet<String>,
     action_function: BTreeMap<String, String>,
+    /// ★ 建表时收到的那份**本体原文**（只留一份，供其余各面按同一条入口再读，不许各自带清单）。
+    source: String,
 }
 
 impl Registry {
     /// 从本体 JSON 文本建表。★ 五节缺一 ⇒ 由 `aios-ontology` 拒（`OntologyNotLoaded`）。
+    ///
+    /// ★ 原文**留着**（`source()`）—— 其余各面要按同一条入口再读时取它，免得本体出现第二份。
     pub fn load(text: &str) -> Result<Self, Refuse> {
         let doc: serde_json::Value = serde_json::from_str(text)
             .map_err(|_| Refuse::new(Reason::OntologyNotLoaded, "<不是合法 JSON>"))?;
@@ -36,6 +40,7 @@ impl Registry {
             families: keys(&doc, "families"),
             functions: functions_of(&doc),
             action_function: action_functions_of(&doc),
+            source: text.to_string(),
         })
     }
 
@@ -61,6 +66,15 @@ impl Registry {
     #[must_use]
     pub fn families(&self) -> Vec<&str> {
         self.families.iter().map(String::as_str).collect()
+    }
+
+    /// ★ 建表时收到的那份**本体原文**（逐字；★ 不解析、不改写）。
+    ///
+    /// ★ 给谁用：其余各面要按**同一条入口**（`load(text)`）再读一遍本体时，取它 ——
+    ///   这样「本体只有一份」这条不靠调用方各自保管文本。
+    #[must_use]
+    pub fn source(&self) -> &str {
+        &self.source
     }
 
     /// ★ 本体 `functions.entries` 的全部入口名（升序）—— 函数面（面⑤）的第一处查表口。
@@ -151,3 +165,31 @@ impl Registry {
         self.actions.iter().map(String::as_str).collect()
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::Registry;
+
+    /// 真本体（★ 权威；本仓测试与判据都以它为唯一来源）。
+    const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
+
+    /// 正控：**原文留着**，且两个读口都逐字对着同一份本体（★ 不另立清单）。
+    #[test]
+    fn read_ports_come_from_the_same_source() {
+        let reg = Registry::load(ONT).expect("本体该装得上");
+        assert_eq!(reg.source(), ONT, "本体原文要一字不动地留着");
+        assert_eq!(reg.functions().len(), 9);
+        assert!(reg.functions().contains(&"fn.notice.mute"));
+        assert_eq!(reg.function_of_action("notice.mute"), Some("fn.notice.mute"));
+        assert_eq!(
+            reg.function_of_action("presence.report"),
+            Some("fn.presence.report")
+        );
+        assert_eq!(reg.function_of_action("frobnicator"), None);
+        // ★ 在册动作各写着它的实现面，且那个函数号也在册（★ 本体给映射，不猜 fn.<动作名>）。
+        for action in reg.action_kinds() {
+            let f = reg.function_of_action(action).expect("动作该写着实现面");
+            assert!(reg.functions().contains(&f), "{action} → {f} 不在函数表里");
+        }
+    }
+}
+

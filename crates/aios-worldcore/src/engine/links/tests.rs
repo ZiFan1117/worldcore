@@ -87,13 +87,7 @@ fn real_ontology_declares_the_three_named_edges() {
 #[test]
 fn dangling_from_endpoint_is_refused_at_load() {
     let e = Links::load(FROM_DANGLING).unwrap_err();
-    assert_eq!(
-        e.code(),
-        Reason::DanglingRef {
-            target: String::new()
-        }
-        .code()
-    );
+    assert_eq!(e.code(), "worldcore.Refuse.DanglingRef");
     assert_eq!(target_of(&e), "ghost");
     assert_eq!(e.what, "links.human-bound-to-ghost.from");
 }
@@ -101,13 +95,7 @@ fn dangling_from_endpoint_is_refused_at_load() {
 #[test]
 fn dangling_to_endpoint_is_refused_at_load() {
     let e = Links::load(TO_DANGLING).unwrap_err();
-    assert_eq!(
-        e.code(),
-        Reason::DanglingRef {
-            target: String::new()
-        }
-        .code()
-    );
+    assert_eq!(e.code(), "worldcore.Refuse.DanglingRef");
     assert_eq!(target_of(&e), "ghost");
     assert_eq!(e.what, "links.device-bound-to-ghost.to");
 }
@@ -116,13 +104,7 @@ fn dangling_to_endpoint_is_refused_at_load() {
 #[test]
 fn missing_endpoint_is_refused_at_load() {
     let e = Links::load(TO_MISSING).unwrap_err();
-    assert_eq!(
-        e.code(),
-        Reason::MissingField {
-            field: String::new()
-        }
-        .code()
-    );
+    assert_eq!(e.code(), "worldcore.Refuse.MissingField");
     assert_eq!(field_of(&e), "to");
 }
 
