@@ -958,7 +958,7 @@
       "Record"
      ]
     },
-    "definition": "记录——本批（2026-10-12）按 `_objects._declared_gaps` 点名的缺口补立的类。",
+    "definition": "★ 账本里的**那一条发生**（信息内容实体）：由某个主体（who）在某个序号（at_seq）与时刻（at_time）写下，其类别落在 of_kind（change／act／notice／job）。★ **2026-10-13 撤并**：`notice`／`job` **不再是独立的类**，它们是本类 `of_kind` 的取值（★ 依据：本体 `_objects._declared_gaps` ② 逐字「缺『记录／信息内容』这一类」）。★★ **待裁**：`at_time`／`who` 与账本信封的 `envelope.at`／`actor` **有重复** —— 谁为准，待人裁。",
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
     "disjointWith": null,
@@ -968,7 +968,8 @@
      "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
      "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
     },
-    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。"
+    "_disjoint_note": "★ 2026-10-13 更正：本类**未声明互斥对**（按 OWL，未声明＝不互斥，不是缺口）。",
+    "_定义来历": "★ 2026-10-13 本席起草（原文是占位话「本批按缺口补立的类」）；★ 属承诺面，待人签。"
    },
    "fields": {
     "of_kind": "enum(change,act,notice,job)",
