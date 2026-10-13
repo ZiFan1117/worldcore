@@ -77,3 +77,52 @@
 1. ★ **没有动本体**（撤 `record`／补 `ledger` 都没做 —— ★ 等 §三 两处裁）；
 2. ★ **没核** `instance_mode` 的取值域（★ 本体只用了 `many`，★ 有没有 `one` 的合法值未查）；
 3. ★ **没估**撤 `record` 与补 `ledger` 的连带面（★ 已知 `ref(record)` 10 处、`_property_types` 4 处、`_storage_class_map` 5 处）。
+---
+
+## §五 附：「取值域」是什么（作者问过；本席补上，免得再问）
+
+### 一句话
+
+> ★★ **「取值域」＝ 某个空格上「允许填哪几个值」的清单。**
+
+### 例（本仓现成的）
+
+| 那个格 | 只能填 | 这是它的取值域 |
+|---|---|---|
+| `job.status` | `todo`／`doing`／`done` | 三个值（★ 已撤的 job，取值域留在 `families.job`） |
+| `presence.state` | `installed`／`registered`／`running`／`stopped`／`retired` | 五个值 |
+| 设备种类（上游 `DeviceClass`） | `Cpu`／`Memory`／`NetworkWifi`／…（16 个） | 十六个值 |
+
+### ★★ 与「类」的区别（这是关键）
+
+| | 大白话 | 例 |
+|---|---|---|
+| ★ **类** | ★ **名词的目录**（世界里有哪几种东西） | `human`／`device` —— 世界里有**很多个体**装在筐里 |
+| ★ **取值域** | ★ **填空题的可选项**（某个空只能填这几个字之一） | `job.status` 只能填 `todo`/`doing`/`done` |
+
+### 本仓为什么这次用「取值域」
+
+★ 撤 `record` 之后，那 10 处原写 `ref(record)`（＝「这个参数是一条记录」）；★ `record` 不再是筐 ⇒ **不能再说"这个参数是个记录"**。
+★ 但那些地方仍要填东西（★ 例如 `notice.mute` 要说清「对哪一类记录做」）⇒ ★ 那成了一个**填空题**：只能填 `change`／`act`／`notice`／`job` 之一 ⇒ ★ **这就是「改成取值域」**。
+★ 一句话：★ **「一条记录」不是一个筐，它是贴在筐上的标签**；★ **标签的清单就是取值域**。
+
+### ★ 取值域有三档（顺带说清）
+
+| 档 | 意思 | 例 |
+|---|---|---|
+| **闭枚举** | 值**全列出来**，不能增加 | `enum(todo,doing,done)` |
+| ★ **开值域** | 契约**允许往后加** | 上游 `RecordType`：`1..=427` ＋ **保留区 `1000..=9999`（前向增长）** |
+| **带约束的值** | 类型 ＋ 约束（格式／范围） | P 的 `ValueType`（`name + base_type + constraints`；★ `_types` 抄的就是它的面） |
+
+★ **标准对照**：★ RDF 1.1 逐字「**Literals are used for values** such as strings, numbers, and dates」＋「词法形式 ＋ datatype」—— ★ 说的就是这个「值」。
+
+### 本笔实际写进去的（给作者看形状）
+
+```json
+_types.value_types.record_kind = {
+  "base_type": "string",
+  "options": ["change", "act", "notice", "job"],
+  "_依据": "撤 record 后，ref(record) 的 10 处改为本取值域；四值＝families 四键"
+}
+```
+★ 而那 10 处现在写的是内联形式：`param_type = "enum(change,act,notice,job)"`（★ 直接内联，不引新语法）。
