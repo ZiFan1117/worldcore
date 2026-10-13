@@ -205,6 +205,5 @@ fn malformed_entry_is_refused() {
     );
 }
 
-// ★ 2026-10-13 Lead 代改：原此处写 `mod ok;` 指向一个**未被创建**的文件，导致
-//   `error[E0583]: file not found for module ok`（整 crate 编不过）⇒ 已删。
-//   若将来要另开正控件，请建 `functions/ok.rs` 并在这里 `mod ok;`。
+/// 正控（「转绿」那一半）另开一件：`engine/functions/tests/ok.rs`，免得本件超 300 行。
+mod ok;
