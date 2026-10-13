@@ -14,7 +14,8 @@ crates/aios-cognitive/tests/action_catalog_gate.rs # 我方新增产品测试（
 AGENTS.md                                         # 退役上游 GitNexus 说明书，换成本仓我方规约  T-25
 CLAUDE.md                                         # 退役上游 AIOS 说明书，换成本仓指针件  T-25
 README.md                                         # 退役上游前门，换成本仓前门  T-25
-crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30crates/aios-worldcore-shared/                    # 我方新增：worldcore 最小内核·共同类型（谁/拒/为什么/要登记的东西/一件事）  T-94
+crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
+crates/aios-worldcore-shared/                    # 我方新增：worldcore 最小内核·共同类型（谁/拒/为什么/要登记的东西/一件事）  T-94
 crates/aios-worldcore-registry/                  # 我方新增：worldcore 面①注册  T-94
 crates/aios-worldcore-instances/                 # 我方新增：worldcore 面②实例注册（未登记即拒）  T-94
 crates/aios-worldcore-validate/                  # 我方新增：worldcore 面③校验  T-94
