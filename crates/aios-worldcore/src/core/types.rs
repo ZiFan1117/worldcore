@@ -10,7 +10,6 @@ use serde_json::{Map, Value};
 /// 谁 —— 做这件事的那个主体。
 ///
 /// 本体里对应：`envelope.actor`（信封里的「谁」）。
-
 /// 主体：一个在册的名字（`world://<ns>/<name>` 形状）。
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Who(String);
@@ -58,7 +57,6 @@ impl Who {
 /// 为什么 —— 拒绝的理由（机器认的码）。
 ///
 /// 本体里对应：`aios-ontology` 的 `Reject`（逐条错误码，如 `ext.world.Ontology.ActionUnknown`）。
-
 /// 拒绝的理由。每一条都能指回本体的一处规矩。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Reason {
@@ -100,7 +98,6 @@ impl Reason {
 /// 拒 —— 系统说「不行」时返回的那个东西。
 ///
 /// 本体里对应：`Reject`（逐条带错误码）。这里多带一样：**被拒的那笔**（便于报给人和记账）。
-
 /// 一次拒绝：为什么不许 ＋ 被拒的是哪件事。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Refuse {
@@ -143,7 +140,6 @@ pub type Admit<T> = Result<T, Refuse>;
 /// 本体里对应：`objects.<类>.fields`（每一类有哪几个格）。
 ///
 /// ★ 与 Palantir 的 `ObjectInstance` 同位置：**类型名 ＋ 各格的值**。
-
 /// 一次注册：它是什么类型 ＋ 它填了哪些格。
 #[derive(Debug, Clone, PartialEq)]
 pub struct Registration {
@@ -189,7 +185,6 @@ impl Registration {
 /// 本体里对应：`envelope`（信封）＋ `families`（四族：change／act／notice／job）。
 ///
 /// ★ 与 Palantir 的 `AuditEntry` 同位置：序号 ＋ 谁 ＋ 什么时候 ＋ 做了什么。
-
 /// 账本上的位置（全局单增，由世界分配；本体 `envelope.fields.seq` 逐字）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct EventSeq(pub u64);
