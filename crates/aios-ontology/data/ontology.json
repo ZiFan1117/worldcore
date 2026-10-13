@@ -124,7 +124,11 @@
      "cell",
      "port"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "muted": "bool",
@@ -143,9 +147,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "job": {
@@ -175,7 +177,11 @@
      "cell",
      "port"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "status": "enum(todo,doing,done)",
@@ -219,9 +225,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "presence": {
@@ -250,7 +254,11 @@
      "cell",
      "port"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -310,9 +318,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "surface": {
@@ -343,7 +349,11 @@
      "port"
     ],
     "module": "A-01 ontology_definition",
-    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Workspace（判定为重叠 ⇒ 合并；语义是否完全同一件事仍待裁）"
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Workspace（判定为重叠 ⇒ 合并；语义是否完全同一件事仍待裁）",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -383,9 +393,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "cell": {
@@ -414,7 +422,11 @@
      "surface",
      "port"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "owner": "ref(surface)",
@@ -503,9 +515,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "port": {
@@ -534,7 +544,11 @@
      "surface",
      "cell"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -592,9 +606,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "human": {
@@ -622,7 +634,11 @@
      "device",
      "workflow"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -648,9 +664,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "agent": {
@@ -678,7 +692,11 @@
      "device",
      "workflow"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -715,9 +733,7 @@
      ],
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "application": {
@@ -746,7 +762,11 @@
      "workflow"
     ],
     "module": "A-01 ontology_definition",
-    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Application（语义重叠 ⇒ 合并，不新增类）"
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::Application（语义重叠 ⇒ 合并，不新增类）",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -776,9 +796,7 @@
      ],
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "service": {
@@ -806,7 +824,11 @@
      "device",
      "workflow"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -836,9 +858,7 @@
      ],
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "device": {
@@ -866,7 +886,11 @@
      "service",
      "workflow"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -892,9 +916,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "workflow": {
@@ -922,7 +944,11 @@
      "service",
      "device"
     ],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -948,9 +974,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "record": {
@@ -973,7 +997,11 @@
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——**记录**是账本里的一行：`change`／`act`／`notice` 在实现上都是它（`_objects._declared_gaps` ② 逐字点名的缺口）。★ 提案值·待裁。",
     "disjointWith": [],
     "module": "A-01 ontology_definition",
-    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）"
+    "_融合自上游": "★ 2026-10-13 融合自上游 ObjectKind::EvidenceRef（语义重叠：它的证据引用＝我们的账本条目 ⇒ 合并，不新增类）",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "of_kind": "enum(change,act,notice)",
@@ -1011,9 +1039,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "capability": {
@@ -1035,7 +1061,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000034",
     "anchor_note": "照形状取自 BFO 2020：`function`（`BFO_0000034`，父 `BFO_0000016 disposition`）——★ 与 `_layers` 的 EXPORT BRIDGE 同一处口径：「**形状取自** BFO `function`，**不是它就是它**」（BFO 的 realizable entity 必须 inhere in 某个 independent continuant，而本仓今天缺「承载者」）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "name": "string",
@@ -1061,9 +1091,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "action": {
@@ -1085,7 +1113,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000015",
     "anchor_note": "照形状取自 BFO 2020：`process`——一次动作是**发生**（有起止、有参与者）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "capability": "string",
@@ -1111,9 +1143,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "permission": {
@@ -1135,7 +1165,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000023",
     "anchor_note": "照形状取自 BFO 2020：`role`（`BFO_0000023`，父 `BFO_0000017 realizable entity`）——许可是**角色式的授予**（谁能把哪个能力授给谁）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "who": "string",
@@ -1161,9 +1195,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "clock": {
@@ -1185,7 +1217,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000040",
     "anchor_note": "照形状取自 BFO 2020：`material entity`——★ **时钟是人工物，不是时间区域**（本席第一版想锚 `BFO_0000008 temporal region`，那是**把被量的东西当成量它的东西**）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "epoch": "integer",
@@ -1211,9 +1247,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "unit": {
@@ -1235,7 +1269,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——单位是**信息内容**（UCUM 的代码、QUDT 的量纲都是可复制的说明）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "code": "string",
@@ -1261,9 +1299,7 @@
      "options": null,
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "identity": {
@@ -1285,7 +1321,11 @@
     "anchor": "http://purl.obolibrary.org/obo/BFO_0000031",
     "anchor_note": "照形状取自 BFO 2020：`generically dependent continuant`——身份是**信息内容**（四层身份 `content_hash`／`instance_id`／`subject_id`／`seq` 都是可复制的说明）。★ 提案值·待裁。",
     "disjointWith": [],
-    "module": "A-01 ontology_definition"
+    "module": "A-01 ontology_definition",
+    "_field_meta_说明": {
+     "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
+     "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    },
    "fields": {
     "canonical_id": "string",
@@ -1309,9 +1349,7 @@
      ],
      "is_primary_key": null,
      "_依据": "`options` 是**读数**（从 `fields` 的类型串 `enum(...)` 解出）；`required`／`is_primary_key` 今天**没有依据** ⇒ 填 `null`，**不是「不要」，是「还没定」**（P 的 `Property` 有这两格，我们抄形状）。"
-    },
-    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `_actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-    "_P 的 Property 有八样": "`name`／`display_name`／`property_type`／`value_type`／`required`／`description`／`is_primary_key`／`options`；本仓取其中**三样**（`required`／`options`／`is_primary_key`）——其余五样本仓的 `fields`（名字:类型串）＋`_meta`（label/definition）已经在表达。"
+    }
    }
   },
   "_2026-10-12_本批加类说明": "★ **2026-10-12 加 13 个类**（作者：「**这 6 类我要再再再再分呀**」）。出处＝本节 `_declared_gaps` **逐字点名的缺口**（① 缺主体类型 ② 缺『记录／信息内容』这一类 ③ 缺 agent／user／世界级资源对象）＋ 五要素里**今天没有类落**的那几节（能力／动作／许可＝`能力`那一目；记录；身份；时间；性质与度量）。★ **全在 `_` 键下 ⇒ 零身份代价**（`_declared_gaps` 逐字：「真修①②＝往 `_objects` 加类型（`_` 键）⇒ 零身份代价」）。★ **一处刻意不加**：**`link`（关系）不是类** —— BFO 里关系**不是 entity**（是 `owl:ObjectProperty`），而本仓 `_links` 已经是「关系」那一节的落点 ⇒ **硬凑一个 `link` 类＝造假**。★ 锚**逐条照** `.refs/bfo-2020/21838-2/owl/bfo-core.ttl` 现取的 **36 个 BFO 类**，**不猜**；★ 每条锚注都写「**提案值·待裁**」（本仓口径：`anchor` 全体是提案值，裁-1 未裁）。",
