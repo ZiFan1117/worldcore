@@ -18,11 +18,18 @@
 //! ★ **今天没做**（如实）：本体 `record.at_time`（UNIX 秒）**没有落点** —— 本面无时钟，
 //! 折现状只按 `seq` 排序（本体 `envelope.fields.at` 自陈「顺序由 `seq` 决定，`at` 只作辅助」）。
 //!
+//! ★ **将来接哪个 AIOS 件**（照作者令：内存实现可以，但要点名）：信纸的落盘载体是
+//! `crates/aios-fs`（今天的替身 `InMemoryAiosFs`）；只追加原件那一半接
+//! `crates/aios-evidence` 的 `ReceiptChain`（「append-only ordered list with link-hash verification」）。
+//!
 //! ★ **本件只放写侧**（只追加序列的推入 ＋ 三条拒绝规矩）；**读侧在 `read.rs`**。
 
 mod projection;
 mod read;
 mod row;
+
+#[cfg(test)]
+mod tests;
 
 pub use projection::{fold, Projection};
 pub use row::{Op, Row, NO_PREDECESSOR};
@@ -121,12 +128,16 @@ impl Store {
     ) -> Admit<EventSeq> {
         let key = key.into();
         if self.projection().get(&key).is_some() {
-            return Err(Refuse::new(
-                Reason::DanglingRef { target: key },
-                "键已存在",
-            ));
+            return Err(Refuse::new(Reason::DanglingRef { target: key }, "键已存在"));
         }
-        Ok(self.push(who, NO_PREDECESSOR, Op::Create, key, Some(reg), String::new()))
+        Ok(self.push(
+            who,
+            NO_PREDECESSOR,
+            Op::Create,
+            key,
+            Some(reg),
+            String::new(),
+        ))
     }
 
     /// 更正一条（不存在 ⇒ 拒）。★ 旧版**不动**：追加一行，折出来才是新的。

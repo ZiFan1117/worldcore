@@ -9,6 +9,10 @@
 //! 由面②的 `Instances::register` 调用；下面那四个 `check_*` 是**可单独调用的小件**（各校一样，
 //! 别的面／别的调用点要用就取这一件 —— 门面按名字再导出，故这四个名字与签名一字不动）。
 //!
+//! ★ 这一处将来接 **AIOS 的**哪一件：这**同一套判**将来由 AIOS 的写闸
+//!   （`aios-policy` 的 `authorize_write`／`src/gate/policy.json`）在「改世界」之前复用；
+//!   今天只在 worldcore 内存里判，**不碰** AIOS 的 policy.json。
+//!
 //! ★ 一处**如实登记**：本体 `_field_meta.<格>.required` 今天全是 `null` ⇒ 「必填」这一样
 //! **在本体上不咬**（只有显式 `true` 才算必填）。「必须有 name」是本内核自己的规矩
 //! （面②的行以 name 为键），**不是**本体声明的必填 —— 两者在面②里分开判，不混成一条。
@@ -90,3 +94,6 @@ pub fn check_refs(reg: &Registration, known: &[&str]) -> Admit<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

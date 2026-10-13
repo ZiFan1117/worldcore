@@ -4,15 +4,14 @@
 //!    谁把规矩删掉（改成静默收下），这里当场红。
 //! ★ 本体用**真实件**装载（include_str! 指向 aios-ontology 的 ontology.json）；
 //!    夹具也从那份 JSON 现取 —— 本体改了，夹具会自己说话，不会悄悄假绿。
+//! ★ 2026-10-13 接线三条：实例登记现在**必须先给四个协作面**（册／本体格／治理／账）
+//!    ⇒ 每条用例都得先 `gov.grant(...)`（治理默认拒），且登记成功**同批进账**。
 
 use aios_worldcore::core::registry::Registry;
-use aios_worldcore::core::types::{Admit, Event, EventSeq, Reason, Refuse, Registration, Who};
-use aios_worldcore::engine::execute::{DryRun, Exec, Executor};
-use aios_worldcore::engine::instances::Instances;
+use aios_worldcore::core::types::{Reason, Registration, Who};
+use aios_worldcore::engine::instances::{register_capability, Instances, RegisterEnv};
 use aios_worldcore::engine::ledger::Ledger;
-use aios_worldcore::engine::query::Query;
-use aios_worldcore::engine::store::Store;
-use aios_worldcore::engine::validate::{check_enum, check_refs, check_required, check_shape};
+use aios_worldcore::engine::validate::{check_required, ObjectSpec};
 use aios_worldcore::governance::Governance;
 use serde_json::{json, Map, Value};
 
@@ -72,24 +71,37 @@ fn required_of(family: &str) -> Vec<String> {
 fn unregistered_kind_is_refused() {
     let r = Registry::load(ONT).expect("本体该装得上");
     assert!(!section_keys("objects").iter().any(|k| k == "frobnicator"));
+    let spec = ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    // ★ 治理先问：不先授这一项，拿到的是 NotPermitted、走不到「查在册」那一条。
+    gov.grant(&who(), register_capability("frobnicator"));
+    let mut led = Ledger::load(ONT).expect("本体该装得上");
+    let mut env = RegisterEnv::new(&r, &spec, &gov, &mut led);
     let mut inst = Instances::new();
     let want = named("frobnicator", "x");
-    let got = inst.register(&r, &who(), &want);
+    let got = inst.register(&mut env, &who(), &want);
     let e = got.expect_err("未登记类型必须拒");
     assert_eq!(e.reason, Reason::UnknownKind);
     assert_eq!(inst.count(), 0, "被拒的不许留在册上");
+    assert_eq!(led.all().len(), 0, "被拒的不许留账");
 }
 
 /// 正控：在册类型收下，并给一个单增序号。
 #[test]
 fn registered_kind_is_admitted() {
     let r = Registry::load(ONT).expect("本体该装得上");
+    let spec = ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who(), register_capability("application"));
+    gov.grant(&who(), register_capability("service"));
+    let mut led = Ledger::load(ONT).expect("本体该装得上");
+    let mut env = RegisterEnv::new(&r, &spec, &gov, &mut led);
     let mut inst = Instances::new();
-    let ra = inst.register(&r, &who(), &named("application", "htop"));
-    let rb = inst.register(&r, &who(), &named("service", "sshd"));
+    let ra = inst.register(&mut env, &who(), &named("application", "htop"));
+    let rb = inst.register(&mut env, &who(), &named("service", "sshd"));
     let sa = ra.expect("在册类型该收下");
     let sb = rb.expect("在册类型该收下");
-    assert_eq!((sa.0, sb.0), (1, 2), "序号该单增");
+    assert_eq!((sa.0, sb.0), (1, 2), "序号该单增（★ 由账发）");
     assert_eq!(inst.count(), 2);
     assert_eq!(inst.get("htop").map(|(k, _)| k), Some("application"));
 }
@@ -104,37 +116,62 @@ fn missing_required_field_is_refused() {
     let refs: Vec<&str> = required.iter().map(String::as_str).collect();
     let got = check_required(&reg, &refs);
     let e = got.expect_err("缺必填必须拒");
-    assert_eq!(e.reason, Reason::MissingField { field: required[0].clone() });
+    assert_eq!(
+        e.reason,
+        Reason::MissingField {
+            field: required[0].clone()
+        }
+    );
 }
 
 /// 反例②之二：登记面自己那道「必须有名字」。
 #[test]
 fn registration_without_name_is_refused() {
     let r = Registry::load(ONT).expect("本体该装得上");
+    let spec = ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who(), register_capability("application"));
+    let mut led = Ledger::load(ONT).expect("本体该装得上");
+    let mut env = RegisterEnv::new(&r, &spec, &gov, &mut led);
     let mut inst = Instances::new();
     let empty = Registration::new("application", Map::new());
-    let got = inst.register(&r, &who(), &empty);
+    let got = inst.register(&mut env, &who(), &empty);
     let e = got.expect_err("缺 name 必须拒");
-    assert_eq!(e.reason, Reason::MissingField { field: "name".to_string() });
+    assert_eq!(
+        e.reason,
+        Reason::MissingField {
+            field: "name".to_string()
+        }
+    );
     assert_eq!(inst.count(), 0);
+    assert_eq!(led.all().len(), 0, "被拒的不许留账");
 }
 
 /// 反例：空名字是坏名字（不是「缺格」，是「值不可用」）。
 #[test]
 fn blank_name_is_refused() {
     let r = Registry::load(ONT).expect("本体该装得上");
+    let spec = ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who(), register_capability("application"));
+    let mut led = Ledger::load(ONT).expect("本体该装得上");
+    let mut env = RegisterEnv::new(&r, &spec, &gov, &mut led);
     let mut inst = Instances::new();
     let blank = named("application", "   ");
-    let got = inst.register(&r, &who(), &blank);
+    let got = inst.register(&mut env, &who(), &blank);
     assert_eq!(got.expect_err("空名字必须拒").reason, Reason::BadName);
     assert_eq!(inst.count(), 0);
+    assert_eq!(led.all().len(), 0, "被拒的不许留账");
 }
 
 /// 反例：本体不是合法 JSON ⇒ 拒（不许装不上还当空表用）。
 #[test]
 fn broken_ontology_text_is_refused() {
     let got = Registry::load("{ 这不是 JSON }");
-    assert_eq!(got.expect_err("不是 JSON 必须拒").reason, Reason::OntologyNotLoaded);
+    assert_eq!(
+        got.expect_err("不是 JSON 必须拒").reason,
+        Reason::OntologyNotLoaded
+    );
 }
 
 /// 反例：五节缺一 ⇒ 拒（与本体 _five_elements 同口径）。
@@ -142,7 +179,10 @@ fn broken_ontology_text_is_refused() {
 fn ontology_missing_a_section_is_refused() {
     let text = "{\"objects\":{},\"links\":{},\"interfaces\":{},\"actions\":{}}";
     let got = Registry::load(text);
-    assert_eq!(got.expect_err("缺 functions 节必须拒").reason, Reason::OntologyNotLoaded);
+    assert_eq!(
+        got.expect_err("缺 functions 节必须拒").reason,
+        Reason::OntologyNotLoaded
+    );
 }
 
 /// 只读核对：注册面的类清单必须与本体 objects 键一致（八面都不许自带清单）。

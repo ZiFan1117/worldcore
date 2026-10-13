@@ -82,3 +82,23 @@ fn keys(doc: &serde_json::Value, section: &str) -> BTreeSet<String> {
         .map(|m| m.keys().filter(|k| !k.starts_with('_')).cloned().collect())
         .unwrap_or_default()
 }
+/// ★ 装载本体的便捷入口（= `Registry::load`）。
+///
+/// ★ 为什么单独给一个自由函数：★ 原先门面 crate 里有 `load_ontology`，★ 门面取消后
+/// 调用方（含 `tests/`）改一句就用得上；★ 名字与语义照 Palantir 的 `Ontology` 装载入口。
+pub fn load_ontology(text: &str) -> Result<Registry, Refuse> {
+    Registry::load(text)
+}
+impl Registry {
+    /// ★ 别名：动作名是否在册（与本体装载器的 `has_action` 同名同义，调用方少记一个名字）。
+    #[must_use]
+    pub fn has_action(&self, action: &str) -> bool {
+        self.actions.contains(action)
+    }
+
+    /// ★ 别名：动作名（升序）。
+    #[must_use]
+    pub fn action_names(&self) -> Vec<&str> {
+        self.actions.iter().map(String::as_str).collect()
+    }
+}

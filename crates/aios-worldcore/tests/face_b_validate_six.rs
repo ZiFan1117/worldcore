@@ -1,16 +1,13 @@
 //! 面③（校验）—— **进门安检的六样，每样一条**（会红的反例）。
 //!
 //! 六样：① 类型名在册 ② 格名合法 ③ 必填齐 ④ 值的类型对 ⑤ 取值域对 ⑥ 引用不悬空。
-//! ★ 第④样今天**没有人校**（validate 面没有对应的口）—— 它以 #[ignore] 的会红反例留在这里，
-//!   跑 cargo test -- --ignored 就见红；补上实现后那条转绿。
+//! ★ 2026-10-13：第④样（值的类型对）**已接上** —— 实例面的 `ObjectSpec::check_instance`
+//!   照本体 `objects.<类>.fields` 逐格校；那条 `#[ignore]` 已去掉，**现在必须绿**。
 
 use aios_worldcore::core::registry::Registry;
-use aios_worldcore::core::types::{Admit, Event, EventSeq, Reason, Refuse, Registration, Who};
-use aios_worldcore::engine::execute::{DryRun, Exec, Executor};
-use aios_worldcore::engine::instances::Instances;
+use aios_worldcore::core::types::{Reason, Registration, Who};
+use aios_worldcore::engine::instances::{register_capability, Instances, RegisterEnv};
 use aios_worldcore::engine::ledger::Ledger;
-use aios_worldcore::engine::query::Query;
-use aios_worldcore::engine::store::Store;
 use aios_worldcore::engine::validate::{check_enum, check_refs, check_required, check_shape};
 use aios_worldcore::governance::Governance;
 use serde_json::{json, Map, Value};
@@ -93,26 +90,46 @@ fn six_3_required_fields_must_be_present() {
     let refs: Vec<&str> = required.iter().map(String::as_str).collect();
     let got = check_required(&reg, &refs);
     let e = got.expect_err("缺第一个必填格必须拒");
-    assert_eq!(e.reason, Reason::MissingField { field: required[0].clone() });
+    assert_eq!(
+        e.reason,
+        Reason::MissingField {
+            field: required[0].clone()
+        }
+    );
 }
 
-/// ★★ 第④样（**会红反例**）：值的类型对。
+/// ★★ 第④样：值的类型对（★ 2026-10-13 已接上 ⇒ 本条**必须绿**）。
 ///
 /// 本体逐字申报 `objects.application.fields.did == "string"`；
-/// 今天把整数 42 塞进这一格，**登记面照收**（validate 面没有「值的类型」这一校）。
-/// 补上实现后：跑 `cargo test -p aios-worldcore -- --ignored` 由红转绿，并删掉 ignore。
+/// 把整数 42 塞进这一格 ⇒ 登记面必须拒（`BadValue{did, "string"}`），且**不留账**。
 #[test]
-#[ignore = "会红反例：第④样「值的类型对」今天无人校 —— 整数塞进 string 格仍被收下"]
 fn six_4_declared_value_type_must_match() {
     let d = doc();
     let declared = d["objects"]["application"]["fields"]["did"].as_str();
-    assert_eq!(declared, Some("string"), "夹具失效：application.did 该申报 string");
+    assert_eq!(
+        declared,
+        Some("string"),
+        "夹具失效：application.did 该申报 string"
+    );
     let r = Registry::load(ONT).expect("本体该装得上");
+    let spec = aios_worldcore::engine::validate::ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who_of("zhang"), register_capability("application"));
+    let mut led = Ledger::load(ONT).expect("本体该装得上");
     let mut inst = Instances::new();
     let row = fields(&[("name", json!("htop")), ("did", json!(42))]);
     let bad = Registration::new("application", row);
-    let got = inst.register(&r, &who_of("zhang"), &bad);
-    assert!(got.is_err(), "★ 今天这里是红的：42 不该塞进 string 格，实得 {got:?}");
+    let got = {
+        let mut env = RegisterEnv::new(&r, &spec, &gov, &mut led);
+        inst.register(&mut env, &who_of("zhang"), &bad)
+    };
+    let e = got.expect_err("42 不该塞进 string 格");
+    let want = Reason::BadValue {
+        field: "did".to_string(),
+        rule: "string".to_string(),
+    };
+    assert_eq!(e.reason, want);
+    assert_eq!(led.all().len(), 0, "校验不过 ⇒ 不许记账");
 }
 
 fn who_of(name: &str) -> Who {
@@ -128,13 +145,19 @@ fn six_5_value_must_be_in_the_declared_domain() {
     let row = fields(&[("name", json!("htop")), ("state", json!("flying"))]);
     let bad = Registration::new("application", row);
     let got = check_enum(&bad, "state", &refs);
-    let want = Reason::BadValue { field: "state".to_string(), rule: opts.join("|") };
+    let want = Reason::BadValue {
+        field: "state".to_string(),
+        rule: opts.join("|"),
+    };
     assert_eq!(got.expect_err("域外的值必须拒").reason, want);
     let okrow = fields(&[("name", json!("htop")), ("state", json!("running"))]);
     let good = Registration::new("application", okrow);
     assert!(check_enum(&good, "state", &refs).is_ok(), "域内该放行");
     let absent = named("application", "htop");
-    assert!(check_enum(&absent, "state", &refs).is_ok(), "格缺席不归取值域管");
+    assert!(
+        check_enum(&absent, "state", &refs).is_ok(),
+        "格缺席不归取值域管"
+    );
 }
 
 /// ★ 第⑥样：引用不悬空 —— 指向不存在的东西 ⇒ 拒；不是 world:// 的值 ⇒ 不判。
@@ -143,13 +166,24 @@ fn six_6_references_must_not_dangle() {
     let d = doc();
     let declared = d["objects"]["device"]["fields"]["bound_to"].as_str();
     assert!(declared.is_some(), "夹具失效：device.bound_to 该有申报");
-    let good = fields(&[("name", json!("laptop")), ("bound_to", json!("world://human/zhang"))]);
+    let good = fields(&[
+        ("name", json!("laptop")),
+        ("bound_to", json!("world://human/zhang")),
+    ]);
     let reg = Registration::new("device", good);
-    assert!(check_refs(&reg, &["world://human/zhang"]).is_ok(), "指向在册的东西该放行");
-    let bad = fields(&[("name", json!("laptop")), ("bound_to", json!("world://human/nobody"))]);
+    assert!(
+        check_refs(&reg, &["world://human/zhang"]).is_ok(),
+        "指向在册的东西该放行"
+    );
+    let bad = fields(&[
+        ("name", json!("laptop")),
+        ("bound_to", json!("world://human/nobody")),
+    ]);
     let reg2 = Registration::new("device", bad);
     let got = check_refs(&reg2, &["world://human/zhang"]);
-    let want = Reason::DanglingRef { target: "world://human/nobody".to_string() };
+    let want = Reason::DanglingRef {
+        target: "world://human/nobody".to_string(),
+    };
     assert_eq!(got.expect_err("悬空引用必须拒").reason, want);
     let plainrow = fields(&[("name", json!("laptop")), ("cert", json!("CN=lap"))]);
     let plain = Registration::new("device", plainrow);

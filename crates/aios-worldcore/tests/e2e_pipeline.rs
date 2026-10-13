@@ -7,14 +7,14 @@
 //! ★ 反例在 `blocked_path_leaves_no_trace`：未登记的类型必须**在门口就被挡住**，
 //!   而且实例表／存储／账三处**一处痕迹都不许留**。
 
-use aios_worldcore::core::registry::Registry;
-use aios_worldcore::core::types::{Admit, Event, EventSeq, Reason, Refuse, Registration, Who};
-use aios_worldcore::engine::execute::{DryRun, Exec, Executor};
-use aios_worldcore::engine::instances::Instances;
+use aios_worldcore::core::registry::{load_ontology, Registry};
+use aios_worldcore::core::types::{EventSeq, Reason, Registration, Who};
+use aios_worldcore::engine::execute::{DryRun, Exec};
+use aios_worldcore::engine::instances::{register_capability, Instances, RegisterEnv};
 use aios_worldcore::engine::ledger::Ledger;
 use aios_worldcore::engine::query::Query;
 use aios_worldcore::engine::store::Store;
-use aios_worldcore::engine::validate::{check_enum, check_refs, check_required, check_shape};
+use aios_worldcore::engine::validate::{check_enum, check_shape};
 use aios_worldcore::governance::Governance;
 use serde_json::{json, Map, Value};
 
@@ -68,12 +68,18 @@ fn one_request_walks_all_eight_faces() {
     shape.expect("形状该过");
     let domain = check_enum(&reg, "state", &refs);
     domain.expect("取值域该过");
-    // ② 实例注册面
+    // ② 实例注册面（★ 三个协作面都得给：治理／本体格／账；治理默认拒 ⇒ 先授这一项）
     let who = Who::new("world://user/zhang");
+    let spec = aios_worldcore::engine::validate::ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who, register_capability("application"));
+    let mut ledger = Ledger::load(ONT).expect("本体该装得上");
     let mut inst = Instances::new();
-    let registered = inst.register(&r, &who, &reg);
-    let seq = registered.expect("在册类型该收下");
-    assert_eq!(seq, EventSeq(1));
+    let seq = {
+        let mut env = RegisterEnv::new(&r, &spec, &gov, &mut ledger);
+        inst.register(&mut env, &who, &reg).expect("在册类型该收下")
+    };
+    assert_eq!(seq, EventSeq(1), "序号由账发（第一笔）");
     // ④ 存储面
     let mut store = Store::new();
     let created = store.create("application:htop", reg.clone());
@@ -84,23 +90,27 @@ fn one_request_walks_all_eight_faces() {
     q = q.filter_field("state", "running");
     assert_eq!(q.count(), 1);
     // ⑧ 治理面：默认拒 ⇒ 授权后放行
-    let mut gov = Governance::new();
     let denied = gov.can_execute(&who, "job.start");
     denied.expect_err("没授过必须拒");
     gov.grant(&who, "job.start");
     let allowed = gov.can_execute(&who, "job.start");
     allowed.expect("授过该放行");
-    // ⑦ 执行面：在册动作 ⇒ 交给执行体（今天是 dry-run）
-    let ex = Exec::new(&r, DryRun);
+    // ⑦ 执行面：治理已授 ＋ 动作在册 ⇒ 交给执行体（今天是 dry-run）
+    let ex = Exec::new(&r, &gov, DryRun);
     let ran = ex.execute("job.start", &who, &Map::new());
     let out = ran.expect("在册动作该放行");
     assert_eq!(out, "dry-run:job.start");
-    // ⑥ 账：把它记下来（只追加，序号单增）
-    let mut ledger = Ledger::new();
-    let params = fields(&[("subject", json!("application:htop")), ("result", json!(out))]);
-    let es = ledger.append(&who, "act", "job.start", params);
-    assert_eq!(es, EventSeq(1));
-    assert_eq!(ledger.all().len(), 1);
+    // ⑥ 账：把它记下来（只追加，序号单增）—— ★ 登记面已写过一笔 change，这里就是第二笔
+    let params = fields(&[
+        ("subject", json!("application:htop")),
+        ("result", json!(out)),
+    ]);
+    let es = ledger
+        .append(&who, "act", "job.start", params)
+        .expect("在册族该收下");
+    assert_eq!(es, EventSeq(2), "第二笔：登记那笔是 1");
+    assert_eq!(ledger.all().len(), 2);
+    assert_eq!(ledger.query_family("change").len(), 1);
     assert!(ledger.export_csv().contains("job.start"));
 }
 
@@ -113,13 +123,24 @@ fn blocked_path_leaves_no_trace() {
     let shape = check_shape(&r, &bad);
     let e = shape.expect_err("未登记类型必须在门口就拒");
     assert_eq!(e.reason, Reason::UnknownKind);
+    // ★ 实例面：治理先问 —— 先授「frobnicator.register」，才走得到「查在册」那一条
+    let spec = aios_worldcore::engine::validate::ObjectSpec::load(ONT).expect("本体该装得上");
+    let mut gov = Governance::new();
+    gov.grant(&who, register_capability("frobnicator"));
+    let mut ledger = Ledger::load(ONT).expect("本体该装得上");
     let mut inst = Instances::new();
-    let registered = inst.register(&r, &who, &bad);
-    let e2 = registered.expect_err("实例面也必须拒");
+    let e2 = {
+        let mut env = RegisterEnv::new(&r, &spec, &gov, &mut ledger);
+        inst.register(&mut env, &who, &bad)
+            .expect_err("实例面也必须拒")
+    };
     assert_eq!(e2.reason, Reason::UnknownKind);
     let store = Store::new();
-    let ledger = Ledger::new();
     assert_eq!(inst.count(), 0, "实例表：零痕迹");
     assert_eq!(store.count(), 0, "存储：零痕迹");
-    assert_eq!(ledger.all().len(), 0, "账：零痕迹");
+    assert_eq!(
+        ledger.all().len(),
+        0,
+        "账：零痕迹（登记被拒 ⇒ 连账都不许写）"
+    );
 }

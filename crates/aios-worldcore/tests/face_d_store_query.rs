@@ -1,14 +1,11 @@
 //! 面④（存储）＋面⑤（查询）：**存得下、取得到、查得准、排得对、取得前 N**。
+//!
+//! ★ 将来接哪个 AIOS 件（今天**还没接**）：落盘那一层应接 `crates/aios-fs`；
+//!   「改了什么要留证据」应接 `crates/aios-evidence`。本文件只判今天的内存实现。
 
-use aios_worldcore::core::registry::Registry;
-use aios_worldcore::core::types::{Admit, Event, EventSeq, Reason, Refuse, Registration, Who};
-use aios_worldcore::engine::execute::{DryRun, Exec, Executor};
-use aios_worldcore::engine::instances::Instances;
-use aios_worldcore::engine::ledger::Ledger;
+use aios_worldcore::core::types::{Reason, Registration};
 use aios_worldcore::engine::query::Query;
 use aios_worldcore::engine::store::Store;
-use aios_worldcore::engine::validate::{check_enum, check_refs, check_required, check_shape};
-use aios_worldcore::governance::Governance;
 use serde_json::{json, Map, Value};
 
 const ONT: &str = include_str!("../../../crates/aios-ontology/data/ontology.json");
@@ -39,11 +36,17 @@ fn section_keys(section: &str) -> Vec<String> {
 }
 
 fn app(name: &str, state: &str) -> Registration {
-    Registration::new("application", fields(&[("name", json!(name)), ("state", json!(state))]))
+    Registration::new(
+        "application",
+        fields(&[("name", json!(name)), ("state", json!(state))]),
+    )
 }
 
 fn service(name: &str, state: &str) -> Registration {
-    Registration::new("service", fields(&[("name", json!(name)), ("state", json!(state))]))
+    Registration::new(
+        "service",
+        fields(&[("name", json!(name)), ("state", json!(state))]),
+    )
 }
 
 fn store_with_three() -> Store {
@@ -76,7 +79,9 @@ fn store_refuses_duplicate_key() {
     first.expect("首次该存得下");
     let again = s.create("application:alpha", app("alpha", "running"));
     let e = again.expect_err("同键重复必须拒");
-    let want = Reason::DanglingRef { target: "application:alpha".to_string() };
+    let want = Reason::DanglingRef {
+        target: "application:alpha".to_string(),
+    };
     assert_eq!(e.reason, want);
     assert_eq!(s.count(), 1);
 }
@@ -87,10 +92,20 @@ fn store_refuses_update_and_delete_of_a_missing_key() {
     let mut s = Store::new();
     let upd = s.update("application:nope", app("nope", "running"));
     let e1 = upd.expect_err("改不存在的键必须拒");
-    assert_eq!(e1.reason, Reason::DanglingRef { target: "application:nope".into() });
+    assert_eq!(
+        e1.reason,
+        Reason::DanglingRef {
+            target: "application:nope".into()
+        }
+    );
     let del = s.delete("application:nope");
     let e2 = del.expect_err("删不存在的键必须拒");
-    assert_eq!(e2.reason, Reason::DanglingRef { target: "application:nope".into() });
+    assert_eq!(
+        e2.reason,
+        Reason::DanglingRef {
+            target: "application:nope".into()
+        }
+    );
     assert_eq!(s.count(), 0);
 }
 
@@ -163,7 +178,11 @@ fn query_first_agrees_with_count() {
     let q = Query::new(&s).order_by("name");
     assert_eq!(q.count(), 3);
     let hit = q.first();
-    assert_eq!(hit.map(|(k, _)| k), Some("application:alpha"), "序定后的第一条");
+    assert_eq!(
+        hit.map(|(k, _)| k),
+        Some("application:alpha"),
+        "序定后的第一条"
+    );
     let mut q2 = Query::new(&s);
     q2 = q2.filter_kind("frobnicator");
     assert_eq!(q2.count(), 0, "没有的类 ⇒ 空");

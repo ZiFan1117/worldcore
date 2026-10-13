@@ -16,14 +16,19 @@
 //! （现取只有 `notice.*`／`job.*`／`ledger.compact`／`world.rekey`／`world.migrate`／`presence.report`）。
 //! 本内核把「登记某类实例」当成一项**由类名派生**的能力（`<类>.register`）交给治理面查 ——
 //! 派生自本体的类名，**不是**自由字符串。
+//!
+//! ★ 这一处将来接 **AIOS 的**哪几件（★ 作者令：P 管语义形状，AIOS 最新代码管 OS 的真实现）：
+//! · 「装了啥」→ `crates/aios-capability-runtime/src/adapter_registry.rs`（能力适配器在册表）；
+//! · 「哪台设备／哪块界面」→ `crates/aios-hardware` 与 `crates/aios-renderer-*` 的 surface 注册；
+//! · 本件今天**只做内存实现**（`rows` 一张 BTreeMap），落盘由面④ `store` 与面⑥ `ledger` 担。
 
 use std::collections::BTreeMap;
 
-use aios_worldcore_governance::Governance;
-use aios_worldcore_ledger::Ledger;
 use crate::core::registry::Registry;
 use crate::core::types::{Admit, EventSeq, Reason, Refuse, Registration, Who};
-use aios_worldcore_validate::{check_shape, ObjectSpec};
+use crate::engine::ledger::Ledger;
+use crate::engine::validate::{check_shape, ObjectSpec};
+use crate::governance::Governance;
 
 /// ★ 登记某类实例所需的能力名：`<类>.register`。
 #[must_use]
@@ -32,6 +37,9 @@ pub fn register_capability(kind: &str) -> String {
 }
 
 /// 一次登记要用的四个协作面：册（面①）／本体格（面③）／治理（面⑧）／账（面⑥）。
+///
+/// ★ 为什么要把四件凑成一件交给 `register`：★ 作者令「登记前**先问治理**」「成功要**同批记账**」
+/// ⇒ 这两件**不能在调用点各自记着**，必须**从登记口自己身上**过一遍（否则就是可绕过的旁路）。
 pub struct RegisterEnv<'a> {
     /// 本体里有哪些类型（面①）。
     pub registry: &'a Registry,
@@ -81,7 +89,8 @@ impl Instances {
     /// 3. **照本体逐格校**：缺必填 ⇒ `MissingField`；值类型／取值域不对 ⇒ `BadValue`；
     ///    本体没声明的格也拒（不许偷偷多塞一格）；
     /// 4. **本内核最小指认格**：行以 `name` 为键 ⇒ 缺 ⇒ `MissingField{name}`；同名不许重复（更新走面④）；
-    /// 5. **成功 ⇒ 同批记一笔账**，返回**账上的序号**（族 `change`／`what` `<类>.register`）。
+    /// 5. **成功 ⇒ 同批记一笔账**（★ 只要族不在册，账先拒 ⇒ 册上就没有这一行），
+    ///    返回**账上的序号**（族 `change`／`what` `<类>.register`）。
     pub fn register(
         &mut self,
         env: &mut RegisterEnv<'_>,
@@ -106,13 +115,24 @@ impl Instances {
         })?;
         let key = format!("{}:{}", reg.kind, name);
         if self.rows.contains_key(&key) {
-            return Err(Refuse::new(Reason::DanglingRef { target: key }, "同名实例已存在"));
+            return Err(Refuse::new(
+                Reason::DanglingRef { target: key },
+                "同名实例已存在",
+            ));
         }
-        // ⑤ 落表 ＋ 同批记一笔账（★ 返回的序号＝账上的位置）。
-        self.rows.insert(key, (reg.kind.clone(), reg.fields.clone()));
+        // ⑤ **先记账、再落表**：★ 账要是拒了这一笔（族不在册），册上就不许留痕。
+        //    返回的序号＝账上的位置（★ 本体 envelope.fields.seq 逐字：序号由世界发）。
         let mut params = serde_json::Map::new();
-        params.insert("name".to_string(), serde_json::Value::String(name.to_string()));
-        Ok(env.ledger.append(who, "change", format!("{}.register", reg.kind), params))
+        params.insert(
+            "name".to_string(),
+            serde_json::Value::String(name.to_string()),
+        );
+        let seq = env
+            .ledger
+            .append(who, "change", format!("{}.register", reg.kind), params)?;
+        self.rows
+            .insert(key, (reg.kind.clone(), reg.fields.clone()));
+        Ok(seq)
     }
 
     /// 在册的实例数。
@@ -136,3 +156,6 @@ impl Instances {
         self.rows.keys().map(String::as_str).collect()
     }
 }
+
+#[cfg(test)]
+mod tests;
