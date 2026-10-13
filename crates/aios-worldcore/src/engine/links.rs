@@ -107,13 +107,7 @@ impl Links {
     ///    ⇒ 对不上 ⇒ `DanglingRef`（不许拿一条边装另一条边的两端）。
     /// 4. **同一条边（边名 ＋ 两端）不重复登记** ⇒ 已登记 ⇒ `DanglingRef`。
     ///    ★ 这不是基数上限（本体没声明基数）—— 是**同一句话不许算两条**。
-    pub fn connect(
-        &mut self,
-        registry: &Registry,
-        link: &str,
-        from: Node,
-        to: Node,
-    ) -> Admit<()> {
+    pub fn connect(&mut self, registry: &Registry, link: &str, from: Node, to: Node) -> Admit<()> {
         let Some(d) = self.decls.get(link) else {
             return Err(dangling(link, format!("边 {link} 未声明")));
         };
@@ -136,10 +130,7 @@ impl Links {
             ));
         }
         if to.kind != d.to {
-            return Err(dangling(
-                &to.kind,
-                format!("{link}.to 端的类该是 {}", d.to),
-            ));
+            return Err(dangling(&to.kind, format!("{link}.to 端的类该是 {}", d.to)));
         }
         let edge = Edge {
             link: link.to_string(),
@@ -203,12 +194,7 @@ impl Links {
     /// ★ 一条边都没碰到它 ⇒ **空表**（不是拒、不是错 —— 世界今天只是没这条边）。
     #[must_use]
     pub fn neighbors(&self, node: &Node) -> Vec<&Node> {
-        uniq(
-            self.edges
-                .iter()
-                .filter_map(|e| e.other(node))
-                .collect(),
-        )
+        uniq(self.edges.iter().filter_map(|e| e.other(node)).collect())
     }
 }
 

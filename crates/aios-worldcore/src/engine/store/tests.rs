@@ -171,7 +171,8 @@ fn t07_seq_is_global_monotonic_and_never_reused() {
     let mut s = Store::new();
     s.create_as(&who(), "application:a", reg("application", "a"))
         .expect("首笔该成");
-    s.delete_as(&who(), "application:a", "撤").expect("立碑该成");
+    s.delete_as(&who(), "application:a", "撤")
+        .expect("立碑该成");
     s.create_as(&who(), "application:a", reg("application", "a-again"))
         .expect("立碑之后该能再立");
     let seqs: Vec<u64> = s.rows().iter().map(|r| r.seq.0).collect();
@@ -228,8 +229,15 @@ fn t10_the_kind_index_follows_a_kind_change() {
     let mut s = seed();
     s.update_as(&who(), "application:htop", reg("surface", "htop"))
         .expect("更正在册的键该成");
-    assert!(s.search_by_kind("application").is_empty(), "旧类桶里不许留它");
-    assert_eq!(s.search_by_kind("surface"), ["application:htop"], "键不动，类变了");
+    assert!(
+        s.search_by_kind("application").is_empty(),
+        "旧类桶里不许留它"
+    );
+    assert_eq!(
+        s.search_by_kind("surface"),
+        ["application:htop"],
+        "键不动，类变了"
+    );
     assert_eq!(s.keys(), ["application:htop"]);
     assert_eq!(s.get("application:htop"), Some(&reg("surface", "htop")));
 }
@@ -241,7 +249,8 @@ fn t11_the_fingerprint_is_the_now_not_the_history() {
     let mut a = Store::new();
     a.create_as(&who(), "application:x", reg("application", "x"))
         .expect("该成");
-    a.delete_as(&who(), "application:x", "撤").expect("立碑该成");
+    a.delete_as(&who(), "application:x", "撤")
+        .expect("立碑该成");
 
     let mut b = Store::new();
     b.create_as(&who(), "service:y", reg("service", "y"))

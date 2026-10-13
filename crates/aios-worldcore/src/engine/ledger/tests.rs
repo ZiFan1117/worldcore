@@ -39,7 +39,12 @@ fn four() -> (Ledger, [EventSeq; 4]) {
     let mut l = ledger();
     let w = who();
     let a = l
-        .append(&w, "act", "job.start", params(&[("subject", json!("application:htop"))]))
+        .append(
+            &w,
+            "act",
+            "job.start",
+            params(&[("subject", json!("application:htop"))]),
+        )
         .expect("在册族该收下");
     let b = l
         .append(&w, "notice", "job.completed", Map::new())
@@ -61,7 +66,11 @@ fn a_healthy_chain_verifies() {
     assert_eq!(want, [EventSeq(1), EventSeq(2), EventSeq(3), EventSeq(4)]);
     assert_eq!(l.seals.len(), 4, "正文一笔、链节一节");
     let tail = l.seals[3].hash();
-    assert_eq!(l.head.as_deref(), Some(tail.as_str()), "链尾＝最后一节的封条");
+    assert_eq!(
+        l.head.as_deref(),
+        Some(tail.as_str()),
+        "链尾＝最后一节的封条"
+    );
 }
 
 /// ★★ 反例③-e：**封条是 BLAKE3-256**（64 位小写十六进制）。
@@ -191,7 +200,11 @@ fn family_index_is_append_ordered_and_does_not_invent_families() {
     assert_eq!(l.query_family("notice")[0].seq, s2);
     assert_eq!(l.query_family("change")[0].seq, s3);
     assert_eq!(l.query_family("job")[0].seq, s4);
-    assert_eq!(l.by_family.keys.len(), l.all().len(), "索引行数 ＝ 正文笔数");
+    assert_eq!(
+        l.by_family.keys.len(),
+        l.all().len(),
+        "索引行数 ＝ 正文笔数"
+    );
     // 再补一笔同族：同族的序号必须还是升序。
     let mut l = l;
     let later = l

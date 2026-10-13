@@ -234,11 +234,15 @@ fn a_shared_name_resolves_to_the_smallest_key() {
     let mut f = fixture();
     f.grant("surface");
     f.grant("application");
-    f.register("surface", &[("name", json!("x"))]).expect("该收下");
+    f.register("surface", &[("name", json!("x"))])
+        .expect("该收下");
     f.register("application", &[("name", json!("x"))])
         .expect("该收下");
     let (kind, _) = f.inst.get("x").expect("同名两条都在册");
-    assert_eq!(kind, "application", "★ 全键序最小：application:x < surface:x");
+    assert_eq!(
+        kind, "application",
+        "★ 全键序最小：application:x < surface:x"
+    );
     assert_eq!(f.inst.count(), 2, "同名跨类是两条（键不同）");
 }
 

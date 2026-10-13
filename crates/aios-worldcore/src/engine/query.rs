@@ -171,8 +171,12 @@ mod tests {
     /// 三条现状：两条 application（有 state）＋ 一条 surface（**没有** state 这一格）。
     fn seeded() -> Store {
         let mut s = Store::new();
-        s.create_as(&who(), "application:alpha", reg("application", "alpha", Some("running")))
-            .expect("该成");
+        s.create_as(
+            &who(),
+            "application:alpha",
+            reg("application", "alpha", Some("running")),
+        )
+        .expect("该成");
         s.create_as(
             &who(),
             "application:beta",
@@ -185,10 +189,7 @@ mod tests {
     }
 
     fn keys_of(q: &Query<'_>) -> Vec<String> {
-        q.all()
-            .iter()
-            .map(|(key, _)| (*key).to_string())
-            .collect()
+        q.all().iter().map(|(key, _)| (*key).to_string()).collect()
     }
 
     /// ★★ 会红反例 1（**缺席即假**）：格没有值 ⇒ 判据必须落空。
@@ -247,7 +248,11 @@ mod tests {
             ["application:alpha", "application:beta"],
             "取排序后的前 N"
         );
-        assert_eq!(Query::new(&s).take(10).count(), 3, "超过总数 ⇒ 有多少给多少");
+        assert_eq!(
+            Query::new(&s).take(10).count(),
+            3,
+            "超过总数 ⇒ 有多少给多少"
+        );
     }
 
     /// ★★ 会红反例 5（**查询读的是现状，不是历史**）：立碑后的键不许出现。
@@ -258,7 +263,10 @@ mod tests {
         s.delete_as(&who(), "application:alpha", "撤")
             .expect("立碑该成");
         assert_eq!(Query::new(&s).count(), 2, "三笔现状、一块碑 ⇒ 两条");
-        assert!(Query::new(&s).filter_field("name", "alpha").all().is_empty());
+        assert!(Query::new(&s)
+            .filter_field("name", "alpha")
+            .all()
+            .is_empty());
         assert_eq!(s.rows().len(), 4, "历史一行不少");
     }
 

@@ -93,7 +93,9 @@ fn a_second_instance_of_a_unique_kind_is_refused() {
     f.grant("widget");
     f.register("widget", &[("name", json!("only"))])
         .expect("第一个该收下");
-    let e = f.register("widget", &[("name", json!("second"))]).unwrap_err();
+    let e = f
+        .register("widget", &[("name", json!("second"))])
+        .unwrap_err();
     assert_eq!(e.reason, Reason::OverInstanceLimit { limit: 1 });
     assert_eq!(f.inst.count(), 1, "被拒的不许进册");
     assert_eq!(f.led.all().len(), 1, "被拒的不许留账");
@@ -104,7 +106,8 @@ fn a_second_instance_of_a_unique_kind_is_refused() {
 fn a_second_instance_of_a_many_kind_is_admitted() {
     let mut f = fixture_of(SYNTH);
     f.grant("thing");
-    f.register("thing", &[("name", json!("a"))]).expect("第一个");
+    f.register("thing", &[("name", json!("a"))])
+        .expect("第一个");
     f.register("thing", &[("name", json!("b"))])
         .expect("第二个（many 不限）");
     assert_eq!(f.inst.count(), 2);
@@ -116,9 +119,21 @@ fn a_second_instance_of_a_many_kind_is_admitted() {
 #[test]
 fn the_spec_reads_instance_mode_from_the_ontology() {
     let spec = ObjectSpec::load(ONT).expect("本体该装得上");
-    assert_eq!(spec.instance_mode("ledger"), Some("one"), "本体说 ledger 唯一");
-    assert_eq!(spec.instance_mode("application"), Some("many"), "本体说它多例");
-    assert_eq!(spec.instance_mode("frobnicator"), None, "不在册 ⇒ 没有 mode");
+    assert_eq!(
+        spec.instance_mode("ledger"),
+        Some("one"),
+        "本体说 ledger 唯一"
+    );
+    assert_eq!(
+        spec.instance_mode("application"),
+        Some("many"),
+        "本体说它多例"
+    );
+    assert_eq!(
+        spec.instance_mode("frobnicator"),
+        None,
+        "不在册 ⇒ 没有 mode"
+    );
 }
 
 /// ★ 现状钉子（真本体缺口，**接不上**）：ledger 唯一，可本体没给它 name 格 ⇒ **第一个都进不去**。
@@ -128,7 +143,9 @@ fn the_spec_reads_instance_mode_from_the_ontology() {
 fn the_real_unique_kind_cannot_be_registered_today() {
     let mut f = fixture_of(ONT);
     f.grant("ledger");
-    let named = f.register("ledger", &[("name", json!("main"))]).unwrap_err();
+    let named = f
+        .register("ledger", &[("name", json!("main"))])
+        .unwrap_err();
     assert_eq!(bad_field(&named), "name", "本体没给 ledger 声明 name 格");
     let unnamed = f.register("ledger", &[]).unwrap_err();
     assert_eq!(missing_field(&unnamed), "name", "本内核最小指认格缺");

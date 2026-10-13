@@ -87,7 +87,13 @@ fn real_ontology_declares_the_three_named_edges() {
 #[test]
 fn dangling_from_endpoint_is_refused_at_load() {
     let e = Links::load(FROM_DANGLING).unwrap_err();
-    assert_eq!(e.code(), Reason::DanglingRef { target: String::new() }.code());
+    assert_eq!(
+        e.code(),
+        Reason::DanglingRef {
+            target: String::new()
+        }
+        .code()
+    );
     assert_eq!(target_of(&e), "ghost");
     assert_eq!(e.what, "links.human-bound-to-ghost.from");
 }
@@ -95,7 +101,13 @@ fn dangling_from_endpoint_is_refused_at_load() {
 #[test]
 fn dangling_to_endpoint_is_refused_at_load() {
     let e = Links::load(TO_DANGLING).unwrap_err();
-    assert_eq!(e.code(), Reason::DanglingRef { target: String::new() }.code());
+    assert_eq!(
+        e.code(),
+        Reason::DanglingRef {
+            target: String::new()
+        }
+        .code()
+    );
     assert_eq!(target_of(&e), "ghost");
     assert_eq!(e.what, "links.device-bound-to-ghost.to");
 }
@@ -104,7 +116,13 @@ fn dangling_to_endpoint_is_refused_at_load() {
 #[test]
 fn missing_endpoint_is_refused_at_load() {
     let e = Links::load(TO_MISSING).unwrap_err();
-    assert_eq!(e.code(), Reason::MissingField { field: String::new() }.code());
+    assert_eq!(
+        e.code(),
+        Reason::MissingField {
+            field: String::new()
+        }
+        .code()
+    );
     assert_eq!(field_of(&e), "to");
 }
 
@@ -115,7 +133,12 @@ fn unknown_link_is_refused() {
     let reg = registry();
     let mut l = links();
     let e = l
-        .connect(&reg, "no-such-edge", node("device", "d1"), node("human", "h1"))
+        .connect(
+            &reg,
+            "no-such-edge",
+            node("device", "d1"),
+            node("human", "h1"),
+        )
         .unwrap_err();
     assert_eq!(target_of(&e), "no-such-edge");
     assert_eq!(l.count(), 0, "被拒的边不许留痕");
@@ -228,7 +251,10 @@ fn decls_of_kind_finds_both_roles() {
         .iter()
         .map(|d| d.name.as_str())
         .collect();
-    assert!(names.contains(&"device-bound-to-human"), "device 是 from 端");
+    assert!(
+        names.contains(&"device-bound-to-human"),
+        "device 是 from 端"
+    );
     assert!(names.contains(&"service-runs-on-device"), "device 是 to 端");
     let apps: Vec<&str> = l
         .decls_of_kind("application")
