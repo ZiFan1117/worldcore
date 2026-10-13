@@ -111,7 +111,12 @@ fn registered_action_goes_to_the_executor() {
     gov.grant(&who(), "job.start");
     let ex = Exec::new(&r, &gov, DryRun);
     let mut params = Map::new();
-    params.insert("subject".to_string(), json!("application:htop"));
+    // ★ Lead 代改（2026-10-13）：原夹具写 `"application:htop"`，**不合本体**
+    //   `fn.job.start.inputs.subject = enum(change,act,notice,job)`。
+    //   ★ 这一处红，正是「④ 接入函数面、逐条校入参**真的在跑**」的铁证：
+    //     `Refuse { BadValue { field: "subject", rule: "enum(change,act,notice,job)" }, what: "fn.job.start" }`。
+    //   （发现者＝实现席 rw-exec-gov，它在接最后一跳时先撞到。）
+    params.insert("subject".to_string(), json!("job"));
     let got = ex.execute("job.start", &who(), &params);
     assert_eq!(got.expect("在册该放行"), "dry-run:job.start");
 }

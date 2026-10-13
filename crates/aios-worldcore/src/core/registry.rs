@@ -179,7 +179,10 @@ mod tests {
         assert_eq!(reg.source(), ONT, "本体原文要一字不动地留着");
         assert_eq!(reg.functions().len(), 9);
         assert!(reg.functions().contains(&"fn.notice.mute"));
-        assert_eq!(reg.function_of_action("notice.mute"), Some("fn.notice.mute"));
+        assert_eq!(
+            reg.function_of_action("notice.mute"),
+            Some("fn.notice.mute")
+        );
         assert_eq!(
             reg.function_of_action("presence.report"),
             Some("fn.presence.report")
@@ -192,4 +195,3 @@ mod tests {
         }
     }
 }
-
