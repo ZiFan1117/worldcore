@@ -39,6 +39,17 @@ members = [
     "crates/aios-design-tokens",
     # ★ 我方新增（非上游）：worldcore 本体在 AIOS 侧的装载与校验面 —— 见 ninedim/06-变更/2026-10-13-aios-semantic-plane/原子登记-语义面.md
     "crates/aios-ontology",
+    # ★★ 我方新增：worldcore 最小内核（八面 ＋ 共同类型 ＋ 门面）—— 见盒里 方案-八面重排与注册拆两面.md
+    "crates/aios-worldcore-shared",
+    "crates/aios-worldcore-registry",
+    "crates/aios-worldcore-instances",
+    "crates/aios-worldcore-validate",
+    "crates/aios-worldcore-store",
+    "crates/aios-worldcore-query",
+    "crates/aios-worldcore-ledger",
+    "crates/aios-worldcore-execute",
+    "crates/aios-worldcore-governance",
+    "crates/aios-worldcore",
 ]
 
 # Crates added later (per §22 MVP golden path order):

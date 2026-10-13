@@ -1,0 +1,12 @@
+[package]
+name = "aios-worldcore-query"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "worldcore 面⑤：查询（按条件找）"
+
+[dependencies]
+aios-worldcore-shared = { path = "../aios-worldcore-shared" }
+serde_json = { workspace = true }
+aios-worldcore-store = { path = "../aios-worldcore-store" }

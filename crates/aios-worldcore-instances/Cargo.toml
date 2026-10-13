@@ -1,0 +1,12 @@
+[package]
+name = "aios-worldcore-instances"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "worldcore 面②：实例注册（装了啥／有哪块界面／哪台设备）"
+
+[dependencies]
+aios-worldcore-shared = { path = "../aios-worldcore-shared" }
+serde_json = { workspace = true }
+aios-worldcore-registry = { path = "../aios-worldcore-registry" }

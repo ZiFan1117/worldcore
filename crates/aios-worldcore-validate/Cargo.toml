@@ -1,0 +1,12 @@
+[package]
+name = "aios-worldcore-validate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "worldcore 面③：校验（进门安检）"
+
+[dependencies]
+aios-worldcore-shared = { path = "../aios-worldcore-shared" }
+serde_json = { workspace = true }
+aios-worldcore-registry = { path = "../aios-worldcore-registry" }

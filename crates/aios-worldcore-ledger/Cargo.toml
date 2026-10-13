@@ -1,0 +1,11 @@
+[package]
+name = "aios-worldcore-ledger"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "worldcore 面⑥：账（只追加地记下发生的事）"
+
+[dependencies]
+aios-worldcore-shared = { path = "../aios-worldcore-shared" }
+serde_json = { workspace = true }
