@@ -78,3 +78,31 @@
 1. ★ **没建**任何 crate（★ 等作者签字再动）；
 2. ★ **没定**门面 crate 的名字（★ `aios-worldcore` 是暂用名）；
 3. ★ **没估** 10 个 crate 的编译时间代价。
+---
+
+## §七 ★★ 附：底座那 5 个类型是什么（作者问 `Refuse / Registration / Event / Who / Reason`）
+
+| 名字 | ★ 中文 | ★ 它是什么 | ★ 长什么样 |
+|---|---|---|---|
+| `Refuse` | ★ **"拒"** | ★★ 系统说"不行"时返回的那个东西（★ 带理由） | ★ `Refuse { kind: "FROBNICATOR", reason: UnknownKind }` |
+| `Registration` | ★ **"要登记的那样东西"** | ★★ 一次注册请求的内容：★ 类型名 ＋ 各格填了什么 | ★ `Registration { kind: "application", fields: {name:"htop"} }` |
+| `Event` | ★ **"发生的一件事"** | ★★ 账本上记的一行：★ 谁、何时、做了什么 | ★ `Event { seq:42, who:"world://user/zhang", what:"package.install" }` |
+| `Who` | ★ **"谁"** | ★★ 做这件事的那个主体（★ 名字／身份） | ★ `Who = "world://user/zhang"` |
+| `Reason` | ★ **"为什么"** | ★★ 拒绝的理由（★ 机器认的码） | ★ `UnknownKind`／`MissingField("name")` |
+
+### ★★ 为什么它们要单独放底座
+
+★ **八个面都要用这一批**：★ 注册面（`Registration`／`Refuse`）／校验面（`Refuse`／`Reason`）／账面（`Event`／`Who`）／执行面（`Who`／`Event`）／治理面（`Who`／`Refuse`）。
+★ ⇒ 若各面各写一份 ⇒ **就会有 8 份"拒"、8 份"谁"**（★ 正是作者点出的"重复"病）⇒ ★★ **放底座，八面共 use 一份** ✓
+★ **大白话**：★ **底座 ＝ 大家共用的那本小词典**（★ "拒"长什么样、"谁"怎么写、"一件事"怎么记，只说一遍）✓
+
+### ★★★ 更要紧：它们**不是新发明**，每个都能指回本体
+
+| 底座类型 | ★ 本体里对应 |
+|---|---|
+| `Who` | ★ `envelope.actor`（信封里的"谁"） |
+| `Event` | ★ `envelope`（信封）＋ `families`（四族 change／act／notice／job） |
+| `Refuse`／`Reason` | ★ `Reject`（`aios-ontology` 已有错误码，如 `ext.world.Ontology.ActionUnknown`） |
+| `Registration` | ★ `objects.<类>.fields`（每类有哪几个格） |
+
+⇒ ★★ **即：这 5 个类型"每个都能指回本体的一处"** ⇒ ★ **这就是"围着本体转"** ✓
