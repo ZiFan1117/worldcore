@@ -179,7 +179,19 @@
 
 ## 六 写入后复取（★ 自证）
 
-（★ 本节由写入者在本件落盘后回填；**若本节为空 ⇒ 那次复跑没做**，一切以 `python verify/check.py` 现取为准。）
+★ **本读数取自本件【首次落盘后】**（本段文字的写入发生在该读数**之后**）⇒ ★ **本段不覆盖其后的任何编辑**；若有人在本件上再落笔，**以现取为准**。
+
+| 要素 | 值 |
+|---|---|
+| **命令** | `cd D:\Code\13-aios-worldcore` → `python verify/check.py` → `Write-Output "RC=$LASTEXITCODE"` → `git status --porcelain` |
+| **原始输出（逐字）** | `[GREEN] c1_upstream_parity.py` → `[GREEN] 差分 210 件；登记面 精确 8 ＋ 前缀 2，且全部落在我方自有件或登记面内` ／ `[GREEN] c2_domain_files_only.py` → `[GREEN] 共扫 142 件，全为档案` ／ `[GREEN] c3_action_name_gate.py` → `[GREEN] 翻译链已查表并可拒（扫 30 件）` ／ `[GREEN] c4_eol_consistency.py` → `[GREEN] 段一 0 件工作树干净；段二 7 件我方改过的上游文件行尾与上游一致` ／ `[GREEN] c5`／`c6`／`c7` 三条均 `[GREEN]`（原文见前者同名各节） ／ `    工作树：4 个未提交改动（★ 判据读的是**工作树**，不是 HEAD）` ／ `=== 结论：全绿（rc=0）===` |
+| **退出码** | `RC=0` |
+| **时点（来源＝宿主钟）** | `NOW=2026-10-14T19:58:12.9621714+08:00` |
+| **提交号** | `af095ac9c72512151d3893b18f6127144f32af22`（★ 本件当时是 **untracked**，见下） |
+| **`git status --porcelain`（逐字）** | `?? "ninedim/06-变更/2026-10-13-aios-semantic-plane/判词-data.md"` ／ `?? "ninedim/06-变更/2026-10-13-aios-semantic-plane/判词-mech.md"` ／ `?? "ninedim/06-变更/2026-10-13-aios-semantic-plane/判词-pass.md"` ／ `?? "ninedim/06-变更/2026-10-13-aios-semantic-plane/判词-payload.md"` |
+| **本件形态（现取字节）** | `LEN=34457` ／ 首 3 字节 `35,32,229`（⇒ **无 BOM**） ／ `CR=0 LF=188`（⇒ **LF**，188 行） |
+
+★ 结论（就本节而言）：★ **本席这一笔没有把门弄红**（C1–C7 全绿、`RC=0`）；★ 差分 207→210、C2 扫描 135→142 的增量**来自本轮 4 席判词同时落盘**（见上面 `??` 四行），**不是**本席改动了别人的件。★ 依 `worldcore-sdd` §八"不可比的读数不能相减"——两次读数的**口径相同**（同一支 `check.py`、同一仓根、只差文件集合），故此处只作**存在性**陈述，**不**推"谁动过树"。
 
 ---
 
