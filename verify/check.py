@@ -27,6 +27,7 @@ CRITERIA = [
     "c5_policy_kernel_attached.py",
     "c6_class_has_identity.py",
     "c7_reference_integrity.py",
+    "c8_role_has_ceiling.py",
 ]
 
 

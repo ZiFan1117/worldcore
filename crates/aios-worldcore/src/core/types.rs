@@ -74,6 +74,20 @@ pub enum Reason {
     OverInstanceLimit { limit: u64 },
     /// 这个人没有这个能力（治理那一面）。
     NotPermitted { capability: String },
+    /// ★ 数据分级**不许降级**（本体 `governance.markings.levels`「只升不降」；来源1-①.3 逐字给的码）。
+    MarkingDowngrade {
+        /// 现行那一版的分级（本体 levels 的键）。
+        from: &'static str,
+        /// 想写进去的那一版（比 from 低）。
+        to: &'static str,
+    },
+    /// ★ 这一条高过了主体的天花板（H08 读侧那条真闸）。
+    AboveCeiling {
+        /// 这一条自己的分级。
+        marking: &'static str,
+        /// 主体的可见天花板。
+        ceiling: &'static str,
+    },
     /// 本体没装载（谁都别想动）。
     OntologyNotLoaded,
 }
@@ -90,6 +104,8 @@ impl Reason {
             Self::DanglingRef { .. } => "worldcore.Refuse.DanglingRef",
             Self::OverInstanceLimit { .. } => "worldcore.Refuse.OverInstanceLimit",
             Self::NotPermitted { .. } => "worldcore.Refuse.NotPermitted",
+            Self::MarkingDowngrade { .. } => "worldcore.Refuse.MarkingDowngrade",
+            Self::AboveCeiling { .. } => "worldcore.Refuse.AboveCeiling",
             Self::OntologyNotLoaded => "worldcore.Refuse.OntologyNotLoaded",
         }
     }
@@ -135,6 +151,45 @@ impl std::error::Error for Refuse {}
 /// 本内核各处统一的结果别名（省得每面各写一套）。
 pub type Admit<T> = Result<T, Refuse>;
 
+/// 数据分级 —— **闭集三级**（本体 `governance.markings.levels` 逐字
+/// PUBLIC／INTERNAL／CONFIDENTIAL；照 Palantir 开源复刻件逐字
+/// 「Data classification (PUBLIC, INTERNAL, CONFIDENTIAL)」）。
+///
+/// ★ 序是**死的**（Public < Internal < Confidential）：只有这个序才判得出「升／降级」。
+/// ★ 不许「认不得就当最松」：不在闭集 ⇒ 拒（见 `Registration::marking`）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Marking {
+    /// 可对外（本体逐字：本仓今天一件都没有）。
+    Public,
+    /// 仓内可读（本体逐字：今天所有类都落这一档）。
+    Internal,
+    /// 受控（本体逐字：本仓今天一件都没有）。
+    Confidential,
+}
+
+impl Marking {
+    /// 它的码（与本体 `levels` 的键逐字同形）。
+    #[must_use]
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::Public => "PUBLIC",
+            Self::Internal => "INTERNAL",
+            Self::Confidential => "CONFIDENTIAL",
+        }
+    }
+
+    /// 从文本认一级（大小写不敏感；**不在闭集 ⇒ None**）。
+    #[must_use]
+    pub fn parse(text: &str) -> Option<Self> {
+        match text.to_ascii_uppercase().as_str() {
+            "PUBLIC" => Some(Self::Public),
+            "INTERNAL" => Some(Self::Internal),
+            "CONFIDENTIAL" => Some(Self::Confidential),
+            _ => None,
+        }
+    }
+}
+
 /// 要登记的那样东西 —— 一次注册请求的内容。
 ///
 /// 本体里对应：`objects.<类>.fields`（每一类有哪几个格）。
@@ -169,6 +224,24 @@ impl Registration {
     #[must_use]
     pub fn get_str(&self, field: &str) -> Option<&str> {
         self.fields.get(field).and_then(Value::as_str)
+    }
+
+    /// ★ 这一条的分级 —— 缺格 ⇒ **本体自陈的默认** `INTERNAL`
+    /// （`markings.levels.INTERNAL` 逐字「今天所有类都落这一档」）；
+    /// ★ 写了但**不在闭集** ⇒ 拒（不许「认不得就当最松」）。
+    pub fn marking(&self) -> Admit<Marking> {
+        match self.get_str("marking") {
+            Some(text) => Marking::parse(text).ok_or_else(|| {
+                Refuse::new(
+                    Reason::BadValue {
+                        field: "marking".to_string(),
+                        rule: "PUBLIC|INTERNAL|CONFIDENTIAL".to_string(),
+                    },
+                    text.to_string(),
+                )
+            }),
+            None => Ok(Marking::Internal),
+        }
     }
 
     /// 它填了哪些格（升序）。

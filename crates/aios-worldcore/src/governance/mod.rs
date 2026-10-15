@@ -23,7 +23,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Mutex;
 
-use crate::core::types::{Admit, Reason, Refuse, Who};
+use crate::core::types::{Admit, Marking, Reason, Refuse, Who};
 
 /// 许可阶梯上的一级（★ 闭集：要加一级得改法，不是加个字符串）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,6 +34,11 @@ pub enum Step {
     Declared,
     /// ③ 地板：法条没授过的一律拒（permissions.default 逐字 deny）。
     Floor,
+    /// ★ ④ **由天花板定**（H08 新加 · 2026-10-15 · T-162）。
+    ///
+    /// ★ 为什么单列一级：天花板**不是许可阶梯上的一级**（它管「看得到哪一级」，
+    /// 不管「有没有这个能力」）。混进前三级会把「等级挡的」读成「没授过」。
+    Ceiling,
 }
 
 /// 一条**裁定**（谁／哪一项能力／放行吗／哪一级定的／理由码）—— 学它「每次评估必产出决策」。
@@ -44,6 +49,24 @@ pub struct Ruling {
     pub allowed: bool,
     pub step: Step,
     pub code: &'static str,
+    /// ★ 这一次裁定**是不是等级挡的**（H08 新加 · 2026-10-15 · T-162）：
+    /// 同一张台账里能看出「这次是等级挡的」（来源1-①.3 逐字「Ruling 加一格 marking」）。
+    pub marking: Option<Marking>,
+}
+
+/// ★ **可见天花板**（H08）—— ★ **只能由治理面铸**：字段私有 ⇒ 别的模块造不出来。
+///
+/// ★ 为什么这么写（来源1-①.3 逐字）：「Query 构造时**只接受治理面给的** ceiling
+/// （★ **不给调用方自由填**，否则绕闸）」⇒ 调用方拿不到「自己填一个天花板」的口。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Ceiling(Marking);
+
+impl Ceiling {
+    /// 它的级。
+    #[must_use]
+    pub fn value(self) -> Marking {
+        self.0
+    }
 }
 
 /// 治理面：角色表 ＋ 运行时授权表 ＋ 出厂法条 ＋ 只追加的裁定台账。
@@ -52,6 +75,8 @@ pub struct Governance {
     role_of: BTreeMap<String, BTreeSet<String>>,
     grants: BTreeMap<String, BTreeSet<String>>,
     law: BTreeMap<String, Vec<String>>,
+    /// ★ 角色 ⇒ 天花板（H08；本体 governance.markings.ceiling_by_role 读进来）。
+    ceilings: BTreeMap<String, Marking>,
     rulings: Mutex<Vec<Ruling>>,
 }
 
@@ -87,6 +112,7 @@ impl Governance {
             role_of: read_roles(&doc),
             grants: BTreeMap::new(),
             law,
+            ceilings: read_ceilings(&doc),
             rulings: Mutex::new(Vec::new()),
         })
     }
@@ -167,6 +193,54 @@ impl Governance {
         self.can_execute(who, capability)
     }
 
+    /// ★ **他的可见天花板**（H08）：把他身上的角色逐个取天花板，**取最高的那一级**。
+    ///
+    /// ★ 一个角色都没有（或角色在本体里没写天花板）⇒ **最低级** —— 法律没写全 ＝ 最保守
+    /// （同本体 permissions.default 那条口径）。★ 角色在册却漏写天花板，由判据 C8 判红。
+    #[must_use]
+    pub fn ceiling_of(&self, who: &Who) -> Ceiling {
+        let mut top = Marking::Public;
+        for (role, level) in &self.ceilings {
+            if self.has_role(who, role) && *level > top {
+                top = *level;
+            }
+        }
+        Ceiling(top)
+    }
+
+    /// ★ **能不能看**（H08 读侧那条真闸）：`这一条的分级 <= 他的天花板` ⇒ 放行；高过 ⇒ 拒。
+    /// **每答必留一条裁定**，并把「是不是等级挡的」记进 `Ruling.marking`。
+    pub fn can_see(&self, who: &Who, marking: Marking) -> Admit<()> {
+        let ceiling = self.ceiling_of(who).value();
+        if marking <= ceiling {
+            self.note_marking(
+                who,
+                "read",
+                true,
+                Step::Ceiling,
+                "worldcore.Allow.UnderCeiling",
+                Some(marking),
+            );
+            return Ok(());
+        }
+        let refused = Refuse::new(
+            Reason::AboveCeiling {
+                marking: marking.code(),
+                ceiling: ceiling.code(),
+            },
+            who.name().to_string(),
+        );
+        self.note_marking(
+            who,
+            "read",
+            false,
+            Step::Ceiling,
+            refused.code(),
+            Some(marking),
+        );
+        Err(refused)
+    }
+
     /// 裁定台账（只追加；按序）。
     #[must_use]
     pub fn rulings(&self) -> Vec<Ruling> {
@@ -178,6 +252,19 @@ impl Governance {
 
     /// 记一条裁定。★ 台账是**读数**、不是裁定本身：锁坏了也只少一条痕，不许因此改结论。
     fn note(&self, who: &Who, capability: &str, allowed: bool, step: Step, code: &'static str) {
+        self.note_marking(who, capability, allowed, step, code, None);
+    }
+
+    /// 记一条**带等级**的裁定（H08：同一张台账里能看出「这次是等级挡的」）。
+    fn note_marking(
+        &self,
+        who: &Who,
+        capability: &str,
+        allowed: bool,
+        step: Step,
+        code: &'static str,
+        marking: Option<Marking>,
+    ) {
         if let Ok(mut log) = self.rulings.lock() {
             log.push(Ruling {
                 who: who.name().to_string(),
@@ -185,6 +272,7 @@ impl Governance {
                 allowed,
                 step,
                 code,
+                marking,
             });
         }
     }
@@ -236,6 +324,27 @@ fn read_roles(doc: &serde_json::Value) -> BTreeMap<String, BTreeSet<String>> {
         }
     }
     roles
+}
+
+/// ★ 读 `governance.markings.ceiling_by_role`（角色 ⇒ 天花板；略过 `_` 开头的键）。
+///
+/// ★ **认不得的级名 ⇒ 不写进表** ⇒ 那个角色等于没写天花板 ⇒ `ceiling_of` 按最低级判，
+/// 且判据 C8 会把「天花板指向不存在的级」判红（运行期保守、判据面不放过）。
+fn read_ceilings(doc: &serde_json::Value) -> BTreeMap<String, Marking> {
+    let mut out = BTreeMap::new();
+    let path = "/governance/markings/ceiling_by_role";
+    let Some(map) = doc.pointer(path).and_then(serde_json::Value::as_object) else {
+        return out;
+    };
+    for (role, level) in map {
+        if role.starts_with('_') {
+            continue;
+        }
+        if let Some(level) = level.as_str().and_then(Marking::parse) {
+            out.insert(role.clone(), level);
+        }
+    }
+    out
 }
 
 /// 【条文命中口径】见件头。★ 三个分支的顺序是死的（先精确，再通配，最后地址段前缀）。

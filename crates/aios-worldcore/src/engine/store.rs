@@ -171,6 +171,7 @@ impl Store {
     /// ★ 如实记「谁」的更正：at_seq ＝ **被更正那条的 seq**（碑／更正都要指得出哪一条）。
     pub fn update_as(&mut self, who: &Who, key: &str, reg: Registration) -> Admit<EventSeq> {
         let at_seq = self.predecessor_of(key)?;
+        self.refuse_marking_downgrade(key, &reg)?;
         Ok(self.commit(Append {
             who: who.clone(),
             at_seq,
@@ -179,6 +180,30 @@ impl Store {
             reg: Some(reg),
             note: String::new(),
         }))
+    }
+
+    /// ★ H08：**标记只升不降** —— 新一版的分级低于现行那一版 ⇒ **拒**。
+    ///
+    /// ★ 为什么落在**写口**（来源1-①.3 逐字）：「写口比较「新一版标记」与「现行那一版标记」，
+    /// **降级 ⇒ 拒**，理由码 `worldcore.Refuse.MarkingDowngrade`（**照它的夹具形状**：拒、原值不变）」。
+    /// ★ 被拒的那一笔**根本不落**（封条先算好才动正文那条次序照旧）⇒ **原值一字不动**。
+    /// ★ 缺格 ⇒ 本体自陈的默认 `INTERNAL`；不在闭集 ⇒ 拒（`Registration::marking`）。
+    fn refuse_marking_downgrade(&self, key: &str, next: &Registration) -> Admit<()> {
+        let Some(now) = self.projection().get(key) else {
+            return Ok(());
+        };
+        let from = now.marking()?;
+        let to = next.marking()?;
+        if to < from {
+            return Err(Refuse::new(
+                Reason::MarkingDowngrade {
+                    from: from.code(),
+                    to: to.code(),
+                },
+                key.to_string(),
+            ));
+        }
+        Ok(())
     }
 
     /// 删一条 —— ★ **不真删**：记一笔 Tombstone（本体 governance.tombstone）。

@@ -1308,6 +1308,15 @@
     "surface": "INTERNAL",
     "port": "INTERNAL"
    },
+   "ceiling_by_role": {
+    "_what": "★ 主体的**可见天花板**（读侧真闸）：按**角色**给，不一个个主体地给。学的是 aios-fs 02_query_view_language.md:155 那句「Every query is evaluated under the caller's privacy ceiling」**那条理念**，落在我们**已有的角色面**（governance.roles）上 —— ★ 不是搬它的代码，是把它那条理念写成我们的格。",
+    "_依据": "角色名取自同节 roster（human／agent）与 subject_to_role 里已在用的第三个（presence）；级名取自同节 levels（闭集三级）。",
+    "_本批（2026-10-15 · T-162）": "★ 本格是**新加**的（加之前该节没有天花板的落点）；★ **加格不动任何既有键**（加法，不是改写）。",
+    "_缺角色怎么办": "★ **没在这儿写天花板，就按最低级（PUBLIC）判**（运行期口径：法律没写全 ＝ 最保守）；★ 但「角色在册却漏写天花板」这件事**由判据 C8 判红**，不许静默。",
+    "human": "CONFIDENTIAL",
+    "agent": "INTERNAL",
+    "presence": "INTERNAL"
+   },
    "sensitive_fields": {
     "port.owner_uid": "**CONFIDENTIAL**（★ **未标，只是清单**）——它是**载体侧 uid**，按性质不该随便给出去。",
     "cell.owner": "**CONFIDENTIAL**（★ **未标，只是清单**）——同上。"

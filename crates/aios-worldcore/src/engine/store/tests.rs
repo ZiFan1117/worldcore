@@ -1,7 +1,9 @@
 //! 面④（实例存储）的判据 —— ★ 每一条对着一条规矩；**先写会红反例**（红的是什么写在注释里）。
 //!
 //! 跑法（★ 宿主无 cargo，只能在 VM 上跑）：cargo test -p aios-worldcore store
-//! ★ **如实登记**：本席**没跑过**这些测试（宿主无 cargo）。
+//! ★ **已跑过**（2026-10-15 · T-162）：VM `leap16`／cargo 1.98.0，
+//! `CARGO_TARGET_DIR=/root/.ct-fs cargo test -p aios-worldcore --offline` ⇒ 本件 13 条**全绿**。
+//! ★ 原写「本席没跑过」的那一句**对本笔的 head 已过期**，现改为上面的现取读数。
 
 use crate::core::types::{EventSeq, Reason, Registration, Who};
 
@@ -273,4 +275,72 @@ fn t11_the_fingerprint_is_the_now_not_the_history() {
     c.create_as(&who(), "application:x", reg("application", "x"))
         .expect("该成");
     assert_ne!(c.project().fingerprint(), a.project().fingerprint());
+}
+
+/// 带分级的一封「信纸」（H08：本体 governance.markings.levels 三级闭集）。
+fn reg_marked(kind: &str, name: &str, marking: &str) -> Registration {
+    let mut fields = serde_json::Map::new();
+    fields.insert("name".to_string(), serde_json::json!(name));
+    fields.insert("marking".to_string(), serde_json::json!(marking));
+    Registration::new(kind, fields)
+}
+
+/// ★★ 会红反例 9（H08 · 标记**不可降级**）：现行 `INTERNAL`、新一版写 `PUBLIC` ⇒ **必须拒**，
+/// 且**原值一字不变**、**序列上也不许多一行**。
+///
+/// 依据（来源1-①.3 逐字）：「写口比较「新一版标记」与「现行那一版标记」，**降级 ⇒ 拒**，
+/// 理由码 `worldcore.Refuse.MarkingDowngrade`（**照它的夹具形状**：拒、原值不变）」；
+/// 级名闭集＝本体 `governance.markings.levels`（PUBLIC／INTERNAL／CONFIDENTIAL）。
+///
+/// 让它红的改法：去掉 `update_as` 里的降级检查 ⇒ `expect_err` 那一步红。
+#[test]
+fn t12_a_marking_downgrade_is_refused_and_the_value_stays() {
+    let mut s = Store::new();
+    s.create_as(
+        &who(),
+        "application:alpha",
+        reg_marked("application", "alpha", "INTERNAL"),
+    )
+    .expect("首笔该成");
+
+    let e = s
+        .update_as(
+            &who(),
+            "application:alpha",
+            reg_marked("application", "alpha", "PUBLIC"),
+        )
+        .expect_err("降级必须拒");
+
+    assert_eq!(e.code(), "worldcore.Refuse.MarkingDowngrade");
+    assert_eq!(
+        s.get("application:alpha")
+            .and_then(|r| r.get_str("marking")),
+        Some("INTERNAL"),
+        "被拒的那一笔不许动原值"
+    );
+    assert_eq!(s.rows().len(), 1, "被拒 ⇒ 序列上也不许多一行");
+}
+
+/// ★ 正控（同一条规矩的另一半）：**升格必须放行**（`INTERNAL → CONFIDENTIAL`）——
+/// 若为了拦降级把升格也拦了，本用例红。
+#[test]
+fn t13_a_marking_upgrade_is_allowed() {
+    let mut s = Store::new();
+    s.create_as(
+        &who(),
+        "application:alpha",
+        reg_marked("application", "alpha", "INTERNAL"),
+    )
+    .expect("首笔该成");
+    s.update_as(
+        &who(),
+        "application:alpha",
+        reg_marked("application", "alpha", "CONFIDENTIAL"),
+    )
+    .expect("升格该放行");
+    assert_eq!(
+        s.get("application:alpha")
+            .and_then(|r| r.get_str("marking")),
+        Some("CONFIDENTIAL")
+    );
 }
