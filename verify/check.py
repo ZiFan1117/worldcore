@@ -30,6 +30,7 @@ CRITERIA = [
     "c8_role_has_ceiling.py",
     "c9_silent_fallbacks_registered.py",
     "c10_removal_carries_reason.py",
+    "c11_recovery_depends_on_l1l2_only.py",
 ]
 
 
