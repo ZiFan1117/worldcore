@@ -17,13 +17,38 @@ use crate::engine::ledger::Ledger;
 use crate::engine::store::Store;
 use crate::governance::Ceiling;
 
-/// 一条判据：**某一格 ＝ 某个值**（本面今天的谓词词汇只此一种）。
+/// 一条判据：**某一格 满足 某个条件**（★ H09：谓词闭词汇从一档扩到三档，**仍是闭集**）。
 #[derive(Debug, Clone)]
 struct Wanted {
     /// 哪一格。
     field: String,
-    /// 要等于的值。
-    value: String,
+    /// 要满足什么。
+    test: Test,
+}
+
+/// ★ H09：谓词词汇 —— **闭集三档**（照它 `02_query_view_language.md:37` 逐字
+/// 「**Closed vocabulary.** Every keyword and operator is enumerated」；
+/// ★ 它 `02:96` 逐字「`and` is the only logical conjunction; `or` is intentionally absent」
+/// ⇒ 多条判据仍是**与**，本面照旧）。
+#[derive(Debug, Clone)]
+enum Test {
+    /// 等于某个值（原来的那一档）。
+    Eq(String),
+    /// ★ 属于一个集合（H09 新加的那一档）。
+    In(Vec<String>),
+    /// ★ 落在 `[lo, hi]` 里（H09 新加的那一档；★ 本面的格是字符串 ⇒ 按**字符串序**比，如实标注）。
+    Range { lo: String, hi: String },
+}
+
+impl Test {
+    /// 写成人能读的一句话（`explain` 用）。
+    fn text(&self) -> String {
+        match self {
+            Self::Eq(value) => format!("= {value}"),
+            Self::In(values) => format!("in ({})", values.join(", ")),
+            Self::Range { lo, hi } => format!("in [{lo}, {hi}]"),
+        }
+    }
 }
 
 /// 求值那一刻，从现状里取出来的「这一格是什么」。
@@ -44,11 +69,15 @@ impl<'a> Cell<'a> {
         }
     }
 
-    /// 这一格满足「＝ 某个值」吗 —— ★ **缺席即假**。
-    fn matches(&self, want: &str) -> bool {
+    /// 这一格满足这条判据吗 —— ★ **缺席即假**（三档都一样）。
+    fn satisfies(&self, test: &Test) -> bool {
         match self {
-            Self::Text(text) => *text == want,
             Self::Absent => false,
+            Self::Text(text) => match test {
+                Test::Eq(want) => *text == want.as_str(),
+                Test::In(values) => values.iter().any(|v| *text == v.as_str()),
+                Test::Range { lo, hi } => *text >= lo.as_str() && *text <= hi.as_str(),
+            },
         }
     }
 }
@@ -132,7 +161,39 @@ impl<'a> Query<'a> {
     pub fn filter_field(mut self, field: impl Into<String>, value: impl Into<String>) -> Self {
         self.wanted.push(Wanted {
             field: field.into(),
-            value: value.into(),
+            test: Test::Eq(value.into()),
+        });
+        self
+    }
+
+    /// ★ H09：某一格**属于一个集合**（∈）。★ 空集合 ⇒ 一条也命中不了（不是「不过滤」）。
+    #[must_use]
+    pub fn filter_in(
+        mut self,
+        field: impl Into<String>,
+        values: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        self.wanted.push(Wanted {
+            field: field.into(),
+            test: Test::In(values.into_iter().map(Into::into).collect()),
+        });
+        self
+    }
+
+    /// ★ H09：某一格**落在 [lo, hi] 里**（★ 字符串序，含两端）。
+    #[must_use]
+    pub fn filter_range(
+        mut self,
+        field: impl Into<String>,
+        lo: impl Into<String>,
+        hi: impl Into<String>,
+    ) -> Self {
+        self.wanted.push(Wanted {
+            field: field.into(),
+            test: Test::Range {
+                lo: lo.into(),
+                hi: hi.into(),
+            },
         });
         self
     }
@@ -192,7 +253,7 @@ impl<'a> Query<'a> {
             .filter(|(_, reg)| {
                 self.wanted
                     .iter()
-                    .all(|want| Cell::of(reg, &want.field).matches(&want.value))
+                    .all(|want| Cell::of(reg, &want.field).satisfies(&want.test))
             })
             .collect()
     }
@@ -230,6 +291,31 @@ impl<'a> Query<'a> {
     #[must_use]
     pub fn count(&self) -> usize {
         self.all().len()
+    }
+
+    /// ★ H09：**确定性计划** —— 这一查会怎么走，逐条写出来（照它 `02:41` 逐字
+    /// 「Every query has a deterministic execution plan accessible via `ExplainQuery`」）。
+    /// ★ 同一查 ⇒ **同一串**（确定性）；★ 计划里**不含**任何数据。
+    #[must_use]
+    pub fn explain(&self) -> String {
+        let mut parts = vec![format!(
+            "from keys(kind={})",
+            self.kind.as_deref().unwrap_or("<any>")
+        )];
+        for want in &self.wanted {
+            parts.push(format!("where {} {}", want.field, want.test.text()));
+        }
+        if let Some(field) = &self.order_field {
+            parts.push(format!("order_by {field}"));
+        }
+        if let Some(n) = self.take {
+            parts.push(format!("take {n}"));
+        }
+        if let Some(ceiling) = self.ceiling {
+            parts.push(format!("ceiling {}", ceiling.value().code()));
+        }
+        parts.push("order: key asc".to_string());
+        parts.join(" | ")
     }
 }
 
@@ -460,6 +546,62 @@ mod tests {
         .expect("该成");
         assert_eq!(Query::new(&s).count(), 4, "没天花板 ⇒ 不分级地全给");
         assert_eq!(Query::new(&s).run().suppressed, 0);
+    }
+
+    /// ★★ 会红反例 8（H09 · **∈ 集合**那一档）：集合里的命中、集合外的不命中；
+    /// ★ 缺席即假（这一档也一样）。
+    /// 让它红的改法：把 In 当成「不过滤」⇒ 第一与第三条断言红。
+    #[test]
+    fn an_in_predicate_matches_only_the_set() {
+        let s = seeded();
+        assert_eq!(
+            keys_of(&Query::new(&s).filter_in("name", ["alpha", "gamma"])),
+            ["application:alpha", "surface:gamma"]
+        );
+        assert_eq!(
+            Query::new(&s)
+                .filter_in("state", ["running", "installed"])
+                .count(),
+            2
+        );
+        assert_eq!(
+            Query::new(&s).filter_in("state", [] as [&str; 0]).count(),
+            0,
+            "★ 空集合 ⇒ 一条也不命中（不是「不过滤」）"
+        );
+    }
+
+    /// ★★ 会红反例 9（H09 · **范围**那一档）：字符串序、**含两端**；★ 缺席即假。
+    #[test]
+    fn a_range_predicate_is_closed_and_absent_is_false() {
+        let s = seeded();
+        assert_eq!(
+            keys_of(&Query::new(&s).filter_range("name", "alpha", "beta")),
+            ["application:alpha", "application:beta"]
+        );
+        assert_eq!(
+            Query::new(&s).filter_range("state", "a", "z").count(),
+            2,
+            "★ 缺席的格一条不中（surface 没有 state）"
+        );
+    }
+
+    /// ★ H09 · **确定性计划**：同一查同一串；计划里带上判据、天花板与次序。
+    #[test]
+    fn explain_is_deterministic_and_names_the_predicates() {
+        let gov = Governance::from_ontology(ONT).expect("出厂本体该装得上");
+        let agent = Who::new("world://agent/dsh");
+        let s = seeded();
+        let q = Query::under(&s, gov.ceiling_of(&agent))
+            .filter_kind("application")
+            .filter_in("name", ["alpha"])
+            .order_by("name")
+            .take(1);
+        let plan = q.explain();
+        assert_eq!(plan, q.explain(), "★ 同一查 ⇒ 同一串");
+        assert!(plan.contains("where name in (alpha)"), "{plan}");
+        assert!(plan.contains("ceiling INTERNAL"), "{plan}");
+        assert!(plan.contains("take 1"), "{plan}");
     }
 
     /// ★★ 会红反例 6（**排序口径**）：缺席的格排在**最前**，不是排到最后。

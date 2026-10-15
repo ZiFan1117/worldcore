@@ -21,7 +21,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::core::types::{EventSeq, Registration};
+use crate::core::types::{EventSeq, Lifecycle, Registration};
 
 use super::row::{Op, Row};
 
@@ -34,6 +34,24 @@ pub struct Projection {
     current: BTreeMap<String, Registration>,
     last_write: BTreeMap<String, EventSeq>,
     kind_index: BTreeMap<String, BTreeSet<String>>,
+    /// ★ H02：键 ⇒ **指针**（现行落在哪一行 ＋ 它上一版落在哪一行）。
+    pointers: BTreeMap<String, Pointer>,
+    /// ★ H07：键 ⇒ **生命周期**（闭集三档；折出来的，不是本体里的格）。
+    lifecycle: BTreeMap<String, Lifecycle>,
+    /// ★ H05：这份现状**折到哪儿**（折进去的最后一行的 seq；空账 ＝ 0）。
+    as_of: EventSeq,
+}
+
+/// ★ **指针**（H02）：这个键的现行版落在哪一行 ＋ 它上一版落在哪一行。
+///
+/// ★ 为什么不需要新造版本号：我们的账**只追加** ⇒ `EventSeq` 天生就是版本
+/// （来源1-②.3 逐字「不需要新造版本号」）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Pointer {
+    /// 现行那一版落在哪一行。
+    pub current: EventSeq,
+    /// 它上一版落在哪一行（首版 ＝ None）。
+    pub previous: Option<EventSeq>,
 }
 
 impl Projection {
@@ -70,6 +88,44 @@ impl Projection {
         self.last_write.get(key).copied()
     }
 
+    /// ★ H02：某键的**指针**（指针搬动 ／ 回滚要读的就是它）。
+    #[must_use]
+    pub fn pointer_of(&self, key: &str) -> Option<Pointer> {
+        self.pointers.get(key).copied()
+    }
+
+    /// ★ H07：某键的**生命周期**（从未写过 ⇒ None）。
+    #[must_use]
+    pub fn lifecycle_of(&self, key: &str) -> Option<Lifecycle> {
+        self.lifecycle.get(key).copied()
+    }
+
+    /// ★ H05：这份现状**折到哪儿**（水位线）。
+    #[must_use]
+    pub fn as_of(&self) -> EventSeq {
+        self.as_of
+    }
+
+    /// ★ H05：折出来的现状**自带一个名**（`fold_id`）—— 同一个 `as_of` 重折，名字必须逐字相同。
+    ///
+    /// 规范串 ＝ `as_of` ＋ 键｜类｜seq 排序拼接（照 `ledger/seal.rs` 的规范压平做法）；
+    /// 哈希用 blake3（本 workspace 早有，**零新增依赖**）。★ 这是**可外传的号**（与指纹不同：
+    /// 指纹是 crate 内的机核读法）。
+    #[must_use]
+    pub fn fold_id(&self) -> String {
+        let mut entries: Vec<String> = self
+            .current
+            .iter()
+            .map(|(key, reg)| {
+                let seq = self.last_write.get(key).map_or(0, |s| s.0);
+                format!("{key}|{}|{seq}", reg.kind)
+            })
+            .collect();
+        entries.sort_unstable();
+        let canonical = format!("as_of={}\n{}", self.as_of.0, entries.join("\n"));
+        format!("blake3:{}", blake3::hash(canonical.as_bytes()).to_hex())
+    }
+
     /// ★ 现状指纹：把现状折成**排序 entry 串**再哈希（学它「状态指纹」那一手）。
     ///
     /// ★ 只在 crate 内可见：这是**机核用**的读法（由同一份序列重折 ⇒ 指纹必须逐字相同；
@@ -96,14 +152,34 @@ impl Projection {
 #[must_use]
 pub fn fold(log: &[Row]) -> Projection {
     let mut folded = Projection::default();
+    // ★ H02：回滚要**取历史那一版的正身** ⇒ 折的过程中留一份「(键, seq) ⇒ 信纸」。
+    //   ★ 它只活在折的这一趟里，**不进 Projection**（现状仍是可丢弃的派生物）。
+    let mut versions: BTreeMap<(&str, EventSeq), &Registration> = BTreeMap::new();
     for row in log {
+        folded.as_of = row.seq;
         match row.op {
-            // 立碑：从**现状**里摘掉；账上那一行照旧。
-            Op::Tombstone => folded.retire(&row.key),
+            // 立碑：从**现状**里摘掉；账上那一行照旧 ⇒ 生命周期退役。
+            Op::Tombstone => {
+                folded.retire(&row.key);
+                folded.lifecycle.insert(row.key.clone(), Lifecycle::Retired);
+            }
+            // 清除：同上，但记的是「清除了」（★ 正文一行不动，stub 仍在）。
+            Op::Purge => {
+                folded.retire(&row.key);
+                folded.lifecycle.insert(row.key.clone(), Lifecycle::Purged);
+            }
+            // ★ 回滚：**只搬指针** —— 把现行指回历史那一版的正身（正文不改）。
+            Op::Rollback => {
+                if let Some(reg) = versions.get(&(row.key.as_str(), row.at_seq)) {
+                    folded.publish(row.key.clone(), (*reg).clone(), row.at_seq);
+                }
+            }
             // 立／更正：后写覆盖前写。
             Op::Create | Op::Update => {
                 if let Some(reg) = &row.reg {
+                    versions.insert((row.key.as_str(), row.seq), reg);
                     folded.publish(row.key.clone(), reg.clone(), row.seq);
+                    folded.lifecycle.insert(row.key.clone(), Lifecycle::Active);
                 }
             }
         }
@@ -123,6 +199,15 @@ impl Projection {
         }
         self.bucket(&reg.kind, &key);
         self.current.insert(key.clone(), reg);
+        // ★ H02：指针跟着搬 —— 现行 ＝ 新那一版，上一版 ＝ 原现行（首版 ⇒ None）。
+        let previous = self.pointers.get(&key).map(|p| p.current);
+        self.pointers.insert(
+            key.clone(),
+            Pointer {
+                current: seq,
+                previous,
+            },
+        );
         self.last_write.insert(key, seq);
     }
 

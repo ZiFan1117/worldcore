@@ -81,6 +81,13 @@ pub enum Reason {
         /// 想写进去的那一版（比 from 低）。
         to: &'static str,
     },
+    /// ★ **CAS 没对上**：写口拿的 expected 与现行指针不符（H02／H04 砖一）。
+    ConflictDetected {
+        /// 期望的那一版（调用方给的）。
+        expected: u64,
+        /// 现读到的指针（真正的现行）。
+        current: u64,
+    },
     /// ★ 这一条高过了主体的天花板（H08 读侧那条真闸）。
     AboveCeiling {
         /// 这一条自己的分级。
@@ -106,6 +113,7 @@ impl Reason {
             Self::NotPermitted { .. } => "worldcore.Refuse.NotPermitted",
             Self::MarkingDowngrade { .. } => "worldcore.Refuse.MarkingDowngrade",
             Self::AboveCeiling { .. } => "worldcore.Refuse.AboveCeiling",
+            Self::ConflictDetected { .. } => "worldcore.Refuse.ConflictDetected",
             Self::OntologyNotLoaded => "worldcore.Refuse.OntologyNotLoaded",
         }
     }
@@ -150,6 +158,35 @@ impl std::error::Error for Refuse {}
 
 /// 本内核各处统一的结果别名（省得每面各写一套）。
 pub type Admit<T> = Result<T, Refuse>;
+
+/// ★ **生命周期**（H07）—— 闭集三档。
+///
+/// ★ 为什么是我们折出来的一条：本体里 **9 类中 4 类**已经有 `state=enum(…,retired)`、其余没有
+/// （现取），而「作废」与「退役」今天混在墓碑一处 ⇒ ★ 折出一条**统一的生命周期**，
+/// **不动本体**（照作者裁决：本体只增不改，本批没增）。
+///
+/// ★ 与类自己的 `state`（running／stopped…）**不是一回事**：那是**运行态**，这是**生命周期**。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Lifecycle {
+    /// 活着（读得到、写得进）。
+    Active,
+    /// 已退役（＝今天的「立碑」）：★ 审计可读、写不许。
+    Retired,
+    /// 已清除：★ 我们**只追加** ⇒ 正文一行不动，只记一笔声明 ＋ 留审计 stub。
+    Purged,
+}
+
+impl Lifecycle {
+    /// 它的码（与本体 `retired` 那个词同形；判据与日志认它）。
+    #[must_use]
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::Active => "ACTIVE",
+            Self::Retired => "RETIRED",
+            Self::Purged => "PURGED",
+        }
+    }
+}
 
 /// 数据分级 —— **闭集三级**（本体 `governance.markings.levels` 逐字
 /// PUBLIC／INTERNAL／CONFIDENTIAL；照 Palantir 开源复刻件逐字
@@ -259,8 +296,12 @@ impl Registration {
 ///
 /// ★ 与 Palantir 的 `AuditEntry` 同位置：序号 ＋ 谁 ＋ 什么时候 ＋ 做了什么。
 /// 账本上的位置（全局单增，由世界分配；本体 `envelope.fields.seq` 逐字）。
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct EventSeq(pub u64);
+
+// ★ `Default` ＝ 0：与 `NO_PREDECESSOR` 同一取值 —— 意思都是「**没有**」
+//   （空账折出来的水位线就是 0）。★ 序号从 1 起（本体 envelope.fields.seq 逐字「全局单增，由世界分配」），
+//   所以 0 永远不是一笔真账 ⇒ 当「没有」用不会撞上真值。
 
 impl std::fmt::Display for EventSeq {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

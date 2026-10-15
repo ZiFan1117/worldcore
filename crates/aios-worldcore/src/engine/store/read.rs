@@ -16,9 +16,9 @@
 
 use std::cell::OnceCell;
 
-use crate::core::types::{EventSeq, Registration};
+use crate::core::types::{EventSeq, Lifecycle, Registration};
 
-use super::{fold, Projection, Row, Store};
+use super::{fold, Pointer, Projection, Row, Store};
 
 impl Store {
     // ---- 原件读（只追加序列那一份） --------------------------------
@@ -88,5 +88,61 @@ impl Store {
     #[must_use]
     pub fn last_write_seq(&self, key: &str) -> Option<EventSeq> {
         self.projection().last_write_seq(key)
+    }
+
+    /// ★ H05：**折到某一个位次为止**（＝时间旅行）—— 把 `fold(log)` 换成 `fold(&log[..seq])`。
+    ///
+    /// ★ 位次超过账长 ⇒ 折全账（不报错：读的人要的是「到那儿为止」，那儿还没到就是全部）。
+    #[must_use]
+    pub fn project_at(&self, seq: EventSeq) -> Projection {
+        let upto = usize::try_from(seq.0)
+            .unwrap_or(usize::MAX)
+            .min(self.log.len());
+        fold(&self.log[..upto])
+    }
+
+    /// ★ H02：某键的**指针**（现行落在哪一行 ＋ 上一版）。
+    #[must_use]
+    pub fn pointer_of(&self, key: &str) -> Option<Pointer> {
+        self.projection().pointer_of(key)
+    }
+
+    /// ★ H02：某键的指针**走过**的位次（按发生序；首版在前，回滚也会留痕）。
+    ///
+    /// ★ 口径：从只追加序列里逐行读这个键的指针落点（创建／更正＝那一行的 seq；
+    ///   回滚＝它搬回去的那一版）。★ 立碑不改指针（碑立了也指得出被立碑那条）。
+    #[must_use]
+    pub fn pointer_history(&self, key: &str) -> Vec<EventSeq> {
+        self.log
+            .iter()
+            .filter(|r| r.key == key)
+            .filter_map(|r| match r.op {
+                super::Op::Create | super::Op::Update => Some(r.seq),
+                super::Op::Rollback => Some(r.at_seq),
+                super::Op::Tombstone | super::Op::Purge => None,
+            })
+            .collect()
+    }
+
+    /// ★ H07：**审计读** —— 退役／已清除的也读得到（现行优先，其次序列里最后一版信纸）。
+    ///
+    /// ★ 与 `get` 的分工：`get` 只给**活着**的（缺口①口径：读侧没有状态维）；
+    ///   本口专给**审计**用（来源1-⑥.3 逐字「get_including_retired() 给审计用」）。
+    #[must_use]
+    pub fn get_including_retired(&self, key: &str) -> Option<&Registration> {
+        self.get(key).or_else(|| {
+            // ★ 碑／清除那两行**没有信纸**（reg ＝ None）⇒ 要往前找到**最后一版有信纸的**那一行。
+            self.log
+                .iter()
+                .rev()
+                .find(|r| r.key == key && r.reg.is_some())
+                .and_then(|r| r.reg.as_ref())
+        })
+    }
+
+    /// ★ H07：某键的**生命周期**（从未写过 ⇒ None）。
+    #[must_use]
+    pub fn lifecycle_of(&self, key: &str) -> Option<Lifecycle> {
+        self.projection().lifecycle_of(key)
     }
 }

@@ -31,13 +31,13 @@ mod row;
 #[cfg(test)]
 mod tests;
 
-pub use projection::{fold, Projection};
+pub use projection::{fold, Pointer, Projection};
 pub use row::{Op, Row, NO_PREDECESSOR};
 
 use std::cell::OnceCell;
 use std::fmt;
 
-use crate::core::types::{Admit, EventSeq, Reason, Refuse, Registration, Who};
+use crate::core::types::{Admit, EventSeq, Lifecycle, Reason, Refuse, Registration, Who};
 
 /// 没写「谁」时用的系统主体（照 Who::is_system 的 _system: 口径）。
 fn system_who() -> Who {
@@ -179,6 +179,107 @@ impl Store {
             key: key.to_string(),
             reg: Some(reg),
             note: String::new(),
+        }))
+    }
+
+    /// ★ H02／H04 **砖一**：**带 CAS 的更正** —— 调用方拿的 `expected` 与**现行指针**不符 ⇒ 拒。
+    ///
+    /// ★ 学的是它那条理念（`01_object_model.md:226` 逐字「Pointer moves use **atomic
+    /// compare-and-swap** on (pointer_id, expected_current_version_id)」）：
+    /// **乐观并发** —— 不锁，靠「期望对不上就拒」把并发写挡在门外。
+    /// ★ 被拒的那一笔**一处不留**（次序照旧：先算好才动正文）。
+    pub fn promote_as(
+        &mut self,
+        who: &Who,
+        key: &str,
+        expected: EventSeq,
+        reg: Registration,
+    ) -> Admit<EventSeq> {
+        let current = self.pointer_of(key).ok_or_else(|| missing(key))?.current;
+        if current != expected {
+            return Err(Refuse::new(
+                Reason::ConflictDetected {
+                    expected: expected.0,
+                    current: current.0,
+                },
+                key.to_string(),
+            ));
+        }
+        self.update_as(who, key, reg)
+    }
+
+    /// ★ H02：**回滚** —— 把指针搬回**历史上某一版**（★ **正文一行不改**：只追加一笔 Rollback）。
+    ///
+    /// ★ 学的是它那条理念（`00_overview.md:13` 逐字「rollback moves a pointer to a previous
+    /// verified version」）：**搬的是指针，不是正文**。
+    /// ★ `to` 必须是这个键**历史上真有过信纸**的那一行（不在 ⇒ 拒）；原因不许空。
+    pub fn rollback_as(
+        &mut self,
+        who: &Who,
+        key: &str,
+        to: EventSeq,
+        reason: &str,
+    ) -> Admit<EventSeq> {
+        if reason.trim().is_empty() {
+            return Err(Refuse::new(
+                Reason::MissingField {
+                    field: "reason".to_string(),
+                },
+                key.to_string(),
+            ));
+        }
+        let existed = self
+            .log
+            .iter()
+            .any(|r| r.key == key && r.seq == to && r.reg.is_some());
+        if !existed {
+            return Err(Refuse::new(
+                Reason::DanglingRef {
+                    target: format!("{key}@{}", to.0),
+                },
+                "那一版不在这个键的历史上",
+            ));
+        }
+        Ok(self.commit(Append {
+            who: who.clone(),
+            at_seq: to,
+            op: Op::Rollback,
+            key: key.to_string(),
+            reg: None,
+            note: reason.to_string(),
+        }))
+    }
+
+    /// ★ H07：**清除** —— 只记一笔「清除了」的声明（★ 我们只追加 ⇒ **审计 stub 仍在**）。
+    ///
+    /// ★ 学的是它那条形状（`01_object_model.md:77` 逐字「ACTIVE ───retire──▶ RETIRED
+    /// ───purge_after_retention──▶ PURGED」）：★ **必须先退役**，不许从 ACTIVE 直接清。
+    /// ★ 保留期（它默认 90 天）**今天落不了地**：本面无时钟 ⇒ **先声明、不执行**（如实）。
+    pub fn purge_as(&mut self, who: &Who, key: &str, reason: &str) -> Admit<EventSeq> {
+        if reason.trim().is_empty() {
+            return Err(Refuse::new(
+                Reason::MissingField {
+                    field: "reason".to_string(),
+                },
+                key.to_string(),
+            ));
+        }
+        if self.lifecycle_of(key) != Some(Lifecycle::Retired) {
+            return Err(Refuse::new(
+                Reason::BadValue {
+                    field: "lifecycle".to_string(),
+                    rule: "RETIRED".to_string(),
+                },
+                key.to_string(),
+            ));
+        }
+        Ok(self.commit(Append {
+            who: who.clone(),
+            at_seq: NO_PREDECESSOR,
+            op: Op::Purge,
+            key: key.to_string(),
+            reg: None,
+            note: reason.to_string(),
         }))
     }
 

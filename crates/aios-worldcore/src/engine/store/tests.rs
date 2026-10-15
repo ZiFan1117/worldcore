@@ -5,7 +5,7 @@
 //! `CARGO_TARGET_DIR=/root/.ct-fs cargo test -p aios-worldcore --offline` ⇒ 本件 13 条**全绿**。
 //! ★ 原写「本席没跑过」的那一句**对本笔的 head 已过期**，现改为上面的现取读数。
 
-use crate::core::types::{EventSeq, Reason, Registration, Who};
+use crate::core::types::{EventSeq, Lifecycle, Reason, Registration, Who};
 
 use super::{fold, Op, Store, NO_PREDECESSOR};
 
@@ -342,5 +342,184 @@ fn t13_a_marking_upgrade_is_allowed() {
         s.get("application:alpha")
             .and_then(|r| r.get_str("marking")),
         Some("CONFIDENTIAL")
+    );
+}
+
+/// ★★ 会红反例 10（H04 **砖一 · CAS**）：期望的那一版**对不上** ⇒ **拒**，且**一处不留**。
+///
+/// 依据（`01_object_model.md:226` 逐字「Pointer moves use **atomic compare-and-swap** on
+/// (pointer_id, expected_current_version_id)」；来源1-⑧.5 逐字「只先吃砖一（CAS 那一块，几乎零成本）」）。
+/// 让它红的改法：去掉 `promote_as` 里的 expected 比对 ⇒ `expect_err` 那一步红。
+#[test]
+fn t14_a_promote_with_a_stale_expected_is_refused_and_nothing_lands() {
+    let mut s = seed();
+    let e = s
+        .promote_as(
+            &who(),
+            "application:htop",
+            EventSeq(7),
+            reg("application", "htop-2"),
+        )
+        .expect_err("期望对不上必须拒");
+    assert_eq!(e.code(), "worldcore.Refuse.ConflictDetected");
+    assert_eq!(s.rows().len(), 1, "被拒的那一笔一处不留");
+    assert_eq!(
+        s.get("application:htop"),
+        Some(&reg("application", "htop")),
+        "现行一字不动"
+    );
+}
+
+/// ★ 正控（同一条规矩的另一半）：期望**就是现行** ⇒ 放行，且**指针搬动**（现行 ＋ 上一版都指得出）。
+#[test]
+fn t15_a_promote_with_the_right_expected_moves_the_pointer() {
+    let mut s = seed();
+    let now = s.pointer_of("application:htop").expect("首版该有指针");
+    assert_eq!(now.current, EventSeq(1));
+    assert_eq!(now.previous, None, "首版没有上一版");
+    let to = s
+        .promote_as(
+            &who(),
+            "application:htop",
+            now.current,
+            reg("application", "htop-2"),
+        )
+        .expect("期望对上该成");
+    assert_eq!(to, EventSeq(2));
+    let moved = s.pointer_of("application:htop").expect("搬完该有指针");
+    assert_eq!(moved.current, EventSeq(2));
+    assert_eq!(moved.previous, Some(EventSeq(1)), "上一版指得出来");
+}
+
+/// ★★ 会红反例 11（H02 · **回滚搬的是指针，不是正文**）：搬到历史某一版 ⇒ 现状回到那一版，
+/// ★ **历史一行不改**（只多一笔 Rollback）。
+///
+/// 依据（`00_overview.md:13` 逐字「rollback moves a pointer to a previous verified version」；
+/// 来源2-A02 逐字「指针搬动只改指针那一栏，正文一行不改」）。
+/// 让它红的改法：把回滚做成「再写一遍旧内容」⇒ 第三与第四条断言红（行的形状不对）。
+#[test]
+fn t16_a_rollback_moves_the_pointer_back_without_touching_the_rows() {
+    let mut s = seed();
+    let first = EventSeq(1);
+    s.promote_as(
+        &who(),
+        "application:htop",
+        first,
+        reg("application", "htop-2"),
+    )
+    .expect("该成");
+    assert_eq!(
+        s.get("application:htop"),
+        Some(&reg("application", "htop-2"))
+    );
+    let rows_before = s.rows().len();
+
+    s.rollback_as(&who(), "application:htop", first, "那一版有毛病")
+        .expect("回滚该成");
+
+    assert_eq!(
+        s.get("application:htop"),
+        Some(&reg("application", "htop")),
+        "现状回到旧那一版"
+    );
+    assert_eq!(
+        s.rows().len(),
+        rows_before + 1,
+        "★ 只多一笔「指针搬动」，正文一行不加"
+    );
+    assert_eq!(s.rows()[rows_before].op, Op::Rollback);
+    assert_eq!(
+        s.pointer_history("application:htop"),
+        [EventSeq(1), EventSeq(2), EventSeq(1)],
+        "指针走过三个位次"
+    );
+}
+
+/// ★★ 会红反例 12（H02 · 回滚**不许搬到一个不存在的地方**）：目标不在这个键的历史上 ⇒ 拒。
+#[test]
+fn t17_a_rollback_to_a_version_that_never_existed_is_refused() {
+    let mut s = seed();
+    let e = s
+        .rollback_as(&who(), "application:htop", EventSeq(9), "乱指")
+        .expect_err("那一版不存在 ⇒ 拒");
+    assert_eq!(e.code(), "worldcore.Refuse.DanglingRef");
+    assert_eq!(s.rows().len(), 1, "被拒的那一笔一处不留");
+}
+
+/// ★★ 会红反例 13（H07 · **生命周期**）：ACTIVE → 立碑 RETIRED → 清除 PURGED；
+/// ★ 退役后 `get` 不给、**审计读仍给**；清除后**审计 stub 仍在**。
+///
+/// 依据（`01_object_model.md:77` 逐字「ACTIVE ───retire──▶ RETIRED ───purge_after_retention──▶ PURGED」；
+/// 来源1-⑥.3 逐字「get() 默认只给 ACTIVE，get_including_retired() 给审计用」）。
+#[test]
+fn t18_the_lifecycle_is_active_then_retired_then_purged_and_the_stub_stays() {
+    let mut s = seed();
+    assert_eq!(s.lifecycle_of("application:htop"), Some(Lifecycle::Active));
+    s.delete_as(&who(), "application:htop", "不用了")
+        .expect("立碑该成");
+    assert_eq!(s.lifecycle_of("application:htop"), Some(Lifecycle::Retired));
+    assert_eq!(s.get("application:htop"), None, "退役 ⇒ 现状里没有它");
+    assert_eq!(
+        s.get_including_retired("application:htop"),
+        Some(&reg("application", "htop")),
+        "★ 审计读仍给"
+    );
+    s.purge_as(&who(), "application:htop", "保留期到")
+        .expect("清除该成");
+    assert_eq!(s.lifecycle_of("application:htop"), Some(Lifecycle::Purged));
+    assert_eq!(
+        s.get_including_retired("application:htop"),
+        Some(&reg("application", "htop")),
+        "★ stub 仍在（我们只追加）"
+    );
+}
+
+/// ★★ 会红反例 14（H07 · **不许从 ACTIVE 直接清**）：先退役才谈得上清除。
+#[test]
+fn t19_a_purge_before_a_retire_is_refused() {
+    let mut s = seed();
+    let e = s
+        .purge_as(&who(), "application:htop", "直接清")
+        .expect_err("没退役不许清");
+    assert_eq!(e.code(), "worldcore.Refuse.BadValue");
+    assert_eq!(s.rows().len(), 1, "被拒的那一笔一处不留");
+}
+
+/// ★★ 会红反例 15（H05 · **快照一致读**）：折到某一个位次为止；★ 同一位置重折 ⇒ `fold_id` 逐字相同；
+/// ★ 位次一变 ⇒ 名字就变（时间旅行读的是**那一刻**）。
+///
+/// 依据（`01_object_model.md:317` 逐字「SNAPSHOT ｜ Reads a consistent snapshot across pointers
+/// as of the call's wall time」；来源1-③.3 四条：水位线／fold_id／project_at／一致性契约）。
+#[test]
+fn t20_a_snapshot_reads_one_moment_and_has_one_name() {
+    let mut s = seed();
+    let at1 = s.project_at(EventSeq(1));
+    assert_eq!(at1.as_of(), EventSeq(1), "水位线 ＝ 折到哪儿");
+    assert_eq!(
+        at1.get("application:htop"),
+        Some(&reg("application", "htop"))
+    );
+    let name1 = at1.fold_id();
+    assert_eq!(
+        name1,
+        s.project_at(EventSeq(1)).fold_id(),
+        "★ 同一位次重折 ⇒ 名字逐字相同"
+    );
+    s.update_as(&who(), "application:htop", reg("application", "htop-2"))
+        .expect("该成");
+    assert_eq!(
+        s.project_at(EventSeq(1)).as_of(),
+        EventSeq(1),
+        "旧那一刻还在"
+    );
+    assert_eq!(
+        s.project_at(EventSeq(1)).fold_id(),
+        name1,
+        "★ 后写不影响旧那一刻"
+    );
+    assert_ne!(
+        s.project_at(EventSeq(2)).fold_id(),
+        name1,
+        "位次一变 ⇒ 名字就变"
     );
 }
