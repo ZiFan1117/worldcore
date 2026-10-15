@@ -31,6 +31,8 @@ CRITERIA = [
     "c9_silent_fallbacks_registered.py",
     "c10_removal_carries_reason.py",
     "c11_recovery_depends_on_l1l2_only.py",
+    "c12_ontology_text_has_no_bad_escapes.py",
+    "c13_one_vocabulary.py",
 ]
 
 
