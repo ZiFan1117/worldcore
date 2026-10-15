@@ -28,6 +28,8 @@ CRITERIA = [
     "c6_class_has_identity.py",
     "c7_reference_integrity.py",
     "c8_role_has_ceiling.py",
+    "c9_silent_fallbacks_registered.py",
+    "c10_removal_carries_reason.py",
 ]
 
 
