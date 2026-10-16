@@ -44,6 +44,22 @@ impl Registry {
         })
     }
 
+    /// ★★ **在册表 ＝ 本体 ＋ 注册表**（T-245 贯通）：听作者令「**把它底下的这些工具注册为我们的 action**」。
+    ///
+    /// ★ 为什么要有这一个口：★ 本体那份 JSON 是**权威**（不手工往里写命令的动作）；
+    ///   注册表是**登记结果** —— ★ 两个合起来才是「今天在册的全部动作」。
+    /// ★ 文件不在 ⇒ 就是本体那一份（首次运行，不是错误）。
+    pub fn load_with_registration(text: &str, registry_path: &str) -> Result<Self, Refuse> {
+        let mut me = Self::load(text)?;
+        let reg = crate::core::registration::Register::load(registry_path)?;
+        for r in reg.all() {
+            me.actions.insert(r.action.clone());
+            me.action_function
+                .insert(r.action.clone(), r.function.clone());
+        }
+        Ok(me)
+    }
+
     /// 世界里有哪些类（升序）。
     #[must_use]
     pub fn kinds(&self) -> Vec<&str> {

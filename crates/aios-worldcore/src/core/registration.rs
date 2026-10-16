@@ -77,6 +77,25 @@ impl Register {
         self.by_action.keys().map(String::as_str).collect()
     }
 
+    /// ★ 全部（★ 给「合成在册表」用）。
+    #[must_use]
+    pub fn all(&self) -> Vec<&Registration> {
+        self.by_action.values().collect()
+    }
+
+    /// ★★ **已经出现过的注册者类别**（★ 三方同构的读数就从这里取 —— 本体那份 JSON 只看得到 world）。
+    #[must_use]
+    pub fn kinds_present(&self) -> Vec<String> {
+        let mut s: Vec<String> = self
+            .by_action
+            .values()
+            .map(|r| r.registered_by_kind.clone())
+            .collect();
+        s.sort();
+        s.dedup();
+        s
+    }
+
     /// 取一条。
     #[must_use]
     pub fn get(&self, action: &str) -> Option<&Registration> {
@@ -198,10 +217,15 @@ mod tests {
         let path = temp("reopen");
         {
             let mut r = Register::load(&path).expect("空表该装得上");
-            r.register(&path, reg("demo.ping", "downloader")).expect("该注册得上");
+            r.register(&path, reg("demo.ping", "downloader"))
+                .expect("该注册得上");
         }
         let mut back = Register::load(&path).expect("该装得回来");
-        assert_eq!(back.actions(), vec!["demo.ping"], "★ 注册过就该一直在（一次性、持久）");
+        assert_eq!(
+            back.actions(),
+            vec!["demo.ping"],
+            "★ 注册过就该一直在（一次性、持久）"
+        );
         assert!(back.is_alive("demo.ping"), "注册即报到过一次 ⇒ 活着");
         back.report_alive("demo.ping").expect("报到该成功");
     }
@@ -210,7 +234,8 @@ mod tests {
     fn another_app_cannot_take_the_name() {
         let path = temp("clash");
         let mut r = Register::load(&path).expect("空表");
-        r.register(&path, reg("demo.ping", "downloader")).expect("第一个该成");
+        r.register(&path, reg("demo.ping", "downloader"))
+            .expect("第一个该成");
         let got = r.register(&path, reg("demo.ping", "attacker"));
         assert!(got.is_err(), "★ 同名 ＋ 别人 ⇒ 必须拒（防冒充）");
         let ok = r.register(&path, reg("demo.ping", "downloader"));
@@ -221,11 +246,20 @@ mod tests {
     fn retire_needs_an_issued_human_and_self_declared_is_refused() {
         let path = temp("retire");
         let mut r = Register::load(&path).expect("空表");
-        r.register(&path, reg("demo.ping", "downloader")).expect("该注册得上");
+        r.register(&path, reg("demo.ping", "downloader"))
+            .expect("该注册得上");
         let fake = Who::new("world://user/fake");
-        assert!(r.retire("demo.ping", &fake, IdentitySource::SelfDeclared).is_err(), "★ 自填身份 ⇒ 拒");
+        assert!(
+            r.retire("demo.ping", &fake, IdentitySource::SelfDeclared)
+                .is_err(),
+            "★ 自填身份 ⇒ 拒"
+        );
         let human = Who::new("world://user/zhang");
-        assert!(r.retire("demo.ping", &human, IdentitySource::Issued).is_ok(), "★ 系统发的身份 ＋ 人 ⇒ 准");
+        assert!(
+            r.retire("demo.ping", &human, IdentitySource::Issued)
+                .is_ok(),
+            "★ 系统发的身份 ＋ 人 ⇒ 准"
+        );
         assert!(!r.is_alive("demo.ping"), "注销后就不算活着了");
         let _ = std::fs::remove_file(&path);
     }

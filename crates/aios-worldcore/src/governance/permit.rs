@@ -35,6 +35,9 @@ pub struct Permit {
 }
 
 impl Permit {
+    // ★ clippy 说参数多（8 个）—— ★ 这 8 样各自是一处来历（界面／来源／人／动作／参数指纹／因果号／号／有效期），
+    //   ★ 少一样就少一条要绑的东西 ⇒ ★ 本仓**保持八个**，这里如实允过。
+    #[allow(clippy::too_many_arguments)]
     /// ★★ **唯一的构造口 —— 界面那一路**。
     ///
     /// ★ 要求：① 界面自己的身份必须是**系统发的**（★ 自填 ⇒ 拒）；
@@ -127,7 +130,13 @@ impl PermitBook {
     }
 
     /// ★ 用掉一张：★ 过期 ⇒ 拒；★ 已经用过 ⇒ 拒（★ 一号一用）。
-    pub fn consume(&self, permit: &Permit, action: &str, params_fingerprint: &str, now: u64) -> Admit<()> {
+    pub fn consume(
+        &self,
+        permit: &Permit,
+        action: &str,
+        params_fingerprint: &str,
+        now: u64,
+    ) -> Admit<()> {
         if permit.is_expired(now) {
             return Err(Refuse::new(
                 Reason::NotPermitted {
@@ -162,29 +171,62 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    fn iface() -> Who { Who::new("world://interface/a2ui") }
-    fn human() -> Who { Who::new("world://user/zhang") }
+    fn iface() -> Who {
+        Who::new("world://interface/a2ui")
+    }
+    fn human() -> Who {
+        Who::new("world://user/zhang")
+    }
     fn params(pairs: &[(&str, serde_json::Value)]) -> serde_json::Map<String, serde_json::Value> {
         let mut m = serde_json::Map::new();
-        for (k, v) in pairs { m.insert(String::from(*k), v.clone()); }
+        for (k, v) in pairs {
+            m.insert(String::from(*k), v.clone());
+        }
         m
     }
 
     fn permit(action: &str, fp: &str) -> Permit {
-        Permit::by_interface(&iface(), IdentitySource::Issued, &human(), action, fp, "trace-1", "p-1", 1_000)
-            .expect("界面那一路该造得出来")
+        Permit::by_interface(
+            &iface(),
+            IdentitySource::Issued,
+            &human(),
+            action,
+            fp,
+            "trace-1",
+            "p-1",
+            1_000,
+        )
+        .expect("界面那一路该造得出来")
     }
 
     #[test]
     fn a_self_declared_interface_cannot_issue() {
-        let got = Permit::by_interface(&iface(), IdentitySource::SelfDeclared, &human(), "device.x", "fp", "t", "p-9", 1_000);
+        let got = Permit::by_interface(
+            &iface(),
+            IdentitySource::SelfDeclared,
+            &human(),
+            "device.x",
+            "fp",
+            "t",
+            "p-9",
+            1_000,
+        );
         assert!(got.is_err(), "★ 自填身份的界面 ⇒ 不许发凭证");
     }
 
     #[test]
     fn a_machine_cannot_be_the_one_who_approved() {
         let bot = Who::new("world://agent/dsh");
-        let got = Permit::by_interface(&iface(), IdentitySource::Issued, &bot, "device.x", "fp", "t", "p-8", 1_000);
+        let got = Permit::by_interface(
+            &iface(),
+            IdentitySource::Issued,
+            &bot,
+            "device.x",
+            "fp",
+            "t",
+            "p-8",
+            1_000,
+        );
         assert!(got.is_err(), "★ 批的人必须是人（机器不许代签 —— 硬约束 6）");
     }
 
@@ -194,8 +236,15 @@ mod tests {
         let bright = fingerprint_params(&params(&[("percent", json!(100))]));
         let p = permit("device.brightness.set", &dim);
         let book = PermitBook::new();
-        assert!(book.consume(&p, "device.brightness.set", &bright, 1).is_err(), "★ 人批「调暗 10%」不许拿去「调亮 100%」");
-        assert!(book.consume(&p, "device.brightness.set", &dim, 1).is_ok(), "★ 绑的那一次该罩得住");
+        assert!(
+            book.consume(&p, "device.brightness.set", &bright, 1)
+                .is_err(),
+            "★ 人批「调暗 10%」不许拿去「调亮 100%」"
+        );
+        assert!(
+            book.consume(&p, "device.brightness.set", &dim, 1).is_ok(),
+            "★ 绑的那一次该罩得住"
+        );
     }
 
     #[test]
@@ -203,10 +252,21 @@ mod tests {
         let fp = fingerprint_params(&params(&[("percent", json!(10))]));
         let p = permit("device.brightness.set", &fp);
         let book = PermitBook::new();
-        assert!(book.consume(&p, "device.brightness.set", &fp, 1).is_ok(), "第一次该成");
-        assert!(book.consume(&p, "device.brightness.set", &fp, 2).is_err(), "★ 一号一用：第二次必须拒");
+        assert!(
+            book.consume(&p, "device.brightness.set", &fp, 1).is_ok(),
+            "第一次该成"
+        );
+        assert!(
+            book.consume(&p, "device.brightness.set", &fp, 2).is_err(),
+            "★ 一号一用：第二次必须拒"
+        );
         let p2 = permit("device.brightness.set", &fp);
         let book2 = PermitBook::new();
-        assert!(book2.consume(&p2, "device.brightness.set", &fp, 9_999).is_err(), "★ 过期必须拒");
+        assert!(
+            book2
+                .consume(&p2, "device.brightness.set", &fp, 9_999)
+                .is_err(),
+            "★ 过期必须拒"
+        );
     }
 }

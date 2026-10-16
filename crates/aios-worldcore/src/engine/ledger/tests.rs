@@ -250,11 +250,21 @@ fn account_survives_a_reopen() {
     let path = temp_path("reopen");
     {
         let mut l = ledger();
-        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[("subject", json!("notice"))]))
-            .expect("第一笔该写得下去");
+        l.append_persisting(
+            &path,
+            &who(),
+            "notice",
+            "notice.mute",
+            params(&[("subject", json!("notice"))]),
+        )
+        .expect("第一笔该写得下去");
     } // ★ 丢开这本账（相当于进程停了）
     let back = Ledger::load_file(ONT, &path).expect("从盘上该装得回来");
-    assert_eq!(back.all().len(), 1, "★ 那一笔必须在（落盘的意义就在这一条）");
+    assert_eq!(
+        back.all().len(),
+        1,
+        "★ 那一笔必须在（落盘的意义就在这一条）"
+    );
     assert_eq!(back.all()[0].what, "notice.mute");
     assert!(back.verify().is_ok(), "读回来的链必须是健康的");
     let _ = std::fs::remove_file(&path);
@@ -265,8 +275,14 @@ fn tampered_line_is_refused_on_reopen() {
     let path = temp_path("tamper");
     {
         let mut l = ledger();
-        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[("subject", json!("notice"))]))
-            .expect("第一笔该写得下去");
+        l.append_persisting(
+            &path,
+            &who(),
+            "notice",
+            "notice.mute",
+            params(&[("subject", json!("notice"))]),
+        )
+        .expect("第一笔该写得下去");
     }
     // ★ 手改盘上正文一处（把 what 改掉）—— 封条是【当时的】，改一个字就对不上。
     let body = std::fs::read_to_string(&path).expect("该读得到");
@@ -282,15 +298,20 @@ fn appended_seq_continues_after_reopen() {
     let path = temp_path("seq");
     {
         let mut l = ledger();
-        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[])).expect("第一笔");
-        l.append_persisting(&path, &who(), "job", "job.start", params(&[])).expect("第二笔");
+        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[]))
+            .expect("第一笔");
+        l.append_persisting(&path, &who(), "job", "job.start", params(&[]))
+            .expect("第二笔");
     }
     let mut back = Ledger::load_file(ONT, &path).expect("该装得回来");
     assert_eq!(back.all().len(), 2);
     let third = back
         .append_persisting(&path, &who(), "notice", "notice.unmute", params(&[]))
         .expect("第三笔该写得下去");
-    assert_eq!(third.0, 3, "★ 序号要从【水位】续上，不许又从 1 开始（书：序号不会漏）");
+    assert_eq!(
+        third.0, 3,
+        "★ 序号要从【水位】续上，不许又从 1 开始（书：序号不会漏）"
+    );
     assert!(back.verify().is_ok());
     let _ = std::fs::remove_file(&path);
 }

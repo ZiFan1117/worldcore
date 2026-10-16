@@ -135,8 +135,10 @@ pub fn register_from_map(map_path: &str, registry_path: &str) -> Admit<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::types::Who;
 
     const MAP: &str = include_str!("../../../aios-ontology/data/command-map.jsonl");
+    const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
 
     fn temp(tag: &str) -> String {
         let p = std::env::temp_dir().join(format!("worldcore-cmd-{tag}.jsonl"));
@@ -156,9 +158,13 @@ mod tests {
         let n = register_from_map(&write_map("all", MAP), &reg_path).expect("整批该注册得上");
         assert!(n >= 8, "★ 传统命令该一条条接进来（现取 {n} 条）");
         let back = Register::load(&reg_path).expect("该装得回来");
-        assert!(back.get("fs.list").is_some(), "★ ls 该以 fs.list 这个名字在册");
+        assert!(
+            back.get("fs.list").is_some(),
+            "★ ls 该以 fs.list 这个名字在册"
+        );
         assert_eq!(
-            back.get("service.start").map(|r| r.registered_by_kind.as_str()),
+            back.get("service.start")
+                .map(|r| r.registered_by_kind.as_str()),
             Some("system"),
             "★ 命令是 system 类"
         );
@@ -190,5 +196,57 @@ mod tests {
         let bad = r#"{"action":"x.y","function":"fn.x.y","registered_by":"b","registered_by_kind":"magic","required_roles":["human"],"program":"ls","args":[]}"#;
         let r = CommandRoute::parse(bad).expect("该解析得了");
         assert!(r.check().is_err(), "★ 类别不在闭集 ⇒ 拒（与 C16 同口径）");
+    }
+    #[test]
+    fn a_command_action_can_be_registered_then_found_then_run() {
+        // ① 一张临时映射表：program 用 /bin/echo（一定存在，且无害）。
+        let row = r#"{"action":"demo.say","function":"fn.demo.say","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"/bin/echo","args":["hello"]}"#;
+        let map = write_map("run", row);
+        let reg = temp("run");
+        // ② 注册（走命令桥）。
+        let n = register_from_map(&map, &reg).expect("该注册得上");
+        assert_eq!(n, 1);
+        // ③ 合成在册表：本体 ＋ 注册表 ⇒ 注册进来的动作在册。
+        let r =
+            crate::core::registry::Registry::load_with_registration(ONT, &reg).expect("该装得上");
+        assert!(
+            r.has_action("demo.say"),
+            "★ 注册进来的动作【必须在册】（★ 合成在册表）"
+        );
+        assert!(!r.action_kinds().contains(&"fs.list"), "★ 本体里本来没有它");
+        // ④ 真的跑（走执行体；★ 不拼 shell）。
+        let runner = crate::engine::execute::CommandRunner::from_map(&map).expect("执行体该建得上");
+        let out = crate::engine::execute::Executor::run(
+            &runner,
+            "demo.say",
+            &Who::new("world://user/zhang"),
+            &serde_json::Map::new(),
+        )
+        .expect("该跑得起来");
+        assert!(out.contains("hello"), "★ 命令真的跑了：{out}");
+        // ⑤ 不在册的动作 ⇒ 拒。
+        assert!(
+            crate::engine::execute::Executor::run(
+                &runner,
+                "nope.nope",
+                &Who::new("world://user/zhang"),
+                &serde_json::Map::new()
+            )
+            .is_err(),
+            "★ 不在册 ⇒ 拒"
+        );
+        let _ = std::fs::remove_file(&reg);
+    }
+
+    #[test]
+    fn the_registry_reports_which_kinds_are_present() {
+        let reg = temp("kinds");
+        let _ = register_from_map(&write_map("kinds", MAP), &reg).expect("该注册得上");
+        let back = Register::load(&reg).expect("该装得回来");
+        assert!(
+            back.kinds_present().iter().any(|k| k == "system"),
+            "★ 接进来的传统命令是 system 类（★ 本体那份 JSON 只看得到 world）"
+        );
+        let _ = std::fs::remove_file(&reg);
     }
 }

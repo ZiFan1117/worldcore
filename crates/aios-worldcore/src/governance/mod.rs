@@ -191,7 +191,12 @@ impl Governance {
     /// ★ 为什么不在 `can_execute` 里默认拒自填：★ 那会让**既有的全部调用点**（它们在测试里
     ///   用 `Who::new` 造主体）一起红 ⇒ ★ 本仓做法是**加一个口、把口径说清**，★ 而不是悄悄改旧口。
     /// ★★ 所以「身份不许自填」这条今天**靠这个口 ＋ 判据 C20** 立着，★ **不是**靠改 `can_execute`。
-    pub fn can_execute_with(&self, who: &Who, capability: &str, source: IdentitySource) -> Admit<()> {
+    pub fn can_execute_with(
+        &self,
+        who: &Who,
+        capability: &str,
+        source: IdentitySource,
+    ) -> Admit<()> {
         if source != IdentitySource::Issued {
             return Err(Refuse::new(Reason::IdentitySelfDeclared, who.name()));
         }

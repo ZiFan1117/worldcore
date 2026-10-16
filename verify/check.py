@@ -42,6 +42,7 @@ CRITERIA = [
     "c20_identity_source.py",
     "c21_permit.py",
     "c22_command_bridge.py",
+    "c23_commands_run.py",
 ]
 
 

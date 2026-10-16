@@ -48,6 +48,85 @@ impl Executor for DryRun {
     }
 }
 
+/// ★★ **真跑命令的执行体**（T-245 贯通）：★ 按映射表里的 `program` ＋ `args` 起进程。
+///
+/// ★★ 三条边界（不许破）：
+///   ① **不拼 shell 字符串** —— 用 `Command::new(program).args(args)`；★ 参数逐个 `arg` 追加，
+///      ★ **不经过任何解释器**（★ 外部先例 SysKnife 那条：`ActionMechanism::Command{program,args}`，
+///      ★ 以及「别把危险的语言给它」）；
+///   ② **不在册 ⇒ 拒**（★ 与其余各面同口径）；
+///   ③ **注册 ≠ 有权** —— 权限仍在 `Exec` 的门那一步判（★ 这个执行体只被交给它之后才跑）。
+#[derive(Debug, Default)]
+pub struct CommandRunner {
+    routes: std::collections::BTreeMap<String, (String, Vec<String>)>,
+}
+
+impl CommandRunner {
+    /// ★ 从映射表建（★ 表里坏一行 ⇒ 整份拒）。
+    pub fn from_map(map_path: &str) -> Admit<Self> {
+        let body = std::fs::read_to_string(map_path).map_err(|_| {
+            Refuse::new(
+                Reason::StorageUnavailable {
+                    path: map_path.to_string(),
+                },
+                "<读不到映射表>",
+            )
+        })?;
+        let mut routes = std::collections::BTreeMap::new();
+        for (i, line) in body.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let r = crate::core::command_bridge::CommandRoute::parse(line)
+                .map_err(|e| Refuse::new(e.reason, format!("<第 {} 行>{}", i + 1, e.what)))?;
+            r.check()?;
+            routes.insert(r.action.clone(), (r.program.clone(), r.args.clone()));
+        }
+        Ok(Self { routes })
+    }
+
+    /// ★ 这条动作背后是哪条命令（★ 给读数用）。
+    #[must_use]
+    pub fn route_of(&self, action: &str) -> Option<&(String, Vec<String>)> {
+        self.routes.get(action)
+    }
+}
+
+impl Executor for CommandRunner {
+    fn run(&self, action: &str, _who: &Who, params: &Map<String, Value>) -> Admit<String> {
+        let (program, args) = self
+            .routes
+            .get(action)
+            .ok_or_else(|| Refuse::new(Reason::UnknownKind, action))?;
+        let mut cmd = std::process::Command::new(program);
+        cmd.args(args);
+        // ★ 参数逐个追加（★ 仍不给语言：不拼 shell、不过解释器）。
+        for (k, v) in params {
+            let rendered = v.as_str().map_or_else(|| v.to_string(), str::to_string);
+            cmd.arg(format!("--{k}"));
+            cmd.arg(rendered);
+        }
+        let out = cmd.output().map_err(|_| {
+            Refuse::new(
+                Reason::StorageUnavailable {
+                    path: program.clone(),
+                },
+                "<起不了这个程序>",
+            )
+        })?;
+        if !out.status.success() {
+            return Err(Refuse::new(
+                Reason::BadValue {
+                    field: "exit".to_string(),
+                    rule: "0".to_string(),
+                },
+                format!("<{program} 退出码 {:?}>", out.status.code()),
+            ));
+        }
+        Ok(String::from_utf8_lossy(&out.stdout).to_string())
+    }
+}
+
 /// 执行器：① 先问治理 ② 查动作在册 ③ 找函数 ④ 查函数在册 ⑤ 交给执行体。
 ///
 /// ★ 为什么治理要从执行器自己身上过一遍（★ 同登记面那条道理）：不这么办，
