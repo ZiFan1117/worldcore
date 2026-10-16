@@ -27,6 +27,7 @@
 
 use serde_json::{Map, Value};
 
+use crate::core::registration::Register;
 use crate::core::registry::Registry;
 use crate::core::types::{Admit, Reason, Refuse, Who};
 use crate::engine::functions::Functions;
@@ -135,7 +136,11 @@ impl Executor for CommandRunner {
 /// ★ 为什么治理要从执行器自己身上过一遍（★ 同登记面那条道理）：不这么办，
 /// 「没授过也能执行」—— 调用点只要不喊治理，路就绕过去了。
 pub struct Exec<'a, E: Executor> {
+    /// ★ **本体那一份**。
     registry: &'a Registry,
+    /// ★★ **注册那一份** —— ★ **各是各的**：★ 本体是本体、注册是注册，**不合在一起**
+    /// （作者裁：「★ 不是这些东西就各是各的，你不要混在一起，★ 为了方便，它就本来就是两份」）。
+    registered: Option<&'a Register>,
     governance: &'a Governance,
     executor: E,
 }
@@ -145,6 +150,23 @@ impl<'a, E: Executor> Exec<'a, E> {
     pub fn new(registry: &'a Registry, governance: &'a Governance, executor: E) -> Self {
         Self {
             registry,
+            registered: None,
+            governance,
+            executor,
+        }
+    }
+
+    /// ★★ **带注册那一份装** —— ★ **两份各是各的**，★ 不合成。
+    /// ★ 查「在册吗」时：★ 先查本体那一份，★ 没有再查注册那一份。
+    pub fn with_registration(
+        registry: &'a Registry,
+        registered: &'a Register,
+        governance: &'a Governance,
+        executor: E,
+    ) -> Self {
+        Self {
+            registry,
+            registered: Some(registered),
             governance,
             executor,
         }
@@ -157,23 +179,36 @@ impl<'a, E: Executor> Exec<'a, E> {
         // ① 先问治理：没授过就不许做（★ 先问人，再问在册）。
         self.governance.can_execute(who, action)?;
         // ② 动作名在册吗（「未登记即拒」在动作面的落法）。
+        // ★★ **两份各是各的**：★ 先查本体那一份，★ 没有再查注册那一份（★ 不合并）。
         if !self.registry.has_action(action) {
-            return Err(Refuse::new(Reason::UnknownKind, action));
+            let in_registration = self.registered.is_some_and(|r| r.get(action).is_some());
+            if !in_registration {
+                return Err(Refuse::new(Reason::UnknownKind, action));
+            }
         }
         // ③ 找它对应的函数 —— ★ 读本体 `actions.<动作>.function`，**不拼 `fn.<动作名>`**。
-        let Some(function_id) = self.registry.function_of_action(action) else {
-            return Err(Refuse::new(
-                Reason::MissingField {
-                    field: "function".to_string(),
-                },
-                action,
-            ));
+        // ③ 找它对应的函数 —— ★ **两份各是各的**：★ 先查本体那一份；
+        //   ★ 本体没有这个动作（它是注册进来的）⇒ **查注册那一份的 function 格**。
+        //   ★ 仍然**不拼** `fn.<动作名>`（★ 名字由条目给，不猜）。
+        let function_id: String = match self.registry.function_of_action(action) {
+            Some(f) => f.to_string(),
+            None => match self.registered.and_then(|r| r.get(action)) {
+                Some(reg) => reg.function.clone(),
+                None => {
+                    return Err(Refuse::new(
+                        Reason::MissingField {
+                            field: "function".to_string(),
+                        },
+                        action,
+                    ));
+                }
+            },
         };
         // ④ 这条函数在入口表里在册吗（悬空引用 ⇒ 拒，不替它猜）＋ **逐条校入参**。
         // ★ 函数面每次现建：`Exec::new` 三参不动（函数表就在册里那份原文，不另给构造器）。
         let functions = Functions::load(self.registry.source())
             .map_err(|_| Refuse::new(Reason::OntologyNotLoaded, action))?;
-        if functions.get(function_id).is_none() {
+        if functions.get(&function_id).is_none() {
             // ★★ 注册进来的动作：它的函数也在【注册那一份】里（映射表带 function 格）——
             //   ★ 本体函数面只管本体那 9 条；★ 不在本体面里、但注册面给了【同一个 id】⇒ 放行。
             //   ★ 依据：作者令「把底下的这些工具注册为我们的 action」＋ 注册表里有 function 格。
@@ -181,16 +216,19 @@ impl<'a, E: Executor> Exec<'a, E> {
             //   ★ 差别是实的：★ 本体里指向一个不存在的函数 ＝ 悬空引用（该拒）；
             //   ★ 注册表里那条 function ＝ 有人认领（放行）。★ 我第一版改错过一次，
             //   被 tests 里 a_dangling_function_reference_is_refused 当场抓住。
-            let from_registration = self.registry.is_registered_function(function_id);
+            // ★★ 判据只查【注册那一份】—— ★ 两份各是各的（作者裁），★ 不靠合并。
+            let from_registration = self
+                .registered
+                .is_some_and(|r| r.has_function(&function_id));
             if !from_registration {
-                return Err(Refuse::new(Reason::UnknownKind, function_id));
+                return Err(Refuse::new(Reason::UnknownKind, &function_id));
             }
         }
         // ★ **真调函数面**：查在册 + 逐条校入参（入参不合 ⇒ 它自己拒，原样透出）。
         //   ★ 返回值**丢弃**：交给调用方的那句仍由 executor 出（DryRun 口径不许改）。
         //   ★ 注册进来的函数不在本体面里 ⇒ 入参形状那一份在注册表里（★ 本步跳过，不算它没人管）。
-        if functions.get(function_id).is_some() {
-            functions.call(function_id, params)?;
+        if functions.get(&function_id).is_some() {
+            functions.call(&function_id, params)?;
         }
         // ⑤ 五步全过 ⇒ 才交给执行体。
         self.executor.run(action, who, params)
@@ -310,5 +348,39 @@ mod tests {
                 "{action} 未指到在册函数：{fid}"
             );
         }
+    }
+
+    #[test]
+    fn a_registered_action_passes_the_gate_through_the_second_table() {
+        // ★★ 两份各是各的（作者裁）：★ 过门时【先查本体那份、再查注册那份】—— ★ 不合表。
+        let ont = Registry::load(ONT).expect("本体该装得上");
+        // ★ 造一个注册那一份（★ 内存里的，不落盘）。
+        let mut book = Register::default();
+        let row = r#"{"action":"demo.say","function":"fn.demo.say","registered_by":"x","registered_by_kind":"system","required_roles":["human"],"program":"/bin/echo","args":[]}"#;
+        let route = crate::core::command_bridge::CommandRoute::parse(row).expect("该解析得了");
+        book.register("/tmp/never-used.jsonl", route.as_registration())
+            .expect("该注册得上");
+        let mut gov = gov_with("demo.say");
+        gov.grant(&who(), "demo.say");
+        // ★ 只给本体那份 ⇒ 注册进来的动作【过不了门】。
+        let only_world = Exec::new(&ont, &gov, DryRun);
+        assert!(
+            only_world.execute("demo.say", &who(), &Map::new()).is_err(),
+            "★ 只给本体那份 ⇒ 注册进来的动作不在册（各是各的）"
+        );
+        // ★ 把注册那份也给它 ⇒ 两步查过门。
+        let both = Exec::with_registration(&ont, &book, &gov, DryRun);
+        assert!(
+            both.execute("demo.say", &who(), &Map::new()).is_ok(),
+            "★ 给了注册那份 ⇒ 过门（先查本体、再查注册）"
+        );
+        // ★ 本体自带的动作，只给本体那份就够（不用注册那份）。
+        let mut gov2 = gov_with("job.start");
+        gov2.grant(&who(), "job.start");
+        let only_world2 = Exec::new(&ont, &gov2, DryRun);
+        assert!(
+            only_world2.execute("job.start", &who(), &Map::new()).is_ok(),
+            "★ 本体自带的动作：只给本体那份就行"
+        );
     }
 }

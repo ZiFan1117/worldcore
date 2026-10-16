@@ -19,10 +19,6 @@ pub struct Registry {
     families: BTreeSet<String>,
     functions: BTreeSet<String>,
     action_function: BTreeMap<String, String>,
-    /// ★★ **注册面认领的函数入口名**（T-255）—— ★ 本体面之外的函数，只有它们算「有人认领」。
-    /// ★ 为什么单列一格：★ 本体里 function 指向一个不存在的 fn.X ＝ **悬空引用**（该拒）；
-    ///   ★ 而**注册进来的** fn.fs.list 不在本体面里，**但它有人认领**（★ 注册表里那条）⇒ 放行。
-    registered_functions: BTreeSet<String>,
     /// ★ 建表时收到的那份**本体原文**（只留一份，供其余各面按同一条入口再读，不许各自带清单）。
     source: String,
 }
@@ -44,30 +40,15 @@ impl Registry {
             families: keys(&doc, "families"),
             functions: functions_of(&doc),
             action_function: action_functions_of(&doc),
-            registered_functions: BTreeSet::new(),
             source: text.to_string(),
         })
     }
 
-    /// ★★ **在册表 ＝ 本体 ＋ 注册表**（T-245 贯通）：听作者令「**把它底下的这些工具注册为我们的 action**」。
+    /// ★★★ **世界里有哪些【类】** —— ★★ **只有本体给，注册插不进来**。
     ///
-    /// ★ 为什么要有这一个口：★ 本体那份 JSON 是**权威**（不手工往里写命令的动作）；
-    ///   注册表是**登记结果** —— ★ 两个合起来才是「今天在册的全部动作」。
-    /// ★ 文件不在 ⇒ 就是本体那一份（首次运行，不是错误）。
-    pub fn load_with_registration(text: &str, registry_path: &str) -> Result<Self, Refuse> {
-        let mut me = Self::load(text)?;
-        let reg = crate::core::registration::Register::load(registry_path)?;
-        for r in reg.all() {
-            me.actions.insert(r.action.clone());
-            me.action_function
-                .insert(r.action.clone(), r.function.clone());
-            // ★★ 记下「注册面认领了这个函数」—— ★ 悬空引用与注册进来的，差别就在这一格。
-            me.registered_functions.insert(r.function.clone());
-        }
-        Ok(me)
-    }
-
-    /// 世界里有哪些类（升序）。
+    /// ★ 作者裁（逐字整理）：「★ **不是这些东西就各是各的，你不要混在一起**」⇒
+    ///   ★ 层与层分开：★ **类**只由本体给（封闭）；★ **动作**才是「本体那 9 条 ＋ 注册那 N 条」，
+    ///   ★ 而且**两份各是各的**、查的时候先本体再注册（★ 不合成）。
     #[must_use]
     pub fn kinds(&self) -> Vec<&str> {
         self.kinds.iter().map(String::as_str).collect()
@@ -117,12 +98,6 @@ impl Registry {
     #[must_use]
     pub fn function_of_action(&self, action: &str) -> Option<&str> {
         self.action_function.get(action).map(String::as_str)
-    }
-
-    /// ★★ **这个函数入口名有没有【人认领】**（★ 注册面那一份；★ 本体面之外唯一合法的来源）。
-    #[must_use]
-    pub fn is_registered_function(&self, function_id: &str) -> bool {
-        self.registered_functions.contains(function_id)
     }
 
     /// ★ 这个类型名在册吗（其余各面查表用这一条）。

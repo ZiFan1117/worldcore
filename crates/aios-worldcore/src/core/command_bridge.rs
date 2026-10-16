@@ -210,14 +210,20 @@ mod tests {
         // ② 注册（走命令桥）。
         let n = register_from_map(&map, &reg).expect("该注册得上");
         assert_eq!(n, 1);
-        // ③ 合成在册表：本体 ＋ 注册表 ⇒ 注册进来的动作在册。
-        let r =
-            crate::core::registry::Registry::load_with_registration(ONT, &reg).expect("该装得上");
+        // ③ ★★ **两份各是各的**（作者裁：「★ 不是这些东西就各是各的，你不要混在一起」）：
+        //    ★ 本体那份【看不到】注册进来的动作；★ 注册那份【看不到】本体自带的动作。
+        let ont = crate::core::registry::Registry::load(ONT).expect("本体该装得上");
+        let book = crate::core::registration::Register::load(&reg).expect("注册那份该装得上");
         assert!(
-            r.has_action("demo.say"),
-            "★ 注册进来的动作【必须在册】（★ 合成在册表）"
+            !ont.has_action("demo.say"),
+            "★ 本体那一份里【没有】注册进来的动作（各是各的）"
         );
-        assert!(!r.action_kinds().contains(&"fs.list"), "★ 本体里本来没有它");
+        assert!(!ont.action_kinds().contains(&"fs.list"), "★ 本体里本来就没有它");
+        assert!(book.get("demo.say").is_some(), "★ 注册那一份里【有】它");
+        assert!(
+            book.get("job.start").is_none(),
+            "★ 注册那一份里【没有】本体自带的动作（各是各的）"
+        );
         // ④ 真的跑（走执行体；★ 不拼 shell）。
         let runner = crate::engine::execute::CommandRunner::from_map(&map).expect("执行体该建得上");
         let out = crate::engine::execute::Executor::run(

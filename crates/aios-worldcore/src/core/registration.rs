@@ -101,6 +101,14 @@ impl Register {
         self.by_action.get(action)
     }
 
+    /// ★★ **注册这一份里，有没有哪条动作的 function 是这个**。
+    /// ★ 用途：★ 过门第④步「函数在册吗」—— ★ 注册进来的函数【在注册这一份里】，
+    ///   ★ 不在本体函数面里。★ 两份各是各的，所以这里只查【注册这一份】。
+    #[must_use]
+    pub fn has_function(&self, function_id: &str) -> bool {
+        self.by_action.values().any(|r| r.function == function_id)
+    }
+
     /// ★★ **注册**（★ 一次性、持久）。
     ///
     /// ★ 规矩：① 新名字 ⇒ 收；② **同名 ＋ 同一个 `registered_by`** ⇒ **替换**（升级）；
