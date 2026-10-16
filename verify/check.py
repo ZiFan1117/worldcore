@@ -38,6 +38,9 @@ CRITERIA = [
     "c16_registration_kind.py",
     "c17_authorization.py",
     "c18_ledger_persisted.py",
+    "c19_outbound_port.py",
+    "c20_identity_source.py",
+    "c21_permit.py",
 ]
 
 

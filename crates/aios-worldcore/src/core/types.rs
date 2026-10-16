@@ -7,6 +7,20 @@
 
 use serde_json::{Map, Value};
 
+/// ★ **身份的【来源】**（T-243 身份面）：
+///
+/// ★ 为什么必须有这一格：★ 「**身份不许自填**」这条规矩，今天**没有地方表达** ——
+///   `Who::new` 谁都能造，造出来的与系统发出来的**长得一模一样**。
+/// ★ 评审席乙（方案v2 必闭4）逐字：★「凭证的可信度上限 ＝ **界面进程身份的可信度**；
+///   今天 `Who` 类型在、来源缺」⇒ ★ 本格就是补那个来源。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IdentitySource {
+    /// ★ **系统发的**（内核按套接字给／总线按连接给）—— 这个算数。
+    Issued,
+    /// ★★ **请求方自己填的** —— 这个**不算数**（过门时拒）。
+    SelfDeclared,
+}
+
 /// 谁 —— 做这件事的那个主体。
 ///
 /// 本体里对应：`envelope.actor`（信封里的「谁」）。
@@ -97,6 +111,9 @@ pub enum Reason {
     },
     /// 本体没装载（谁都别想动）。
     OntologyNotLoaded,
+    /// ★ **身份是自填的**（T-243 身份面）：★ 本仓规矩「**身份不许自填**」 ⇒ 自填的主体过门时用它拒。
+    /// ★ 来历：评审席乙（方案v2 必闭4）「六批里没有任何一批负责身份面」；作者令「开始实施烟囱式的执行」。
+    IdentitySelfDeclared,
     /// ★ **账写不下去**（T-242 批零：账要落盘 ⇒ 盘上说不行时，要有一个说得出口的理由）。
     /// 一条都不许静默丢：★ 写盘失败时**内存也不许收下这一笔**。
     StorageUnavailable { path: String },
@@ -119,6 +136,7 @@ impl Reason {
             Self::ConflictDetected { .. } => "worldcore.Refuse.ConflictDetected",
             Self::OntologyNotLoaded => "worldcore.Refuse.OntologyNotLoaded",
             Self::StorageUnavailable { .. } => "worldcore.Refuse.StorageUnavailable",
+            Self::IdentitySelfDeclared => "worldcore.Refuse.IdentitySelfDeclared",
         }
     }
 }

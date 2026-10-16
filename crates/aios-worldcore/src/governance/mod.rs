@@ -23,7 +23,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Mutex;
 
-use crate::core::types::{Admit, Marking, Reason, Refuse, Who};
+pub mod permit;
+
+use crate::core::types::{Admit, IdentitySource, Marking, Reason, Refuse, Who};
 
 /// 许可阶梯上的一级（★ 闭集：要加一级得改法，不是加个字符串）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -184,6 +186,18 @@ impl Governance {
     }
 
     /// 能不能读 —— ★ 今天与 can_execute **同阶梯**（read_allow 那一格未落地，见件头）。
+    /// ★★ **带身份来源的判定**（T-243 身份面）：★ **自填的身份 ⇒ 一律拒**。
+    ///
+    /// ★ 为什么不在 `can_execute` 里默认拒自填：★ 那会让**既有的全部调用点**（它们在测试里
+    ///   用 `Who::new` 造主体）一起红 ⇒ ★ 本仓做法是**加一个口、把口径说清**，★ 而不是悄悄改旧口。
+    /// ★★ 所以「身份不许自填」这条今天**靠这个口 ＋ 判据 C20** 立着，★ **不是**靠改 `can_execute`。
+    pub fn can_execute_with(&self, who: &Who, capability: &str, source: IdentitySource) -> Admit<()> {
+        if source != IdentitySource::Issued {
+            return Err(Refuse::new(Reason::IdentitySelfDeclared, who.name()));
+        }
+        self.can_execute(who, capability)
+    }
+
     pub fn can_read(&self, who: &Who, capability: &str) -> Admit<()> {
         self.can_execute(who, capability)
     }
@@ -360,3 +374,30 @@ fn hits(declared: &str, subject: &str) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+/// ★ T-243 身份面：**自填的身份，门必须拒**（会红反例）。
+#[cfg(test)]
+mod tests_identity {
+    use super::*;
+
+    fn gov() -> Governance {
+        Governance::from_ontology(include_str!("../../../aios-ontology/data/ontology.json"))
+            .expect("本体该装得上")
+    }
+
+    #[test]
+    fn a_self_declared_identity_is_refused_at_the_gate() {
+        let g = gov();
+        let who = Who::new("world://user/zhang");
+        assert!(
+            g.can_execute_with(&who, "notice.mute", IdentitySource::SelfDeclared)
+                .is_err(),
+            "★ 自填的身份 ⇒ 门必须拒（身份不许自填）"
+        );
+        assert!(
+            g.can_execute_with(&who, "notice.mute", IdentitySource::Issued)
+                .is_ok(),
+            "★ 系统发的身份 ＋ 在册能力（notice.mute 已授权）⇒ 准"
+        );
+    }
+}
