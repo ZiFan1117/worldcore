@@ -33,6 +33,7 @@ CRITERIA = [
     "c11_recovery_depends_on_l1l2_only.py",
     "c12_ontology_text_has_no_bad_escapes.py",
     "c13_one_vocabulary.py",
+    "c14_no_command_literal.py",
 ]
 
 
