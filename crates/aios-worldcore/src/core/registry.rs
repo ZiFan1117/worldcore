@@ -19,6 +19,10 @@ pub struct Registry {
     families: BTreeSet<String>,
     functions: BTreeSet<String>,
     action_function: BTreeMap<String, String>,
+    /// ★★ **注册面认领的函数入口名**（T-255）—— ★ 本体面之外的函数，只有它们算「有人认领」。
+    /// ★ 为什么单列一格：★ 本体里 function 指向一个不存在的 fn.X ＝ **悬空引用**（该拒）；
+    ///   ★ 而**注册进来的** fn.fs.list 不在本体面里，**但它有人认领**（★ 注册表里那条）⇒ 放行。
+    registered_functions: BTreeSet<String>,
     /// ★ 建表时收到的那份**本体原文**（只留一份，供其余各面按同一条入口再读，不许各自带清单）。
     source: String,
 }
@@ -40,6 +44,7 @@ impl Registry {
             families: keys(&doc, "families"),
             functions: functions_of(&doc),
             action_function: action_functions_of(&doc),
+            registered_functions: BTreeSet::new(),
             source: text.to_string(),
         })
     }
@@ -56,6 +61,8 @@ impl Registry {
             me.actions.insert(r.action.clone());
             me.action_function
                 .insert(r.action.clone(), r.function.clone());
+            // ★★ 记下「注册面认领了这个函数」—— ★ 悬空引用与注册进来的，差别就在这一格。
+            me.registered_functions.insert(r.function.clone());
         }
         Ok(me)
     }
@@ -110,6 +117,12 @@ impl Registry {
     #[must_use]
     pub fn function_of_action(&self, action: &str) -> Option<&str> {
         self.action_function.get(action).map(String::as_str)
+    }
+
+    /// ★★ **这个函数入口名有没有【人认领】**（★ 注册面那一份；★ 本体面之外唯一合法的来源）。
+    #[must_use]
+    pub fn is_registered_function(&self, function_id: &str) -> bool {
+        self.registered_functions.contains(function_id)
     }
 
     /// ★ 这个类型名在册吗（其余各面查表用这一条）。

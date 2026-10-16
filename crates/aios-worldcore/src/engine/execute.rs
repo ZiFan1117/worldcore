@@ -174,11 +174,24 @@ impl<'a, E: Executor> Exec<'a, E> {
         let functions = Functions::load(self.registry.source())
             .map_err(|_| Refuse::new(Reason::OntologyNotLoaded, action))?;
         if functions.get(function_id).is_none() {
-            return Err(Refuse::new(Reason::UnknownKind, function_id));
+            // ★★ 注册进来的动作：它的函数也在【注册那一份】里（映射表带 function 格）——
+            //   ★ 本体函数面只管本体那 9 条；★ 不在本体面里、但注册面给了【同一个 id】⇒ 放行。
+            //   ★ 依据：作者令「把底下的这些工具注册为我们的 action」＋ 注册表里有 function 格。
+            // ★★ 判据是「**注册面认领了它**」—— ★ 不是「本体自己指向了它」。
+            //   ★ 差别是实的：★ 本体里指向一个不存在的函数 ＝ 悬空引用（该拒）；
+            //   ★ 注册表里那条 function ＝ 有人认领（放行）。★ 我第一版改错过一次，
+            //   被 tests 里 a_dangling_function_reference_is_refused 当场抓住。
+            let from_registration = self.registry.is_registered_function(function_id);
+            if !from_registration {
+                return Err(Refuse::new(Reason::UnknownKind, function_id));
+            }
         }
         // ★ **真调函数面**：查在册 + 逐条校入参（入参不合 ⇒ 它自己拒，原样透出）。
         //   ★ 返回值**丢弃**：交给调用方的那句仍由 executor 出（DryRun 口径不许改）。
-        functions.call(function_id, params)?;
+        //   ★ 注册进来的函数不在本体面里 ⇒ 入参形状那一份在注册表里（★ 本步跳过，不算它没人管）。
+        if functions.get(function_id).is_some() {
+            functions.call(function_id, params)?;
+        }
         // ⑤ 五步全过 ⇒ 才交给执行体。
         self.executor.run(action, who, params)
     }
