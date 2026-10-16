@@ -43,6 +43,7 @@ CRITERIA = [
     "c21_permit.py",
     "c22_command_bridge.py",
     "c23_commands_run.py",
+    "c24_a2ui_projection.py",
 ]
 
 

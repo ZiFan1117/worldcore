@@ -5,6 +5,7 @@ pub mod functions;
 pub mod instances;
 pub mod ledger;
 pub mod links;
+pub mod project;
 pub mod query;
 pub mod recovery;
 pub mod store;
