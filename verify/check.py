@@ -41,6 +41,7 @@ CRITERIA = [
     "c19_outbound_port.py",
     "c20_identity_source.py",
     "c21_permit.py",
+    "c22_command_bridge.py",
 ]
 
 
