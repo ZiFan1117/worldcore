@@ -59,7 +59,6 @@ impl CommandRoute {
             registered_by: self.registered_by.clone(),
             registered_by_kind: self.registered_by_kind.clone(),
             required_roles: self.required_roles.clone(),
-            alive: false,
         }
     }
 
@@ -275,10 +274,16 @@ mod tests {
             back.get("interface.ask_permission").is_some(),
             "★ 界面那个「问人」的动作在册"
         );
+        // ★★ 两张表分开（T-259）：★ 在册表里有它；★ 但**启动表是另一张** —— 没报到就是空的。
+        let mut table = crate::core::registration::Alive::default();
         assert!(
-            back.get("interface.ask_permission")
-                .is_some_and(|r| r.alive),
-            "★ 注册即算报到过"
+            !table.is_alive("interface.ask_permission"),
+            "★ 没报到 ⇒ 启动表里没有它"
+        );
+        table.mark("interface.ask_permission");
+        assert!(
+            table.is_alive("interface.ask_permission"),
+            "★ 报到过 ⇒ 启动表里有它"
         );
         let _ = std::fs::remove_file(&reg);
     }
