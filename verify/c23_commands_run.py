@@ -5,7 +5,9 @@
   而接进来的方式就是……把它底下的这些工具，然后注册为我们的 action」。
 
 红＝
-  (a) registry.rs 里没有 load_with_registration（在册表 ＝ 本体 ＋ 注册表，合不起来）⇒ 红；
+  (a) ★★ **口径已变（T-265 作者裁：「不是这些东西就各是各的，你不要混在一起」）**：
+      ★ 合成口 load_with_registration 【已被废除】⇒ 它还在反而是红；
+      ★ 并且 execute.rs 必须有 with_registration ＋ Exec 上那格 registered（★ 持两份、两步查）⇒ 缺就红；
   (b) execute.rs 里没有 CommandRunner（没有真跑命令的执行体）⇒ 红；
   (c) CommandRunner 里不是 Command::new(program).args(...)（★ 那就可能在拼 shell）⇒ 红；
   (d) ★★ src 下出现「给语言」的写法（sh -c ／ bash -c）⇒ 红
@@ -49,8 +51,13 @@ def read(p):
 
 def scan(reg_text, exec_text, regi_text, all_texts):
     bad = []
-    if "pub fn load_with_registration(" not in reg_text:
-        bad.append("registry.rs：没有 load_with_registration（在册表合不起来）")
+    # ★★ 口径变了（T-265）：合成口已废 —— ★ 两份各是各的，不混。
+    if "pub fn load_with_registration(" in reg_text:
+        bad.append("registry.rs：还有 load_with_registration（★ 合成已废 —— 两份各是各的）")
+    if "pub fn with_registration(" not in exec_text:
+        bad.append("execute.rs：没有 with_registration（★ 两步查要持注册那一份）")
+    if "registered: Option<&'a Register>" not in exec_text:
+        bad.append("execute.rs：Exec 上没有 registered 那一格（★ 要持两份）")
     if "pub struct CommandRunner" not in exec_text:
         bad.append("execute.rs：没有 CommandRunner（没有真跑命令的执行体）")
     elif ("Command::new(" not in exec_text) or (".args(" not in exec_text):
@@ -85,7 +92,7 @@ def self_test():
     if run(label="绿例·真仓库") != 0:
         print("[自检失败] 真仓库应当是绿的，却红了")
         ok = False
-    good_exec = "pub struct CommandRunner {}\nCommand::new(p)\n.args(a)"
+    good_exec = "pub struct CommandRunner {}\nCommand::new(p)\n.args(a)\nregistered: Option<&'a Register>\npub fn with_registration("
     b1 = scan("x", "pub struct CommandRunner {}", "pub fn kinds_present(&self)", [])
     print("=== 红例1（执行器不按 program+args）⇒ 命中 %d 处 ===" % len(b1))
     if not any("args" in x for x in b1):
