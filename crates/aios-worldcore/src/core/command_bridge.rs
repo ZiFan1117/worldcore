@@ -274,16 +274,23 @@ mod tests {
             back.get("interface.ask_permission").is_some(),
             "★ 界面那个「问人」的动作在册"
         );
-        // ★★ 两张表分开（T-259）：★ 在册表里有它；★ 但**启动表是另一张** —— 没报到就是空的。
-        let mut table = crate::core::registration::Alive::default();
+        // ★★ 两张表分开（T-260）：★ 在册了【不等于】成了个体 —— ★ 个体是【启动】才有的。
+        let ont = crate::core::registry::Registry::load(ONT).expect("本体该装得上");
+        let mut table = crate::core::registration::Individuals::default();
         assert!(
-            !table.is_alive("interface.ask_permission"),
-            "★ 没报到 ⇒ 启动表里没有它"
+            !table.is_alive("service", "sshd"),
+            "★ 没启动 ⇒ 个体表里没有它（★ 注册了也没有）"
         );
-        table.mark("interface.ask_permission");
+        // ★★ 个体化的对象是【本体的类】—— 用 service（本体里真有这个类）。
+        table
+            .appear(&ont, "service", "sshd", "started")
+            .expect("★ 类在册 ⇒ 该成为个体");
+        assert!(table.is_alive("service", "sshd"), "★ 启动 ⇒ 成了个体");
+        assert_eq!(table.state_of("service", "sshd"), Some("started"));
+        // ★★★ 真发现（登记在案）：★ **interface 不是本体的类** ⇒ 界面【注册得上、却成不了个体】。
         assert!(
-            table.is_alive("interface.ask_permission"),
-            "★ 报到过 ⇒ 启动表里有它"
+            table.appear(&ont, "interface", "a2ui", "started").is_err(),
+            "★ interface 不在本体的 objects 里 ⇒ 它成不了个体（★ 这条要立类才能解）"
         );
         let _ = std::fs::remove_file(&reg);
     }

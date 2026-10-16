@@ -14,6 +14,7 @@
 //!   ③ **注销**：★ **只能人做**（★ 不是软件自己说走就走 —— 否则成了「谁能悄悄抹掉别人的名字」的洞）；
 //!   ④ **落盘**：★ 一行一条（JSONL），★ 与账落盘同一套做法。
 
+use crate::core::registry::Registry;
 use std::collections::BTreeMap;
 use std::io::Write as _;
 
@@ -169,58 +170,124 @@ impl Register {
     }
 }
 
-/// ★★★ **启动表**（T-259）—— ★ 与「在册表」**分开的第二张表**。
+/// ★★★ **个体**（T-260）—— ★ **启动了就要成为一个个体**（作者口径，逐字整理：
+/// 「**没有个体化，就是意思是启动了要成为个体**」）。
 ///
-/// ★ 作者口径（逐字整理）：「**它启动的时候，我们就不需要这个注册表了，启动的时候是启动表，
-///   就是谁在／谁起来了**」。
-///
-/// | | ★ 在册表（`Register`） | ★★ 启动表（本结构） |
-/// |---|---|---|
-/// | ★ 什么时候 | ★ **安装时一次** | ★ **每次启动** |
-/// | ★ 管什么 | ★ **这东西存在吗** | ★ **它现在在跑吗** |
-/// | ★ 落盘吗 | ★★ **落**（★ 持久） | ★★ **不落**（★ 瞬时：重启后重新报到） |
-#[derive(Debug, Default)]
-pub struct Alive {
-    /// ★ 报到过的名字 ⇒ 报到序号。
-    seen: BTreeMap<String, u64>,
-    next: u64,
+/// ★ 它不是「报到一个名字」：★ 报出的是**一个个体** —— ★ **哪一类 ＋ 本地 id ＋ 状态**。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Individual {
+    /// ★ 它是**哪一类**（★ 必须是【在册的类】—— ★ 不在册不许成为个体）。
+    pub class: String,
+    /// ★ **本地 id**（★ 同一类可以有多个个体：两张网卡、三个服务、两个执行体）。
+    pub local_id: String,
+    /// ★ **状态**（★ 起来就是 started）。
+    pub state: String,
 }
 
-impl Alive {
-    /// ★ **报到**：★ 记下「它现在在」，★ 返回报到序号。
-    /// ★ 它**不管在册**（★ 那是另一张表的事）—— ★ 两张表分开的意义就在这。
-    pub fn mark(&mut self, action: &str) -> u64 {
-        self.next += 1;
-        self.seen.insert(action.to_string(), self.next);
-        self.next
+/// ★★★ **个体表**（第二张表）—— ★ 「现在有哪些个体活着」。
+///
+/// ★ 与在册表分开（★ 作者裁：「启动的时候是启动表……是一张另一张表」）：
+///
+/// | | ★ **在册表**（Register） | ★★ **个体表**（本结构） |
+/// |---|---|---|
+/// | 什么时候写 | ★ **安装时一次** | ★★ **启动时**（成为个体） |
+/// | 管什么 | ★ **这东西存在吗** | ★★ **它现在是个活着的个体吗** |
+/// | 落盘吗 | ★ **落**（持久） | ★★ **不落**（瞬时） |
+/// | 一格是什么 | ★ 一条动作（名字 ＋ 命令 ＋ 权限） | ★★ **一个个体**（类 ＋ 本地 id ＋ 状态） |
+#[derive(Debug, Default)]
+pub struct Individuals {
+    by_key: BTreeMap<String, Individual>,
+}
+
+impl Individuals {
+    /// ★★ **成为个体** —— ★ 只有【类在册】才准。
+    ///
+    /// ★★ 这条闸**不是新立的**：desktop.rs 那条逐字就是它 ——
+    ///   「★ **[跳过] ghost （类 frobnicator 不在册）⇒ 桌面上不出现**」。
+    /// ★ 同一个名字已经是个体 ⇒ **拒**（★ 不静默替换 —— 谁在就是谁在）。
+    pub fn appear(
+        &mut self,
+        registry: &Registry,
+        class: &str,
+        local_id: &str,
+        state: &str,
+    ) -> Admit<()> {
+        if !registry.has_kind(class) {
+            return Err(Refuse::new(
+                Reason::BadValue {
+                    field: "class".to_string(),
+                    rule: "类必须在册".to_string(),
+                },
+                format!("<{class} 不在册 ⇒ 不能成为个体>"),
+            ));
+        }
+        let key = format!("{class}/{local_id}");
+        if self.by_key.contains_key(&key) {
+            return Err(Refuse::new(
+                Reason::BadValue {
+                    field: "local_id".to_string(),
+                    rule: "同名个体只有一个".to_string(),
+                },
+                format!("<{key} 已经是个体了>"),
+            ));
+        }
+        self.by_key.insert(
+            key,
+            Individual {
+                class: class.to_string(),
+                local_id: local_id.to_string(),
+                state: state.to_string(),
+            },
+        );
+        Ok(())
     }
 
-    /// ★ **它现在在跑吗**。
+    /// ★ **它在不在**（★ 与「在册」是两个问题）。
     #[must_use]
-    pub fn is_alive(&self, action: &str) -> bool {
-        self.seen.contains_key(action)
+    pub fn is_alive(&self, class: &str, local_id: &str) -> bool {
+        self.by_key.contains_key(&format!("{class}/{local_id}"))
     }
 
-    /// ★ **谁在**（★ 排序了，便于读数与比对）。
+    /// ★ **它的状态**（★ 起来是 started）。
     #[must_use]
-    pub fn present(&self) -> Vec<&str> {
-        self.seen.keys().map(String::as_str).collect()
+    pub fn state_of(&self, class: &str, local_id: &str) -> Option<&str> {
+        self.by_key
+            .get(&format!("{class}/{local_id}"))
+            .map(|i| i.state.as_str())
     }
 
-    /// ★ 在跑的有几个。
+    /// ★ **现在有哪些个体**（★ 排好序，便于读数与比对）。
+    #[must_use]
+    pub fn present(&self) -> Vec<String> {
+        self.by_key.keys().cloned().collect()
+    }
+
+    /// ★ 有哪几类在（★ 读「三类铺开」用的那一格）。
+    #[must_use]
+    pub fn classes_present(&self) -> Vec<&str> {
+        let mut v: Vec<&str> = self.by_key.values().map(|i| i.class.as_str()).collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    }
+
+    /// ★ 个体总数。
     #[must_use]
     pub fn count(&self) -> usize {
-        self.seen.len()
+        self.by_key.len()
     }
 
-    /// ★ **退出**：★ 从启动表里划掉。
-    pub fn forget(&mut self, action: &str) -> bool {
-        self.seen.remove(action).is_some()
+    /// ★ **退出**：★ 它不再是活着的个体了。
+    pub fn forget(&mut self, class: &str, local_id: &str) -> bool {
+        self.by_key.remove(&format!("{class}/{local_id}")).is_some()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    /// ★ 本体原文（判「类在册」要用它）。
+    const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
+
     use super::*;
 
     fn temp(tag: &str) -> String {
@@ -240,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn registration_survives_a_reopen_and_the_alive_table_is_a_second_one() {
+    fn registration_survives_a_reopen_and_the_individuals_table_is_a_second_one() {
         let path = temp("reopen");
         {
             let mut r = Register::load(&path).expect("空表该装得上");
@@ -253,15 +320,32 @@ mod tests {
             vec!["demo.ping"],
             "★ 注册过就该一直在（一次性、持久）"
         );
-        // ★★ **两张表分开**：★ 在册表落盘且重开后还在；★ 启动表是【另一张】，★ 不落盘。
-        let mut alive = Alive::default();
-        assert!(!alive.is_alive("demo.ping"), "★ 没报到过 ⇒ 启动表里没有它");
-        let seq = alive.mark("demo.ping");
-        assert_eq!(seq, 1, "★ 报到序号从 1 起");
-        assert!(alive.is_alive("demo.ping"), "★ 报到过 ⇒ 启动表里有它");
-        assert_eq!(alive.present(), vec!["demo.ping"]);
-        assert!(alive.forget("demo.ping"), "★ 退出 ⇒ 从启动表里划掉");
-        assert_eq!(alive.count(), 0);
+        // ★★ **两张表分开**：★ 在册表落盘且重开后还在；★ 个体表是【另一张】，★ 不落盘。
+        let ont = Registry::load(ONT).expect("本体该装得上");
+        let mut live = Individuals::default();
+        assert!(
+            !live.is_alive("application", "demo"),
+            "★ 没成为个体 ⇒ 个体表里没有它"
+        );
+        live.appear(&ont, "application", "demo", "started")
+            .expect("★ 类在册 ⇒ 该成为个体");
+        assert!(live.is_alive("application", "demo"), "★ 成了个体");
+        assert_eq!(live.state_of("application", "demo"), Some("started"));
+        assert_eq!(live.present(), vec!["application/demo"]);
+        assert_eq!(live.classes_present(), vec!["application"]);
+        // ★★ 闸：★ **类不在册 ⇒ 不能成为个体**（desktop.rs 那条「[跳过] ghost」就是它）。
+        assert!(
+            live.appear(&ont, "frobnicator", "ghost", "started")
+                .is_err(),
+            "★ 类不在册 ⇒ 拒（不许成为个体）"
+        );
+        // ★ 同一个名字再成为个体一次 ⇒ 拒（不静默替换）。
+        assert!(
+            live.appear(&ont, "application", "demo", "started").is_err(),
+            "★ 已经是个体 ⇒ 拒"
+        );
+        assert!(live.forget("application", "demo"), "★ 退出 ⇒ 从个体表划掉");
+        assert_eq!(live.count(), 0);
         // ★ 在册表这一份【不受启动表影响】。
         assert!(
             back.get("demo.ping").is_some(),
