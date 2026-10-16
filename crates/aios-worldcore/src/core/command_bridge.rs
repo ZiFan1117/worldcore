@@ -65,13 +65,18 @@ impl CommandRoute {
 
     /// ★ 五格齐不齐（缺一 ⇒ 拒 —— 与「未登记即拒」同族）。
     pub fn check(&self) -> Admit<()> {
-        for (what, v) in [
+        // ★ 界面类没有命令行 —— ★ 它注册的是**它自己的动作**（作者令：「UI 肯定也要走注册这个逻辑」）。
+        let is_interface = self.registered_by_kind == "interface";
+        let mut required: Vec<(&str, &String)> = vec![
             ("action", &self.action),
             ("function", &self.function),
             ("registered_by", &self.registered_by),
             ("registered_by_kind", &self.registered_by_kind),
-            ("program", &self.program),
-        ] {
+        ];
+        if !is_interface {
+            required.push(("program", &self.program));
+        }
+        for (what, v) in required {
             if v.trim().is_empty() {
                 return Err(Refuse::new(
                     Reason::MissingField {
@@ -246,6 +251,34 @@ mod tests {
         assert!(
             back.kinds_present().iter().any(|k| k == "system"),
             "★ 接进来的传统命令是 system 类（★ 本体那份 JSON 只看得到 world）"
+        );
+        let _ = std::fs::remove_file(&reg);
+    }
+
+    #[test]
+    fn an_interface_registers_without_a_command_and_all_four_kinds_appear() {
+        // ★ 作者令：「UI 肯定也要走注册这个逻辑，都要走」⇒ 界面【也走这张表】，只是它没有命令行。
+        let reg = temp("iface");
+        let _ = register_from_map(&write_map("iface", MAP), &reg).expect("该注册得上");
+        let back = Register::load(&reg).expect("该装得回来");
+        let kinds = back.kinds_present();
+        assert!(
+            kinds.iter().any(|k| k == "system"),
+            "★ 传统命令是 system 类"
+        );
+        assert!(kinds.iter().any(|k| k == "app"), "★ 上层应用是 app 类");
+        assert!(
+            kinds.iter().any(|k| k == "interface"),
+            "★ 界面也走注册（作者令：UI 也要走注册）"
+        );
+        assert!(
+            back.get("interface.ask_permission").is_some(),
+            "★ 界面那个「问人」的动作在册"
+        );
+        assert!(
+            back.get("interface.ask_permission")
+                .is_some_and(|r| r.alive),
+            "★ 注册即算报到过"
         );
         let _ = std::fs::remove_file(&reg);
     }

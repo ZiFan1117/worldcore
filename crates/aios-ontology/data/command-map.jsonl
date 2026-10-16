@@ -6,3 +6,6 @@
 {"action":"proc.list","function":"fn.proc.list","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human","agent"],"program":"ps","args":["-eo","pid,comm"]}
 {"action":"device.eject","function":"fn.device.eject","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"eject","args":[]}
 {"action":"device.brightness.set","function":"fn.device.brightness.set","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"brightnessctl","args":["set"]}
+{"action":"interface.ask_permission","function":"fn.interface.ask_permission","registered_by":"a2ui","registered_by_kind":"interface","required_roles":["human"],"program":"","args":[]}
+{"action":"interface.notify","function":"fn.interface.notify","registered_by":"a2ui","registered_by_kind":"interface","required_roles":["human","agent"],"program":"","args":[]}
+{"action":"app.download.start","function":"fn.app.download.start","registered_by":"downloader","registered_by_kind":"app","required_roles":["human"],"program":"curl","args":["-O"]}

@@ -80,7 +80,10 @@ impl CommandRunner {
             let r = crate::core::command_bridge::CommandRoute::parse(line)
                 .map_err(|e| Refuse::new(e.reason, format!("<第 {} 行>{}", i + 1, e.what)))?;
             r.check()?;
-            routes.insert(r.action.clone(), (r.program.clone(), r.args.clone()));
+            // ★ 界面类没有命令行 ⇒ 不建 route（★ 它由界面自己那一路接，不在这里跑）。
+            if r.registered_by_kind != "interface" {
+                routes.insert(r.action.clone(), (r.program.clone(), r.args.clone()));
+            }
         }
         Ok(Self { routes })
     }
