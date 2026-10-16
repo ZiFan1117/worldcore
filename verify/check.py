@@ -36,6 +36,7 @@ CRITERIA = [
     "c14_no_command_literal.py",
     "c15_registration_and_transport.py",
     "c16_registration_kind.py",
+    "c17_authorization.py",
 ]
 
 
