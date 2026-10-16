@@ -896,8 +896,8 @@
   "job.start": {
    "capability": "job.start",
    "reversible": true,
-   "required_roles": [],
-   "required_roles_依据": "★ **空表**：`permissions.grants` 里**没有这一条**（本能力今天**未被授予任何主体**）⇒ 映射不出角色。**这是如实读数，不是「谁都不许」。**",
+   "required_roles": ["agent", "human"],
+   "required_roles_依据": "**读数**：`permissions.grants[\"job.start\"].who` = [\"world://user\", \"world://agent/dsh\"] ⇒ 经 `governance.roles.subject_to_role` 映到角色 [\"agent\", \"human\"]。★ **2026-10-16 补授权**（T-241）：★ 作者令「**谁给授权？肯定是人嘛**」＋「**什么都是授权的问题**」；★ 不可逆的（`world.rekey`／`world.migrate`）**照 `ledger.compact` 的先例只要人**；可逆的（`job.*`）**照 `notice.mute` 的先例给人＋智能体**。",
    "parameters": [
     {
      "name": "subject",
@@ -917,8 +917,8 @@
   "job.finish": {
    "capability": "job.finish",
    "reversible": true,
-   "required_roles": [],
-   "required_roles_依据": "★ **空表**：`permissions.grants` 里**没有这一条**（本能力今天**未被授予任何主体**）⇒ 映射不出角色。**这是如实读数，不是「谁都不许」。**",
+   "required_roles": ["agent", "human"],
+   "required_roles_依据": "**读数**：`permissions.grants[\"job.finish\"].who` = [\"world://user\", \"world://agent/dsh\"] ⇒ 经 `governance.roles.subject_to_role` 映到角色 [\"agent\", \"human\"]。★ **2026-10-16 补授权**（T-241）：★ 作者令「**谁给授权？肯定是人嘛**」＋「**什么都是授权的问题**」；★ 不可逆的（`world.rekey`／`world.migrate`）**照 `ledger.compact` 的先例只要人**；可逆的（`job.*`）**照 `notice.mute` 的先例给人＋智能体**。",
    "parameters": [
     {
      "name": "subject",
@@ -938,8 +938,8 @@
   "job.cancel": {
    "capability": "job.cancel",
    "reversible": true,
-   "required_roles": [],
-   "required_roles_依据": "★ **空表**：`permissions.grants` 里**没有这一条**（本能力今天**未被授予任何主体**）⇒ 映射不出角色。**这是如实读数，不是「谁都不许」。**",
+   "required_roles": ["agent", "human"],
+   "required_roles_依据": "**读数**：`permissions.grants[\"job.cancel\"].who` = [\"world://user\", \"world://agent/dsh\"] ⇒ 经 `governance.roles.subject_to_role` 映到角色 [\"agent\", \"human\"]。★ **2026-10-16 补授权**（T-241）：★ 作者令「**谁给授权？肯定是人嘛**」＋「**什么都是授权的问题**」；★ 不可逆的（`world.rekey`／`world.migrate`）**照 `ledger.compact` 的先例只要人**；可逆的（`job.*`）**照 `notice.mute` 的先例给人＋智能体**。",
    "parameters": [
     {
      "name": "subject",
@@ -982,8 +982,8 @@
   "world.rekey": {
    "capability": "world.rekey",
    "reversible": false,
-   "required_roles": [],
-   "required_roles_依据": "★ **空表**：`permissions.grants` 里**没有这一条**（本能力今天**未被授予任何主体**）⇒ 映射不出角色。**这是如实读数，不是「谁都不许」。**",
+   "required_roles": ["human"],
+   "required_roles_依据": "**读数**：`permissions.grants[\"world.rekey\"].who` = [\"world://user\"] ⇒ 经 `governance.roles.subject_to_role` 映到角色 [\"human\"]。★ **2026-10-16 补授权**（T-241）：★ 作者令「**谁给授权？肯定是人嘛**」＋「**什么都是授权的问题**」；★ 不可逆的（`world.rekey`／`world.migrate`）**照 `ledger.compact` 的先例只要人**；可逆的（`job.*`）**照 `notice.mute` 的先例给人＋智能体**。",
    "parameters": [
     {
      "name": "subject",
@@ -1003,8 +1003,8 @@
   "world.migrate": {
    "capability": "world.migrate",
    "reversible": false,
-   "required_roles": [],
-   "required_roles_依据": "★ **空表**：`permissions.grants` 里**没有这一条**（本能力今天**未被授予任何主体**）⇒ 映射不出角色。**这是如实读数，不是「谁都不许」。**",
+   "required_roles": ["human"],
+   "required_roles_依据": "**读数**：`permissions.grants[\"world.migrate\"].who` = [\"world://user\"] ⇒ 经 `governance.roles.subject_to_role` 映到角色 [\"human\"]。★ **2026-10-16 补授权**（T-241）：★ 作者令「**谁给授权？肯定是人嘛**」＋「**什么都是授权的问题**」；★ 不可逆的（`world.rekey`／`world.migrate`）**照 `ledger.compact` 的先例只要人**；可逆的（`job.*`）**照 `notice.mute` 的先例给人＋智能体**。",
    "parameters": [
     {
      "name": "subject",
@@ -1286,6 +1286,26 @@
   "_declared_gaps": "★ **未实现／未接入**（判词 · 安全与授权；**本批没做（不是做不到）**：VM `newworld` 一直有 `cargo 1.98.1`＋`bash`（`AGENTS.md` 2026-10-12 已更正「本机无 cargo」那句只对宿主成立） ⇒ 下列是**判词读数，未在真二进制上跑过**）：① **`who` 无读者**——它被装载器解析进 `PermissionDecl.who`，而**没有任何生产消费者读它**（判『许可』只读 `scope`）⇒ 该格**只作条文、无执行体**，写与不写在程序上等价。② **`_grant_via_ledger` 声称的路没有执行体**——`scripts/verify/grant_path_guard.py` 的 G-02 **现取红**（登记型红，接在 `check.sh` 上不阻断全闸）。③ **撤回没有授权面**——`change` ＋ `retract_seq` 能取消任意一条已生效的 `change`，而撤回**不是**本节的能力、不是 `actions` 的动作，`change` 分支**不读本节、也不查两级**。④ **`notice` 家族不查能力**——只判『非 `gate.` 前缀 ＋ 在册』⇒ 任一在册主体可伪造 `job.completed`。⑤ **『一条 grant ＋ 一次重启』即可放宽一项能力**：全程**无判据会红、无账本事件、无签字要求**；『谁有资格改本段』今天**只有流程答案**（『改本段＝改法律（走评审）』），**没有机器答案**。⑥ `ledger.compact` 的 `scope` ＝ `[\"world://*\"]` 把一项**不可逆**能力授给了**每一个**主体（纵深只剩 `policy.json.irreversible_actors` 一层）。⑦ `who`／`scope` 里的 `world://user`／`world://agent/dsh` 的**类型在 `objects` 里不存在**（见 `objects._declared_gaps`）。⇒ 真修③④要动代码（`src/lib.rs`／`src/agent/**`）；⑤要动流程（判据＋签字要求）；**⑥⑦的声明面修法反而是零身份代价**（`permissions`／`objects` 都是 `_` 键）⇒ 本批**只写提案**（法律口径取舍待批）。",
   "default": "deny",
   "grants": {
+   "job.start": {
+    "who": ["world://user", "world://agent/dsh"],
+    "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"]
+   },
+   "job.finish": {
+    "who": ["world://user", "world://agent/dsh"],
+    "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"]
+   },
+   "job.cancel": {
+    "who": ["world://user", "world://agent/dsh"],
+    "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"]
+   },
+   "world.rekey": {
+    "who": ["world://user"],
+    "scope": ["world://*"]
+   },
+   "world.migrate": {
+    "who": ["world://user"],
+    "scope": ["world://*"]
+   },
    "notice.mute": {
     "who": [
      "world://user",
