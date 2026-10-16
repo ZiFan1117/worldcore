@@ -228,3 +228,69 @@ fn export_csv_is_append_only_and_keeps_the_header() {
     assert_eq!(lines.len(), 6, "表头 ＋ 5 笔");
     assert!(lines[1].starts_with("1,world://user/zhang,act,job.start"));
 }
+
+// ===================== ★ T-242 批零：**账落盘**（会红反例）=====================
+//
+// ★ 三条（★ 甲席在评审里给的形状：**库级两步、不需 kill** —— 载体 A 是库，没有进程可 kill）：
+//   ① 写一笔 ⇒ **丢开这本账** ⇒ **重开** ⇒ 那一笔**还在**；
+//   ② **手改盘上正文一处** ⇒ 重开 ⇒ **整本拒**（★ 不许静默跳过那一行）；
+//   ③ 重开后**序号从水位续上**（★ 书：「通知可以漏，序号不会漏」）。
+//
+// ★ 会红：旧实现里 `load` 只给空账（`ledger.rs:69-75`）⇒ ①③ 必红；
+//   ★ 落盘但**不落封条**的实现在 ② 上必红（重算链 ⇒ 篡改不可察）。
+
+fn temp_path(tag: &str) -> String {
+    let p = std::env::temp_dir().join(format!("worldcore-ledger-{tag}.jsonl"));
+    let _ = std::fs::remove_file(&p);
+    p.to_string_lossy().to_string()
+}
+
+#[test]
+fn account_survives_a_reopen() {
+    let path = temp_path("reopen");
+    {
+        let mut l = ledger();
+        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[("subject", json!("notice"))]))
+            .expect("第一笔该写得下去");
+    } // ★ 丢开这本账（相当于进程停了）
+    let back = Ledger::load_file(ONT, &path).expect("从盘上该装得回来");
+    assert_eq!(back.all().len(), 1, "★ 那一笔必须在（落盘的意义就在这一条）");
+    assert_eq!(back.all()[0].what, "notice.mute");
+    assert!(back.verify().is_ok(), "读回来的链必须是健康的");
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn tampered_line_is_refused_on_reopen() {
+    let path = temp_path("tamper");
+    {
+        let mut l = ledger();
+        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[("subject", json!("notice"))]))
+            .expect("第一笔该写得下去");
+    }
+    // ★ 手改盘上正文一处（把 what 改掉）—— 封条是【当时的】，改一个字就对不上。
+    let body = std::fs::read_to_string(&path).expect("该读得到");
+    let bad = body.replace("notice.mute", "notice.UNMUTE");
+    std::fs::write(&path, bad).expect("该写得下去");
+    let got = Ledger::load_file(ONT, &path);
+    assert!(got.is_err(), "★ 被改过的账【整本拒】，不许静默跳过那一行");
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn appended_seq_continues_after_reopen() {
+    let path = temp_path("seq");
+    {
+        let mut l = ledger();
+        l.append_persisting(&path, &who(), "notice", "notice.mute", params(&[])).expect("第一笔");
+        l.append_persisting(&path, &who(), "job", "job.start", params(&[])).expect("第二笔");
+    }
+    let mut back = Ledger::load_file(ONT, &path).expect("该装得回来");
+    assert_eq!(back.all().len(), 2);
+    let third = back
+        .append_persisting(&path, &who(), "notice", "notice.unmute", params(&[]))
+        .expect("第三笔该写得下去");
+    assert_eq!(third.0, 3, "★ 序号要从【水位】续上，不许又从 1 开始（书：序号不会漏）");
+    assert!(back.verify().is_ok());
+    let _ = std::fs::remove_file(&path);
+}

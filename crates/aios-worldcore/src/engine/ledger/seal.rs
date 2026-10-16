@@ -12,18 +12,28 @@
 
 use std::fmt::Write as _;
 
+use serde::{Deserialize, Serialize};
+
 use crate::core::types::{Admit, Event, Reason, Refuse};
 
 /// 创世那一笔的「前驱」占位（★ 拿它占住位子 —— 不然首节会和「前驱为空串」撞脸）。
 const GENESIS: &str = "<创世>";
 
 /// 一笔的封条。
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// ★ T-242：加 `Serialize`／`Deserialize` —— **它要跟着正文一起落盘**（★ 落盘的是【当时的】封条，
+/// 起来时**核对**它，不是重算它 —— 重算就等于把防篡改关掉）。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct Seal {
     /// 这一笔正文的指纹。
     pub(super) content: String,
     /// 上一节的封条；创世是 None。
     pub(super) prev: Option<String>,
+}
+
+/// 创世那个占位串（★ 读回时也要用它报「首节该接什么」）。
+pub(super) fn genesis() -> &'static str {
+    GENESIS
 }
 
 impl Seal {

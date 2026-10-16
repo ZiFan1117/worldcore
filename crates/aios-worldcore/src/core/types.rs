@@ -97,6 +97,9 @@ pub enum Reason {
     },
     /// 本体没装载（谁都别想动）。
     OntologyNotLoaded,
+    /// ★ **账写不下去**（T-242 批零：账要落盘 ⇒ 盘上说不行时，要有一个说得出口的理由）。
+    /// 一条都不许静默丢：★ 写盘失败时**内存也不许收下这一笔**。
+    StorageUnavailable { path: String },
 }
 
 impl Reason {
@@ -115,6 +118,7 @@ impl Reason {
             Self::AboveCeiling { .. } => "worldcore.Refuse.AboveCeiling",
             Self::ConflictDetected { .. } => "worldcore.Refuse.ConflictDetected",
             Self::OntologyNotLoaded => "worldcore.Refuse.OntologyNotLoaded",
+            Self::StorageUnavailable { .. } => "worldcore.Refuse.StorageUnavailable",
         }
     }
 }

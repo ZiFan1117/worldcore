@@ -37,6 +37,7 @@ CRITERIA = [
     "c15_registration_and_transport.py",
     "c16_registration_kind.py",
     "c17_authorization.py",
+    "c18_ledger_persisted.py",
 ]
 
 

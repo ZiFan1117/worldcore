@@ -29,6 +29,9 @@ mod seal;
 mod tests;
 
 use std::collections::BTreeSet;
+use std::io::Write as _;
+
+use serde::{Deserialize, Serialize};
 
 use crate::core::types::{Admit, Event, EventSeq, Reason, Refuse, Who};
 use index::FamilyIndex;
@@ -49,8 +52,55 @@ pub struct Ledger {
     by_family: FamilyIndex,
 }
 
+/// ★ **落盘的一行**（T-242 批零）：**正文 ＋ 当笔封条**。
+///
+/// ★ 为什么把封条一起落：★ 只落正文、起来时重算 ⇒ 重算的链**永远与正文一致**
+///   ⇒ `verify()` 恒绿 ⇒ ★★ **篡改不可察**（那等于把防篡改关掉）。
+/// ★ 落的是**当时的**封条 ⇒ 起来时是**核对**它，不是重算它。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Record {
+    seq: u64,
+    who: String,
+    family: String,
+    what: String,
+    params: serde_json::Map<String, serde_json::Value>,
+    /// 正文的指纹（落盘时算好的那一个）。
+    seal_content: String,
+    /// 上一节的封条值；创世是 None。
+    seal_prev: Option<String>,
+}
+
+impl Record {
+    fn of(row: &Event, node: &Seal) -> Self {
+        Self {
+            seq: row.seq.0,
+            who: row.who.name().to_string(),
+            family: row.family.clone(),
+            what: row.what.clone(),
+            params: row.params.clone(),
+            seal_content: node.content.clone(),
+            seal_prev: node.prev.clone(),
+        }
+    }
+
+    fn into_event(self) -> (Event, Seal) {
+        let row = Event {
+            seq: EventSeq(self.seq),
+            who: Who::new(self.who),
+            family: self.family,
+            what: self.what,
+            params: self.params,
+        };
+        let node = Seal {
+            content: self.seal_content,
+            prev: self.seal_prev,
+        };
+        (row, node)
+    }
+}
+
 impl Ledger {
-    /// ★ 从本体文本装一本账：族的权威清单＝本体 families 的键（缺 ⇒ OntologyNotLoaded，
+    /// ★ **从本体文本装一本账：族的权威清单＝本体 families 的键（缺 ⇒ OntologyNotLoaded，
     /// **不静默给一本空表** —— 空表＝什么都记不了，那是个哑闸，不是安全闸）。
     pub fn load(text: &str) -> Admit<Self> {
         let doc: serde_json::Value = serde_json::from_str(text)
@@ -157,6 +207,129 @@ impl Ledger {
     /// 空账**不叫健康**：没有链节可查，单独报（学它把空链与一条的健康链分开）。
     pub fn verify(&self) -> Admit<()> {
         seal::check_chain(&self.rows, &self.seals)
+    }
+
+    /// ★★ **从本体文本 ＋ 盘上一本账装回来**（T-242 批零新加的口 —— **既有接口一字未动**）。
+    ///
+    /// ★ 文件不在 ⇒ **空账**（首次运行，★ 不是错误）。
+    /// ★ 盘上每一行都**核对**：① 正文的指纹对不对得上落盘时那一个；② 这一节接的前驱对不对。
+    /// ★★ 对不上 ⇒ **整本拒**（★ 不静默跳过那一行 —— 跳过＝把篡改藏起来）。
+    pub fn load_file(text: &str, path: &str) -> Admit<Self> {
+        let mut me = Self::load(text)?;
+        let body = match std::fs::read_to_string(path) {
+            Ok(b) => b,
+            Err(_) => return Ok(me),
+        };
+        let mut prev: Option<String> = None;
+        for (i, line) in body.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let rec: Record = serde_json::from_str(line).map_err(|_| {
+                Refuse::new(
+                    Reason::BadValue {
+                        field: format!("row[{i}]"),
+                        rule: "<合法 JSON，一行一笔>".to_string(),
+                    },
+                    line.chars().take(40).collect::<String>(),
+                )
+            })?;
+            let (row, node) = rec.into_event();
+            // ① 正文动过没有（★ 核对落盘时的指纹，不是重算链）。
+            let got = seal::fingerprint(&row);
+            if got != node.content {
+                return Err(Refuse::new(
+                    Reason::BadValue {
+                        field: format!("row[{i}].seal_content"),
+                        rule: node.content.clone(),
+                    },
+                    got,
+                ));
+            }
+            // ② 这一节接的前驱对不对。
+            if node.prev != prev {
+                return Err(Refuse::new(
+                    Reason::BadValue {
+                        field: format!("row[{i}].seal_prev"),
+                        rule: prev.unwrap_or_else(|| seal::genesis().to_string()),
+                    },
+                    node.prev.unwrap_or_else(|| seal::genesis().to_string()),
+                ));
+            }
+            prev = Some(node.hash());
+            me.by_family.insert(row.seq, &row.family);
+            me.rows.push(row);
+            me.seals.push(node);
+        }
+        me.head = prev;
+        Ok(me)
+    }
+
+    /// ★★ **追加一笔并落一行到盘上**（T-242 批零新加的口 —— **既有接口一字未动**）。
+    ///
+    /// ★ 次序学 `append` 那条：**先算好、先落盘、落成了才入内存** ——
+    ///   写盘失败 ⇒ **内存也不收这一笔**（★ 一处都不留，与「被拒的那一笔不留痕」同族）。
+    pub fn append_persisting(
+        &mut self,
+        path: &str,
+        who: &Who,
+        family: impl Into<String>,
+        what: impl Into<String>,
+        params: serde_json::Map<String, serde_json::Value>,
+    ) -> Admit<EventSeq> {
+        let family = family.into();
+        if !self.families.contains(&family) {
+            return Err(Refuse::new(
+                Reason::BadValue {
+                    field: "family".to_string(),
+                    rule: self.families().join("|"),
+                },
+                family,
+            ));
+        }
+        let seq = EventSeq(self.rows.len() as u64 + 1);
+        let row = Event {
+            seq,
+            who: who.clone(),
+            family,
+            what: what.into(),
+            params,
+        };
+        let node = Seal::next(self.head.as_deref(), seal::fingerprint(&row));
+        let line = serde_json::to_string(&Record::of(&row, &node)).map_err(|_| {
+            Refuse::new(
+                Reason::StorageUnavailable {
+                    path: path.to_string(),
+                },
+                "<这一笔写不成一行 JSON>",
+            )
+        })?;
+        let mut fh = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .map_err(|_| {
+                Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: path.to_string(),
+                    },
+                    "<打不开账文件>",
+                )
+            })?;
+        writeln!(fh, "{line}").map_err(|_| {
+            Refuse::new(
+                Reason::StorageUnavailable {
+                    path: path.to_string(),
+                },
+                "<这一行没写下去>",
+            )
+        })?;
+        // ★ 落盘成了 ⇒ 才入内存。
+        self.by_family.insert(row.seq, &row.family);
+        self.rows.push(row);
+        self.seals.push(node.clone());
+        self.head = Some(node.hash());
+        Ok(seq)
     }
 
     /// 位次取一笔：序号从 1 起 ⇒ 位次 ＝ 序号 − 1；越界或序号对不上都不给。
