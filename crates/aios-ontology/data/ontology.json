@@ -867,7 +867,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.notice.mute",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "notice.unmute": {
    "capability": "notice.unmute",
@@ -889,7 +890,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.notice.unmute",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "job.start": {
    "capability": "job.start",
@@ -909,7 +911,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.start",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "job.finish": {
    "capability": "job.finish",
@@ -929,7 +932,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.finish",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "job.cancel": {
    "capability": "job.cancel",
@@ -949,7 +953,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.job.cancel",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "ledger.compact": {
    "capability": "ledger.compact",
@@ -971,7 +976,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.ledger.compact",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "world.rekey": {
    "capability": "world.rekey",
@@ -991,7 +997,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.world.rekey",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "world.migrate": {
    "capability": "world.migrate",
@@ -1011,7 +1018,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.world.migrate",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "presence.report": {
    "capability": "presence.report",
@@ -1033,7 +1041,8 @@
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
    "function": "fn.presence.report",
-   "registered_by": "builtin"
+   "registered_by": "builtin",
+   "registered_by_kind": "world"
   },
   "_抄自P_禁抄什么": "★★ **`effects` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-4`**）。\nP 的 `ActionType.effects`（`ActionEffect(\"edit_object\", \"Asset\", {\"status\": \"escalated\"})`）把**效果当【声明】**；而本仓的裁定逐字（`纲领-操作模型三流派对照-03` §7.4）：\n> **PDDL 把效果当【声明】（为了离线算未来）；本仓把效果当【记录】（为了事后能复算）。前者换来预测，后者换来复算——两者不能白拿。**\n⇒ **抄了 `effects` 就等于在世界里立【第二处真相】**（模型说 A、运行结果 B）。\n★ 本仓效果的正确落点：**账本事件的 `before`／`after`**（`families.change` 的必填格）。"
  },
