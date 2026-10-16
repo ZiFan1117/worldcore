@@ -9,4 +9,5 @@ pub mod project;
 pub mod query;
 pub mod recovery;
 pub mod store;
+pub mod transport;
 pub mod validate;
