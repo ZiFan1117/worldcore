@@ -866,7 +866,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.notice.mute"
+   "function": "fn.notice.mute",
+   "registered_by": "builtin"
   },
   "notice.unmute": {
    "capability": "notice.unmute",
@@ -887,7 +888,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.notice.unmute"
+   "function": "fn.notice.unmute",
+   "registered_by": "builtin"
   },
   "job.start": {
    "capability": "job.start",
@@ -906,7 +908,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.job.start"
+   "function": "fn.job.start",
+   "registered_by": "builtin"
   },
   "job.finish": {
    "capability": "job.finish",
@@ -925,7 +928,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.job.finish"
+   "function": "fn.job.finish",
+   "registered_by": "builtin"
   },
   "job.cancel": {
    "capability": "job.cancel",
@@ -944,7 +948,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.job.cancel"
+   "function": "fn.job.cancel",
+   "registered_by": "builtin"
   },
   "ledger.compact": {
    "capability": "ledger.compact",
@@ -965,7 +970,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.ledger.compact"
+   "function": "fn.ledger.compact",
+   "registered_by": "builtin"
   },
   "world.rekey": {
    "capability": "world.rekey",
@@ -984,7 +990,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.world.rekey"
+   "function": "fn.world.rekey",
+   "registered_by": "builtin"
   },
   "world.migrate": {
    "capability": "world.migrate",
@@ -1003,7 +1010,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.world.migrate"
+   "function": "fn.world.migrate",
+   "registered_by": "builtin"
   },
   "presence.report": {
    "capability": "presence.report",
@@ -1024,7 +1032,8 @@
    "validation_rules": [],
    "validation_rules_今天为什么空": "★ **空表**：本仓**今天没有「什么条件下不许做」这一面** —— P 的 `ValidationRule.expression` 是**执行期 `eval()` 的字符串**，而本仓裁定「要**形式可判**，不是能推理」（`设计-落位契约` B-3）⇒ **`eval()` 那套不抄**。本格先建形状（判据 `A-3` 认空表为合法），**要填必须另想一套声明式规则**（待裁）。",
    "_照谁": "★ 照 **P（`.refs/依赖料/foundry-ontology-open/foundry_ontology/core/`）** 的形状抄 —— 作者 2026-10-12 令「**我们就使劲儿从那个 P 开源版就完事了，你把那个全抄一遍**」。★ **禁抄项**（本仓裁定，见 `actions._抄自P_禁抄什么`）：动作的 `effects`、函数的 `implementation`。",
-   "function": "fn.presence.report"
+   "function": "fn.presence.report",
+   "registered_by": "builtin"
   },
   "_抄自P_禁抄什么": "★★ **`effects` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-4`**）。\nP 的 `ActionType.effects`（`ActionEffect(\"edit_object\", \"Asset\", {\"status\": \"escalated\"})`）把**效果当【声明】**；而本仓的裁定逐字（`纲领-操作模型三流派对照-03` §7.4）：\n> **PDDL 把效果当【声明】（为了离线算未来）；本仓把效果当【记录】（为了事后能复算）。前者换来预测，后者换来复算——两者不能白拿。**\n⇒ **抄了 `effects` 就等于在世界里立【第二处真相】**（模型说 A、运行结果 B）。\n★ 本仓效果的正确落点：**账本事件的 `before`／`after`**（`families.change` 的必填格）。"
  },
@@ -1047,6 +1056,7 @@
    "pacman-key"
   ],
   "_declared_gaps": "★ 2026-10-13 **作者更正**：出厂 `entries` **已填**（九条动作各一条函数，共 9 条）。原先登记的「空表 ⇒ 五要素之五零实例／名字级通过节级为空／DeadFunctionEntry 空转」**作废** —— 作者令：「**这个函数应该是有的呀，这些东西可以有的呀**」。★ 口径：**个体由本体得出**（不是账本的派生物）；**账本只是系统性记录**，出问题去查它。",
+  "_transport": "★ **调用方式＝走总线**（作者 2026-10-16 令，逐字：「**我审批了，你走总线去调用这个东西，不就完事了吗**」；★ 另逐字：「**调用它的方法，我觉得不是说一定是那种函数调用**」）⇒ 每条入口名给 `transport` 与 `endpoint` 两格：★ `transport`＝走哪条路（今天一律 `bus`）；★ `endpoint`＝**对方自己的对外接口**的名字（★ 作者逐字：「**人家本来这个软件就有一些对外的接口**……**我没必要重新再造一套**」）⇒ ★ **本体只登记这个地址，不复制对方的接口**。",
   "entries": {
    "fn.notice.mute": {
     "function_id": "fn.notice.mute",
@@ -1056,7 +1066,9 @@
      "subject": "enum(change,act,notice,job)"
     },
     "output_type": "enum(change,act,notice,job)",
-    "_note": "output_type=notice"
+    "_note": "output_type=notice",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.notice.mute"
    },
    "fn.notice.unmute": {
     "function_id": "fn.notice.unmute",
@@ -1066,7 +1078,9 @@
      "subject": "enum(change,act,notice,job)"
     },
     "output_type": "enum(change,act,notice,job)",
-    "_note": "output_type=notice"
+    "_note": "output_type=notice",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.notice.unmute"
    },
    "fn.job.start": {
     "function_id": "fn.job.start",
@@ -1076,7 +1090,9 @@
      "subject": "enum(change,act,notice,job)"
     },
     "output_type": "enum(change,act,notice,job)",
-    "_note": "output_type=job"
+    "_note": "output_type=job",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.job.start"
    },
    "fn.job.finish": {
     "function_id": "fn.job.finish",
@@ -1086,7 +1102,9 @@
      "subject": "enum(change,act,notice,job)"
     },
     "output_type": "enum(change,act,notice,job)",
-    "_note": "output_type=job"
+    "_note": "output_type=job",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.job.finish"
    },
    "fn.job.cancel": {
     "function_id": "fn.job.cancel",
@@ -1096,7 +1114,9 @@
      "subject": "enum(change,act,notice,job)"
     },
     "output_type": "enum(change,act,notice,job)",
-    "_note": "output_type=job"
+    "_note": "output_type=job",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.job.cancel"
    },
    "fn.ledger.compact": {
     "function_id": "fn.ledger.compact",
@@ -1106,7 +1126,9 @@
      "subject": "ref(ledger)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 ledger 不在 objects 里"
+    "_note": "output_type 未定：前置名 ledger 不在 objects 里",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.ledger.compact"
    },
    "fn.world.rekey": {
     "function_id": "fn.world.rekey",
@@ -1116,7 +1138,9 @@
      "subject": "ref(world)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 world 不在 objects 里"
+    "_note": "output_type 未定：前置名 world 不在 objects 里",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.world.rekey"
    },
    "fn.world.migrate": {
     "function_id": "fn.world.migrate",
@@ -1126,7 +1150,9 @@
      "subject": "ref(world)"
     },
     "output_type": "",
-    "_note": "output_type 未定：前置名 world 不在 objects 里"
+    "_note": "output_type 未定：前置名 world 不在 objects 里",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.world.migrate"
    },
    "fn.presence.report": {
     "function_id": "fn.presence.report",
@@ -1136,7 +1162,9 @@
      "subject": "enum(human,agent,application,service,device,workflow)"
     },
     "output_type": "enum(human,agent,application,service,device,workflow)",
-    "_note": "output_type=presence"
+    "_note": "output_type=presence",
+    "transport": "bus",
+    "endpoint": "bus:world.fn.presence.report"
    }
   },
   "_抄自P_禁抄什么": "★★ **`implementation` —— 一个字都不许抄**（判据 `check_ops_shape.py` 的 **`A-7`**）。\nP 的 `OntologyFunction` 带**真代码**（`implementation: Callable[..., Any]`，`execute()` 直接跑，`describe()` 逐字注「JSON-serializable **for MCP tool listing**」）；而本仓逐字（`functions._comment`）：\n> **本表只收入口名：它是一张引用表，代码不进本体。**\n⇒ **抄了就等于把代码塞进法律。**",
