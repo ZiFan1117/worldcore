@@ -1,47 +1,164 @@
 {
- "_what": "★ 从 sysknife-daemon 0.16.0 的 42 个 actions/*.rs 抽出的 ActionSpec，全量",
- "_how": "花括号配对 + 实参切分 + 常量解析 + 变量转 {占位符} + 环境变量分离；去 sudo（载体本身 root）",
+ "_what": "★ 从 sysknife-daemon 0.16.0 的 42 个 actions/*.rs 抽出的全部 ActionSpec",
+ "_how": "花括号配对 + 实参切分 + 常量解析 + 变量转 {占位符} + env 分离 + file_* 机制；去 sudo",
  "_license": "MIT（sysknife / lacs-project）",
- "_naming": "sys.<PascalName>；args 里的 {x} 由载体用 params[x] 替换",
- "count": 141,
+ "_naming": "sys.<PascalName>；args 里 {x} 由载体用 params[x] 替换；{args} 是整体参数",
+ "count": 156,
+ "unsupported_count": 29,
+ "unsupported": [
+  {
+   "n": "ConfigureUnattendedUpgrades",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/unattended-upgrades-edit"
+  },
+  {
+   "n": "SetAptPin",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveAptPin",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "AddAuditRule",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveAuditRule",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "SetKernelArguments",
+   "why": "sudo 后没有程序（参数没静态解出）"
+  },
+  {
+   "n": "GrubSetKargs",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/grub-kargs-edit"
+  },
+  {
+   "n": "ConfigureLogRotation",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveLogRotation",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "ConfigureRemoteSyslog",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveRemoteSyslog",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "AddMount",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveMount",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "AddSwap",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RemoveSwap",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "ConfigureWifi",
+   "why": "sudo 后没有程序（参数没静态解出）"
+  },
+  {
+   "n": "ConfigureFirewall",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/action-steps"
+  },
+  {
+   "n": "GetFirewallBackendState",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/firewall-state"
+  },
+  {
+   "n": "SetPasswordPolicy",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "SetAccountLockout",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "CreateScheduledJob",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/scheduled-job-edit"
+  },
+  {
+   "n": "SetSshdOption",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sshd-option-edit"
+  },
+  {
+   "n": "GrantSudoAccess",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "RevokeSudoAccess",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sudoers-edit"
+  },
+  {
+   "n": "SetSysctl",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/sysctl-edit"
+  },
+  {
+   "n": "CreateUser",
+   "why": "sudo 后没有程序（参数没静态解出）"
+  },
+  {
+   "n": "AddUserToGroup",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/action-steps"
+  },
+  {
+   "n": "RemoveUserFromGroup",
+   "why": "需要 sysknife 自己的辅助程序 /usr/lib/sysknife/action-steps"
+  },
+  {
+   "n": "CreateGroup",
+   "why": "sudo 后没有程序（参数没静态解出）"
+  }
+ ],
  "actions": [
   {
    "action": "sys.AppArmorStatus",
+   "mechanism": "Command",
    "program": "aa-status",
    "args": [],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AppArmorEnforce",
+   "mechanism": "Command",
    "program": "aa-enforce",
    "args": [
     "{profile_path}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "profile_path"
    ]
   },
   {
    "action": "sys.AppArmorComplain",
+   "mechanism": "Command",
    "program": "aa-complain",
    "args": [
     "{profile_path}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "profile_path"
    ]
   },
   {
    "action": "sys.AptUpdate",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "update"
@@ -50,12 +167,11 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AptUpgrade",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "dist-upgrade",
@@ -65,12 +181,11 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AptInstall",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "install",
@@ -81,14 +196,13 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptRemove",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "remove",
@@ -99,14 +213,13 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptPurge",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "purge",
@@ -117,14 +230,13 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptAutoremove",
+   "mechanism": "Command",
    "program": "/usr/bin/apt-get",
    "args": [
     "autoremove",
@@ -134,227 +246,246 @@
     "DEBIAN_FRONTEND": "noninteractive",
     "NEEDRESTART_MODE": "a"
    },
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AptHold",
+   "mechanism": "Command",
    "program": "apt-mark",
    "args": [
     "hold",
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptUnhold",
+   "mechanism": "Command",
    "program": "apt-mark",
    "args": [
     "unhold",
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptSearch",
+   "mechanism": "Command",
    "program": "apt-cache",
    "args": [
     "search",
     "{term}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "term"
    ]
   },
   {
    "action": "sys.AptListInstalled",
+   "mechanism": "Command",
    "program": "dpkg",
    "args": [
     "-l"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AptShow",
+   "mechanism": "Command",
    "program": "apt-cache",
    "args": [
     "show",
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.AptListUpgradable",
+   "mechanism": "Command",
    "program": "bash",
    "args": [
     "-c",
     "apt list --upgradable 2>/dev/null"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AptHistoryList",
+   "mechanism": "Command",
    "program": "bash",
    "args": [
     "-c",
     "grep -A 4 '^Start-Date' /var/log/apt/history.log | tail -n 80"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetAptPins",
+   "mechanism": "Command",
    "program": "apt-cache",
    "args": [
-    "{args}"
+    "policy"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
-   "params": [
-    "args"
-   ]
+   "params": []
   },
   {
    "action": "sys.GetAuditRules",
+   "mechanism": "Command",
    "program": "auditctl",
    "args": [
     "-l"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetCertificates",
+   "mechanism": "Command",
    "program": "certbot",
    "args": [
     "certificates"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.ObtainCertificate",
+   "mechanism": "Command",
+   "program": "certbot",
+   "args": [],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.RenewCertificates",
+   "mechanism": "Command",
    "program": "certbot",
    "args": [
     "renew"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.CloudInitStatus",
+   "mechanism": "Command",
    "program": "cloud-init",
    "args": [
     "status",
     "--long"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ListContainers",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "ps",
+    "--all",
+    "--format",
+    "json"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
    "params": []
   },
   {
    "action": "sys.CreateContainer",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "create",
+    "--name",
+    "{name}",
+    "{image}"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name",
+    "image"
+   ]
   },
   {
    "action": "sys.StartContainer",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "start",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.StopContainer",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "stop",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.RemoveContainer",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "rm",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.GetContainerInfo",
+   "mechanism": "Command",
    "program": "podman",
-   "args": [],
+   "args": [
+    "inspect",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "podman_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.GetSystemState",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "status",
     "--json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.CollectDiagnostics",
+   "mechanism": "Command",
    "program": "journalctl",
    "args": [
     "-b",
@@ -363,61 +494,72 @@
     "--no-pager"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetDeploymentHistory",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "status",
     "--json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ListDeployments",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "status",
     "--json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.UpdateSystem",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "upgrade"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.PinDeployment",
+   "mechanism": "Command",
+   "program": "ostree",
+   "args": [],
+   "env": {},
+   "params": []
+  },
+  {
+   "action": "sys.UnpinDeployment",
+   "mechanism": "Command",
+   "program": "ostree",
+   "args": [],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.RebaseSystem",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "rebase",
     "{target_ref}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "target_ref"
    ]
   },
   {
    "action": "sys.CleanupDeployments",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "cleanup",
@@ -425,56 +567,51 @@
     "--pending"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.RebootSystem",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "reboot"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.RollbackDeployment",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "rollback"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetKernelArguments",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "kargs"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.DistroboxList",
+   "mechanism": "Command",
    "program": "distrobox",
    "args": [
     "list"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.DistroboxCreate",
+   "mechanism": "Command",
    "program": "distrobox",
    "args": [
     "create",
@@ -485,8 +622,6 @@
     "{image}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name",
     "image"
@@ -494,6 +629,7 @@
   },
   {
    "action": "sys.DistroboxRemove",
+   "mechanism": "Command",
    "program": "distrobox",
    "args": [
     "rm",
@@ -501,14 +637,13 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.GetDiskUsage",
+   "mechanism": "Command",
    "program": "df",
    "args": [
     "-h",
@@ -519,200 +654,262 @@
     "--exclude-type=efivarfs"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.InstallFlatpak",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "install",
+    "--user",
+    "-y",
+    "{remote}",
+    "{app_id}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "remote",
+    "app_id"
+   ]
   },
   {
    "action": "sys.RemoveFlatpak",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "uninstall",
+    "--user",
+    "-y",
+    "{app_id}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "app_id"
+   ]
   },
   {
    "action": "sys.SearchFlatpakApps",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
     "search",
     "{term}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "term"
    ]
   },
   {
    "action": "sys.ListFlatpakRemotes",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "remotes",
+    "--user",
+    "--columns=name,url"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
    "params": []
   },
   {
    "action": "sys.AddFlatpakRemote",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "remote-add",
+    "--user",
+    "--if-not-exists",
+    "{remote}",
+    "{url}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "remote",
+    "url"
+   ]
   },
   {
    "action": "sys.RemoveFlatpakRemote",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "remote-delete",
+    "--user",
+    "{remote}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "remote"
+   ]
   },
   {
    "action": "sys.ListInstalledFlatpaks",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "list",
+    "--user",
+    "--app",
+    "--columns=application,name,version,origin"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
    "params": []
+  },
+  {
+   "action": "sys.UpdateFlatpak",
+   "mechanism": "Command",
+   "program": "flatpak",
+   "args": [
+    "info",
+    "--user",
+    "{app_id}"
+   ],
+   "env": {},
+   "params": [
+    "app_id"
+   ]
   },
   {
    "action": "sys.GetFlatpakAppInfo",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "info",
+    "--user",
+    "{app_id}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "app_id"
+   ]
   },
   {
    "action": "sys.UbuntuInstallFlatpak",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "install",
+    "--user",
+    "-y",
+    "{remote}",
+    "{app_id}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "remote",
+    "app_id"
+   ]
   },
   {
    "action": "sys.UbuntuRemoveFlatpak",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "uninstall",
+    "--user",
+    "-y",
+    "{app_id}"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
+   "params": [
+    "app_id"
+   ]
+  },
+  {
+   "action": "sys.UbuntuUpdateFlatpak",
+   "mechanism": "Command",
+   "program": "flatpak",
+   "args": [
+    "list",
+    "--user",
+    "--app",
+    "--columns=application,name,version,origin"
+   ],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.UbuntuListFlatpaks",
+   "mechanism": "Command",
    "program": "flatpak",
    "args": [
-    "--user"
+    "list",
+    "--user",
+    "--app",
+    "--columns=application,name,version,origin"
    ],
    "env": {},
-   "mechanism": "flatpak_as",
-   "as_user": "username",
    "params": []
   },
   {
    "action": "sys.GrubGetKargs",
+   "mechanism": "Command",
    "program": "grep",
    "args": [
     "-E",
+    "{r}",
     "^GRUB_CMDLINE_LINUX",
     "/etc/default/grub"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
-   "params": []
+   "params": [
+    "r"
+   ]
   },
   {
    "action": "sys.GetDateTime",
+   "mechanism": "Command",
    "program": "timedatectl",
-   "args": [],
+   "args": [
+    ""
+   ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.SetHostname",
+   "mechanism": "Command",
    "program": "hostnamectl",
    "args": [
     "set-hostname",
     "{hostname}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "hostname"
    ]
   },
   {
    "action": "sys.SetTimezone",
+   "mechanism": "Command",
    "program": "timedatectl",
    "args": [
     "set-timezone",
     "{timezone}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "timezone"
    ]
   },
   {
    "action": "sys.SetLocale",
+   "mechanism": "Command",
    "program": "localectl",
    "args": [
     "set-locale",
     "{locale}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "locale"
    ]
   },
   {
    "action": "sys.SetNtp",
+   "mechanism": "Command",
    "program": "timedatectl",
    "args": [
     "set-ntp",
@@ -721,71 +918,62 @@
     "false"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "enabled"
    ]
   },
   {
    "action": "sys.GetJournalLog",
+   "mechanism": "Command",
    "program": "journalctl",
    "args": [
-    "{args}"
+    "--output=json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
-   "params": [
-    "args"
-   ]
-  },
-  {
-   "action": "sys.VacuumJournal",
-   "program": "journalctl",
-   "args": [],
-   "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
-   "action": "sys.InstallPackages",
-   "program": "rpm-ostree",
+   "action": "sys.VacuumJournal",
+   "mechanism": "Command",
+   "program": "journalctl",
    "args": [
-    "install",
-    "--idempotent"
+    "{vacuum_flag}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
+   "params": [
+    "vacuum_flag"
+   ]
+  },
+  {
+   "action": "sys.InstallPackages",
+   "mechanism": "Command",
+   "program": "{args}",
+   "args": [],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.RemovePackages",
-   "program": "rpm-ostree",
-   "args": [
-    "uninstall"
-   ],
+   "mechanism": "Command",
+   "program": "{args}",
+   "args": [],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetLayeredPackages",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "status",
     "--json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.AddLayeredPackage",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "install",
@@ -793,28 +981,26 @@
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.RemoveLayeredPackage",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "uninstall",
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.ReplaceLayeredPackage",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "install",
@@ -823,8 +1009,6 @@
     "{old}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "new",
     "old"
@@ -832,6 +1016,7 @@
   },
   {
    "action": "sys.RemoveBasePackage",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "override",
@@ -839,26 +1024,24 @@
     "{package}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "package"
    ]
   },
   {
    "action": "sys.GetPendingUpdates",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "upgrade",
     "--check"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ResetLayeredPackageOverride",
+   "mechanism": "Command",
    "program": "rpm-ostree",
    "args": [
     "override",
@@ -866,38 +1049,35 @@
     "--all"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.LivepatchStatus",
+   "mechanism": "Command",
    "program": "canonical-livepatch",
    "args": [
     "status",
     "--verbose"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetLogrotateStatus",
+   "mechanism": "Command",
    "program": "logrotate",
    "args": [
     "-d",
     "{conf}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "conf"
    ]
   },
   {
    "action": "sys.GetLvmReport",
+   "mechanism": "Command",
    "program": "lvs",
    "args": [
     "--reportformat",
@@ -908,12 +1088,11 @@
     "lv_name,vg_name,lv_size,lv_attr,origin,data_percent"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ExtendLogicalVolume",
+   "mechanism": "Command",
    "program": "lvextend",
    "args": [
     "-L",
@@ -922,14 +1101,13 @@
     "{vg}/{lv}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "size"
    ]
   },
   {
    "action": "sys.CreateLogicalVolume",
+   "mechanism": "Command",
    "program": "lvcreate",
    "args": [
     "-L",
@@ -939,8 +1117,6 @@
     "{vg}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "size",
     "name",
@@ -949,6 +1125,7 @@
   },
   {
    "action": "sys.CreateLvSnapshot",
+   "mechanism": "Command",
    "program": "lvcreate",
    "args": [
     "-s",
@@ -959,8 +1136,6 @@
     "{vg}/{origin}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "size",
     "snapshot"
@@ -968,28 +1143,27 @@
   },
   {
    "action": "sys.GetMounts",
+   "mechanism": "Command",
    "program": "findmnt",
    "args": [
     "--json"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.MultipassList",
+   "mechanism": "Command",
    "program": "multipass",
    "args": [
     "list"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.NetplanGetConfig",
+   "mechanism": "Command",
    "program": "find",
    "args": [
     "/etc/netplan",
@@ -1004,108 +1178,184 @@
     "+"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.NetplanSet",
+   "mechanism": "Command",
    "program": "netplan",
    "args": [
     "set",
     "{kv}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "kv"
    ]
   },
   {
    "action": "sys.NetplanGenerate",
+   "mechanism": "Command",
    "program": "netplan",
    "args": [
     "generate"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.NetplanApply",
+   "mechanism": "Command",
    "program": "netplan",
    "args": [
     "apply"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.SetDnsServers",
+   "mechanism": "Command",
+   "program": "{args}",
+   "args": [],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.GetFirewallState",
+   "mechanism": "Command",
    "program": "firewall-cmd",
    "args": [
     "--list-all"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetNetworkStatus",
+   "mechanism": "Command",
    "program": "ip",
    "args": [
     "-brief",
     "addr"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetNftablesRuleset",
+   "mechanism": "Command",
    "program": "nft",
    "args": [
     "list",
     "ruleset"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetListeningPorts",
+   "mechanism": "Command",
    "program": "ss",
    "args": [
     "-tulpnH"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
+   "action": "sys.ListPackageRepositories",
+   "mechanism": "FileScan",
+   "path": "/etc/yum.repos.d",
+   "content": "",
+   "search": "",
+   "replace": "",
+   "program": null,
+   "args": [],
+   "env": {},
+   "params": []
+  },
+  {
+   "action": "sys.AddPackageRepository",
+   "mechanism": "FileWrite",
+   "path": "\"/etc/yum.repos.d/{repo_id}.repo\"",
+   "content": "\"[{repo_id}]\nbaseurl={repo_url}\nenabled=1\n\"",
+   "search": "\"[{repo_id}]\nbaseurl={repo_url}\nenabled=1\n\"",
+   "replace": "",
+   "program": null,
+   "args": [],
+   "env": {},
+   "params": [
+    "repo_id",
+    "repo_url"
+   ]
+  },
+  {
+   "action": "sys.RemovePackageRepository",
+   "mechanism": "FileDelete",
+   "path": "\"/etc/yum.repos.d/{repo_id}.repo\"",
+   "content": "",
+   "search": "",
+   "replace": "",
+   "program": null,
+   "args": [],
+   "env": {},
+   "params": [
+    "repo_id"
+   ]
+  },
+  {
+   "action": "sys.EnablePackageRepository",
+   "mechanism": "FilePatch",
+   "path": "\"/etc/yum.repos.d/{repo_id}.repo\"",
+   "content": "enabled=0",
+   "search": "enabled=0",
+   "replace": "enabled=1",
+   "program": null,
+   "args": [],
+   "env": {},
+   "params": [
+    "repo_id"
+   ]
+  },
+  {
+   "action": "sys.DisablePackageRepository",
+   "mechanism": "FilePatch",
+   "path": "\"/etc/yum.repos.d/{repo_id}.repo\"",
+   "content": "enabled=1",
+   "search": "enabled=1",
+   "replace": "enabled=0",
+   "program": null,
+   "args": [],
+   "env": {},
+   "params": [
+    "repo_id"
+   ]
+  },
+  {
    "action": "sys.GetPasswordAging",
+   "mechanism": "Command",
    "program": "chage",
    "args": [
     "-l",
     "{user}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "user"
    ]
   },
   {
+   "action": "sys.SetPasswordAging",
+   "mechanism": "Command",
+   "program": "chage",
+   "args": [],
+   "env": {},
+   "params": []
+  },
+  {
    "action": "sys.AddPpa",
+   "mechanism": "Command",
    "program": "add-apt-repository",
    "args": [
     "-y",
@@ -1113,8 +1363,6 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "ppa_arg",
     "name"
@@ -1122,6 +1370,7 @@
   },
   {
    "action": "sys.RemovePpa",
+   "mechanism": "Command",
    "program": "add-apt-repository",
    "args": [
     "-y",
@@ -1130,8 +1379,6 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "ppa_arg",
     "name"
@@ -1139,18 +1386,18 @@
   },
   {
    "action": "sys.ListProcesses",
+   "mechanism": "Command",
    "program": "ps",
    "args": [
     "aux",
     "--sort=-%mem"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.SignalProcess",
+   "mechanism": "Command",
    "program": "kill",
    "args": [
     "-s",
@@ -1158,8 +1405,6 @@
     "{pid_str}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "signal",
     "pid_str"
@@ -1167,43 +1412,53 @@
   },
   {
    "action": "sys.CheckPendingReboot",
+   "mechanism": "Command",
    "program": "bash",
    "args": [
     "-c",
     "{script}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "script"
    ]
   },
   {
    "action": "sys.UbuntuReleaseUpgrade",
+   "mechanism": "Command",
    "program": "do-release-upgrade",
    "args": [
     "-f",
     "DistUpgradeViewNonInteractive"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ResolvectlStatus",
+   "mechanism": "Command",
    "program": "resolvectl",
    "args": [
     "status"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
+   "action": "sys.ResolvectlSetDns",
+   "mechanism": "Command",
+   "program": "resolvectl",
+   "args": [
+    "{args}"
+   ],
+   "env": {},
+   "params": [
+    "args"
+   ]
+  },
+  {
    "action": "sys.GetServiceResourceLimits",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "show",
@@ -1211,14 +1466,21 @@
     "--property=MemoryMax,MemoryHigh,CPUQuotaPerSecUSec,TasksMax"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
+   "action": "sys.SetServiceResourceLimits",
+   "mechanism": "Command",
+   "program": "systemctl",
+   "args": [],
+   "env": {},
+   "params": []
+  },
+  {
    "action": "sys.ListServices",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "list-units",
@@ -1228,62 +1490,56 @@
     "--no-pager"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.StartService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "start",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.StopService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "stop",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.RestartService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "restart",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.SetServiceEnabled",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "{verb}",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "verb",
     "unit"
@@ -1291,34 +1547,33 @@
   },
   {
    "action": "sys.MaskService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "mask",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.UnmaskService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "unmask",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.GetServiceStatus",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "status",
@@ -1326,28 +1581,26 @@
     "--no-pager"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.ReloadService",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "reload",
     "{unit}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.ListTimers",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "list-timers",
@@ -1356,23 +1609,21 @@
     "--no-pager"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ReloadDaemon",
+   "mechanism": "Command",
    "program": "systemctl",
    "args": [
     "daemon-reload"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetServiceLogs",
+   "mechanism": "Command",
    "program": "journalctl",
    "args": [
     "-u",
@@ -1382,51 +1633,47 @@
     "--no-pager"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "unit"
    ]
   },
   {
    "action": "sys.SnapInstall",
-   "program": "snap",
+   "mechanism": "Command",
+   "program": "install",
    "args": [],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.SnapRemove",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "remove",
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.SnapRefresh",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "refresh",
     "{n}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "n"
    ]
   },
   {
    "action": "sys.SnapHold",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "refresh",
@@ -1434,14 +1681,13 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.SnapUnhold",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "refresh",
@@ -1449,53 +1695,49 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.SnapList",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "list"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.SnapInfo",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "info",
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.SnapRevert",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "revert",
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.SnapClassicInstall",
+   "mechanism": "Command",
    "program": "snap",
    "args": [
     "install",
@@ -1503,125 +1745,134 @@
     "{name}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "name"
    ]
   },
   {
    "action": "sys.GetAuthorizedKeys",
+   "mechanism": "Command",
    "program": "cat",
    "args": [
     "/home/{username}/.ssh/authorized_keys"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.GetSudoGrants",
+   "mechanism": "Command",
+   "program": "{args}",
+   "args": [],
+   "env": {},
    "params": []
   },
   {
    "action": "sys.GetSysctl",
+   "mechanism": "Command",
    "program": "sysctl",
    "args": [
     "{args}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "args"
    ]
   },
   {
    "action": "sys.GetMemoryInfo",
+   "mechanism": "Command",
    "program": "free",
    "args": [
     "-h"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.GetHostState",
+   "mechanism": "Command",
    "program": "hostnamectl",
    "args": [
     "status"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ListToolboxes",
+   "mechanism": "Command",
    "program": "toolbox",
-   "args": [],
+   "args": [
+    "list"
+   ],
    "env": {},
-   "mechanism": "toolbox_as",
-   "as_user": "username",
    "params": []
   },
   {
    "action": "sys.CreateToolbox",
+   "mechanism": "Command",
    "program": "toolbox",
-   "args": [],
+   "args": [
+    "rm",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "toolbox_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.RemoveToolbox",
+   "mechanism": "Command",
    "program": "toolbox",
-   "args": [],
+   "args": [
+    "rm",
+    "{name}"
+   ],
    "env": {},
-   "mechanism": "toolbox_as",
-   "as_user": "username",
-   "params": []
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.ProStatus",
+   "mechanism": "Command",
    "program": "pro",
    "args": [
     "status",
     "--all"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ProAttach",
+   "mechanism": "Command",
    "program": "pro",
    "args": [
     "attach",
     "{token}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "token"
    ]
   },
   {
    "action": "sys.ProDetach",
+   "mechanism": "Command",
    "program": "pro",
    "args": [
     "detach",
     "--assume-yes"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.EnableProService",
+   "mechanism": "Command",
    "program": "pro",
    "args": [
     "enable",
@@ -1629,14 +1880,13 @@
     "--assume-yes"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "service"
    ]
   },
   {
    "action": "sys.DisableProService",
+   "mechanism": "Command",
    "program": "pro",
    "args": [
     "disable",
@@ -1644,77 +1894,71 @@
     "--assume-yes"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "service"
    ]
   },
   {
    "action": "sys.UfwEnable",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "--force",
     "enable"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.UfwDisable",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "disable"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.UfwAllow",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "allow",
     "{port_or_service}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "port_or_service"
    ]
   },
   {
    "action": "sys.UfwDeny",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "deny",
     "{port_or_service}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "port_or_service"
    ]
   },
   {
    "action": "sys.UfwReset",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "--force",
     "reset"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.UfwStatus",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "status",
@@ -1723,115 +1967,103 @@
     "verbose"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "numbered"
    ]
   },
   {
    "action": "sys.UfwDeleteRule",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "--force",
     "delete",
-    "{rule_number}",
-    "{to_string}"
+    "{rule_number}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
-    "rule_number",
-    "to_string"
+    "rule_number"
    ]
   },
   {
    "action": "sys.UfwLimit",
+   "mechanism": "Command",
    "program": "ufw",
    "args": [
     "limit",
     "{target}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "target"
    ]
   },
   {
    "action": "sys.ListUsers",
+   "mechanism": "Command",
    "program": "getent",
    "args": [
     "passwd"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.ListGroups",
+   "mechanism": "Command",
    "program": "getent",
    "args": [
     "group"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": []
   },
   {
    "action": "sys.DeleteUser",
+   "mechanism": "Command",
    "program": "userdel",
    "args": [
     "{username}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "username"
    ]
   },
   {
    "action": "sys.DeleteGroup",
+   "mechanism": "Command",
    "program": "groupdel",
    "args": [
     "{group}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "group"
    ]
   },
   {
    "action": "sys.LockUserAccount",
+   "mechanism": "Command",
    "program": "usermod",
    "args": [
     "--lock",
     "{username}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "username"
    ]
   },
   {
    "action": "sys.UnlockUserAccount",
+   "mechanism": "Command",
    "program": "usermod",
    "args": [
     "--unlock",
     "{username}"
    ],
    "env": {},
-   "mechanism": "command_mechanism",
-   "as_user": null,
    "params": [
     "username"
    ]

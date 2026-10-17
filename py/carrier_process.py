@@ -58,12 +58,20 @@ def load_map(path):
     return rows
 
 
-def _expand(tok, params, missing):
-    """★ 把一个 token 展开：`{x}` 换成 `params[x]`。
+def _subst(template, params, missing):
+    """★ 把模板里的 `{x}` 用 `params[x]` 替换（★ 缺就记 missing）。"""
+    def rep(m):
+        k = m.group(1)
+        if k not in params:
+            missing.append(k)
+            return ""
+        v = params[k]
+        return " ".join(str(x) for x in v) if isinstance(v, (list, tuple)) else str(v)
+    return re.sub(r"\{([a-z_][a-z0-9_]*)\}", rep, template)
 
-    ★ 列表值展开成多个 token（★ `-y {package}` ＋ packages=[a,b] ⇒ `-y a b`）。
-    ★ 缺参 ⇒ 记进 missing（★ 不静默）。
-    """
+
+def _expand(tok, params, missing):
+    """★ 一个 token：`{x}` ⇒ params[x]（★ 列表展开成多个 token）。"""
     m = re.fullmatch(r"\{([a-z_][a-z0-9_]*)\}", tok)
     if not m:
         return [tok]
@@ -77,45 +85,87 @@ def _expand(tok, params, missing):
     return [str(v)]
 
 
-def probe_availability(rows):
-    """★ 发行版路由：★ 逐个看程序在不在本机（★ 比硬编码发行版矩阵更实）。
+def _run_file_mechanism(reg, params):
+    """★ 文件类机制（★ 从 sysknife 的 FileScan/FileWrite/FilePatch/FileDelete 来）。
 
-    ★★ 2026-10-17：抄了 sysknife 的 150 个动作，其中大量是 Debian/Fedora 专有的（apt-*／dnf-*／
-    rpm-ostree／ufw…）。★★ openSUSE 上没有 ⇒ ★ 报「本发行版没有这个程序」，★ 不报「起不来」。
+    ★★ 这类动作【不是跑命令】—— ★ 是【直接读写文件】。★ 载体代劳。
     """
-    ok, missing = [], {}
-    for name, reg in rows.items():
-        prog = reg.get("program") or ""
-        if not prog:
-            missing[name] = "没有程序（界面类）"
-            continue
-        if shutil.which(prog):
-            ok.append(name)
-        else:
-            missing[name] = "本发行版没有 %s" % prog
-    return ok, missing
+    mech = reg.get("mechanism") or ""
+    missing = []
+    path = _subst(reg.get("path") or "", params, missing)
+    if missing:
+        return False, "缺参数 %s（这个动作要 %s）" % (sorted(set(missing)), sorted((reg.get("params") or [])))
+    if not path:
+        return False, "路径为空"
+    if mech == "FileScan":
+        if not os.path.isdir(path):
+            return False, "没有这个目录：%s" % path
+        names = sorted(os.listdir(path))
+        return True, "\n".join(names)
+    if mech == "FileWrite":
+        content = _subst(reg.get("content") or "", params, [])
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return True, "写了 %s（%d 字节）" % (path, len(content))
+    if mech == "FileDelete":
+        if not os.path.exists(path):
+            return False, "没有这个文件：%s" % path
+        os.remove(path)
+        return True, "删了 %s" % path
+    if mech == "FilePatch":
+        search = reg.get("search") or ""
+        replace = reg.get("replace") or ""
+        if not os.path.exists(path):
+            return False, "没有这个文件：%s" % path
+        with open(path, "r", encoding="utf-8") as f:
+            body = f.read()
+        if search not in body:
+            return False, "文件里没有要改的那段：%r" % search
+        body = body.replace(search, replace, 1)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(body)
+        return True, "改了 %s（%r → %r）" % (path, search, replace)
+    return False, "不认识的机制：%s" % mech
+
 
 def run_action(rows, action, params):
-    """★ 查表 ⇒ 起程序 ⇒ 收输出。★ 不拼 shell（直接 execve）。
+    """★ 查表 ⇒ 起程序 / 读写文件 ⇒ 收输出。★ 不拼 shell。
 
-    ★★ 2026-10-17：支持 sysknife 抄来的动作 ——
-      ① args 里的 `{x}` 用 `params[x]` 替换（★ 缺参就拒，不静默）
-      ② 映射表的 `env` 作为环境变量传给程序
+    ★★ 2026-10-17：
+      ① `{x}` ← `params[x]`（★ 缺参就拒，不静默）；`{args}` 是【整体参数】
+      ② 映射表的 `env` 作为环境变量
+      ③ **执行时重新探测程序在不在**（★ 不只在启动时探）
+      ④ 文件类机制（FileScan/Write/Patch/Delete）由载体代劳
     """
     reg = rows.get(action)
     if reg is None:
         return False, "载体侧不认识 %s（映射表里没有）" % action
+    params = params if isinstance(params, dict) else {}
+    mech = reg.get("mechanism") or "Command"
+    if mech != "Command":
+        return _run_file_mechanism(reg, params)
     program = reg.get("program") or ""
     if not program:
-        return False, "%s 没有程序（可能是界面类动作）" % action
+        return False, "%s 没有程序" % action
+    # ★★ 执行时探测（★ 第 5 条缺口）
+    if not shutil.which(program):
+        return False, "本发行版没有 %s（这个动作可能需要别的发行版）" % program
     raw_args = list(reg.get("args") or [])
-    params = params if isinstance(params, dict) else {}
-    # ★ 显式传 args 时以请求为准（★ 老行为，保留）
     if isinstance(params.get("args"), list):
         cmd_args = [str(x) for x in params["args"]]
     else:
         cmd_args, missing = [], []
         for tok in raw_args:
+            if tok == "{args}":
+                v = params.get("args")
+                if isinstance(v, (list, tuple)):
+                    cmd_args.extend(str(x) for x in v)
+                elif v is not None:
+                    cmd_args.append(str(v))
+                else:
+                    missing.append("args")
+                continue
             cmd_args.extend(_expand(tok, params, missing))
         if missing:
             return False, "缺参数 %s（这个动作要 %s）" % (sorted(set(missing)), sorted((reg.get("params") or [])))
@@ -126,7 +176,7 @@ def run_action(rows, action, params):
     try:
         p = subprocess.run(cmd, capture_output=True, timeout=30, env=env)
     except FileNotFoundError:
-        return False, ("本发行版没有 %s（★ 这个动作可能需要别的发行版）" % program)
+        return False, "本发行版没有 %s（这个动作可能需要别的发行版）" % program
     except subprocess.TimeoutExpired:
         return False, "超时（30 秒）：%s" % " ".join(cmd)
     except Exception as e:
@@ -136,6 +186,28 @@ def run_action(rows, action, params):
     if p.returncode != 0:
         return False, "%s 退出码 %s\n%s" % (program, p.returncode, err.strip()[:500])
     return True, out
+
+def probe_availability(rows):
+    """★ 启动时报一次【哪些动作本机可用】（★ 执行时还会再探一次）。
+
+    ★★ 2026-10-17：抄了 sysknife 的 156 个动作，其中大量是 Debian/Fedora 专有的
+    （apt-*／dnf-*／rpm-ostree／ufw…）。★★ openSUSE 上没有 ⇒ 启动时就报清楚。
+    """
+    ok, missing = [], {}
+    for name, reg in rows.items():
+        mech = reg.get("mechanism") or "Command"
+        if mech != "Command":
+            ok.append(name)   # ★ 文件类机制不依赖外部程序
+            continue
+        prog = reg.get("program") or ""
+        if not prog:
+            missing[name] = "没有程序"
+            continue
+        if shutil.which(prog):
+            ok.append(name)
+        else:
+            missing[name] = "本发行版没有 %s" % prog
+    return ok, missing
 
 def main():
     rows = load_map(MAP_PATH)
