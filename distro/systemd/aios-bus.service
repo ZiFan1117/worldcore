@@ -1,0 +1,24 @@
+[Unit]
+Description=AI-OS.NET Semantic Bus (zenoh)
+Documentation=https://ai-os.net/docs/semantic-bus
+# ★★★ 总线是【单独一个进程】，而且和本体一样【最先起来】（作者裁：「只有这个总线和这个本体是最先起来的」）。
+# ★ 所以它 Before 所有 aios-* 单元 —— 后面那些都要能往总线上说话。
+Before=aios-ontology.service aios-cognitive-core.service aios-capability-runtime.service aios-evidence-log.service aios-policy-kernel.service
+
+[Service]
+Type=simple
+# ★★ 与上游其余单元的一处【已知差异】：它们都走 '/usr/lib/aios/aios-system run-service <名字>'，
+#   而总线用的是 zenoh 自带的守护进程 —— ★ 因为总线【就是 zenoh】（作者裁「换 Zenoh」）。
+#   ⇒ ★ 待办：要么把 zenohd 收进 aios-system，要么接受这处差异并把它写进发行说明。
+ExecStart=/usr/lib/aios/zenohd --listen tcp/127.0.0.1:7447
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# ★ 总线只读网络 ＋ 不需要写盘（zenoh 默认不持久；持久在我们自己的账里）
+ReadWritePaths=/run/aios
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

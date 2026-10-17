@@ -1,0 +1,24 @@
+[Unit]
+Description=AI-OS.NET Ontology (语义世界权威 ＋ 注册/个体面)
+Documentation=https://ai-os.net/docs/ontology
+# ★★★ 本体是【单独一个进程】，★ 总线起来之后第二个（作者裁：「只有这个总线和这个本体是最先起来的」）。
+After=aios-bus.service
+Wants=aios-bus.service
+Before=aios-cognitive-core.service aios-capability-runtime.service aios-evidence-log.service aios-policy-kernel.service
+
+[Service]
+Type=simple
+# ★★ 与上游其余单元的一处【已知差异】：其余走 'aios-system run-service <名字>'；
+#   本体进程是 'crates/aios-worldcore' 的一支 bin（★ 13 里第一支 bin）—— ★ 待接成 run-service 子命令。
+ExecStart=/usr/lib/aios/aios-ontology --config /etc/aios/config.toml
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# ★ 本体要读 ontology.json（只读）、要写注册表（registry.jsonl 是【持久】的那一份）
+ReadWritePaths=/var/lib/aios/ontology /run/aios
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

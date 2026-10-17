@@ -44,6 +44,7 @@ CRITERIA = [
     "c22_command_bridge.py",
     "c23_commands_run.py",
     "c24_a2ui_projection.py",
+    "c25_bus_and_ontology_units.py",
 ]
 
 
