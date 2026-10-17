@@ -1,9 +1,9 @@
 [Unit]
 Description=AI-OS.NET Semantic Bus (zenoh)
 Documentation=https://ai-os.net/docs/semantic-bus
-# ★★★ 总线是【单独一个进程】，而且和本体一样【最先起来】（作者裁：「只有这个总线和这个本体是最先起来的」）。
-# ★ 所以它 Before 所有 aios-* 单元 —— 后面那些都要能往总线上说话。
-Before=aios-ontology.service aios-cognitive-core.service aios-capability-runtime.service aios-evidence-log.service aios-policy-kernel.service
+# ★★★ 作者裁（逐字）：「**本体，和总线两个不要有瓜葛，总线单独起**」。
+# ★★ 所以这里【没有任何 Before=/After=/Wants= 指向别的单元】—— ★ 它自己起、自己活。
+#    （★ 早先我写过 Before=aios-ontology.service …，★ 那是错的口径，已撤。）
 
 [Service]
 Type=simple

@@ -8,11 +8,11 @@
 ⇒ ★ 落法（可判）：
   (a) `distro/systemd/aios-bus.service` 在（★ 总线是一个单独进程）；
   (b) `distro/systemd/aios-ontology.service` 在（★ 本体是一个单独进程）；
-  (c) ★★ **总线的 `Before=` 里有本体**（★ 「总线最先起」）；
-  (d) ★★ **本体的 `After=` 里有总线**（★ 「本体第二个起」）；
+  (c) ★★★ **总线的 unit 里【不许出现】`aios-ontology`**（★ 作者裁：「本体和总线两个不要有瓜葛」）；
+  (d) ★★★ **本体的 unit 里【不许出现】`aios-bus`**（★ 同上）；
   (e) 两个单元都有 `WantedBy=multi-user.target`（★ 会被起，不是摆着）。
 
-红例：★ 把 (c) 的 `Before=` 删掉 ⇒ 红。
+红例：★ 把 (c) 改成「总线 `Before=aios-ontology.service`」⇒ 红（★ 那就是瓜葛）。
 
 限度（★ 如实）：判**文本** ⇒ 「真按这个顺序起」要靠 systemd 本身（★ 本判据只是**文本**）。
 
@@ -39,15 +39,22 @@ def scan(bus, ont):
     if ont is None:
         bad.append("aios-ontology.service：不在（★ 本体应当是一个单独的进程）")
     if bus is not None:
-        if "Before=" in bus and "aios-ontology.service" not in bus:
-            bad.append("aios-bus.service：Before= 里没有本体（★ 总线最先起）")
-        if "Before=" not in bus:
-            bad.append("aios-bus.service：没有 Before=（★ 总线最先起）")
+        # ★★★ 作者裁：本体和总线【不要有瓜葛】⇒ 总线的 unit 里不该出现本体的名字。
+        # ★ 只看【非注释行】—— ★ 注释里写「早先写过 …已撤」是记录，不是瓜葛。
+        bus_code = "\n".join(
+            l for l in bus.splitlines() if not l.strip().startswith("#")
+        )
+        if "aios-ontology" in bus_code:
+            bad.append("aios-bus.service：出现了 aios-ontology（★ 有瓜葛 —— 总线要单独起）")
         if "WantedBy=multi-user.target" not in bus:
             bad.append("aios-bus.service：没有 WantedBy（★ 不会被起）")
     if ont is not None:
-        if "After=" in ont and "aios-bus.service" not in ont:
-            bad.append("aios-ontology.service：After= 里没有总线（★ 本体第二个起）")
+        # ★★★ 同上：本体的 unit 里不该出现总线的名字（★ 非注释行）。
+        ont_code = "\n".join(
+            l for l in ont.splitlines() if not l.strip().startswith("#")
+        )
+        if "aios-bus" in ont_code:
+            bad.append("aios-ontology.service：出现了 aios-bus（★ 有瓜葛 —— 总线要单独起）")
         if "WantedBy=multi-user.target" not in ont:
             bad.append("aios-ontology.service：没有 WantedBy（★ 不会被起）")
     return bad
@@ -70,13 +77,13 @@ def run(label="真仓库"):
 
 GOOD_BUS = (
     "[Unit]\n"
-    "Before=aios-ontology.service\n"
+    "Description=bus\n"
     "[Install]\n"
     "WantedBy=multi-user.target"
 )
 GOOD_ONT = (
     "[Unit]\n"
-    "After=aios-bus.service\n"
+    "Description=ontology\n"
     "[Install]\n"
     "WantedBy=multi-user.target"
 )
@@ -88,15 +95,15 @@ def self_test():
         print("[自检失败] 真仓库应当是绿的，却红了")
         ok = False
     # 红例1：总线的 Before= 里没有本体（顺序丢了）
-    b1 = scan(GOOD_BUS.replace("Before=aios-ontology.service", "Before=other.service"), GOOD_ONT)
-    print("=== 红例1（总线 Before 里没有本体）⇒ 命中 %d 处 ===" % len(b1))
+    b1 = scan(GOOD_BUS.replace("Description=bus", "Before=aios-ontology.service"), GOOD_ONT)
+    print("=== 红例1（总线的 unit 里出现本体）⇒ 命中 %d 处 ===" % len(b1))
     if not b1:
         print("[自检失败] 红例1 该命中")
         ok = False
     # 红例2：本体单元不在
     b2 = scan(GOOD_BUS, None)
     print("=== 红例2（本体单元不在）⇒ 命中 %d 处 ===" % len(b2))
-    if not any("本体" in x for x in b2):
+    if not any("aios-ontology" in x for x in b2):
         print("[自检失败] 红例2 该命中")
         ok = False
     print("=== 自检结论：%s ===" % ("全绿" if ok else "有失败"))

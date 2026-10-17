@@ -1,10 +1,9 @@
 [Unit]
 Description=AI-OS.NET Ontology (语义世界权威 ＋ 注册/个体面)
 Documentation=https://ai-os.net/docs/ontology
-# ★★★ 本体是【单独一个进程】，★ 总线起来之后第二个（作者裁：「只有这个总线和这个本体是最先起来的」）。
-After=aios-bus.service
-Wants=aios-bus.service
-Before=aios-cognitive-core.service aios-capability-runtime.service aios-evidence-log.service aios-policy-kernel.service
+# ★★★ 作者裁（逐字）：「**本体，和总线两个不要有瓜葛，总线单独起**」。
+# ★★ 所以这里【不 After=/Wants= 总线】—— ★ 连不上总线是【运行时的事】（它会自己重试），
+#    ★ 不是【启动顺序的事】（★ 早先我写过 After=/Wants=，★ 那是错的口径，已撤）。
 
 [Service]
 Type=simple
