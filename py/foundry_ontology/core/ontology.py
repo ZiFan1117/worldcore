@@ -23,6 +23,9 @@ class Ontology:
     action_types: dict[str, ActionType] = field(default_factory=dict)
     functions: dict[str, OntologyFunction] = field(default_factory=dict)
     interfaces: dict[str, Interface] = field(default_factory=dict)
+    # ★ 本格是【我们加的】（MIT 允许改）：AIOS 的世界机制。
+    #   放 envelope（信封）／families（四族）／permissions／governance／value_types／flags／world。
+    metadata: dict = field(default_factory=dict)
 
     def register_object_type(self, ot: ObjectType) -> None:
         self.object_types[ot.type_id] = ot

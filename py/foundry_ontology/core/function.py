@@ -16,10 +16,14 @@ class OntologyFunction:
     input_types: dict[str, PropertyType] = None
     output_type: str = ""  # ObjectType ID or PropertyType
     implementation: Callable[..., Any] = None
+    # ★ 本格是【我们加的】（MIT 允许改）：AIOS 的函数元数据（transport／endpoint 等）。
+    metadata: dict = None
 
     def __post_init__(self):
         if self.input_types is None:
             self.input_types = {}
+        if self.metadata is None:
+            self.metadata = {}
 
     def execute(self, **kwargs: Any) -> Any:
         """Execute the function with given arguments."""
