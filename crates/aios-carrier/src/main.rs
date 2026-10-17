@@ -164,7 +164,12 @@ fn main() {
             );
             // ★★ 「成为个体」是另一件（★ 一个说「我成了个体」，★ 一个说「这些名字我活着」）。
             let me =
-                serde_json::json!({"class": "service", "local_id": "carrier", "state": "started"});
+                serde_json::json!({
+        // ★★ 照本体 
+        //   的 `service` 类字段（name／unit／state），不是 `local_id`／`started`。
+        "class": "service", "name": "carrier",
+        "unit": "aios-carrier", "state": "running"
+    });
             let _ = t.put("world/appear", &me.to_string());
             println!("[载体] ② 报了：service/carrier 状态 started");
 

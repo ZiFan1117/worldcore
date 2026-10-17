@@ -1,23 +1,25 @@
 [Unit]
-Description=AI-OS.NET Ontology (语义世界权威 ＋ 注册/个体面)
+Description=AI-OS.NET 本体进程（Python）—— 世界唯一的耦合点：只认、只盖章、只转、只记
 Documentation=https://ai-os.net/docs/ontology
-# ★★★ 作者裁（逐字）：「**本体，和总线两个不要有瓜葛，总线单独起**」。
-# ★★ 所以这里【不 After=/Wants= 总线】—— ★ 连不上总线是【运行时的事】。
+# ★★★ 作者定基调：一个总线 ＋ 一个本体 ＋ 相关进程。
+#   ⇒ 本体【不等】总线（不 After=/不 Wants=/不 Requires=）；连不上就 Restart 自己重试。
 
 [Service]
 Type=simple
-# ★★ 与上游其余单元的一处【已知差异】：其余走 'aios-system run-service <名字>'；
-#   本体进程是 'crates/aios-worldcore' 的一支 bin。
-# ★★★ **总线配置必须 `mode: peer`**（★ 实测：`mode: client` 在 systemd 的服务环境里
-#    连不上 `zenohd`；★ `mode: peer` 能连上 —— ★ 现象清楚、原因未考）。
-Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
-ExecStart=/usr/lib/aios/aios-ontology /usr/lib/aios/ontology.json /var/lib/aios/ontology/registry.jsonl
+# ★★ 本体用 Python —— 因为 Rust 的 zenoh 在本机两种模式都不行（T-334 现取）。
+#   而且 client 模式【跨进程能通】是实测过的。
+WorkingDirectory=/usr/lib/aios/py
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_REGISTRY=/var/lib/aios/ontology/registry.jsonl
+Environment=AIOS_LEDGER=/var/lib/aios/ontology/ledger.jsonl
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+ExecStart=/usr/bin/python3 /usr/lib/aios/py/ontology_process.py
 Restart=always
 RestartSec=3
 LimitNOFILE=65536
 PrivateTmp=yes
 ProtectSystem=strict
-RuntimeDirectory=aios
+# ★ 本体要写自己的注册表和账本
 ReadWritePaths=/var/lib/aios/ontology
 NoNewPrivileges=yes
 

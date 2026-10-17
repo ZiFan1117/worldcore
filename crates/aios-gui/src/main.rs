@@ -85,9 +85,11 @@ fn run_bus() {
 
     // ★ ① 成为个体：★ 类 ＝ surface（★ 作者裁）
     let me = serde_json::json!({
-        "class": "surface",
-        "local_id": "a2ui",
-        "state": "started"
+        // ★★ 照本体 
+        //   的 `surface` 类字段（name／role／order／visible／retract_seq／cells）。
+        //   ★ 本体没有 `state` 这一格 —— 之前发 `state` 是【多塞】，会被拒。
+        "class": "surface", "name": "a2ui", "role": "screen",
+        "order": 1, "visible": true, "retract_seq": 0, "cells": "[]"
     });
     match t.put("world/appear", &me.to_string()) {
         Ok(()) => println!("[GUI] ① 成为个体：surface/a2ui（started）"),
