@@ -8,9 +8,10 @@
 //!
 //! ★ 作者令（逐字整理）：★「**把底层的这个载体，写完，然后注册进来**」。
 //!
-//! ★★ 它在 13 里的位置：★ **`crates/aios-worldcore` 的一支 bin**（★ 不再是演示载体里的散件）。
-//!   ★ 逻辑全是 13 已有的：★ `CommandRunner`（查映射表 ⇒ `program+args` ⇒ 不拼 shell）＋ `Executor`。
-//!   ★ 新加的只有**【和外面说话的入口】** —— ★ 而它只走 `Transport` 那个口（★ 总线选型没定，故不写死）。
+//! ★★ 它在 13 里的位置（T-312 起）：★ **`crates/aios-carrier` —— 它【自己的窝】**。
+//!   ★ 作者 2026-10-17 令：「**新建 crates/aios-carrier/**」★ —— ★ 落实「**一个原子一个夹**」。
+//!   ★ 逻辑全是 13 已有的：★ `CommandRunner`（查映射表 ⇒ `program+args` ⇒ 不拼 shell）＋ `Executor`；
+//!   ★ 它只走 `Transport` 那个口（★ 换总线只改实现，不改它）。
 //!
 //! ★★ 三种用法（★ 前两种今天就跑得起来；★ 第三种等总线定了接上）：
 //! ```text
@@ -35,7 +36,7 @@ use aios_worldcore::engine::transport::{LocalTransport, Transport};
 /// ★ 找法（按序，★ 第一个读得到的就用）：
 ///   ① 环境变量 `AIOS_CARRIER_MAP`；
 ///   ② **安装位置** `/usr/lib/aios/command-map.jsonl`；
-///   ③ 开发位置（★ 本仓 `crates/aios-worldcore/data/command-map.jsonl`，★ 用编译期路径**仅作兜底**）。
+///   ③ 开发位置（★ **本 crate 的 `data/command-map.jsonl`**，★ 用编译期路径**仅作兜底**）。
 fn map_path() -> String {
     if let Ok(p) = std::env::var("AIOS_CARRIER_MAP") {
         if std::path::Path::new(&p).is_file() {

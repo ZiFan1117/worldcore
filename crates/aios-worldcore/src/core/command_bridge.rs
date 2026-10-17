@@ -142,7 +142,8 @@ mod tests {
     use crate::core::types::Who;
 
     // ★★ 载体的自己的数据（T-299 搬家）—— ★ 不再 include 本体那一侧的件。
-    const MAP: &str = include_str!("../../data/command-map.jsonl");
+    // ★★ 映射表已归位到载体自己的窝（T-312：`crates/aios-carrier/data/`）。
+    const MAP: &str = include_str!("../../../aios-carrier/data/command-map.jsonl");
     const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
 
     fn temp(tag: &str) -> String {

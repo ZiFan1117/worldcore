@@ -1,0 +1,13 @@
+[package]
+name = "aios-carrier"
+version.workspace = true
+edition.workspace = true
+description = "★ 载体 —— 这台计算机在【世界里】的代言（上向报机器、下向执行）"
+
+[dependencies]
+# ★ 只用【内核的口】：Transport（总线）＋ CommandRunner（查表起进程）＋ types。
+aios-worldcore = { path = "../aios-worldcore" }
+serde_json.workspace = true
+
+[features]
+bus-zenoh = ["aios-worldcore/bus-zenoh"]

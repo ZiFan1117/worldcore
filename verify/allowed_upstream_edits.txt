@@ -18,7 +18,7 @@ README.md                                         # 退役上游前门，换成�
 crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
 crates/aios-worldcore/src/engine/mod.rs  # 接 transport 口（T-270）
 crates/aios-worldcore/src/engine/transport.rs  # 新增：总线收成一个口（T-270）
-crates/aios-worldcore/src/bin/carrier.rs  # 新增：执行体的独立入口（T-270）
+crates/aios-carrier/  # 我方新增 crate：载体进程（T-312 搬出内核 crate —— 一个原子一个夹）
 Cargo.toml  # 加 zenoh 到 workspace.dependencies（T-271 总线就是 zenoh）
 crates/aios-worldcore/Cargo.toml  # 加 optional zenoh ＋ feature bus-zenoh（T-271）
 crates/aios-worldcore/src/engine/transport/zenoh_impl.rs  # 新增：Transport 的 zenoh 实现（T-271）
