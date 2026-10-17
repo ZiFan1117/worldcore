@@ -24,6 +24,7 @@
   · world/ask/result      → 回传给请求方
 """
 
+import datetime
 import json
 import os
 import sys
@@ -64,7 +65,6 @@ class World:
             % (len(self.ontology.object_types), len(self.ontology.link_types),
                len(self.ontology.action_types), len(self.ontology.functions)))
         self.registry = {}      # ★ 注册表（名字 → 五格）
-        self.seq = 0            # ★ 号源，只有它能发
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
@@ -93,13 +93,16 @@ class World:
 
     # ── 账 ──
     def stamp(self, family, **fields):
-        """★★ 盖号 ＋ 落账 —— 这是【同一个动作】。返回 seq。"""
-        self.seq += 1
-        row = {"seq": self.seq, "family": family,
-               "at": int(time.time()), **fields}
+        """★★ 落账 —— ★ **按时间标签**，不用序列号（作者 2026-10-17 裁：「账本按时间标签就行，不要用这个序列号了」）。
+
+        ★ 返回那条账的【时间标签】（调用方用它回给请求方）。
+        ★★ 为什么不再要 seq：★ 时间本身就带顺序；★ 而 seq 每次重启要恢复最大号（撞号 bug 刚修过）。
+        """
+        at = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat(timespec="microseconds")
+        row = {"at": at, "family": family, **fields}
         self.ledger.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.ledger.flush()
-        return self.seq
+        return at
 
     # ── ① 认 ──
     def recognize(self, name, roles=None):
@@ -163,7 +166,7 @@ class World:
             return
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
         seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", "?")), "after": fields})
-        log("★ 进程注册 %s/%s ⇒ 成为个体（seq=%d）" % (cls, fields.get("name", "?"), seq))
+        log("★ 进程注册 %s/%s ⇒ 成为个体（%s）" % (cls, fields.get("name", "?"), seq))
 
     # ── ② 注册（安装时一次）──
     def on_register(self, smp):
@@ -183,7 +186,7 @@ class World:
         if ok:
             self.registry[name] = reg
             self._append_registry(reg)
-        log("注册 %s ⇒ %s（seq=%d，在册 %d 条）" % (name or "?", why, seq, len(self.registry)))
+        log("注册 %s ⇒ %s（%s，在册 %d 条）" % (name or "?", why, seq, len(self.registry)))
         return seq
 
 
@@ -234,10 +237,10 @@ def _ask_and_forward(smp, w, session):
     seq = w.stamp("act", kind_of="ask", action=name, actor=msg.get("actor"),
                   rid=msg.get("id"), params=msg.get("params"),
                   route=reg.get("registered_by_kind"))
-    out = {"id": msg.get("id"), "seq": seq, "action": name,
+    out = {"id": msg.get("id"), "at": seq, "action": name,
            "params": msg.get("params") or {}, "actor": msg.get("actor"),
            "route": reg.get("registered_by_kind")}
-    log("转 %s（seq=%d）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
+    log("转 %s（%s）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
     session.put(T_EXEC, json.dumps(out, ensure_ascii=False))
 
 
@@ -248,8 +251,8 @@ def _result_and_reply(smp, w, session):
         return
     seq = w.stamp("act", kind_of="result", rid=msg.get("id"),
                   action=msg.get("action"), ok=msg.get("ok"), body=msg.get("body"))
-    log("结果 %s（seq=%d，ok=%s）" % (msg.get("action"), seq, msg.get("ok")))
-    session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "seq": seq, **msg},
+    log("结果 %s（%s，ok=%s）" % (msg.get("action"), seq, msg.get("ok")))
+    session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "at": seq, **msg},
                                          ensure_ascii=False))
 
 
