@@ -652,23 +652,18 @@
    "program": "grep",
    "args": [
     "-E",
-    "{r}",
     "^GRUB_CMDLINE_LINUX",
     "/etc/default/grub"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
-   "params": [
-    "r"
-   ]
+   "params": []
   },
   {
    "action": "sys.GetDateTime",
    "program": "timedatectl",
-   "args": [
-    ""
-   ],
+   "args": [],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
@@ -721,19 +716,15 @@
    "program": "timedatectl",
    "args": [
     "set-ntp",
-    "{if}",
     "{enabled}",
     "true",
-    "{else}",
     "false"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
    "params": [
-    "if",
-    "enabled",
-    "else"
+    "enabled"
    ]
   },
   {
@@ -752,15 +743,11 @@
   {
    "action": "sys.VacuumJournal",
    "program": "journalctl",
-   "args": [
-    "{vacuum_flag}"
-   ],
+   "args": [],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
-   "params": [
-    "vacuum_flag"
-   ]
+   "params": []
   },
   {
    "action": "sys.InstallPackages",
@@ -932,15 +919,13 @@
     "-L",
     "{size}",
     "-r",
-    "{format}",
     "{vg}/{lv}"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
    "params": [
-    "size",
-    "format"
+    "size"
    ]
   },
   {
@@ -971,7 +956,6 @@
     "{size}",
     "-n",
     "{snapshot}",
-    "{format}",
     "{vg}/{origin}"
    ],
    "env": {},
@@ -979,8 +963,7 @@
    "as_user": null,
    "params": [
     "size",
-    "snapshot",
-    "format"
+    "snapshot"
    ]
   },
   {
@@ -1172,16 +1155,14 @@
    "args": [
     "-s",
     "{signal}",
-    "{pid_str}",
-    "{as_str}"
+    "{pid_str}"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
    "params": [
     "signal",
-    "pid_str",
-    "as_str"
+    "pid_str"
    ]
   },
   {
@@ -1532,15 +1513,12 @@
    "action": "sys.GetAuthorizedKeys",
    "program": "cat",
    "args": [
-    "{format}",
     "/home/{username}/.ssh/authorized_keys"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
-   "params": [
-    "format"
-   ]
+   "params": []
   },
   {
    "action": "sys.GetSysctl",
@@ -1740,19 +1718,15 @@
    "program": "ufw",
    "args": [
     "status",
-    "{if}",
     "{numbered}",
     "numbered",
-    "{else}",
     "verbose"
    ],
    "env": {},
    "mechanism": "command_mechanism",
    "as_user": null,
    "params": [
-    "if",
-    "numbered",
-    "else"
+    "numbered"
    ]
   },
   {

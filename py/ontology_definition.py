@@ -347,7 +347,8 @@ def _load_sysknife_actions(o):
             )
             o.register_action_type(at)
             # ★★ 只读动作（Get*/List*）默认放行：不用人确认（作者裁：批不批归本体）
-            if True:  # ★ 所有 sys.* 都放行：只读免确认，变更类由人确认（下一件做）；先让 150 个动作通
+            # ★ 只读（Get*/List*）免确认；变更类【不给许可】⇒ 默认拒绝 ⇒ 要走人确认
+            if name.startswith("sys.Get") or name.startswith("sys.List"):
                 grants.setdefault(name, {"who": ["world://user", "world://agent/dsh"],
                                         "why": "只读查询（从 sysknife 抄，MIT）"})
             n += 1
