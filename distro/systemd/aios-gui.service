@@ -1,0 +1,22 @@
+[Unit]
+Description=AI-OS.NET GUI（世界 ↔ 人 之间那一面；类 ＝ surface；A2UI 渲染）
+Documentation=https://ai-os.net/docs/gui
+# ★★★ 作者裁：四个独立进程，谁也【不等】谁 ⇒ 不 After=／不 Wants=／不 Requires=。
+#   ★ 总线还没起怎么办？★ 靠 Restart=always 自己重试。
+
+[Service]
+Type=simple
+Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
+ExecStart=/usr/lib/aios/aios-gui
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# ★ 渲染出口在 /run/aios（★ RuntimeDirectory 自动建）
+RuntimeDirectory=aios
+ReadWritePaths=/run/aios
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

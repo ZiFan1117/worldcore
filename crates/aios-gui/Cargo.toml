@@ -1,0 +1,14 @@
+[package]
+name = "aios-gui"
+version.workspace = true
+edition.workspace = true
+description = "★ GUI 进程 —— 世界 ↔ 人 之间那一面（类 = surface；A2UI 渲染）"
+
+[dependencies]
+# ★ 只用【内核的口】：Transport（总线）＋ types。★ 不依赖本体、不依赖载体的数据。
+aios-worldcore = { path = "../aios-worldcore" }
+serde_json.workspace = true
+
+[features]
+# ★ 与内核同一条：不开就不拉网络栈
+bus-zenoh = ["aios-worldcore/bus-zenoh"]

@@ -41,6 +41,7 @@ members = [
     "crates/aios-ontology",
     # ★★ 我方新增：worldcore 最小内核（八面 ＋ 共同类型 ＋ 门面）—— 见盒里 方案-八面重排与注册拆两面.md
     "crates/aios-worldcore",
+    "crates/aios-gui",
 ]
 
 # Crates added later (per §22 MVP golden path order):

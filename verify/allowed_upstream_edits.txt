@@ -27,3 +27,5 @@ distro/systemd/aios-ontology.service  # 新增：本体进程的单元（T-273�
 crates/aios-worldcore/src/bin/ontology.rs  # 新增：本体进程（第一张通行证：启动即装载本体）（T-278）
 distro/bin/start-ontology.sh  # 新增：本体进程的起法（测试阶段；服务化是终态）（T-284）
 distro/systemd/aios-carrier.service  # 新增：载体进程的单元（四个独立进程之一，不与总线/本体互相依赖）（T-310）
+crates/aios-gui/  # 新增 crate：GUI 进程（世界 ↔ 人 之间那一面，类=surface）（T-311）
+distro/systemd/aios-gui.service  # 新增：GUI 进程的单元（四个独立进程之一，不互相依赖）（T-311）
