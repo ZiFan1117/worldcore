@@ -25,3 +25,4 @@ crates/aios-worldcore/src/engine/transport/zenoh_impl.rs  # 新增：Transport �
 distro/systemd/aios-bus.service  # 新增：总线进程的单元（T-273，总线是单独进程且最先起）
 distro/systemd/aios-ontology.service  # 新增：本体进程的单元（T-273，本体是单独进程且最先起）
 crates/aios-worldcore/src/bin/ontology.rs  # 新增：本体进程（第一张通行证：启动即装载本体）（T-278）
+distro/bin/start-ontology.sh  # 新增：本体进程的起法（测试阶段；服务化是终态）（T-284）
