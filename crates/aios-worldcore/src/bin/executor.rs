@@ -12,6 +12,7 @@
 //!   executor --list                          ★ 列出映射表里所有动作（★ 只读）
 //!   executor <话题>                          ★ 从口上收一条跑一条（★ 用 LocalTransport，同进程）
 //!   executor --bus <话题>                    ★★ **真走 zenoh 总线**（★ 要 `--features bus-zenoh`）
+//!   executor --install                       ★★★ **安装时跑一次**：发 11 条登记（★ 启动【不注册】）
 //! ```
 
 use std::time::Duration;
@@ -60,6 +61,45 @@ fn main() {
             }
             println!("[执行体] 映射表里 {n} 条");
         }
+        // ★★★ **安装时跑一次**（T-289）：★ 发 11 条登记 ⇒ 等本体回话 ⇒ 名字从此留在本体里。
+        #[cfg(feature = "bus-zenoh")]
+        Some("--install") => {
+            use aios_worldcore::engine::transport::zenoh_impl::ZenohTransport;
+            let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
+            let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
+            let mut sent = 0usize;
+            let mut ok = 0usize;
+            for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
+                sent += 1;
+                match t.request(
+                    "world/register",
+                    line,
+                    "world/register/result",
+                    Duration::from_secs(3),
+                ) {
+                    Ok(reply) => {
+                        let v: serde_json::Value =
+                            serde_json::from_str(&reply).unwrap_or(serde_json::Value::Null);
+                        if v["ok"].as_bool().unwrap_or(false) {
+                            ok += 1;
+                        } else {
+                            println!("[安装] ★ 被本体拒：{}", v["why"]);
+                        }
+                    }
+                    Err(e) => {
+                        println!("[安装] ★ 本体没回话（{e}）⇒ 装不上；★ 本体要先起");
+                        break;
+                    }
+                }
+            }
+            println!("[安装] 注册完成：发出 {sent} 条，本体收下 {ok} 条");
+            println!("[安装] ★ 这些名字从此【一直留在本体里】，★ 启动时不必再注册（卸载时才删）");
+        }
+        #[cfg(not(feature = "bus-zenoh"))]
+        Some("--install") => {
+            println!("★ 这个二进制没开 bus-zenoh 特性 ⇒ 编的时候要 --features bus-zenoh")
+        }
+
         // ★★ ③' **真走 zenoh 总线**（★ 要编译时开 `--features bus-zenoh`）。
         #[cfg(feature = "bus-zenoh")]
         Some("--bus") => {
@@ -80,40 +120,29 @@ fn main() {
             };
             println!("[执行体] ★ 已订阅 world/exec（★ 一次声明、长期持有）");
 
-            // ★★★ 启动先【注册】（★ 一条一条发，等本体回话）—— ★ 注册要经本体（作者裁）。
+            // ★★★ **启动时【不注册】**（T-289 修正）—— ★ 只**报到**。
+            //   ★ 作者口径（逐字）：「**它不需要每次在启动的时候往本体里头注册，是在安装的时候一次性注册就可以了。
+            //     然后这个本体里头一直会有相关的内容，卸载的时候在删除**」。
+            //   ⇒ ★ 注册在【安装时】做（★ 见 `--install`）；★ 启动这里只报「我活着」。
             let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
-            let mut sent = 0usize;
-            let mut ok = 0usize;
+            let mut n = 0usize;
             for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
-                sent += 1;
-                // ★★★ 用 request（★ 先订阅回话、再发、再收 —— 口保证次序）。
-                match t.request(
-                    "world/register",
-                    line,
-                    "world/register/result",
-                    Duration::from_secs(3),
-                ) {
-                    Ok(reply) => {
-                        let v: serde_json::Value =
-                            serde_json::from_str(&reply).unwrap_or(serde_json::Value::Null);
-                        if v["ok"].as_bool().unwrap_or(false) {
-                            ok += 1;
-                        } else {
-                            println!("[执行体] ★ 被本体拒：{}", v["why"]);
-                        }
-                    }
-                    Err(e) => {
-                        println!("[执行体] ★ 本体没回话（{e}）⇒ 注册不上；★ 本体要先起");
-                        break;
+                if let Ok(route) = aios_worldcore::core::command_bridge::CommandRoute::parse(line) {
+                    let msg = serde_json::json!({"action": route.action, "by": "executor"});
+                    match t.put("world/alive", &msg.to_string()) {
+                        Ok(()) => n += 1,
+                        Err(e) => println!("[执行体] ★ 报到失败：{e}"),
                     }
                 }
             }
-            println!("[执行体] ★ 注册完成：发出 {sent} 条，本体收下 {ok} 条");
-            // ★★ 再报「成为个体」（★ 启动了就要成为个体）。
+            println!(
+                "[执行体] ① 报到完成：{n} 条（★ 启动【不注册】—— 注册在安装时做过了，名字一直留在本体里）"
+            );
+            // ★★ 「成为个体」是另一件（★ 一个说「我成了个体」，★ 一个说「这些名字我活着」）。
             let me =
                 serde_json::json!({"class": "service", "local_id": "executor", "state": "started"});
             let _ = t.put("world/appear", &me.to_string());
-            println!("[执行体] ★ 报了：service/executor 状态 started");
+            println!("[执行体] ② 报了：service/executor 状态 started");
 
             // ★★ 真总线往返（★ 先订阅、再发、再收 —— zenoh 的硬规矩）。
             match t.round_trip("world/probe", "hello-zenoh", Duration::from_secs(3)) {

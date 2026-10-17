@@ -23,6 +23,8 @@ use aios_worldcore::engine::transport::Transport;
 const ASK: &str = "world/register";
 const REPLY: &str = "world/register/result";
 const APPEAR: &str = "world/appear";
+/// ★★ 报到（T-289）：★ 每次启动——★ 只改「活着」那一格，**不落盘**。
+const ALIVE: &str = "world/alive";
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -75,7 +77,7 @@ fn main() {
             std::process::exit(2);
         }
     };
-    println!("[本体进程] ② 连上总线；订 {ASK}（登记）＋ {APPEAR}（成为个体）");
+    println!("[本体进程] ② 连上总线；订 {ASK}（登记）＋ {APPEAR}（成为个体）＋ {ALIVE}（报到）");
 
     // ★★ 先【订】两条（★ 一次声明、长期持有 —— 没有空窗）
     let reg_sub = match t.subscribe(ASK) {
@@ -92,7 +94,35 @@ fn main() {
             std::process::exit(2);
         }
     };
+    let alive_sub = match t.subscribe(ALIVE) {
+        Ok(s) => std::sync::Arc::new(s),
+        Err(e) => {
+            eprintln!("[本体进程] ★ 订不上 {ALIVE}：{e}");
+            std::process::exit(2);
+        }
+    };
     println!("[本体进程] ②b 两条都订上了（★ 一次声明、长期持有）");
+
+    // ★ 路三：报到（★ 每次启动 —— ★ 只标活，不落盘；★ 不在册 ⇒ 报「它没装过」）。
+    {
+        let branch = std::sync::Arc::clone(&branch);
+        let alive_sub = std::sync::Arc::clone(&alive_sub);
+        std::thread::spawn(move || loop {
+            let Ok(msg) = alive_sub.recv(Duration::from_secs(30)) else {
+                continue;
+            };
+            let v: serde_json::Value =
+                serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
+            let action = v["action"].as_str().unwrap_or("");
+            let b = branch.lock().expect("锁");
+            let in_book = b.actions().contains(&action);
+            if in_book {
+                println!("[本体进程] ⑤ 报到 {action}（★ 启动时不注册）⇒ 在册 ✓ 标成活");
+            } else {
+                println!("[本体进程] ⑤ 报到 {action} ⇒ ★ 它没装过（★ 不在册）");
+            }
+        });
+    }
 
     // ★ 路一：登记（★ 一条独立线程）
     {
