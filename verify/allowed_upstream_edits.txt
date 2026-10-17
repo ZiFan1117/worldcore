@@ -32,3 +32,4 @@ distro/systemd/aios-gui.service  # 新增：GUI 进程的单元（四个独立�
 py/  # 新增目录：P（foundry-ontology-open，MIT）的 core+engine ＋ 我们的 ontology_definition.py（T-331 决定直接用 P 做本体）
 py/LICENSE-foundry-ontology-open  # MIT 全文（Copyright (c) 2025 Pankaj Kumar）
 py/NOTICE.md  # 来源与改动声明
+py/ontology_definition.py  # 我们的本体（按 P 格式）；py/ontology_process.py  # Python 本体进程（只认/盖章/转/记）（T-331/T-334）
