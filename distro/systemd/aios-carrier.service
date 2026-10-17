@@ -1,0 +1,25 @@
+[Unit]
+Description=AI-OS.NET Carrier（这台机器的代言：对上报机器、对下执行）
+Documentation=https://ai-os.net/docs/carrier
+# ★★★ 作者裁：四个独立进程，谁也【不等】谁。
+#   ⇒ 这里【不 After=／Wants=／Requires=】总线或本体。
+#   ★ 总线还没起怎么办？★ 靠 Restart=always 自己重试，★ 不靠 systemd 排序。
+
+[Service]
+Type=simple
+# ★ 与总线同一个配置文件（★ 那是【载体这一侧】的客户端配置，★ 不是总线的东西）
+Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
+ExecStart=/usr/lib/aios/aios-carrier --bus world/exec
+# ★★ 常驻：★ 挂了就起来（★ 这也是「不等谁」的代价与解法）
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+RuntimeDirectory=aios
+# ★ 载体要写【自己的】日志（★ 不是本体的）
+ReadWritePaths=/var/log
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

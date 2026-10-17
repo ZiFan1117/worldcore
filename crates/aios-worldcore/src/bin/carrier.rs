@@ -27,16 +27,31 @@ use aios_worldcore::core::types::Who;
 use aios_worldcore::engine::execute::{CommandRunner, Executor};
 use aios_worldcore::engine::transport::{LocalTransport, Transport};
 
-const MAP: &str = concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    // ★★ 载体的【自己的】数据（T-299）：★ 作者裁「载体是一个单独的进程，和谁都没有关系」
-    //   ⇒ 映射表**不再住本体那一侧**（原先读 `../aios-ontology/data/` ⇒ 那是文件级瓜葛）。
-    "/data/command-map.jsonl"
-);
+/// ★★★ **载体的数据在哪**（T-310）—— ★ **运行期找，不能写死编译期路径**。
+///
+/// ★ 为什么改（现取出来的真故障）：★ 原先用 `env!("CARGO_MANIFEST_DIR")` —— 那是**编译期**的建机路径
+///   （`/root/aios/...`）；★ 二进制一旦装到 `/usr/lib/aios/`，★ 它**还去读建机目录** ⇒ ★ 崩（`status=101`）。
+///
+/// ★ 找法（按序，★ 第一个读得到的就用）：
+///   ① 环境变量 `AIOS_CARRIER_MAP`；
+///   ② **安装位置** `/usr/lib/aios/command-map.jsonl`；
+///   ③ 开发位置（★ 本仓 `crates/aios-worldcore/data/command-map.jsonl`，★ 用编译期路径**仅作兜底**）。
+fn map_path() -> String {
+    if let Ok(p) = std::env::var("AIOS_CARRIER_MAP") {
+        if std::path::Path::new(&p).is_file() {
+            return p;
+        }
+    }
+    let installed = "/usr/lib/aios/command-map.jsonl";
+    if std::path::Path::new(installed).is_file() {
+        return installed.to_string();
+    }
+    concat!(env!("CARGO_MANIFEST_DIR"), "/data/command-map.jsonl").to_string()
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let runner = CommandRunner::from_map(MAP).expect("映射表该读得上");
+    let runner = CommandRunner::from_map(&map_path()).expect("映射表该读得上");
     let who = Who::new("world://user/zhang");
 
     match args.first().map(String::as_str) {
@@ -54,7 +69,7 @@ fn main() {
         }
         // ★ ② 列一下（★ 只读）。
         Some("--list") => {
-            let text = std::fs::read_to_string(MAP).expect("映射表该读得上");
+            let text = std::fs::read_to_string(map_path()).expect("映射表该读得上");
             let mut n = 0usize;
             for line in text.lines().filter(|l| !l.trim().is_empty()) {
                 if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
@@ -74,7 +89,7 @@ fn main() {
         Some("--install") => {
             use aios_worldcore::engine::transport::zenoh_impl::ZenohTransport;
             let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
-            let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
+            let map_text = std::fs::read_to_string(map_path()).expect("映射表该读得上");
             let mut sent = 0usize;
             let mut ok = 0usize;
             for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
@@ -132,7 +147,7 @@ fn main() {
             //   ★ 作者口径（逐字）：「**它不需要每次在启动的时候往本体里头注册，是在安装的时候一次性注册就可以了。
             //     然后这个本体里头一直会有相关的内容，卸载的时候在删除**」。
             //   ⇒ ★ 注册在【安装时】做（★ 见 `--install`）；★ 启动这里只报「我活着」。
-            let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
+            let map_text = std::fs::read_to_string(map_path()).expect("映射表该读得上");
             let mut n = 0usize;
             for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
                 if let Ok(route) = aios_worldcore::core::command_bridge::CommandRoute::parse(line) {
@@ -157,23 +172,26 @@ fn main() {
                 Ok(v) => println!("[载体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),
                 Err(e) => println!("[载体] zenoh 往返失败：{e}"),
             }
-            match exec_sub.recv(Duration::from_secs(5)) {
-                Ok(msg) => {
-                    println!("[载体] 收到：{msg}");
-                    let v: serde_json::Value =
-                        serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
-                    let action = v["action"].as_str().unwrap_or("");
-                    let params = v["params"].as_object().cloned().unwrap_or_default();
-                    let out = match runner.run(action, &who, &params) {
-                        Ok(o) => serde_json::json!({ "action": action, "ok": true, "body": o }),
-                        Err(e) => {
-                            serde_json::json!({ "action": action, "ok": false, "body": format!("{e}") })
-                        }
-                    };
-                    println!("[载体] 回话：{out}");
-                    let _ = t.put("world/exec/result", &out.to_string());
-                }
-                Err(e) => println!("[载体] 总线上没有消息：{e}"),
+            // ★★★ **常驻循环**（T-310）—— ★ 载体是【服务】，★ 不是「收一条就退出」。
+            //   ★ 作者令：「先把这些都 4 个进程先全写完了、全弄起来」。
+            //   ★ 收到一条 ⇒ 执行一条 ⇒ 回一条 ⇒ 继续等（★ 超时不算错，★ 那是「暂时没人派活」）。
+            loop {
+                let Ok(msg) = exec_sub.recv(Duration::from_secs(30)) else {
+                    continue;
+                };
+                println!("[载体] 收到：{msg}");
+                let v: serde_json::Value =
+                    serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
+                let action = v["action"].as_str().unwrap_or("");
+                let params = v["params"].as_object().cloned().unwrap_or_default();
+                let out = match runner.run(action, &who, &params) {
+                    Ok(o) => serde_json::json!({ "action": action, "ok": true, "body": o }),
+                    Err(e) => {
+                        serde_json::json!({ "action": action, "ok": false, "body": format!("{e}") })
+                    }
+                };
+                println!("[载体] 回话：{out}");
+                let _ = t.put("world/exec/result", &out.to_string());
             }
         }
         #[cfg(not(feature = "bus-zenoh"))]
