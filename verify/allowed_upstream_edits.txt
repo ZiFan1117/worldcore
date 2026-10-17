@@ -36,3 +36,5 @@ py/ontology_definition.py  # 我们的本体（按 P 格式）；py/ontology_pro
 render/  # 新增目录：A2UI 渲染器（单文件 HTML ＋ 渲染核心 mjs ＋ Node 单测 ＋ 样例帧）（T-336）
 crates/aios-gui/src/main.rs  # appear 载荷照本体 surface 字段（T-339）
 crates/aios-carrier/src/main.rs  # appear 载荷照本体 service 字段（T-339）
+py/carrier_process.py  # 载体（Python 版，全改 Python 后的实现）（T-340）
+py/gui_process.py  # GUI（Python 版）（T-340）
