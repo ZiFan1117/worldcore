@@ -29,3 +29,6 @@ distro/bin/start-ontology.sh  # 新增：本体进程的起法（测试阶段；
 distro/systemd/aios-carrier.service  # 新增：载体进程的单元（四个独立进程之一，不与总线/本体互相依赖）（T-310）
 crates/aios-gui/  # 新增 crate：GUI 进程（世界 ↔ 人 之间那一面，类=surface）（T-311）
 distro/systemd/aios-gui.service  # 新增：GUI 进程的单元（四个独立进程之一，不互相依赖）（T-311）
+py/  # 新增目录：P（foundry-ontology-open，MIT）的 core+engine ＋ 我们的 ontology_definition.py（T-331 决定直接用 P 做本体）
+py/LICENSE-foundry-ontology-open  # MIT 全文（Copyright (c) 2025 Pankaj Kumar）
+py/NOTICE.md  # 来源与改动声明
