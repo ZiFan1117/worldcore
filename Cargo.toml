@@ -186,6 +186,10 @@ bytes        = "1"
 # T-154: tokio-util I/O bridge — StreamReader bridges reqwest byte streams
 # into tokio AsyncRead for line-by-line NDJSON parsing.
 tokio-util   = { version = "0.7", features = ["io"] }
+# T-271: ★★ **总线就是 zenoh**（作者确认：「★ 这个总线不是之前说的那个 zenoh 么」）。
+# 我方 `aios-worldcore` 的 `Transport` 口用它实现；★ 做成 optional feature（`bus-zenoh`），
+# 默认关 —— ★ 不开时内核不拉网络栈，★ 开了就真走 zenoh。
+zenoh       = "1"
 
 [profile.dev]
 opt-level = 0

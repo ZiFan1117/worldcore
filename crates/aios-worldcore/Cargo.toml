@@ -13,3 +13,14 @@ serde_json = { workspace = true }
 serde = { workspace = true }
 # ★ 账的封条用真哈希（本体/八面无此依赖；★ 根 Cargo.toml 第 82 行早有 blake3 = "1.5"，故零新增）
 blake3 = { workspace = true }
+# ★★ 总线 ＝ zenoh（作者确认）—— ★ optional：不开就不拉网络栈。
+[dependencies.tokio]
+workspace = true
+optional = true
+
+[dependencies.zenoh]
+workspace = true
+optional = true
+
+[features]
+bus-zenoh = ["dep:zenoh", "dep:tokio"]

@@ -12,6 +12,10 @@
 //! ★ 口上只有两件事：**发一条**（`put`）／**收一条**（`take`，带超时）。
 //!   ★ 不用「请求-应答」那种花活 —— ★ 本仓的消息是**一条一条的**（与账同口径）。
 
+/// ★★ **zenoh 实现**（★ 总线就是 zenoh —— 作者确认）—— ★ 开关 `--features bus-zenoh`。
+#[cfg(feature = "bus-zenoh")]
+pub mod zenoh_impl;
+
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

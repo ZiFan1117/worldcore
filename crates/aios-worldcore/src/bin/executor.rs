@@ -10,7 +10,8 @@
 //! ```text
 //!   executor --once fs.list                  ★ 直接跑一条（★ 不经过口 —— 今天就能验）
 //!   executor --list                          ★ 列出映射表里所有动作（★ 只读）
-//!   executor <话题>                          ★ 从口上收一条跑一条（★ 今天用 LocalTransport 演示）
+//!   executor <话题>                          ★ 从口上收一条跑一条（★ 用 LocalTransport，同进程）
+//!   executor --bus <话题>                    ★★ **真走 zenoh 总线**（★ 要 `--features bus-zenoh`）
 //! ```
 
 use std::time::Duration;
@@ -59,7 +60,45 @@ fn main() {
             }
             println!("[执行体] 映射表里 {n} 条");
         }
-        // ★ ③ 从口上收一条跑一条（★ 总线选型未定 ⇒ 今天用 LocalTransport 演示）。
+        // ★★ ③' **真走 zenoh 总线**（★ 要编译时开 `--features bus-zenoh`）。
+        #[cfg(feature = "bus-zenoh")]
+        Some("--bus") => {
+            use aios_worldcore::engine::transport::zenoh_impl::ZenohTransport;
+            let Some(topic) = args.get(1) else {
+                println!("用法: executor --bus <话题>（★ 要 --features bus-zenoh）");
+                return;
+            };
+            let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
+            println!("[执行体] 连上 **zenoh 总线**，看着 {topic}（★ 真总线，不是内存队列）");
+            // ★★ 真总线往返（★ 先订阅、再发、再收 —— zenoh 的硬规矩）。
+            match t.round_trip("world/probe", "hello-zenoh", Duration::from_secs(3)) {
+                Ok(v) => println!("[执行体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),
+                Err(e) => println!("[执行体] zenoh 往返失败：{e}"),
+            }
+            match t.take(topic, Duration::from_secs(5)) {
+                Ok(msg) => {
+                    println!("[执行体] 收到：{msg}");
+                    let v: serde_json::Value =
+                        serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
+                    let action = v["action"].as_str().unwrap_or("");
+                    let params = v["params"].as_object().cloned().unwrap_or_default();
+                    let out = match runner.run(action, &who, &params) {
+                        Ok(o) => serde_json::json!({ "action": action, "ok": true, "body": o }),
+                        Err(e) => {
+                            serde_json::json!({ "action": action, "ok": false, "body": format!("{e}") })
+                        }
+                    };
+                    println!("[执行体] 回话：{out}");
+                    let _ = t.put("world/exec/result", &out.to_string());
+                }
+                Err(e) => println!("[执行体] 总线上没有消息：{e}"),
+            }
+        }
+        #[cfg(not(feature = "bus-zenoh"))]
+        Some("--bus") => {
+            println!("★ 这个二进制没开 bus-zenoh 特性 ⇒ 编的时候要 --features bus-zenoh")
+        }
+        // ★ ③ 从口上收一条跑一条（★ 同进程内存队列）。
         Some(topic) => {
             let t = LocalTransport::new();
             println!(
