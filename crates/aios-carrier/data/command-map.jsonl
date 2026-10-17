@@ -2,10 +2,10 @@
 {"action":"fs.stat","function":"fn.fs.stat","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human","agent"],"program":"stat","args":[]}
 {"action":"service.start","function":"fn.service.start","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"systemctl","args":["start"]}
 {"action":"service.stop","function":"fn.service.stop","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"systemctl","args":["stop"]}
-{"action":"pkg.install","function":"fn.pkg.install","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"apt","args":["install","-y"]}
+{"action":"pkg.install","function":"fn.pkg.install","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"zypper","args":["--non-interactive","install"],"_note":"★ 2026-10-17 改：VM 是 openSUSE Leap 16，没有 apt ⇒ 用 zypper（现取：zypper ✓ / apt ✗）"}
 {"action":"proc.list","function":"fn.proc.list","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human","agent"],"program":"ps","args":["-eo","pid,comm"]}
 {"action":"device.eject","function":"fn.device.eject","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"eject","args":[]}
-{"action":"device.brightness.set","function":"fn.device.brightness.set","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"brightnessctl","args":["set"]}
+{"action":"device.brightness.set","function":"fn.device.brightness.set","registered_by":"builtin-commands","registered_by_kind":"system","required_roles":["human"],"program":"brightnessctl","args":["set"],"_note":"★ 2026-10-17：本 VM 没有 brightnessctl（虚拟显卡无背光）⇒ 这条动作在这台机器上【天然不支持】—— 这正是「载体报本机有什么」的理由"}
 {"action":"interface.ask_permission","function":"fn.interface.ask_permission","registered_by":"a2ui","registered_by_kind":"interface","required_roles":["human"],"program":"","args":[]}
 {"action":"interface.notify","function":"fn.interface.notify","registered_by":"a2ui","registered_by_kind":"interface","required_roles":["human","agent"],"program":"","args":[]}
 {"action":"app.download.start","function":"fn.app.download.start","registered_by":"downloader","registered_by_kind":"app","required_roles":["human"],"program":"curl","args":["-O"]}
