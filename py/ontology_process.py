@@ -107,9 +107,15 @@ class World:
     # ── ① 认 ──
     def recognize(self, name, roles=None):
         """查注册表：在册吗？谁能用？★ 不在册就拒。"""
+        # ★★ 认名字：【两个来源】
+        #   ① **注册表**（装进来的命令动作，`registry.jsonl`）
+        #   ② **本体的 actions**（法里声明的动作，如 notice.mute）
+        #   ★ 为什么要合：★ 现取发现【交集是 0】—— 注册表 11 条全是命令，本体 9 个全是世界动作 ✗
         reg = self.registry.get(name)
         if reg is None:
-            return None, "不在册（世界不认识这个名字）"
+            if name in self.ontology.action_types:
+                return {"action": name, "registered_by_kind": "world", "required_roles": []}, None
+            return None, "不在册（注册表里没有、本体 actions 里也没有）"
         need = reg.get("required_roles") or []
         if roles is not None and need and not any(r in roles for r in need):
             return None, "角色不够（要 %s，你是 %s）" % (need, roles)
@@ -167,6 +173,28 @@ class World:
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
         seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", "?")), "after": fields})
         log("★ 进程注册 %s/%s ⇒ 成为个体（%s）" % (cls, fields.get("name", "?"), seq))
+
+    # ── ★★ 执行面 ①：谁能做这个动作（T-342 真做）──
+    def can_execute(self, actor, capability):
+        """★ 照本体 `permissions` 判「这个主体能不能做这个动作」。
+
+        ★ 口径（全是本体里现成的）：
+          ① `permissions.default` ＝ **"deny"** ⇒ ★ 没条文的动作【一律拒】；
+          ② `permissions.grants[capability].who` ＝ 主体列表 ⇒ ★ 不在里面就拒；
+          ③ ★ 前缀匹配：★ `who` 里写 `world://user`，★ `actor` 是 `world://user/zhang` ⇒ **算在**。
+
+        ★ 返回 (True, None) 或 (False, 为什么)。
+        """
+        perms = (self.ontology.metadata or {}).get("permissions") or {}
+        grants = perms.get("grants") or {}
+        g = grants.get(capability)
+        if g is None:
+            return False, "这个动作没有许可条文（permissions.default = %r ⇒ 默认拒绝）" % perms.get("default")
+        who = g.get("who") or []
+        for w in who:
+            if actor == w or actor.startswith(w.rstrip("/") + "/"):
+                return True, None
+        return False, "actor=%s 不在许可里（谁可以：%s）" % (actor, who)
 
     # ── ② 注册（安装时一次）──
     def on_register(self, smp):
@@ -227,10 +255,19 @@ def _ask_and_forward(smp, w, session):
     except Exception:
         return
     name = msg.get("action") or ""
+    # ★★ 闸①：名字在册吗
     reg, why = w.recognize(name, msg.get("roles"))
     if reg is None:
         w.stamp("act", kind_of="reject", action=name, actor=msg.get("actor"), why=why)
         log("拒 %s ⇒ %s" % (name, why))
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why}, ensure_ascii=False))
+        return
+    # ★★ 闸②：这个主体获准做吗（照本体 permissions；默认拒绝）
+    actor = msg.get("actor") or "world://anonymous"
+    allowed, why2 = w.can_execute(actor, name)
+    if not allowed:
+        w.stamp("act", kind_of="reject-permit", action=name, actor=actor, why=why2)
+        log("拒 %s ⇒ %s" % (name, why2))
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why},
                                              ensure_ascii=False))
         return
