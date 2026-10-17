@@ -1,0 +1,899 @@
+{
+ "_what": "★ 从 sysknife-cli 0.16.0 的 KNOWN_ACTION_NAMES 抄来的动作名清单（176 个）",
+ "_source": "https://static.crates.io/crates/sysknife-types/sysknife-types-0.16.0.crate → src/lib.rs:88",
+ "_license": "MIT（sysknife / lacs-project）",
+ "_note": "★ 名字照抄，实现要按 Python 重写；每个动作还要补：参数、映射表、许可",
+ "count": 178,
+ "actions": [
+  {
+   "name": "AddAuditRule",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddAuthorizedKey",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddFlatpakRemote",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddLayeredPackage",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddMount",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddPackageRepository",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddPpa",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddSwap",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AddUserToGroup",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AppArmorComplain",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AppArmorEnforce",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AppArmorStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptAutoremove",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptHistoryList",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptHold",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptInstall",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptListInstalled",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptListUpgradable",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptPurge",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptRemove",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptSearch",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptShow",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptUnhold",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptUpdate",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "AptUpgrade",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CheckPendingReboot",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CleanupDeployments",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CloudInitStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CollectDiagnostics",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ConfigureFirewall",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ConfigureLogRotation",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ConfigureRemoteSyslog",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ConfigureUnattendedUpgrades",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ConfigureWifi",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateContainer",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateGroup",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateLogicalVolume",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateLvSnapshot",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateScheduledJob",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateToolbox",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "CreateUser",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DeleteGroup",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DeleteUser",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DisablePackageRepository",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DistroboxCreate",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DistroboxList",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "DistroboxRemove",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "EnablePackageRepository",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ExtendLogicalVolume",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetAptPins",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetAuditRules",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetAuthorizedKeys",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetCertificates",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetContainerInfo",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetDateTime",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetDeploymentHistory",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetDiskUsage",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetFirewallBackendState",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetFirewallState",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetFlatpakAppInfo",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetHostState",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetJournalLog",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetKernelArguments",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetLayeredPackages",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetListeningPorts",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetLogrotateStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetLvmReport",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetMemoryInfo",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetMounts",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetNetworkStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetNftablesRuleset",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetPasswordAging",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetPendingUpdates",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetServiceLogs",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetServiceResourceLimits",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetServiceStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetSudoGrants",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetSysctl",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GetSystemState",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GrantSudoAccess",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GrubGetKargs",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "GrubSetKargs",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "InstallFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "InstallPackages",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListContainers",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListDeployments",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListFlatpakRemotes",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListGroups",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListInstalledFlatpaks",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListJobHistory",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListPackageRepositories",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListProcesses",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListServices",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListTimers",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListToolboxes",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ListUsers",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "LockUserAccount",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "MaskService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "NetplanApply",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "NetplanGenerate",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "NetplanGetConfig",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "NetplanSet",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ObtainCertificate",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "PinDeployment",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RebaseSystem",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RebootSystem",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ReloadDaemon",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ReloadService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveAptPin",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveAuditRule",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveAuthorizedKey",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveBasePackage",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveContainer",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveFlatpakRemote",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveLayeredPackage",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveLogRotation",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveMount",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemovePackageRepository",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemovePackages",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemovePpa",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveRemoteSyslog",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveSwap",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveToolbox",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RemoveUserFromGroup",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RenewCertificates",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ReplaceLayeredPackage",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ResetLayeredPackageOverride",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ResolvectlSetDns",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "ResolvectlStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RestartService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RevokeSudoAccess",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "RollbackDeployment",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SearchFlatpakApps",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetAccountLockout",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetAptPin",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetDnsServers",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetHostname",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetKernelArguments",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetLocale",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetNtp",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetPasswordAging",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetPasswordPolicy",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetServiceEnabled",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetServiceResourceLimits",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetSshdOption",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetSysctl",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SetTimezone",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SignalProcess",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapClassicInstall",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapHold",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapInfo",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapInstall",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapList",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapRefresh",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapRemove",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapRevert",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "SnapUnhold",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "StartContainer",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "StartService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "StopContainer",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "StopService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UbuntuInstallFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UbuntuListFlatpaks",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UbuntuRemoveFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UbuntuUpdateFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwAllow",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwDeny",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwDisable",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwEnable",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwReset",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UfwStatus",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UnlockUserAccount",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UnmaskService",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UnpinDeployment",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UpdateFlatpak",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "UpdateSystem",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  },
+  {
+   "name": "VacuumJournal",
+   "from": "sysknife-0.16.0",
+   "status": "pending"
+  }
+ ]
+}

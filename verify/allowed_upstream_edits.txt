@@ -41,3 +41,4 @@ py/gui_process.py  # GUI（Python 版）（T-340）
 py/ledger_process.py  # 账房（第五个进程，订 ** 抄全量流量）（T-344）
 py/polkit_gen.py  # 本体生成 polkit policy（T-347）
 distro/polkit/net.ai-os.worldcore.policy  # 生成的策略（T-347）
+distro/carrier/sysknife-actions.json  # 从 sysknife 抄的 178 个动作名（MIT，T-352）
