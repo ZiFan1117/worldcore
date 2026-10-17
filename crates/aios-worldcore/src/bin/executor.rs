@@ -70,6 +70,16 @@ fn main() {
             };
             let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
             println!("[执行体] 连上 **zenoh 总线**，看着 {topic}（★ 真总线，不是内存队列）");
+            // ★★★ **先订阅** world/exec（★ 一次声明、长期持有）—— ★ 与「先订阅后发」同一条规矩。
+            let exec_sub = match t.subscribe("world/exec") {
+                Ok(s) => s,
+                Err(e) => {
+                    println!("[执行体] ★ 订不上 world/exec：{e}");
+                    return;
+                }
+            };
+            println!("[执行体] ★ 已订阅 world/exec（★ 一次声明、长期持有）");
+
             // ★★★ 启动先【注册】（★ 一条一条发，等本体回话）—— ★ 注册要经本体（作者裁）。
             let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
             let mut sent = 0usize;
@@ -110,7 +120,7 @@ fn main() {
                 Ok(v) => println!("[执行体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),
                 Err(e) => println!("[执行体] zenoh 往返失败：{e}"),
             }
-            match t.take(topic, Duration::from_secs(5)) {
+            match exec_sub.recv(Duration::from_secs(5)) {
                 Ok(msg) => {
                     println!("[执行体] 收到：{msg}");
                     let v: serde_json::Value =

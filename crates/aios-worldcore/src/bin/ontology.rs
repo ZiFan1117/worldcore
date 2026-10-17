@@ -77,13 +77,31 @@ fn main() {
     };
     println!("[本体进程] ② 连上总线；订 {ASK}（登记）＋ {APPEAR}（成为个体）");
 
+    // ★★ 先【订】两条（★ 一次声明、长期持有 —— 没有空窗）
+    let reg_sub = match t.subscribe(ASK) {
+        Ok(s) => std::sync::Arc::new(s),
+        Err(e) => {
+            eprintln!("[本体进程] ★ 订不上 {ASK}：{e}");
+            std::process::exit(2);
+        }
+    };
+    let app_sub = match t.subscribe(APPEAR) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("[本体进程] ★ 订不上 {APPEAR}：{e}");
+            std::process::exit(2);
+        }
+    };
+    println!("[本体进程] ②b 两条都订上了（★ 一次声明、长期持有）");
+
     // ★ 路一：登记（★ 一条独立线程）
     {
         let t = Arc::clone(&t);
         let branch = Arc::clone(&branch);
         let reg_path = reg_path.clone();
+        let reg_sub = std::sync::Arc::clone(&reg_sub);
         std::thread::spawn(move || loop {
-            let Ok(msg) = t.take(ASK, Duration::from_secs(30)) else {
+            let Ok(msg) = reg_sub.recv(Duration::from_secs(30)) else {
                 continue;
             };
             let (ok, action, why) = handle_register(&branch, &reg_path, &msg);
@@ -96,7 +114,7 @@ fn main() {
 
     // ★ 路二：成为个体（★ 主线程）
     loop {
-        let Ok(msg) = t.take(APPEAR, Duration::from_secs(30)) else {
+        let Ok(msg) = app_sub.recv(Duration::from_secs(30)) else {
             continue;
         };
         let v: serde_json::Value = serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);

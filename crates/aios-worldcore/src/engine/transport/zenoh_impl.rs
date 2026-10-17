@@ -11,11 +11,11 @@
 use std::time::Duration;
 
 use crate::core::types::{Admit, Reason, Refuse};
-use crate::engine::transport::Transport;
+use crate::engine::transport::{Subscription, Transport};
 
 /// ★ **真总线**（zenoh）上的那条口。
 pub struct ZenohTransport {
-    rt: tokio::runtime::Runtime,
+    rt: std::sync::Arc<tokio::runtime::Runtime>,
     session: zenoh::Session,
 }
 
@@ -34,14 +34,9 @@ impl ZenohTransport {
                 )
             })?;
         let session = rt.block_on(async {
-            let cfg = zenoh::Config::from_env().map_err(|e| {
-                Refuse::new(
-                    Reason::StorageUnavailable {
-                        path: "<zenoh config>".to_string(),
-                    },
-                    format!("{e}"),
-                )
-            })?;
+            // ★★ `from_env` 在【没有 ZENOH_CONFIG 环境变量】时会报错（★ systemd 单元里就没有）。
+            //   ⇒ ★ 回退到默认配置（★ 默认就是 `mode: peer` + 本机发现），★ 不让它把进程打死。
+            let cfg = zenoh::Config::from_env().unwrap_or_default();
             zenoh::open(cfg).await.map_err(|e| {
                 Refuse::new(
                     Reason::StorageUnavailable {
@@ -51,7 +46,7 @@ impl ZenohTransport {
                 )
             })
         })?;
-        Ok(Self { rt, session })
+        Ok(Self { rt: std::sync::Arc::new(rt), session })
     }
 
     /// ★★ **真总线往返自测**：★ **先订阅、再发、再收** —— ★ 这个顺序是 zenoh 的硬规矩
@@ -101,7 +96,57 @@ impl ZenohTransport {
     }
 }
 
+/// ★ `ZenohTransport` 上的订阅：★ **subscriber 一直持有** ⇒ 没有「返回一条再重订」的空窗。
+struct ZenohSubscription {
+    rt: std::sync::Arc<tokio::runtime::Runtime>,
+    sub: zenoh::pubsub::Subscriber<zenoh::handlers::FifoChannelHandler<zenoh::sample::Sample>>,
+}
+
+impl Subscription for ZenohSubscription {
+    fn recv(&self, timeout: Duration) -> Admit<String> {
+        let sub = self.sub.clone();
+        self.rt.block_on(async move {
+            match tokio::time::timeout(timeout, sub.recv_async()).await {
+                Ok(Ok(sample)) => {
+                    Ok(String::from_utf8_lossy(&sample.payload().to_bytes()).into_owned())
+                }
+                Ok(Err(e)) => Err(Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: "<zenoh recv>".to_string(),
+                    },
+                    format!("{e}"),
+                )),
+                Err(_) => Err(Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: "<zenoh timeout>".to_string(),
+                    },
+                    "<超时：订着但没消息>",
+                )),
+            }
+        })
+    }
+}
+
 impl Transport for ZenohTransport {
+    fn subscribe(&self, topic: &str) -> Admit<Box<dyn Subscription>> {
+        // ★★ 订一次、一直用 —— ★ 这里就 `declare_subscriber` 一次（★ 不再每次 take 都订）。
+        let topic = topic.to_string();
+        let s = self.session.clone();
+        let handle = self.rt.block_on(async move { s.declare_subscriber(&topic).await });
+        match handle {
+            Ok(sub) => Ok(Box::new(ZenohSubscription {
+                rt: std::sync::Arc::clone(&self.rt),
+                sub,
+            })),
+            Err(e) => Err(Refuse::new(
+                Reason::StorageUnavailable {
+                    path: "<zenoh subscribe>".to_string(),
+                },
+                format!("{e}"),
+            )),
+        }
+    }
+
     fn request(
         &self,
         ask_topic: &str,

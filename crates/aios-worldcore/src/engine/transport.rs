@@ -22,6 +22,18 @@ use std::time::Duration;
 
 use crate::core::types::{Admit, Reason, Refuse};
 
+/// ★★ **一条【长期持有】的订阅**（T-280）—— ★ 订一次、一直收。
+///
+/// ★★★ 为什么口上必须有它（★ 本笔修的竞态）：
+///   · 用 `take` 循环收消息，★ 而 `take` 每次才去订阅 ⇒
+///     ★ **「返回一条 ⇒ 下次重新订阅」之间有个空窗** ⇒ ★ 空窗里来的消息就丢了；
+///   · 实测：★ 注册 11 条时只成功 4–5 条；
+///   · ⇒ ★ **「订阅的寿命」必须由口保证**，★ 不能让调用方每次重新订。
+pub trait Subscription: Send + Sync {
+    /// ★ 收一条（★ 带超时；★ 超时 ⇒ 拒）。
+    fn recv(&self, timeout: Duration) -> Admit<String>;
+}
+
 /// ★★ **发一条／收一条** —— ★ 内核里出现总线的【唯一】地方。
 pub trait Transport: Send + Sync {
     /// ★ 往一个话题发一条（★ 话题名由调用方给，★ 不在这里拼）。
@@ -42,6 +54,9 @@ pub trait Transport: Send + Sync {
         reply_topic: &str,
         timeout: Duration,
     ) -> Admit<String>;
+
+    /// ★★ **订阅**（T-280）：★ **一次声明、长期持有** —— ★ 没有空窗。
+    fn subscribe(&self, topic: &str) -> Admit<Box<dyn Subscription>>;
 }
 
 /// ★ **同进程的内存队列**（★ 今天用它让执行体跑起来；★ 不是总线选型）。
@@ -66,7 +81,50 @@ impl LocalTransport {
     }
 }
 
+/// ★ `LocalTransport` 上的订阅（★ 内存队列：★ 队列一直在 ⇒ 没有空窗）。
+struct LocalSubscription {
+    queues: Arc<Mutex<std::collections::BTreeMap<String, VecDeque<String>>>>,
+    topic: String,
+}
+
+impl Subscription for LocalSubscription {
+    fn recv(&self, timeout: Duration) -> Admit<String> {
+        let deadline = std::time::Instant::now() + timeout;
+        loop {
+            {
+                let mut q = self.queues.lock().map_err(|_| {
+                    Refuse::new(
+                        Reason::StorageUnavailable {
+                            path: self.topic.clone(),
+                        },
+                        "<队列锁坏了>",
+                    )
+                })?;
+                if let Some(v) = q.get_mut(&self.topic).and_then(VecDeque::pop_front) {
+                    return Ok(v);
+                }
+            }
+            if std::time::Instant::now() >= deadline {
+                return Err(Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: self.topic.clone(),
+                    },
+                    "<超时：那个话题上没有消息>",
+                ));
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+}
+
 impl Transport for LocalTransport {
+    fn subscribe(&self, topic: &str) -> Admit<Box<dyn Subscription>> {
+        Ok(Box::new(LocalSubscription {
+            queues: Arc::clone(&self.queues),
+            topic: topic.to_string(),
+        }))
+    }
+
     fn put(&self, topic: &str, payload: &str) -> Admit<()> {
         let mut q = self.queues.lock().map_err(|_| {
             Refuse::new(

@@ -10,6 +10,8 @@ Type=simple
 # ★★ 与上游其余单元的一处【已知差异】：它们都走 '/usr/lib/aios/aios-system run-service <名字>'，
 #   而总线用的是 zenoh 自带的守护进程 —— ★ 因为总线【就是 zenoh】（作者裁「换 Zenoh」）。
 #   ⇒ ★ 待办：要么把 zenohd 收进 aios-system，要么接受这处差异并把它写进发行说明。
+# ★ 总线自己的连接配置（★ 它 listen 不需要，但保持一致）
+Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
 ExecStart=/usr/lib/aios/zenohd --listen tcp/127.0.0.1:7447
 Restart=always
 RestartSec=3
