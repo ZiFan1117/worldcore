@@ -34,6 +34,11 @@ import zenoh
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ontology_definition import build_aios_ontology  # noqa: E402
+from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
+
+# ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
+#   ⇒ ABox 接上：个体不再只活在账里，而是【真的存在 ObjectStore 里】（SQLite 持久化）。
+STORE_PATH = os.environ.get("AIOS_STORE_DB", "/var/lib/aios/ontology/objects.db")
 
 # ── 话题（与 Rust 侧同一套）──
 T_REGISTER = "world/register"
@@ -42,7 +47,9 @@ T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
 T_APPEAR = "world/appear"   # ★★ 进程上报（「我起来了，我是谁」）
 T_ASK = "world/ask"
-T_EXEC_RESULT = "world/exec/result"   # ★ 结果先回本体（★ 所有交互过本体）
+T_EXEC_RESULT = "world/exec/result"
+T_QUERY = "world/query"              # ★★ 查世界（★ 作者令：所有交互过本体）
+T_QUERY_RESULT = "world/query/result"   # ★ 结果先回本体（★ 所有交互过本体）
 T_EXEC = "world/exec"
 T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；载体跑完 ⇒ 也发这里）
 # ★★★ 2026-10-17 裁：**本体不再碰结果** —— 退订 world/exec/result、不记结果、不回转。
@@ -70,6 +77,9 @@ class World:
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
+        # ★★ ABox：个体表（★ P 的 ObjectStore，SQLite 持久化）
+        os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
+        self.store = ObjectStore(self.ontology, db_path=STORE_PATH)
         log("② 注册表 %d 条；账本 %s" % (len(self.registry), LEDGER_PATH))
 
     # ── 注册表 ──
@@ -172,9 +182,17 @@ class World:
             self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why_s, "body": msg})
             log("进程上报 %s ⇒ 拒：%s" % (cls, why_s))
             return
+        # ★★ 建个体（★ 用 P 的 ObjectStore.create —— 它会【按类型再校一遍】）
+        try:
+            inst = self.store.create(cls, dict(fields), created_by="world")
+        except Exception as e:
+            why = "建个体失败：%s" % e
+            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why, "body": msg})
+            log("进程上报 %s ⇒ 拒：%s" % (cls, why))
+            return
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
-        seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", "?")), "after": fields})
-        log("★ 进程注册 %s/%s ⇒ 成为个体（%s）" % (cls, fields.get("name", "?"), seq))
+        seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, inst.instance_id), "after": fields})
+        log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）" % (cls, inst.instance_id, seq, inst.instance_id))
 
     # ── ★★ 执行面 ①：谁能做这个动作（T-342 真做）──
     def can_execute(self, actor, capability):
@@ -239,7 +257,8 @@ def main():
     session.declare_subscriber(T_APPEAR, lambda s: w.on_appear(s))
     session.declare_subscriber(T_ASK, lambda s: _ask_and_forward(s, w, session))
     session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
-    log("   订上了：%s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT))
+    session.declare_subscriber(T_QUERY, lambda s: _query_and_reply(s, w, session))
+    log("   订上了：%s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:
         while True:
@@ -297,6 +316,69 @@ def _result_and_reply(smp, w, session):
     log("结果 %s（%s，ok=%s）⇒ 回请求方" % (msg.get("action"), at, msg.get("ok")))
     session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "at": at, **msg},
                                          ensure_ascii=False))
+
+
+def _query_and_reply(smp, w, session):
+    """★★ 查世界 —— ★ 作者令：「查世界状态也要过本体」「查历史也要过本体」。
+
+    ★ 作者列的要素（逐字）：「**有几个个体，有哪些 action，它们的关系是什么等等**」
+
+    支持的问法（`kind`）：
+      · world   → 世界概览（每类几个、动作清单）
+      · actions → 动作清单（本体 9 个 ＋ 注册表 11 个）
+      · types   → 类型清单（9 类）
+      · type    → 某一类的个体（★ 用 P 的 ObjectStore.search）
+      · one     → 一个个体（★ 用 ObjectStore.get）
+      · link    → 沿关系走（★ 用 OntologyQuery.navigate）
+    """
+    try:
+        msg = json.loads(smp.payload.to_string())
+    except Exception:
+        return
+    rid = msg.get("id")
+    kind = msg.get("kind") or "world"
+    try:
+        if kind == "world":
+            data = {"types": {}, "actions": sorted(w.ontology.action_types.keys()),
+                    "registry": len(w.registry), "instances": {}}
+            for tid in w.ontology.object_types:
+                n = w.store.count(tid)
+                data["types"][tid] = len(w.ontology.object_types[tid].properties)
+                data["instances"][tid] = n
+        elif kind == "actions":
+            data = {"ontology": sorted(w.ontology.action_types.keys()),
+                    "registry": sorted(w.registry.keys())}
+        elif kind == "types":
+            data = {tid: sorted(ot.properties.keys()) for tid, ot in w.ontology.object_types.items()}
+        elif kind == "type":
+            tid = msg.get("type") or ""
+            if tid not in w.ontology.object_types:
+                raise ValueError("类型不在册：%s" % tid)
+            rows = w.store.search(tid)
+            data = [{"id": r.instance_id, "properties": r.properties} for r in rows]
+        elif kind == "one":
+            iid = msg.get("id_of") or msg.get("instance") or ""
+            inst = w.store.get(iid)
+            if inst is None:
+                raise ValueError("个体不存在：%s" % iid)
+            data = {"id": inst.instance_id, "type": inst.object_type_id,
+                    "properties": inst.properties, "links": inst.links,
+                    "created_by": inst.created_by}
+        elif kind == "link":
+            tid = msg.get("type") or ""
+            lk = msg.get("link") or ""
+            from foundry_ontology.engine.query_engine import OntologyQuery
+            rows = OntologyQuery(w.store, tid).navigate(lk).all()
+            data = {"link": lk, "count": len(rows),
+                    "targets": [{"id": r.instance_id, "properties": r.properties} for r in rows]}
+        else:
+            raise ValueError("不认识的 kind：%s" % kind)
+        out = {"id": rid, "kind": kind, "ok": True, "data": data}
+        log("查世界 %s ⇒ ok（%d 字节）" % (kind, len(json.dumps(data, ensure_ascii=False))))
+    except Exception as e:
+        out = {"id": rid, "kind": kind, "ok": False, "why": str(e)}
+        log("查世界 %s ⇒ 拒：%s" % (kind, e))
+    session.put(T_QUERY_RESULT, json.dumps(out, ensure_ascii=False))
 
 
 if __name__ == "__main__":

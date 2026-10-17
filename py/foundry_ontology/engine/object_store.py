@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -35,7 +36,10 @@ class ObjectStore:
         self._init_db()
 
     def _init_db(self) -> None:
-        self._conn = sqlite3.connect(self.db_path)
+        # ★★★ 我方改动（2026-10-17）：允许跨线程 —— ★ 本体在【主线程】建 store，
+        #   而 zenoh 的回调在【别的线程】跑 ⇒ 不放开就报「SQLite objects created in a thread...」
+        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self._lock = threading.Lock()   # ★ 跨线程了，就要加锁
         self._conn.executescript("""
             CREATE TABLE IF NOT EXISTS objects (
                 instance_id TEXT PRIMARY KEY,

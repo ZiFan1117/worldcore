@@ -21,3 +21,11 @@
 
 ★ `core/` ＋ `engine/` 的外部依赖是**零**（只要 `sqlite3`，标准库）—— 实测过。
 ★ `export/` 要 `rdflib`／`owlready2`／`pyshacl`；`cli.py` 要 `click`／`rich`；`mcp/` 要 `mcp` —— 这些我们不要。
+## ★ 我方对 P 源码的改动（2026-10-17，逐条记）
+
+| # | 文件 | 改动 | 为什么 |
+|---|---|---|---|
+| **1** | `foundry_ontology/core/action_type.py` | 加 `metadata: dict` | 装我们的 `kind`／`not_roles`／`实现状态` |
+| **2** | `foundry_ontology/core/ontology.py` | 加 `metadata: dict` | 装世界机制（envelope／families／permissions／governance） |
+| **3** | `foundry_ontology/core/function.py` | 加 `metadata: dict = None` ＋ `__post_init__` | 装 `transport`／`endpoint` |
+| **4** | ★ `foundry_ontology/engine/object_store.py` | `sqlite3.connect(..., check_same_thread=False)` ＋ `threading.Lock()` | **本体在主线程建 store，而 zenoh 回调在别的线程跑** ⇒ 不放开就报「SQLite objects created in a thread…」 |
