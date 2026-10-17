@@ -15,6 +15,8 @@
 
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import time
@@ -56,23 +58,75 @@ def load_map(path):
     return rows
 
 
+def _expand(tok, params, missing):
+    """★ 把一个 token 展开：`{x}` 换成 `params[x]`。
+
+    ★ 列表值展开成多个 token（★ `-y {package}` ＋ packages=[a,b] ⇒ `-y a b`）。
+    ★ 缺参 ⇒ 记进 missing（★ 不静默）。
+    """
+    m = re.fullmatch(r"\{([a-z_][a-z0-9_]*)\}", tok)
+    if not m:
+        return [tok]
+    k = m.group(1)
+    if k not in params:
+        missing.append(k)
+        return []
+    v = params[k]
+    if isinstance(v, (list, tuple)):
+        return [str(x) for x in v]
+    return [str(v)]
+
+
+def probe_availability(rows):
+    """★ 发行版路由：★ 逐个看程序在不在本机（★ 比硬编码发行版矩阵更实）。
+
+    ★★ 2026-10-17：抄了 sysknife 的 150 个动作，其中大量是 Debian/Fedora 专有的（apt-*／dnf-*／
+    rpm-ostree／ufw…）。★★ openSUSE 上没有 ⇒ ★ 报「本发行版没有这个程序」，★ 不报「起不来」。
+    """
+    ok, missing = [], {}
+    for name, reg in rows.items():
+        prog = reg.get("program") or ""
+        if not prog:
+            missing[name] = "没有程序（界面类）"
+            continue
+        if shutil.which(prog):
+            ok.append(name)
+        else:
+            missing[name] = "本发行版没有 %s" % prog
+    return ok, missing
+
 def run_action(rows, action, params):
-    """★ 查表 ⇒ 起程序 ⇒ 收输出。★ 不拼 shell（直接 execve）。"""
+    """★ 查表 ⇒ 起程序 ⇒ 收输出。★ 不拼 shell（直接 execve）。
+
+    ★★ 2026-10-17：支持 sysknife 抄来的动作 ——
+      ① args 里的 `{x}` 用 `params[x]` 替换（★ 缺参就拒，不静默）
+      ② 映射表的 `env` 作为环境变量传给程序
+    """
     reg = rows.get(action)
     if reg is None:
         return False, "载体侧不认识 %s（映射表里没有）" % action
     program = reg.get("program") or ""
     if not program:
         return False, "%s 没有程序（可能是界面类动作）" % action
-    args = list(reg.get("args") or [])
-    # ★ 请求里带了 args 就用请求的（★ 映射表今天没有参数格 —— 这是权宜）
-    if isinstance(params, dict) and isinstance(params.get("args"), list):
-        args = [str(x) for x in params["args"]]
-    cmd = [program] + args
+    raw_args = list(reg.get("args") or [])
+    params = params if isinstance(params, dict) else {}
+    # ★ 显式传 args 时以请求为准（★ 老行为，保留）
+    if isinstance(params.get("args"), list):
+        cmd_args = [str(x) for x in params["args"]]
+    else:
+        cmd_args, missing = [], []
+        for tok in raw_args:
+            cmd_args.extend(_expand(tok, params, missing))
+        if missing:
+            return False, "缺参数 %s（这个动作要 %s）" % (sorted(set(missing)), sorted((reg.get("params") or [])))
+    env = dict(os.environ)
+    for k, v in (reg.get("env") or {}).items():
+        env[str(k)] = str(v)
+    cmd = [program] + cmd_args
     try:
-        p = subprocess.run(cmd, capture_output=True, timeout=30)
+        p = subprocess.run(cmd, capture_output=True, timeout=30, env=env)
     except FileNotFoundError:
-        return False, "本机没有这个程序：%s" % program
+        return False, ("本发行版没有 %s（★ 这个动作可能需要别的发行版）" % program)
     except subprocess.TimeoutExpired:
         return False, "超时（30 秒）：%s" % " ".join(cmd)
     except Exception as e:
@@ -83,9 +137,14 @@ def run_action(rows, action, params):
         return False, "%s 退出码 %s\n%s" % (program, p.returncode, err.strip()[:500])
     return True, out
 
-
 def main():
     rows = load_map(MAP_PATH)
+    ok, missing = probe_availability(rows)
+    log("★ 可用动作 %d 个；本发行版不支持 %d 个" % (len(ok), len(missing)))
+    for n in sorted(missing)[:8]:
+        log("   ✗ %s（%s）" % (n, missing[n]))
+    if len(missing) > 8:
+        log("   … 还有 %d 个" % (len(missing) - 8))
     log("① 映射表 %d 条（%s）" % (len(rows), MAP_PATH))
 
     conf = zenoh.Config()

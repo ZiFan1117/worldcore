@@ -1,109 +1,184 @@
 {
- "_what": "★ 从 sysknife-daemon 0.16.0 的 42 个 actions/*.rs 抽出的 ActionSpec，转成我们的命令映射",
- "_how": "花括号配对解析；去掉 sudo 前缀（载体本身 root）；env 赋值跳过；内部脚本跳过",
+ "_what": "★ 从 sysknife-daemon 0.16.0 的 42 个 actions/*.rs 抽出的 ActionSpec，全量",
+ "_how": "花括号配对 + 实参切分 + 常量解析 + 变量转 {占位符} + 环境变量分离；去 sudo（载体本身 root）",
  "_license": "MIT（sysknife / lacs-project）",
- "_naming": "sys.<PascalName>（如 sys.GetDiskUsage）",
- "count": 128,
+ "_naming": "sys.<PascalName>；args 里的 {x} 由载体用 params[x] 替换",
+ "count": 141,
  "actions": [
   {
    "action": "sys.AppArmorStatus",
    "program": "aa-status",
    "args": [],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apparmor.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AppArmorEnforce",
    "program": "aa-enforce",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/apparmor.rs"
+   "args": [
+    "{profile_path}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "profile_path"
+   ]
   },
   {
    "action": "sys.AppArmorComplain",
    "program": "aa-complain",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/apparmor.rs"
+   "args": [
+    "{profile_path}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "profile_path"
+   ]
   },
   {
    "action": "sys.AptUpdate",
-   "program": "update",
-   "args": [],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "program": "/usr/bin/apt-get",
+   "args": [
+    "update"
+   ],
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AptUpgrade",
-   "program": "dist-upgrade",
+   "program": "/usr/bin/apt-get",
    "args": [
+    "dist-upgrade",
     "-y"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AptInstall",
-   "program": "install",
+   "program": "/usr/bin/apt-get",
    "args": [
-    "-y"
+    "install",
+    "-y",
+    "{package}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptRemove",
-   "program": "remove",
+   "program": "/usr/bin/apt-get",
    "args": [
-    "-y"
+    "remove",
+    "-y",
+    "{package}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptPurge",
-   "program": "purge",
+   "program": "/usr/bin/apt-get",
    "args": [
-    "-y"
+    "purge",
+    "-y",
+    "{package}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptAutoremove",
-   "program": "autoremove",
+   "program": "/usr/bin/apt-get",
    "args": [
+    "autoremove",
     "-y"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "NEEDRESTART_MODE": "a"
+   },
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AptHold",
    "program": "apt-mark",
    "args": [
-    "hold"
+    "hold",
+    "{package}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptUnhold",
    "program": "apt-mark",
    "args": [
-    "unhold"
+    "unhold",
+    "{package}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptSearch",
    "program": "apt-cache",
    "args": [
-    "search"
+    "search",
+    "{term}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "term"
+   ]
   },
   {
    "action": "sys.AptListInstalled",
@@ -111,17 +186,24 @@
    "args": [
     "-l"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AptShow",
    "program": "apt-cache",
    "args": [
-    "show"
+    "show",
+    "{package}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.AptListUpgradable",
@@ -130,8 +212,10 @@
     "-c",
     "apt list --upgradable 2>/dev/null"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AptHistoryList",
@@ -140,36 +224,23 @@
     "-c",
     "grep -A 4 '^Start-Date' /var/log/apt/history.log | tail -n 80"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetAptPins",
    "program": "apt-cache",
-   "args": [],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/apt_preferences.rs"
-  },
-  {
-   "action": "sys.SetAptPin",
-   "program": "set",
    "args": [
-    "--name",
-    "--package",
-    "--pin",
-    "--priority"
+    "{args}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt_preferences.rs"
-  },
-  {
-   "action": "sys.RemoveAptPin",
-   "program": "remove",
-   "args": [
-    "--name"
-   ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/apt_preferences.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "args"
+   ]
   },
   {
    "action": "sys.GetAuditRules",
@@ -177,28 +248,10 @@
    "args": [
     "-l"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/auditd.rs"
-  },
-  {
-   "action": "sys.AddAuditRule",
-   "program": "add",
-   "args": [
-    "--path",
-    "--perms",
-    "--key"
-   ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/auditd.rs"
-  },
-  {
-   "action": "sys.RemoveAuditRule",
-   "program": "remove",
-   "args": [
-    "--key"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/auditd.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetCertificates",
@@ -206,8 +259,10 @@
    "args": [
     "certificates"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/certbot.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.RenewCertificates",
@@ -215,8 +270,10 @@
    "args": [
     "renew"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/certbot.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.CloudInitStatus",
@@ -225,8 +282,64 @@
     "status",
     "--long"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/cloudinit.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.ListContainers",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.CreateContainer",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.StartContainer",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.StopContainer",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.RemoveContainer",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.GetContainerInfo",
+   "program": "podman",
+   "args": [],
+   "env": {},
+   "mechanism": "podman_as",
+   "as_user": "username",
+   "params": []
   },
   {
    "action": "sys.GetSystemState",
@@ -235,8 +348,10 @@
     "status",
     "--json"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.CollectDiagnostics",
@@ -247,8 +362,10 @@
     "500",
     "--no-pager"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetDeploymentHistory",
@@ -257,8 +374,10 @@
     "status",
     "--json"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ListDeployments",
@@ -267,8 +386,10 @@
     "status",
     "--json"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.UpdateSystem",
@@ -276,17 +397,24 @@
    "args": [
     "upgrade"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.RebaseSystem",
    "program": "rpm-ostree",
    "args": [
-    "rebase"
+    "rebase",
+    "{target_ref}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "target_ref"
+   ]
   },
   {
    "action": "sys.CleanupDeployments",
@@ -296,8 +424,10 @@
     "--rollback",
     "--pending"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.RebootSystem",
@@ -305,8 +435,10 @@
    "args": [
     "reboot"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.RollbackDeployment",
@@ -314,8 +446,10 @@
    "args": [
     "rollback"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetKernelArguments",
@@ -323,8 +457,10 @@
    "args": [
     "kargs"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/deployment.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.DistroboxList",
@@ -332,8 +468,10 @@
    "args": [
     "list"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/distrobox.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.DistroboxCreate",
@@ -342,20 +480,32 @@
     "create",
     "--yes",
     "--name",
-    "--image"
+    "{name}",
+    "--image",
+    "{image}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/distrobox.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name",
+    "image"
+   ]
   },
   {
    "action": "sys.DistroboxRemove",
    "program": "distrobox",
    "args": [
     "rm",
-    "--force"
+    "--force",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/distrobox.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.GetDiskUsage",
@@ -368,28 +518,150 @@
     "--exclude-type=devtmpfs",
     "--exclude-type=efivarfs"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/filesystem.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.InstallFlatpak",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.RemoveFlatpak",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
   },
   {
    "action": "sys.SearchFlatpakApps",
    "program": "flatpak",
    "args": [
-    "search"
+    "search",
+    "{term}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/flatpak.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "term"
+   ]
+  },
+  {
+   "action": "sys.ListFlatpakRemotes",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.AddFlatpakRemote",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.RemoveFlatpakRemote",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.ListInstalledFlatpaks",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.GetFlatpakAppInfo",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.UbuntuInstallFlatpak",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.UbuntuRemoveFlatpak",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.UbuntuListFlatpaks",
+   "program": "flatpak",
+   "args": [
+    "--user"
+   ],
+   "env": {},
+   "mechanism": "flatpak_as",
+   "as_user": "username",
+   "params": []
   },
   {
    "action": "sys.GrubGetKargs",
    "program": "grep",
    "args": [
     "-E",
+    "{r}",
     "^GRUB_CMDLINE_LINUX",
     "/etc/default/grub"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/grub.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "r"
+   ]
   },
   {
    "action": "sys.GetDateTime",
@@ -397,60 +669,121 @@
    "args": [
     ""
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/identity.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.SetHostname",
    "program": "hostnamectl",
    "args": [
-    "set-hostname"
+    "set-hostname",
+    "{hostname}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/identity.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "hostname"
+   ]
   },
   {
    "action": "sys.SetTimezone",
    "program": "timedatectl",
    "args": [
-    "set-timezone"
+    "set-timezone",
+    "{timezone}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/identity.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "timezone"
+   ]
   },
   {
    "action": "sys.SetLocale",
    "program": "localectl",
    "args": [
-    "set-locale"
+    "set-locale",
+    "{locale}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/identity.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "locale"
+   ]
   },
   {
    "action": "sys.SetNtp",
    "program": "timedatectl",
    "args": [
     "set-ntp",
+    "{if}",
+    "{enabled}",
     "true",
+    "{else}",
     "false"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/identity.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "if",
+    "enabled",
+    "else"
+   ]
   },
   {
    "action": "sys.GetJournalLog",
    "program": "journalctl",
-   "args": [],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/journald.rs"
+   "args": [
+    "{args}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "args"
+   ]
   },
   {
    "action": "sys.VacuumJournal",
    "program": "journalctl",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/journald.rs"
+   "args": [
+    "{vacuum_flag}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "vacuum_flag"
+   ]
+  },
+  {
+   "action": "sys.InstallPackages",
+   "program": "rpm-ostree",
+   "args": [
+    "install",
+    "--idempotent"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.RemovePackages",
+   "program": "rpm-ostree",
+   "args": [
+    "uninstall"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetLayeredPackages",
@@ -459,47 +792,71 @@
     "status",
     "--json"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.AddLayeredPackage",
    "program": "rpm-ostree",
    "args": [
     "install",
-    "--idempotent"
+    "--idempotent",
+    "{package}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.RemoveLayeredPackage",
    "program": "rpm-ostree",
    "args": [
-    "uninstall"
+    "uninstall",
+    "{package}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.ReplaceLayeredPackage",
    "program": "rpm-ostree",
    "args": [
     "install",
-    "--uninstall"
+    "{new}",
+    "--uninstall",
+    "{old}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "new",
+    "old"
+   ]
   },
   {
    "action": "sys.RemoveBasePackage",
    "program": "rpm-ostree",
    "args": [
     "override",
-    "remove"
+    "remove",
+    "{package}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "package"
+   ]
   },
   {
    "action": "sys.GetPendingUpdates",
@@ -508,8 +865,10 @@
     "upgrade",
     "--check"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ResetLayeredPackageOverride",
@@ -519,8 +878,10 @@
     "reset",
     "--all"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/layering.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.LivepatchStatus",
@@ -529,44 +890,24 @@
     "status",
     "--verbose"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/livepatch.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetLogrotateStatus",
    "program": "logrotate",
    "args": [
-    "-d"
+    "-d",
+    "{conf}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/logging.rs"
-  },
-  {
-   "action": "sys.RemoveLogRotation",
-   "program": "rm-logrotate",
-   "args": [
-    "--name"
-   ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/logging.rs"
-  },
-  {
-   "action": "sys.ConfigureRemoteSyslog",
-   "program": "rsyslog-forward",
-   "args": [
-    "--host",
-    "--port",
-    "--protocol"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/logging.rs"
-  },
-  {
-   "action": "sys.RemoveRemoteSyslog",
-   "program": "rm-forward",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/logging.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "conf"
+   ]
   },
   {
    "action": "sys.GetLvmReport",
@@ -579,29 +920,47 @@
     "-o",
     "lv_name,vg_name,lv_size,lv_attr,origin,data_percent"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/lvm.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ExtendLogicalVolume",
    "program": "lvextend",
    "args": [
     "-L",
+    "{size}",
     "-r",
+    "{format}",
     "{vg}/{lv}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/lvm.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "size",
+    "format"
+   ]
   },
   {
    "action": "sys.CreateLogicalVolume",
    "program": "lvcreate",
    "args": [
     "-L",
-    "-n"
+    "{size}",
+    "-n",
+    "{name}",
+    "{vg}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/lvm.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "size",
+    "name",
+    "vg"
+   ]
   },
   {
    "action": "sys.CreateLvSnapshot",
@@ -609,11 +968,20 @@
    "args": [
     "-s",
     "-L",
+    "{size}",
     "-n",
+    "{snapshot}",
+    "{format}",
     "{vg}/{origin}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/lvm.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "size",
+    "snapshot",
+    "format"
+   ]
   },
   {
    "action": "sys.GetMounts",
@@ -621,36 +989,10 @@
    "args": [
     "--json"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/mounts.rs"
-  },
-  {
-   "action": "sys.RemoveMount",
-   "program": "unmount",
-   "args": [
-    "--mountpoint"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/mounts.rs"
-  },
-  {
-   "action": "sys.AddSwap",
-   "program": "addswap",
-   "args": [
-    "--file",
-    "--size-mb"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/mounts.rs"
-  },
-  {
-   "action": "sys.RemoveSwap",
-   "program": "rmswap",
-   "args": [
-    "--file"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/mounts.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.MultipassList",
@@ -658,8 +1000,10 @@
    "args": [
     "list"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/multipass.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.NetplanGetConfig",
@@ -676,17 +1020,24 @@
     "{}",
     "+"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/netplan.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.NetplanSet",
    "program": "netplan",
    "args": [
-    "set"
+    "set",
+    "{kv}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/netplan.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "kv"
+   ]
   },
   {
    "action": "sys.NetplanGenerate",
@@ -694,8 +1045,10 @@
    "args": [
     "generate"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/netplan.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.NetplanApply",
@@ -703,8 +1056,10 @@
    "args": [
     "apply"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/netplan.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetFirewallState",
@@ -712,8 +1067,10 @@
    "args": [
     "--list-all"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/network.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetNetworkStatus",
@@ -722,8 +1079,10 @@
     "-brief",
     "addr"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/network.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetNftablesRuleset",
@@ -732,8 +1091,10 @@
     "list",
     "ruleset"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/network.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetListeningPorts",
@@ -741,17 +1102,57 @@
    "args": [
     "-tulpnH"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/network.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetPasswordAging",
    "program": "chage",
    "args": [
-    "-l"
+    "-l",
+    "{user}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/pam.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "user"
+   ]
+  },
+  {
+   "action": "sys.AddPpa",
+   "program": "add-apt-repository",
+   "args": [
+    "-y",
+    "{ppa_arg}",
+    "{name}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "ppa_arg",
+    "name"
+   ]
+  },
+  {
+   "action": "sys.RemovePpa",
+   "program": "add-apt-repository",
+   "args": [
+    "-y",
+    "--remove",
+    "{ppa_arg}",
+    "{name}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "ppa_arg",
+    "name"
+   ]
   },
   {
    "action": "sys.ListProcesses",
@@ -760,26 +1161,42 @@
     "aux",
     "--sort=-%mem"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/processes.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.SignalProcess",
    "program": "kill",
    "args": [
-    "-s"
+    "-s",
+    "{signal}",
+    "{pid_str}",
+    "{as_str}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/processes.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "signal",
+    "pid_str",
+    "as_str"
+   ]
   },
   {
    "action": "sys.CheckPendingReboot",
    "program": "bash",
    "args": [
-    "-c"
+    "-c",
+    "{script}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/reboot.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "script"
+   ]
   },
   {
    "action": "sys.UbuntuReleaseUpgrade",
@@ -788,8 +1205,10 @@
     "-f",
     "DistUpgradeViewNonInteractive"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/release_upgrade.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ResolvectlStatus",
@@ -797,18 +1216,25 @@
    "args": [
     "status"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/resolvectl.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetServiceResourceLimits",
    "program": "systemctl",
    "args": [
     "show",
+    "{unit}",
     "--property=MemoryMax,MemoryHigh,CPUQuotaPerSecUSec,TasksMax"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.ListServices",
@@ -820,79 +1246,124 @@
     "--no-legend",
     "--no-pager"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.StartService",
    "program": "systemctl",
    "args": [
-    "start"
+    "start",
+    "{unit}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.StopService",
    "program": "systemctl",
    "args": [
-    "stop"
+    "stop",
+    "{unit}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.RestartService",
    "program": "systemctl",
    "args": [
-    "restart"
+    "restart",
+    "{unit}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.SetServiceEnabled",
    "program": "systemctl",
-   "args": [],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "args": [
+    "{verb}",
+    "{unit}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "verb",
+    "unit"
+   ]
   },
   {
    "action": "sys.MaskService",
    "program": "systemctl",
    "args": [
-    "mask"
+    "mask",
+    "{unit}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.UnmaskService",
    "program": "systemctl",
    "args": [
-    "unmask"
+    "unmask",
+    "{unit}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.GetServiceStatus",
    "program": "systemctl",
    "args": [
     "status",
+    "{unit}",
     "--no-pager"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.ReloadService",
    "program": "systemctl",
    "args": [
-    "reload"
+    "reload",
+    "{unit}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
   },
   {
    "action": "sys.ListTimers",
@@ -903,8 +1374,10 @@
     "--no-legend",
     "--no-pager"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ReloadDaemon",
@@ -912,58 +1385,94 @@
    "args": [
     "daemon-reload"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetServiceLogs",
    "program": "journalctl",
    "args": [
     "-u",
+    "{unit}",
     "-n",
     "200",
     "--no-pager"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/services.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "unit"
+   ]
+  },
+  {
+   "action": "sys.SnapInstall",
+   "program": "snap",
+   "args": [],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.SnapRemove",
    "program": "snap",
    "args": [
-    "remove"
+    "remove",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.SnapRefresh",
    "program": "snap",
    "args": [
-    "refresh"
+    "refresh",
+    "{n}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "n"
+   ]
   },
   {
    "action": "sys.SnapHold",
    "program": "snap",
    "args": [
     "refresh",
-    "--hold"
+    "--hold",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.SnapUnhold",
    "program": "snap",
    "args": [
     "refresh",
-    "--unhold"
+    "--unhold",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.SnapList",
@@ -971,61 +1480,80 @@
    "args": [
     "list"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.SnapInfo",
    "program": "snap",
    "args": [
-    "info"
+    "info",
+    "{name}"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.SnapRevert",
    "program": "snap",
    "args": [
-    "revert"
+    "revert",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.SnapClassicInstall",
    "program": "snap",
    "args": [
     "install",
-    "--classic"
+    "--classic",
+    "{name}"
    ],
-   "risk": "Medium",
-   "from": "sysknife-0.16.0/snap.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "name"
+   ]
   },
   {
    "action": "sys.GetAuthorizedKeys",
    "program": "cat",
    "args": [
+    "{format}",
     "/home/{username}/.ssh/authorized_keys"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/ssh.rs"
-  },
-  {
-   "action": "sys.RevokeSudoAccess",
-   "program": "revoke",
-   "args": [
-    "--name"
-   ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/sudoers.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "format"
+   ]
   },
   {
    "action": "sys.GetSysctl",
    "program": "sysctl",
-   "args": [],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/sysctl.rs"
+   "args": [
+    "{args}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "args"
+   ]
   },
   {
    "action": "sys.GetMemoryInfo",
@@ -1033,8 +1561,10 @@
    "args": [
     "-h"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/system_info.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.GetHostState",
@@ -1042,8 +1572,37 @@
    "args": [
     "status"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/system_info.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
+  },
+  {
+   "action": "sys.ListToolboxes",
+   "program": "toolbox",
+   "args": [],
+   "env": {},
+   "mechanism": "toolbox_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.CreateToolbox",
+   "program": "toolbox",
+   "args": [],
+   "env": {},
+   "mechanism": "toolbox_as",
+   "as_user": "username",
+   "params": []
+  },
+  {
+   "action": "sys.RemoveToolbox",
+   "program": "toolbox",
+   "args": [],
+   "env": {},
+   "mechanism": "toolbox_as",
+   "as_user": "username",
+   "params": []
   },
   {
    "action": "sys.ProStatus",
@@ -1052,17 +1611,24 @@
     "status",
     "--all"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/ubuntu_pro.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ProAttach",
    "program": "pro",
    "args": [
-    "attach"
+    "attach",
+    "{token}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ubuntu_pro.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "token"
+   ]
   },
   {
    "action": "sys.ProDetach",
@@ -1071,28 +1637,40 @@
     "detach",
     "--assume-yes"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ubuntu_pro.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.EnableProService",
    "program": "pro",
    "args": [
     "enable",
+    "{service}",
     "--assume-yes"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ubuntu_pro.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "service"
+   ]
   },
   {
    "action": "sys.DisableProService",
    "program": "pro",
    "args": [
     "disable",
+    "{service}",
     "--assume-yes"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ubuntu_pro.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "service"
+   ]
   },
   {
    "action": "sys.UfwEnable",
@@ -1101,8 +1679,10 @@
     "--force",
     "enable"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.UfwDisable",
@@ -1110,26 +1690,38 @@
    "args": [
     "disable"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.UfwAllow",
    "program": "ufw",
    "args": [
-    "allow"
+    "allow",
+    "{port_or_service}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "port_or_service"
+   ]
   },
   {
    "action": "sys.UfwDeny",
    "program": "ufw",
    "args": [
-    "deny"
+    "deny",
+    "{port_or_service}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "port_or_service"
+   ]
   },
   {
    "action": "sys.UfwReset",
@@ -1138,38 +1730,61 @@
     "--force",
     "reset"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.UfwStatus",
    "program": "ufw",
    "args": [
     "status",
+    "{if}",
+    "{numbered}",
     "numbered",
+    "{else}",
     "verbose"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "if",
+    "numbered",
+    "else"
+   ]
   },
   {
    "action": "sys.UfwDeleteRule",
    "program": "ufw",
    "args": [
     "--force",
-    "delete"
+    "delete",
+    "{rule_number}",
+    "{to_string}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "rule_number",
+    "to_string"
+   ]
   },
   {
    "action": "sys.UfwLimit",
    "program": "ufw",
    "args": [
-    "limit"
+    "limit",
+    "{target}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/ufw.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "target"
+   ]
   },
   {
    "action": "sys.ListUsers",
@@ -1177,8 +1792,10 @@
    "args": [
     "passwd"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/users.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.ListGroups",
@@ -1186,40 +1803,64 @@
    "args": [
     "group"
    ],
-   "risk": "Low",
-   "from": "sysknife-0.16.0/users.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": []
   },
   {
    "action": "sys.DeleteUser",
    "program": "userdel",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/users.rs"
+   "args": [
+    "{username}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "username"
+   ]
   },
   {
    "action": "sys.DeleteGroup",
    "program": "groupdel",
-   "args": [],
-   "risk": "High",
-   "from": "sysknife-0.16.0/users.rs"
+   "args": [
+    "{group}"
+   ],
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "group"
+   ]
   },
   {
    "action": "sys.LockUserAccount",
    "program": "usermod",
    "args": [
-    "--lock"
+    "--lock",
+    "{username}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/users.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "username"
+   ]
   },
   {
    "action": "sys.UnlockUserAccount",
    "program": "usermod",
    "args": [
-    "--unlock"
+    "--unlock",
+    "{username}"
    ],
-   "risk": "High",
-   "from": "sysknife-0.16.0/users.rs"
+   "env": {},
+   "mechanism": "command_mechanism",
+   "as_user": null,
+   "params": [
+    "username"
+   ]
   }
  ]
 }
