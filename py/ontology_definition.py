@@ -8,6 +8,9 @@
 ★ ★ 改动本体：先改 `ontology.json`（要人审），再同步这一份。
 """
 
+import os  # ★ sysknife 映射表路径
+import json
+
 from foundry_ontology.core import (
     Ontology, ObjectType, Property, LinkType, Cardinality,
     ActionType, ActionParameter, ValidationRule, OntologyFunction,
@@ -289,6 +292,11 @@ def build_aios_ontology() -> Ontology:
         output_type="STRING",
         metadata={"transport":"bus","endpoint":"bus:world.fn.presence.report","inputs_raw":{"subject":"enum(human,agent,application,service,device,workflow)"},"output_raw":"enum(human,agent,application,service,device,workflow)"},
     ))
+    # ── ★★★ 2026-10-17 裁：抄 sysknife 的 178 个动作（载体 action 做庞大）──
+    #   作者令（逐字）：「我们他这不是有 176 个吗？那我们全部做成 action……」
+    #   ★ 名字／程序／参数从 sysknife 的 ActionSpec 抽出来（MIT，见 distro/carrier/）。
+    #   ★ 风险等级【不抄】—— 作者裁：「风险分级不能自动批，这个东西是本体里头批不批」。
+    _load_sysknife_actions(o)
     return o
 
 
@@ -299,3 +307,50 @@ if __name__ == "__main__":
     print("动作类型:", len(o.action_types), list(o.action_types))
     print("函数    :", len(o.functions), list(o.functions))
     print("机制(metadata):", list(o.metadata))
+
+def _load_sysknife_actions(o):
+    """★ 从 sysknife 抽出的映射表动态建 ActionType（★ 名字用 sys.<PascalName>）。
+
+    文件：AIOS_SYSKNIFE_MAP（默认 /usr/lib/aios/sysknife-command-map.json）
+    缺文件 ⇒ 静默跳过（★ 不阻断本体起）。
+    """
+    path = os.environ.get("AIOS_SYSKNIFE_MAP", "/usr/lib/aios/sysknife-command-map.json")
+    if not os.path.exists(path):
+        return 0
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return 0
+    n = 0
+    grants = o.metadata.setdefault("permissions", {}).setdefault("grants", {})
+    for a in data.get("actions", []):
+        name = a.get("action") or ""
+        if not name or name in o.action_types:
+            continue
+        try:
+            at = ActionType(
+                name,
+                name,
+                description="从 sysknife 抄的动作（MIT）—— 载体执行 %s %s"
+                            % (a.get("program", "?"), " ".join(a.get("args") or [])),
+                parameters=[],
+                effects=[],
+                validation_rules=[],
+                metadata={
+                    "what": "%s" % name,
+                    "not_roles": [],
+                    "implemented": "sysknife",
+                    "program": a.get("program"),
+                    "args": a.get("args") or [],
+                },
+            )
+            o.register_action_type(at)
+            # ★★ 只读动作（Get*/List*）默认放行：不用人确认（作者裁：批不批归本体）
+            if name.startswith("sys.Get") or name.startswith("sys.List"):
+                grants.setdefault(name, {"who": ["world://user", "world://agent/dsh"],
+                                        "why": "只读查询（从 sysknife 抄，MIT）"})
+            n += 1
+        except Exception:
+            continue
+    return n
