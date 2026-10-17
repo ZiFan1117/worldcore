@@ -33,18 +33,36 @@ impl ZenohTransport {
                     format!("{e}"),
                 )
             })?;
+        // ★★★ **重试 3 次**（T-285）—— ★ 两个理由：
+        //   ① 连网本来就该重试（★ 对端可能刚起）；
+        //   ② **查根因**：★ 实测「systemd 起本体 ⇒ 连不上；★ 而加 `strace`（★ 拖慢进程）⇒ 就能连上」
+        //      ⇒ 怀疑是**瞬时时序**；★ 若这里重试一下就能过 ⇒ ★ 确认了，★ 而且问题也就解决了。
         let session = rt.block_on(async {
             // ★★ `from_env` 在【没有 ZENOH_CONFIG 环境变量】时会报错（★ systemd 单元里就没有）。
             //   ⇒ ★ 回退到默认配置（★ 默认就是 `mode: peer` + 本机发现），★ 不让它把进程打死。
             let cfg = zenoh::Config::from_env().unwrap_or_default();
-            zenoh::open(cfg).await.map_err(|e| {
-                Refuse::new(
-                    Reason::StorageUnavailable {
-                        path: "<zenoh open>".to_string(),
-                    },
-                    format!("{e}"),
-                )
-            })
+            let mut last: Option<String> = None;
+            for attempt in 1..=3u8 {
+                match zenoh::open(cfg.clone()).await {
+                    Ok(s) => {
+                        if attempt > 1 {
+                            eprintln!("[总线] ★ 第 {attempt} 次才连上（★ 印证了瞬时时序）");
+                        }
+                        return Ok(s);
+                    }
+                    Err(e) => {
+                        eprintln!("[总线] 第 {attempt} 次没连上：{e}");
+                        last = Some(format!("{e}"));
+                        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                    }
+                }
+            }
+            Err(Refuse::new(
+                Reason::StorageUnavailable {
+                    path: "<zenoh open>".to_string(),
+                },
+                last.unwrap_or_default(),
+            ))
         })?;
         Ok(Self { rt: std::sync::Arc::new(rt), session })
     }
