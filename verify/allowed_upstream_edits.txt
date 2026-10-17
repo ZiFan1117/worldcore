@@ -24,3 +24,4 @@ crates/aios-worldcore/Cargo.toml  # 加 optional zenoh ＋ feature bus-zenoh（T
 crates/aios-worldcore/src/engine/transport/zenoh_impl.rs  # 新增：Transport 的 zenoh 实现（T-271）
 distro/systemd/aios-bus.service  # 新增：总线进程的单元（T-273，总线是单独进程且最先起）
 distro/systemd/aios-ontology.service  # 新增：本体进程的单元（T-273，本体是单独进程且最先起）
+crates/aios-worldcore/src/bin/ontology.rs  # 新增：本体进程（第一张通行证：启动即装载本体）（T-278）

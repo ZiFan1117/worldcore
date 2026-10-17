@@ -102,6 +102,57 @@ impl ZenohTransport {
 }
 
 impl Transport for ZenohTransport {
+    fn request(
+        &self,
+        ask_topic: &str,
+        payload: &str,
+        reply_topic: &str,
+        timeout: Duration,
+    ) -> Admit<String> {
+        let ask = ask_topic.to_string();
+        let reply = reply_topic.to_string();
+        let payload = payload.to_string();
+        let s = self.session.clone();
+        self.rt.block_on(async move {
+            // ★ ① 先订阅回话
+            let sub = s.declare_subscriber(&reply).await.map_err(|e| {
+                Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: format!("<zenoh sub {reply}>"),
+                    },
+                    format!("{e}"),
+                )
+            })?;
+            // ★ ② 再发请求
+            s.put(&ask, payload).await.map_err(|e| {
+                Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: format!("<zenoh put {ask}>"),
+                    },
+                    format!("{e}"),
+                )
+            })?;
+            // ★ ③ 再收回话
+            match tokio::time::timeout(timeout, sub.recv_async()).await {
+                Ok(Ok(sample)) => {
+                    Ok(String::from_utf8_lossy(&sample.payload().to_bytes()).into_owned())
+                }
+                Ok(Err(e)) => Err(Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: format!("<zenoh recv {reply}>"),
+                    },
+                    format!("{e}"),
+                )),
+                Err(_) => Err(Refuse::new(
+                    Reason::StorageUnavailable {
+                        path: format!("<zenoh timeout {reply}>"),
+                    },
+                    "<超时：请求发出去了，回话没回来>",
+                )),
+            }
+        })
+    }
+
     fn put(&self, topic: &str, payload: &str) -> Admit<()> {
         let topic = topic.to_string();
         let payload = payload.to_string();

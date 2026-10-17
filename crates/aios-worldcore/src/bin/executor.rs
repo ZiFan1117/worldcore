@@ -70,6 +70,41 @@ fn main() {
             };
             let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
             println!("[执行体] 连上 **zenoh 总线**，看着 {topic}（★ 真总线，不是内存队列）");
+            // ★★★ 启动先【注册】（★ 一条一条发，等本体回话）—— ★ 注册要经本体（作者裁）。
+            let map_text = std::fs::read_to_string(MAP).expect("映射表该读得上");
+            let mut sent = 0usize;
+            let mut ok = 0usize;
+            for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
+                sent += 1;
+                // ★★★ 用 request（★ 先订阅回话、再发、再收 —— 口保证次序）。
+                match t.request(
+                    "world/register",
+                    line,
+                    "world/register/result",
+                    Duration::from_secs(3),
+                ) {
+                    Ok(reply) => {
+                        let v: serde_json::Value =
+                            serde_json::from_str(&reply).unwrap_or(serde_json::Value::Null);
+                        if v["ok"].as_bool().unwrap_or(false) {
+                            ok += 1;
+                        } else {
+                            println!("[执行体] ★ 被本体拒：{}", v["why"]);
+                        }
+                    }
+                    Err(e) => {
+                        println!("[执行体] ★ 本体没回话（{e}）⇒ 注册不上；★ 本体要先起");
+                        break;
+                    }
+                }
+            }
+            println!("[执行体] ★ 注册完成：发出 {sent} 条，本体收下 {ok} 条");
+            // ★★ 再报「成为个体」（★ 启动了就要成为个体）。
+            let me =
+                serde_json::json!({"class": "service", "local_id": "executor", "state": "started"});
+            let _ = t.put("world/appear", &me.to_string());
+            println!("[执行体] ★ 报了：service/executor 状态 started");
+
             // ★★ 真总线往返（★ 先订阅、再发、再收 —— zenoh 的硬规矩）。
             match t.round_trip("world/probe", "hello-zenoh", Duration::from_secs(3)) {
                 Ok(v) => println!("[执行体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),

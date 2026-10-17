@@ -28,6 +28,20 @@ pub trait Transport: Send + Sync {
     fn put(&self, topic: &str, payload: &str) -> Admit<()>;
     /// ★ 从一个话题收一条（★ 带超时；★ 超时 ⇒ 拒，不返回空串 —— 空串不是「没有」）。
     fn take(&self, topic: &str, timeout: Duration) -> Admit<String>;
+
+    /// ★★★ **请求-应答**（T-278 补）：★ **先订阅 reply、再发 ask、再收** —— ★ 次序是硬规矩。
+    ///
+    /// ★★ 为什么口上必须有这一条（★ 本笔撞出来的真缺口）：
+    ///   · 用 `put` 再 `take` 两步做请求，★ **回话可能在我们订阅之前就发了 ⇒ 丢**（★ 总线默认不持久）；
+    ///   · 实测：★ 注册 11 条时只成功 1 条，★ 其余全「超时」；
+    ///   · ⇒ ★ 所以「先订阅、后发」这件事**必须由口保证**，★ 不能让调用方自己拼。
+    fn request(
+        &self,
+        ask_topic: &str,
+        payload: &str,
+        reply_topic: &str,
+        timeout: Duration,
+    ) -> Admit<String>;
 }
 
 /// ★ **同进程的内存队列**（★ 今天用它让执行体跑起来；★ 不是总线选型）。
@@ -66,6 +80,18 @@ impl Transport for LocalTransport {
             .or_default()
             .push_back(payload.to_string());
         Ok(())
+    }
+
+    fn request(
+        &self,
+        _ask_topic: &str,
+        payload: &str,
+        reply_topic: &str,
+        timeout: Duration,
+    ) -> Admit<String> {
+        // ★ 内存队列是同步的：★ 先「订阅」＝ 什么都不用做（队列一直在），★ 再发、再收。
+        self.put(reply_topic, payload)?;
+        self.take(reply_topic, timeout)
     }
 
     fn take(&self, topic: &str, timeout: Duration) -> Admit<String> {
