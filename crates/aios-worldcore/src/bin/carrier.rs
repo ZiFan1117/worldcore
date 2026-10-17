@@ -1,6 +1,12 @@
-//! **执行体**（T-270）—— ★ 那只手：★ 收一条 action ⇒ 查映射表 ⇒ 真起进程 ⇒ 回一条结果。
+//! **载体（carrier）**（T-270 建，T-294 定名）—— ★ 世界 ↔ 机器之间的承载体，**两个面**：
 //!
-//! ★ 作者令（逐字整理）：★「**把底层的这个执行体，写完，然后注册进来**」。
+//! ★ **下向（invoke 面）**：★ 收一条 action ⇒ 查映射表 ⇒ 真起进程 ⇒ 回一条结果；
+//! ★ **上向（catalog 面）**：★ 采机器上的工具 ⇒ 提名 ⇒ 等人批 ⇒ 代注册（★ 今天只有 `--install` 的雏形）。
+//!
+//! ★★ **名字是作者 2026-10-17 裁的**（逐字：「**我觉得叫个载体吧，好吧，就叫个载体**」）。
+//!   ★ 不叫「执行体」的理由：★ 那个名字只覆盖【下向】一面，★ 而它**两个方向都干**。
+//!
+//! ★ 作者令（逐字整理）：★「**把底层的这个载体，写完，然后注册进来**」。
 //!
 //! ★★ 它在 13 里的位置：★ **`crates/aios-worldcore` 的一支 bin**（★ 不再是演示载体里的散件）。
 //!   ★ 逻辑全是 13 已有的：★ `CommandRunner`（查映射表 ⇒ `program+args` ⇒ 不拼 shell）＋ `Executor`。
@@ -8,11 +14,11 @@
 //!
 //! ★★ 三种用法（★ 前两种今天就跑得起来；★ 第三种等总线定了接上）：
 //! ```text
-//!   executor --once fs.list                  ★ 直接跑一条（★ 不经过口 —— 今天就能验）
-//!   executor --list                          ★ 列出映射表里所有动作（★ 只读）
-//!   executor <话题>                          ★ 从口上收一条跑一条（★ 用 LocalTransport，同进程）
-//!   executor --bus <话题>                    ★★ **真走 zenoh 总线**（★ 要 `--features bus-zenoh`）
-//!   executor --install                       ★★★ **安装时跑一次**：发 11 条登记（★ 启动【不注册】）
+//!   carrier --once fs.list                  ★ 直接跑一条（★ 不经过口 —— 今天就能验）
+//!   carrier --list                          ★ 列出映射表里所有动作（★ 只读）
+//!   carrier <话题>                          ★ 从口上收一条跑一条（★ 用 LocalTransport，同进程）
+//!   carrier --bus <话题>                    ★★ **真走 zenoh 总线**（★ 要 `--features bus-zenoh`）
+//!   carrier --install                       ★★★ **安装时跑一次**：发 11 条登记（★ 启动【不注册】）
 //! ```
 
 use std::time::Duration;
@@ -35,13 +41,13 @@ fn main() {
         // ★ ① 直接跑一条：★ 今天就能验（★ 不依赖总线）。
         Some("--once") => {
             let Some(action) = args.get(1) else {
-                println!("用法: executor --once <动作名>");
+                println!("用法: carrier --once <动作名>");
                 return;
             };
             let params = serde_json::Map::new();
             match runner.run(action, &who, &params) {
-                Ok(out) => println!("[执行体] --once {action} ⇒ OK（{} 字节）\n{out}", out.len()),
-                Err(e) => println!("[执行体] --once {action} ⇒ 拒：{e}"),
+                Ok(out) => println!("[载体] --once {action} ⇒ OK（{} 字节）\n{out}", out.len()),
+                Err(e) => println!("[载体] --once {action} ⇒ 拒：{e}"),
             }
         }
         // ★ ② 列一下（★ 只读）。
@@ -59,7 +65,7 @@ fn main() {
                     n += 1;
                 }
             }
-            println!("[执行体] 映射表里 {n} 条");
+            println!("[载体] 映射表里 {n} 条");
         }
         // ★★★ **安装时跑一次**（T-289）：★ 发 11 条登记 ⇒ 等本体回话 ⇒ 名字从此留在本体里。
         #[cfg(feature = "bus-zenoh")]
@@ -105,20 +111,20 @@ fn main() {
         Some("--bus") => {
             use aios_worldcore::engine::transport::zenoh_impl::ZenohTransport;
             let Some(topic) = args.get(1) else {
-                println!("用法: executor --bus <话题>（★ 要 --features bus-zenoh）");
+                println!("用法: carrier --bus <话题>（★ 要 --features bus-zenoh）");
                 return;
             };
             let t = ZenohTransport::connect().expect("该连得上总线（★ 先起 zenohd）");
-            println!("[执行体] 连上 **zenoh 总线**，看着 {topic}（★ 真总线，不是内存队列）");
+            println!("[载体] 连上 **zenoh 总线**，看着 {topic}（★ 真总线，不是内存队列）");
             // ★★★ **先订阅** world/exec（★ 一次声明、长期持有）—— ★ 与「先订阅后发」同一条规矩。
             let exec_sub = match t.subscribe("world/exec") {
                 Ok(s) => s,
                 Err(e) => {
-                    println!("[执行体] ★ 订不上 world/exec：{e}");
+                    println!("[载体] ★ 订不上 world/exec：{e}");
                     return;
                 }
             };
-            println!("[执行体] ★ 已订阅 world/exec（★ 一次声明、长期持有）");
+            println!("[载体] ★ 已订阅 world/exec（★ 一次声明、长期持有）");
 
             // ★★★ **启动时【不注册】**（T-289 修正）—— ★ 只**报到**。
             //   ★ 作者口径（逐字）：「**它不需要每次在启动的时候往本体里头注册，是在安装的时候一次性注册就可以了。
@@ -128,30 +134,30 @@ fn main() {
             let mut n = 0usize;
             for line in map_text.lines().filter(|l| !l.trim().is_empty()) {
                 if let Ok(route) = aios_worldcore::core::command_bridge::CommandRoute::parse(line) {
-                    let msg = serde_json::json!({"action": route.action, "by": "executor"});
+                    let msg = serde_json::json!({"action": route.action, "by": "carrier"});
                     match t.put("world/alive", &msg.to_string()) {
                         Ok(()) => n += 1,
-                        Err(e) => println!("[执行体] ★ 报到失败：{e}"),
+                        Err(e) => println!("[载体] ★ 报到失败：{e}"),
                     }
                 }
             }
             println!(
-                "[执行体] ① 报到完成：{n} 条（★ 启动【不注册】—— 注册在安装时做过了，名字一直留在本体里）"
+                "[载体] ① 报到完成：{n} 条（★ 启动【不注册】—— 注册在安装时做过了，名字一直留在本体里）"
             );
             // ★★ 「成为个体」是另一件（★ 一个说「我成了个体」，★ 一个说「这些名字我活着」）。
             let me =
-                serde_json::json!({"class": "service", "local_id": "executor", "state": "started"});
+                serde_json::json!({"class": "service", "local_id": "carrier", "state": "started"});
             let _ = t.put("world/appear", &me.to_string());
-            println!("[执行体] ② 报了：service/executor 状态 started");
+            println!("[载体] ② 报了：service/carrier 状态 started");
 
             // ★★ 真总线往返（★ 先订阅、再发、再收 —— zenoh 的硬规矩）。
             match t.round_trip("world/probe", "hello-zenoh", Duration::from_secs(3)) {
-                Ok(v) => println!("[执行体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),
-                Err(e) => println!("[执行体] zenoh 往返失败：{e}"),
+                Ok(v) => println!("[载体] ★★ zenoh 真通：world/probe 往返收到「{v}」"),
+                Err(e) => println!("[载体] zenoh 往返失败：{e}"),
             }
             match exec_sub.recv(Duration::from_secs(5)) {
                 Ok(msg) => {
-                    println!("[执行体] 收到：{msg}");
+                    println!("[载体] 收到：{msg}");
                     let v: serde_json::Value =
                         serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
                     let action = v["action"].as_str().unwrap_or("");
@@ -162,10 +168,10 @@ fn main() {
                             serde_json::json!({ "action": action, "ok": false, "body": format!("{e}") })
                         }
                     };
-                    println!("[执行体] 回话：{out}");
+                    println!("[载体] 回话：{out}");
                     let _ = t.put("world/exec/result", &out.to_string());
                 }
-                Err(e) => println!("[执行体] 总线上没有消息：{e}"),
+                Err(e) => println!("[载体] 总线上没有消息：{e}"),
             }
         }
         #[cfg(not(feature = "bus-zenoh"))]
@@ -176,11 +182,11 @@ fn main() {
         Some(topic) => {
             let t = LocalTransport::new();
             println!(
-                "[执行体] 起来了，看着口上的话题 {topic}（★ 今天用 LocalTransport —— 总线选型由人定）"
+                "[载体] 起来了，看着口上的话题 {topic}（★ 今天用 LocalTransport —— 总线选型由人定）"
             );
             match t.take(topic, Duration::from_secs(3)) {
                 Ok(msg) => {
-                    println!("[执行体] 收到：{msg}");
+                    println!("[载体] 收到：{msg}");
                     let v: serde_json::Value =
                         serde_json::from_str(&msg).unwrap_or(serde_json::Value::Null);
                     let action = v["action"].as_str().unwrap_or("");
@@ -191,12 +197,12 @@ fn main() {
                             serde_json::json!({ "action": action, "ok": false, "body": format!("{e}") })
                         }
                     };
-                    println!("[执行体] 回话：{out}");
+                    println!("[载体] 回话：{out}");
                     let _ = t.put("world/exec/result", &out.to_string());
                 }
-                Err(e) => println!("[执行体] 口上没有消息：{e}"),
+                Err(e) => println!("[载体] 口上没有消息：{e}"),
             }
         }
-        None => println!("用法: executor --once <动作名> | --list | <话题>"),
+        None => println!("用法: carrier --once <动作名> | --list | <话题>"),
     }
 }
