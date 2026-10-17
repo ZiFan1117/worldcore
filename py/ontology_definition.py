@@ -154,6 +154,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不删除那条通告","不替别的通告静音"],"implemented":"has_entry"},
         required_roles=["agent","human"],
     ))
     o.register_action_type(ActionType(
@@ -164,6 +165,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不删除那条通告","不撤销撤回（`retract_seq` 是另一条路）"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["agent"],
     ))
     o.register_action_type(ActionType(
@@ -174,6 +176,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不自行放行（准不准做由门禁判）","不代替载体执行作业"],"implemented":"has_entry"},
         required_roles=["agent","human"],
     ))
     o.register_action_type(ActionType(
@@ -184,6 +187,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不删除作业记录","不代替载体执行作业"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["agent","human"],
     ))
     o.register_action_type(ActionType(
@@ -194,6 +198,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不删除作业记录","不把已发生的载体动作变成没发生"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["agent","human"],
     ))
     o.register_action_type(ActionType(
@@ -204,6 +209,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不自行放行（准不准做由门禁判）","不可逆——本能力没有撤销路径"],"implemented":"has_entry"},
         required_roles=["human"],
     ))
     o.register_action_type(ActionType(
@@ -214,6 +220,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"config","not_roles":["不改写已落账的事件","不给自己发许可","不可逆——本能力没有撤销路径"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["human"],
     ))
     o.register_action_type(ActionType(
@@ -224,6 +231,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"config","not_roles":["不改写已落账的事件","不自行放行（准不准做由门禁判）","不可逆——本能力没有撤销路径"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["human"],
     ))
     o.register_action_type(ActionType(
@@ -234,6 +242,7 @@ def build_aios_ontology() -> Ontology:
         ],
         validation_rules=[],
         effects=[],
+        metadata={"kind":"invoke","not_roles":["不改写已落账的事件","不代表别人报告","不裁定自己有没有许可（由 `permissions.grants` ＋ `default: deny` 决定）"],"implemented":"未定（原因＝按名在 `src/**` 里 0 命中，可能以别的名字实现）"},
         required_roles=["human"],
     ))
     return o

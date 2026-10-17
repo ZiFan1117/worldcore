@@ -49,6 +49,10 @@ class ActionType:
     effects: list[ActionEffect] = field(default_factory=list)
     required_roles: list[str] = field(default_factory=list)
     audit_enabled: bool = True
+    # ★ 本格是【我们加的】（MIT 允许改）：AIOS 的动作元数据。
+    #   放 not_roles（禁令）／kind（invoke 等）／implemented（有没有实现）等。
+    #   为什么加：P 原本的 ActionType 没有 metadata 格，而这些信息挂在动作上。
+    metadata: dict = field(default_factory=dict)
 
     def validate(self, context: dict[str, Any]) -> "ValidationResult":
         """Validate parameters and rules against execution context."""
