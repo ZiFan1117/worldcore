@@ -29,7 +29,9 @@ use aios_worldcore::engine::transport::{LocalTransport, Transport};
 
 const MAP: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../aios-ontology/data/command-map.jsonl"
+    // ★★ 载体的【自己的】数据（T-299）：★ 作者裁「载体是一个单独的进程，和谁都没有关系」
+    //   ⇒ 映射表**不再住本体那一侧**（原先读 `../aios-ontology/data/` ⇒ 那是文件级瓜葛）。
+    "/data/command-map.jsonl"
 );
 
 fn main() {

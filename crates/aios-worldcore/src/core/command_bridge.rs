@@ -141,7 +141,8 @@ mod tests {
     use super::*;
     use crate::core::types::Who;
 
-    const MAP: &str = include_str!("../../../aios-ontology/data/command-map.jsonl");
+    // ★★ 载体的自己的数据（T-299 搬家）—— ★ 不再 include 本体那一侧的件。
+    const MAP: &str = include_str!("../../data/command-map.jsonl");
     const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
 
     fn temp(tag: &str) -> String {
@@ -218,7 +219,10 @@ mod tests {
             !ont.has_action("demo.say"),
             "★ 本体那一份里【没有】注册进来的动作（各是各的）"
         );
-        assert!(!ont.action_kinds().contains(&"fs.list"), "★ 本体里本来就没有它");
+        assert!(
+            !ont.action_kinds().contains(&"fs.list"),
+            "★ 本体里本来就没有它"
+        );
         assert!(book.get("demo.say").is_some(), "★ 注册那一份里【有】它");
         assert!(
             book.get("job.start").is_none(),

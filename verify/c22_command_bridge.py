@@ -5,7 +5,7 @@
   而接进来的方式就是……把它底下的这些工具，然后注册为我们的 action」。
 
 红＝
-  (a) 没有映射表 crates/aios-ontology/data/command-map.jsonl ⇒ 红；
+  (a) 没有映射表 crates/aios-worldcore/data/command-map.jsonl ⇒ 红；
   (b) 表里有行缺五格（action／function／registered_by／registered_by_kind／required_roles）⇒ 红；
   (c) 表里的 registered_by_kind 一条 system 都没有 ⇒ 红；
   (d) ★★ 表里某个 program（命令名）出现在了 ontology.json 里 ⇒ 红
@@ -26,7 +26,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-MAP = os.path.join("crates", "aios-ontology", "data", "command-map.jsonl")
+MAP = os.path.join("crates", "aios-worldcore", "data", "command-map.jsonl")
 ONT = os.path.join("crates", "aios-ontology", "data", "ontology.json")
 BRIDGE = os.path.join("crates", "aios-worldcore", "src", "core", "command_bridge.rs")
 NAME = "C22 命令桥（命令能接进来，字面量不进本体）"
