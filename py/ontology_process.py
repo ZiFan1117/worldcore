@@ -39,6 +39,7 @@ T_REGISTER = "world/register"
 T_REGISTER_OK = "world/register/result"
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
+T_APPEAR = "world/appear"   # ★★ 进程上报（「我起来了，我是谁」）
 T_ASK = "world/ask"
 T_EXEC = "world/exec"
 T_EXEC_RESULT = "world/exec/result"
@@ -111,6 +112,59 @@ class World:
             return None, "角色不够（要 %s，你是 %s）" % (need, roles)
         return reg, None
 
+    # ── ①b ★★ 进程注册（★ 作者要的那一种：进程起来 ⇒ 报「我是谁」）──
+    def on_appear(self, smp):
+        """★ 一个进程起来 ⇒ 照【类的字段】校验 ⇒ 成为个体 ⇒ 记账。
+
+        ★ 作者令（逐字）：「**我们这个进程很明确是要就是读取其他进程的**」
+        ★ 与「动作注册」的区别：★ 这条报的是【我这个人是谁】，★ 不是【我能干什么】。
+        """
+        try:
+            msg = json.loads(smp.payload.to_string())
+        except Exception as e:
+            log("进程上报：不是 JSON（%s）" % e)
+            return
+        cls = msg.get("class") or ""
+        # ★ 认：类在册吗？
+        ot = self.ontology.object_types.get(cls)
+        if ot is None:
+            why = "类不在册（世界没有「%s」这一类）" % cls
+            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why})
+            log("进程上报 %s ⇒ 拒：%s" % (cls or "?", why))
+            return
+        # ★ 照类的字段校验：必填齐不齐、有没有多塞
+        fields = {}
+        for k, v in msg.items():
+            if k in ("class",):
+                continue
+            fields[k] = v
+        # ★ 兼容：上报方用 local_id，本体字段叫 name
+        if "local_id" in fields and "name" not in fields:
+            fields["name"] = fields.pop("local_id")
+        declared = set(ot.properties.keys())
+        extra = [k for k in fields if k not in declared]
+        missing = [k for k, pr in ot.properties.items() if pr.required and k not in fields]
+        # ★★ 取值域校验（本体声明了 options 的格，值必须在里面）
+        bad_value = []
+        for k, pr in ot.properties.items():
+            if k in fields and pr.options and fields[k] not in pr.options:
+                bad_value.append('%s=%r 不在 %s 里' % (k, fields[k], pr.options))
+        if extra or missing or bad_value:
+            why = []
+            if extra:
+                why.append("多塞了 %s（本体没声明的格）" % extra)
+            if missing:
+                why.append("缺必填 %s" % missing)
+            if bad_value:
+                why.append("取值域不对：" + "；".join(bad_value))
+            why_s = "；".join(why)
+            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why_s, "body": msg})
+            log("进程上报 %s ⇒ 拒：%s" % (cls, why_s))
+            return
+        # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
+        seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", "?")), "after": fields})
+        log("★ 进程注册 %s/%s ⇒ 成为个体（seq=%d）" % (cls, fields.get("name", "?"), seq))
+
     # ── ② 注册（安装时一次）──
     def on_register(self, smp):
         try:
@@ -149,9 +203,10 @@ def main():
     log("   连上了")
     log("④ 订话题 …")
     session.declare_subscriber(T_REGISTER, lambda s: w.on_register(s))
+    session.declare_subscriber(T_APPEAR, lambda s: w.on_appear(s))
     session.declare_subscriber(T_ASK, lambda s: _ask_and_forward(s, w, session))
     session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
-    log("   订上了：%s ／ %s ／ %s" % (T_REGISTER, T_ASK, T_EXEC_RESULT))
+    log("   订上了：%s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:
         while True:
