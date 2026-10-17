@@ -2,30 +2,21 @@
 Description=AI-OS.NET Ontology (语义世界权威 ＋ 注册/个体面)
 Documentation=https://ai-os.net/docs/ontology
 # ★★★ 作者裁（逐字）：「**本体，和总线两个不要有瓜葛，总线单独起**」。
-# ★★ 所以这里【不 After=/Wants= 总线】—— ★ 连不上总线是【运行时的事】（它会自己重试），
-#    ★ 不是【启动顺序的事】（★ 早先我写过 After=/Wants=，★ 那是错的口径，已撤）。
+# ★★ 所以这里【不 After=/Wants= 总线】—— ★ 连不上总线是【运行时的事】。
 
 [Service]
 Type=simple
 # ★★ 与上游其余单元的一处【已知差异】：其余走 'aios-system run-service <名字>'；
-#   本体进程是 'crates/aios-worldcore' 的一支 bin（★ 13 里第一支 bin）—— ★ 待接成 run-service 子命令。
-# ★★ 参数形状与 bin 对齐：★ 第 1 个＝本体原文，★ 第 2 个＝注册表（★ 持久的那一份）。
-#    （★ 第一次我写的是 --config，★ bin 读不到 ⇒ exit(2) —— ★ 那是第一张通行证在起作用。）
-# ★ 总线的连接配置（★ `zenoh::Config::from_env` 读它；★ 没有也能跑 —— bin 会回退默认）
+#   本体进程是 'crates/aios-worldcore' 的一支 bin。
+# ★★★ **总线配置必须 `mode: peer`**（★ 实测：`mode: client` 在 systemd 的服务环境里
+#    连不上 `zenohd`；★ `mode: peer` 能连上 —— ★ 现象清楚、原因未考）。
 Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
-# ★★ 已排除的猜想（★ 都不是元凶，★ 记在这免得下次重试）：PrivateTmp=yes／去掉全部沙箱／XDG_RUNTIME_DIR。
-Environment=XDG_RUNTIME_DIR=/run/aios
-RuntimeDirectory=aios
 ExecStart=/usr/lib/aios/aios-ontology /usr/lib/aios/ontology.json /var/lib/aios/ontology/registry.jsonl
 Restart=always
 RestartSec=3
 LimitNOFILE=65536
-# ★★ 去掉 PrivateTmp：★ 实测「手工跑能连、unit 里连不上」⇒ 怀疑它（★ 每个服务独立 /tmp，
-#    而 zenoh 的本地传输可能用 /tmp 下的 unix socket / 共享内存）。★ 去掉后验证。
-# PrivateTmp=yes
+PrivateTmp=yes
 ProtectSystem=strict
-# ★ 本体要读 ontology.json（只读）、要写注册表（registry.jsonl 是【持久】的那一份）
-# ★★ RuntimeDirectory 让它自动建 /run/aios（★ 目录不存在会报 226/NAMESPACE）。
 RuntimeDirectory=aios
 ReadWritePaths=/var/lib/aios/ontology
 NoNewPrivileges=yes

@@ -1,0 +1,7 @@
+// ★ 总线连接配置（★ 放在 /etc/aios/zenoh.json5）
+// ★★★ 必须 `mode: peer` —— ★ 实测：`mode: client` 在 systemd 的服务环境里连不上 `zenohd`；
+//     `mode: peer` 能连上（★ 现象清楚、原因未考：★ 怀疑 client 的 scouting multicast 在 cgroup 里受限）。
+{
+  mode: "peer",
+  connect: { endpoints: ["tcp/127.0.0.1:7447"] },
+}
