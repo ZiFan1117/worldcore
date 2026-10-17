@@ -24,8 +24,8 @@ import zenoh
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
 T_EXEC = "world/exec"
-T_RESULT = "world/ask/result"   # ★★ 2026-10-17 裁：**载体直接回给请求方**（★ 本体不在结果这条路上）
-# ★ 「谁干的谁报」—— 载体是干的那个，★ 它回的才是第一手事实。
+T_RESULT = "world/exec/result"   # ★★★ 2026-10-17 裁：**所有交互都过本体** —— 结果先回本体，本体判完再回请求方。
+# ★ 作者令（逐字）：「所有的交互啥的必须过这个所谓的本体……除了这个数据是那啥的」
 
 MAP_PATH = os.environ.get("AIOS_CARRIER_MAP", "/usr/lib/aios/command-map.jsonl")
 ZENOH_ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
@@ -120,7 +120,7 @@ def main():
         out = {"id": rid, "action": action, "ok": ok,
                "body": body if ok else None,
                "error": None if ok else body}
-        log("回话 %s ⇒ ok=%s（★ 直接回请求方 %s）" % (action, ok, T_RESULT))
+        log("回话 %s ⇒ ok=%s（★ 先回本体 %s）" % (action, ok, T_RESULT))
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)

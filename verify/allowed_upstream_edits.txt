@@ -39,6 +39,5 @@ crates/aios-carrier/src/main.rs  # appear 载荷照本体 service 字段（T-339
 py/carrier_process.py  # 载体（Python 版，全改 Python 后的实现）（T-340）
 py/gui_process.py  # GUI（Python 版）（T-340）
 py/ledger_process.py  # 账房（第五个进程，订 ** 抄全量流量）（T-344）
-distro/systemd/aios-ledger.service  # 账房的 systemd 单元（T-344）
 py/polkit_gen.py  # 本体生成 polkit policy（T-347）
 distro/polkit/net.ai-os.worldcore.policy  # 生成的策略（T-347）
