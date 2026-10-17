@@ -24,7 +24,8 @@ import zenoh
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
 T_EXEC = "world/exec"
-T_RESULT = "world/exec/result"
+T_RESULT = "world/ask/result"   # ★★ 2026-10-17 裁：**载体直接回给请求方**（★ 本体不在结果这条路上）
+# ★ 「谁干的谁报」—— 载体是干的那个，★ 它回的才是第一手事实。
 
 MAP_PATH = os.environ.get("AIOS_CARRIER_MAP", "/usr/lib/aios/command-map.jsonl")
 ZENOH_ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
@@ -119,7 +120,7 @@ def main():
         out = {"id": rid, "action": action, "ok": ok,
                "body": body if ok else None,
                "error": None if ok else body}
-        log("回话 %s ⇒ ok=%s" % (action, ok))
+        log("回话 %s ⇒ ok=%s（★ 直接回请求方 %s）" % (action, ok, T_RESULT))
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)

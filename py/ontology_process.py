@@ -43,8 +43,9 @@ T_ALIVE = "world/alive"
 T_APPEAR = "world/appear"   # ★★ 进程上报（「我起来了，我是谁」）
 T_ASK = "world/ask"
 T_EXEC = "world/exec"
-T_EXEC_RESULT = "world/exec/result"
-T_ASK_RESULT = "world/ask/result"
+T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；载体跑完 ⇒ 也发这里）
+# ★★★ 2026-10-17 裁：**本体不再碰结果** —— 退订 world/exec/result、不记结果、不回转。
+#     ★ 原则：★ 「谁干的谁报」—— 结果由载体直接回给请求方，本体不在那条路上。
 
 REG_PATH = os.environ.get("AIOS_REGISTRY", "/var/lib/aios/ontology/registry.jsonl")
 LEDGER_PATH = os.environ.get("AIOS_LEDGER", "/var/lib/aios/ontology/ledger.jsonl")
@@ -236,8 +237,7 @@ def main():
     session.declare_subscriber(T_REGISTER, lambda s: w.on_register(s))
     session.declare_subscriber(T_APPEAR, lambda s: w.on_appear(s))
     session.declare_subscriber(T_ASK, lambda s: _ask_and_forward(s, w, session))
-    session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
-    log("   订上了：%s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT))
+    log("   订上了：%s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:
         while True:
@@ -268,7 +268,7 @@ def _ask_and_forward(smp, w, session):
     if not allowed:
         w.stamp("act", kind_of="reject-permit", action=name, actor=actor, why=why2)
         log("拒 %s ⇒ %s" % (name, why2))
-        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why},
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2},
                                              ensure_ascii=False))
         return
     seq = w.stamp("act", kind_of="ask", action=name, actor=msg.get("actor"),
@@ -279,18 +279,6 @@ def _ask_and_forward(smp, w, session):
            "route": reg.get("registered_by_kind")}
     log("转 %s（%s）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
     session.put(T_EXEC, json.dumps(out, ensure_ascii=False))
-
-
-def _result_and_reply(smp, w, session):
-    try:
-        msg = json.loads(smp.payload.to_string())
-    except Exception:
-        return
-    seq = w.stamp("act", kind_of="result", rid=msg.get("id"),
-                  action=msg.get("action"), ok=msg.get("ok"), body=msg.get("body"))
-    log("结果 %s（%s，ok=%s）" % (msg.get("action"), seq, msg.get("ok")))
-    session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "at": seq, **msg},
-                                         ensure_ascii=False))
 
 
 if __name__ == "__main__":
