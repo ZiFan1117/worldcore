@@ -17,7 +17,9 @@ LimitNOFILE=65536
 PrivateTmp=yes
 ProtectSystem=strict
 # ★ 本体要读 ontology.json（只读）、要写注册表（registry.jsonl 是【持久】的那一份）
-ReadWritePaths=/var/lib/aios/ontology /run/aios
+# ★★ RuntimeDirectory 让它自动建 /run/aios（★ 目录不存在会报 226/NAMESPACE）。
+RuntimeDirectory=aios
+ReadWritePaths=/var/lib/aios/ontology
 NoNewPrivileges=yes
 
 [Install]

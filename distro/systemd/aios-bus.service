@@ -17,7 +17,9 @@ LimitNOFILE=65536
 PrivateTmp=yes
 ProtectSystem=strict
 # ★ 总线只读网络 ＋ 不需要写盘（zenoh 默认不持久；持久在我们自己的账里）
-ReadWritePaths=/run/aios
+# ★★ 用 RuntimeDirectory 让 systemd 自己建 /run/aios —— ★ 直接写 ReadWritePaths=/run/aios 时
+#    ★ 目录不存在 ⇒ 报 226/NAMESPACE（★ 我第一次就是这么炸的）。
+RuntimeDirectory=aios
 NoNewPrivileges=yes
 
 [Install]
