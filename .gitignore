@@ -36,7 +36,9 @@
 /ninedim/99-旧料/
 
 # 判据 —— 本地留着，不推（作者令：都不用推）
-/verify/
+/scripts/release/evidence/
+/scripts/test/
+/scripts/dsh-plugins/
 /AGENTS.md
 /PROVENANCE.md
 
@@ -50,32 +52,32 @@
 /src/legacy/
 
 # 上游的单元（22 个，起不来）
-/distro/systemd/upstream/
+/scripts/release/systemd/upstream/
 
 # ★ distro/ 里上游的子系统（★ 我们只用 computer/ ＋ deploy.sh ＋ desktop/aios-session ＋ systemd/ 的 7 个单元）
-/distro/aios-boot/
-/distro/bin/
-/distro/build/
-/distro/cloud/
-/distro/compliance/
-/distro/first-boot/
-/distro/installer/
-/distro/polkit/
-/distro/repo/
-/distro/secureboot/
-/distro/security/
-/distro/update/
-/distro/SUPPORT-LIFECYCLE.md
-/distro/desktop/README.md
-/distro/desktop/aios-plasma.desktop
-/distro/desktop/confine/
-/distro/desktop/plasma-autostart/
-/distro/desktop/sddm-aios-theme/
-/distro/desktop/session-manager.sh
-/distro/desktop/tests/
-/distro/systemd/DAEMON-ARCHITECTURE.md
-/distro/systemd/aios.target
-/distro/systemd/aios-security-score.sh
+/scripts/release/aios-boot/
+/scripts/release/bin/
+/scripts/release/build/
+/scripts/release/cloud/
+/scripts/release/compliance/
+/scripts/release/first-boot/
+/scripts/release/installer/
+/scripts/release/polkit/
+/scripts/release/repo/
+/scripts/release/secureboot/
+/scripts/release/security/
+/scripts/release/update/
+/scripts/release/SUPPORT-LIFECYCLE.md
+/scripts/release/desktop/README.md
+/scripts/release/desktop/aios-plasma.desktop
+/scripts/release/desktop/confine/
+/scripts/release/desktop/plasma-autostart/
+/scripts/release/desktop/sddm-aios-theme/
+/scripts/release/desktop/session-manager.sh
+/scripts/release/desktop/tests/
+/scripts/release/systemd/DAEMON-ARCHITECTURE.md
+/scripts/release/systemd/aios.target
+/scripts/release/systemd/aios-security-score.sh
 
 # Python 缓存
 /.ai/
