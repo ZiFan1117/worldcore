@@ -32,7 +32,7 @@ echo "  py: $(find "$PREFIX/src" -name '*.py' | wc -l) 个"
 
 echo "=== 2 数据（映射表 ／ 本体法 ／ sysknife 件）==="
 mkdir -p "$PREFIX"
-for f in "$REPO"/distro/computer/*; do
+for f in "$REPO"/scripts/release/computer/*; do
   b=$(basename "$f")
   [ -f "$PREFIX/$b" ] && cp -a "$PREFIX/$b" "$PREFIX/$b.bak-$TS"
   cp -a "$f" "$PREFIX/$b"
@@ -52,7 +52,7 @@ fi
 
 echo "=== 3 systemd 单元 ==="
 for u in aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent; do
-  s="$REPO/distro/systemd/$u.service"
+  s="$REPO/scripts/release/systemd/$u.service"
   if [ -f "$s" ]; then
     [ -f "$UNITDIR/$u.service" ] && cp -a "$UNITDIR/$u.service" "/etc/systemd/system/$u.service.bak-$TS"
     cp -a "$s" "$UNITDIR/$u.service"
