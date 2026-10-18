@@ -1,0 +1,23 @@
+#!/bin/sh
+# ★★★ AI-OS 的 X 会话（lightdm 用）—— ★ 只准备环境，【不起渲染器】。
+#
+# ★ 作者令（逐字）：「xfconfd 全部废除，只有 a2ui」
+#
+# ★★ 2026-10-18 修：★ 原来这里 `exec ./aios_render` —— 那是**第二条启动路径**，
+#    和 `aios-render.service`（WantedBy=graphical.target）**各起一个**渲染器 ⇒
+#    屏幕上两个 Flutter 窗口抢同一个 TCP 7450 的帧（现取：ps 里两个 aios_render，
+#    一个 cgroup 在 user.slice/session-1.scope，一个在 system.slice/aios-render.service）。
+#
+# ★★ 现在：★ 渲染器【只由 systemd 单元起】（有 Restart=always、好管）；
+#    本脚本【只把 X 会话挂住】，让 lightdm 认为会话正常。
+#
+# ★ 没有桌面环境：★ 不启动 xfce/openbox/xfconfd —— 屏幕上只有 A2UI。
+
+# 万一有旧桌面环境的残留，先清掉
+pkill -9 -f xfconfd 2>/dev/null || true
+pkill -9 -f xfce 2>/dev/null || true
+pkill -9 -f openbox 2>/dev/null || true
+
+# ★ 渲染器由 aios-render.service 起（Environment 里已给 DISPLAY/XAUTHORITY）
+#   ★ 这里【不 exec 任何渲染器】—— 只挂住会话
+exec sleep infinity
