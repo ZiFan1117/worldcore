@@ -44,9 +44,9 @@ if [ -f "$PREFIX/command-map-sysknife.jsonl" ]; then
   cp -a "$PREFIX/command-map-sysknife.jsonl" "$PREFIX/command-map.jsonl"
   echo "  command-map.jsonl ← sysknife版（$(wc -l < "$PREFIX/command-map.jsonl") 条）"
 fi
-if [ -f "$REPO/crates/aios-ontology/data/ontology.json" ]; then
+if [ -f "$REPO/src/ontology/data/ontology.json" ]; then
   [ -f "$PREFIX/ontology.json" ] && cp -a "$PREFIX/ontology.json" "$PREFIX/ontology.json.bak-$TS"
-  cp -a "$REPO/crates/aios-ontology/data/ontology.json" "$PREFIX/ontology.json"
+  cp -a "$REPO/src/ontology/data/ontology.json" "$PREFIX/ontology.json"
   echo "  ontology.json  $(stat -c%s "$PREFIX/ontology.json") 字节"
 fi
 

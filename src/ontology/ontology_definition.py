@@ -1,6 +1,6 @@
 """AIOS 世界的本体定义 —— ★ 按 P（foundry-ontology-open，MIT）的格式写。
 
-★ 【全部】来自 `crates/aios-ontology/data/ontology.json`（★ 那是【法】，人审定）。
+★ 【全部】来自 `src/ontology/data/ontology.json`（★ 那是【法】，人审定）。
 ★ 这里把它完整映射成 P 的形态：
 ★   ① 12 类 → ObjectType（9 原类 ＋ space／presentation／computer）；② 10 关系 → LinkType（3 原 ＋ 7 人侧）；③ 9 动作 → ActionType；④ 9 函数 → OntologyFunction；
 ★   ⑤ 世界机制（envelope／families／permissions／governance／value_types／flags／world）→ Ontology.metadata。

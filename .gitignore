@@ -2,13 +2,7 @@
 #   ★ 作者令（逐字）：「文档也不要全推上去啊，直接有用的推，能说明问题的推…所以梳理我们13这个文件夹下面的所有东西」
 #   ★ 又：「都不用推，就把那个证明了的那几个进程推上去，不就完事了」
 
-# 上游的 39 个 crate（34 万行）—— 我们只借用了 foundry-ontology 的目录形状
-/crates/*
-!/crates/aios-ontology/
-/crates/aios-ontology/*
-!/crates/aios-ontology/data/
-/crates/aios-ontology/data/*
-!/crates/aios-ontology/data/ontology.json
+# ★★★ 上游 39 个 crate 【已删】（作者令：「全可以删除了，现在没啥用」）
 
 # 上游的规格／站点／工具
 /001.AI-OS.NET--SPECREV.1/
