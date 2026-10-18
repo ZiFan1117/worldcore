@@ -1,0 +1,18 @@
+[Unit]
+Description=AI-OS.NET 个人空间 —— 人的地盘：报 space、出桌面画布、收人的动作
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/space
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_USER=zhang
+Environment=AIOS_SPACE_STATE=active
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/space/space_process.py
+Restart=always
+RestartSec=3
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

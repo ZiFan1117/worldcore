@@ -57,9 +57,12 @@ def login_frame(surface_id, screen_name):
                 "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"}},
             {"version": "v1.0", "updateComponents": {
                 "surfaceId": surface_id, "components": comps}},
-            # ★★ 初始值（★ TextField.value 绑了 {path}，这里给初值）
+            # ★★ 初始值 —— ★ genui 的 updateDataModelSchema 只有
+            #    {surfaceId, path, value} 三个字段（现取 a2ui_schemas.dart:429）；
+            #    ★ 我原来写的 data:{...} 【不存在那个字段】⇒ 初值不生效（现取：用户名框空）。
             {"version": "v1.0", "updateDataModel": {
-                "surfaceId": surface_id,
-                "data": {"login": {"user": TEST_USER, "pass": ""}}}},
+                "surfaceId": surface_id, "path": "/login/user", "value": TEST_USER}},
+            {"version": "v1.0", "updateDataModel": {
+                "surfaceId": surface_id, "path": "/login/pass", "value": ""}},
         ],
     }

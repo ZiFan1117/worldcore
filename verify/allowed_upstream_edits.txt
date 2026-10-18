@@ -64,3 +64,5 @@ src/presentation/login_frame.py  # 登录画布（呈现出；测试账号 zhang
 src/space/space_process.py  # 个人空间：报 space、出桌面画布、验登录（T-358）
 src/space/desktop_frame.py  # 桌面画布（带 layout）（T-358）
 distro/deploy.sh  # 部署脚本：把仓里的 src/distro/本体 推到本机（幂等；T-358）
+distro/systemd/aios-presentation.service  # 呈现/个人空间单元（T-360）
+distro/systemd/aios-space.service  # 呈现/个人空间单元（T-360）

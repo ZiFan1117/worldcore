@@ -49,7 +49,7 @@ if [ -f "$REPO/crates/aios-ontology/data/ontology.json" ]; then
 fi
 
 echo "=== 3 systemd 单元 ==="
-for u in aios-bus aios-computer aios-ontology aios-gui aios-agent aios-render; do
+for u in aios-bus aios-computer aios-ontology aios-presentation aios-space aios-render aios-gui aios-agent; do
   s="$REPO/distro/systemd/$u.service"
   if [ -f "$s" ]; then
     [ -f "$UNITDIR/$u.service" ] && cp -a "$UNITDIR/$u.service" "/etc/systemd/system/$u.service.bak-$TS"
@@ -61,6 +61,13 @@ done
 if [ -d /etc/systemd/system/aios-bus.service.d ]; then
   echo "  aios-bus 的 override.conf 保留不动"
 fi
+# ★★ 修 SELinux 那个坑：cp -a 会把源文件的上下文带过来（admin_home_t）⇒
+#    systemd 读不了单元、进程也读不了 /usr/lib/aios 的数据。
+#    必须 chmod 644 ＋ restorecon（现取：不加就报 "Failed to open …: Permission denied"）。
+chmod 644 /etc/systemd/system/aios-*.service 2>/dev/null || true
+restorecon -R /etc/systemd/system/aios-*.service 2>/dev/null || true
+restorecon -R "$PREFIX/src" "$PREFIX"/*.json "$PREFIX"/command-map*.jsonl 2>/dev/null || true
+echo "  SELinux 上下文已恢复"
 systemctl daemon-reload
 
 echo "=== 4 校验：python 能不能编 ==="
@@ -76,13 +83,13 @@ if [ $RESTART -eq 0 ]; then echo "=== 5 不重启（--no-restart）==="; exit 0;
 echo "=== 5 重启 ==="
 systemctl stop aios-carrier 2>/dev/null || true
 systemctl disable aios-carrier 2>/dev/null || true
-for u in aios-bus aios-computer aios-ontology aios-gui aios-agent; do
+for u in aios-bus aios-computer aios-ontology aios-presentation aios-space aios-render aios-gui aios-agent; do
   systemctl restart "$u" 2>/dev/null || systemctl start "$u" 2>/dev/null || true
   sleep 1
 done
 sleep 4
 for u in aios-bus aios-computer aios-ontology aios-gui aios-agent; do
-  printf '  %-16s %s\n' "$u" "$(systemctl is-active "$u")"
+  printf '  %-20s %s\n' "$u" "$(systemctl is-active "$u")"
 done
 
 echo "=== 6 日志尾 ==="
