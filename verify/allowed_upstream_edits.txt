@@ -67,3 +67,4 @@ distro/deploy.sh  # 部署脚本：把仓里的 src/distro/本体 推到本机�
 distro/systemd/aios-presentation.service  # 呈现/个人空间单元（T-360）
 distro/systemd/aios-space.service  # 呈现/个人空间单元（T-360）
 distro/desktop/aios-session  # X 会话脚本：只挂会话，不起渲染器（T-361）
+distro/systemd/aios-presentation-render.service  # 呈现的渲染半（Flutter）单元（T-362）

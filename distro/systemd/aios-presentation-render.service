@@ -1,7 +1,11 @@
 [Unit]
-Description=AI-OS.NET A2UI 渲染器（Flutter）—— ★ 呈现的渲染半：收合成清单、按 layout 叠、画上屏
-Documentation=https://ai-os.net/docs/render
-# ★★★ 作者：四个独立进程，谁也不等谁 ⇒ 不 After=／不 Wants=／不 Requires=。
+Description=AI-OS.NET 呈现（渲染半 · Flutter）—— ★ 呈现的一部分：收合成清单、按 layout 叠、画上屏
+Documentation=https://ai-os.net/docs/presentation
+# ★★★ 名字【必须带 presentation】—— 它不是独立的「渲染器进程」，
+#     是「借来的渲染引擎（genui）＋ 我们的进程」，合起来才是【呈现】。
+#     ★ 作者令（逐字）：「我们现在不是叫呈现吗？怎么会有这个东西呢」
+# ★ 从属：呈现（Python 半）停了它跟着停；反过来不绑。
+PartOf=aios-presentation.service
 #   ★ 但它【必须】在有 X 之后才有屏 —— 所以只对 graphical 目标挂 WantedBy，不硬拉。
 
 [Service]
