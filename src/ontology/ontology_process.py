@@ -325,6 +325,14 @@ def _ask_and_forward(smp, w, session):
     # ★★ 要票的动作：space.* 凭票（★ 作者：拿了票个人空间就能查了）
     if name.startswith("space.") and name != "space.login":
         t, why_t = identity.check(msg.get("params") or {})
+        if t is not None:
+            # ★★ 还要验【这张票是不是这个空间的】—— ★ 票的 scope 里得有它。
+            #    ★ 作者裁（逐字）：「票不是决定了是给哪个人的吗？」
+            _want = "space:" + (msg.get("params") or {}).get("space", "")
+            _sc = t.get("scope") or []
+            if _want != "space:" and _want not in _sc:
+                why_t = "票里没有 %s（★ 这张票只能看 %s）" % (_want, _sc)
+                t = None
         if t is None:
             w.stamp("act", kind_of="reject", action=name, actor=msg.get("actor"), why=why_t)
             log("拒 %s ⇒ %s" % (name, why_t))
