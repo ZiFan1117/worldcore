@@ -1,3 +1,12 @@
+> ## ★★★ 2026-10-18 晚 —— 本目录已实现
+>
+> ★ `space_process.py`：报 `space/<用户>`、开 3 动作（`space.login`／`set_layout`／`get_layout`）、出桌面画布（带 `layout`、`role: desktop`）。
+> ★ `desktop_frame.py`：桌面画布（壁纸/顶栏/图标；★ 布局细节**不进本体**）。
+> ★★ **画布不是类、不是个体** —— 它是呈现内部的一张表；`layout` 是我们的扩展（A2UI 规范没有这一层）。
+> ★ 见 `ninedim/06-变更/2026-10-13-aios-semantic-plane/说明-画布合成层-A2UI不管的那一层-2026-10-18.md`。
+
+---
+
 # src/space —— 个人空间（space）进程
 
 > ★ 状态：**目录已建，进程代码待写**（2026-10-18 作者令「space/ 也要建」）。
