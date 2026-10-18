@@ -1,0 +1,8 @@
+# C17 登记面：**今日「没有授权」的在册动作**（现状可见；★ 新出现的才红）
+#
+# 口径见 verify/c17_authorization.py 文件头。
+# ★ 格式：<动作名>  # <为何现在不改>
+#
+# ★★ **2026-10-16 清空**（T-241）：原登记的五条（job.start／job.finish／job.cancel／world.rekey／world.migrate）
+#    已按作者令「谁给授权？肯定是人嘛」补上授权 —— ★ 不可逆的照 ledger.compact 先例只要人；
+#    ★ 可逆的照 notice.mute 先例给人＋智能体。⇒ ★ **本登记面今天为空**（这是好事：没有未授权动作）。
