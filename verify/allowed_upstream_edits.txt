@@ -44,3 +44,13 @@ distro/polkit/net.ai-os.worldcore.policy  # 生成的策略（T-347）
 distro/carrier/sysknife-actions.json  # 从 sysknife 抄的 178 个动作名（MIT，T-352）
 distro/carrier/sysknife-command-map.json  # sysknife 抽出的命令映射（MIT，T-353）
 distro/carrier/command-map-sysknife.jsonl  # sysknife 抽出的命令映射（MIT，T-353）
+py/agent_llm.py  # 模型驱动的 agent（全走本体，T-357）
+py/agent_process.py  # 小 agent（固定逻辑版，T-355）
+py/world_cli.py  # 总线桥（给 Node 插件用，T-357）
+dsh-plugins/aios-world/  # DSH 世界插件（T-357）
+dsh-plugins/profile/aios-world.patch.yml  # profile 补丁：关动手工具（T-357）
+distro/systemd/aios-agent.service  # agent 常驻单元（T-355）
+distro/systemd/aios-render.service  # A2UI 渲染 HTTP 单元（T-355）
+render/a2ui-live.html  # 活渲染器（读落盘帧，变了就重画，T-356）
+render/a2ui-standalone.template.html  # 自包含渲染模板（取证用，T-356）
+render/make-standalone.py  # 把帧灌进模板（取证用，T-356）

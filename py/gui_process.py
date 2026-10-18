@@ -44,6 +44,14 @@ def land(frame_text):
     """★ 先临时、再改名（★ 不让读的人看见半截）。"""
     try:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
+        # ★★★ 2026-10-17：帧现在【经本体】来（world/notice）⇒ 本体原样转整条消息，
+        #   所以这里【拆出 frame 字段】再落盘（★ 渲染器只认纯帧）。
+        try:
+            obj = json.loads(frame_text)
+            if isinstance(obj, dict) and isinstance(obj.get("frame"), dict):
+                frame_text = json.dumps(obj["frame"], ensure_ascii=False)
+        except Exception:
+            pass
         tmp = OUT + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             f.write(frame_text)

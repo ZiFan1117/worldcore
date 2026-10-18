@@ -49,7 +49,9 @@ T_APPEAR = "world/appear"   # ★★ 进程上报（「我起来了，我是谁�
 T_ASK = "world/ask"
 T_EXEC_RESULT = "world/exec/result"
 T_QUERY = "world/query"              # ★★ 查世界（★ 作者令：所有交互过本体）
-T_QUERY_RESULT = "world/query/result"   # ★ 结果先回本体（★ 所有交互过本体）
+T_QUERY_RESULT = "world/query/result"
+T_NOTICE = "world/notice"            # ★★ 宣告入口（★ 作者裁：所有交互过本体 ⇒ 帧也过）
+T_UI_FRAME = "world/ui/frame"        # 本体【转】给 GUI 的那一面   # ★ 结果先回本体（★ 所有交互过本体）
 T_EXEC = "world/exec"
 T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；载体跑完 ⇒ 也发这里）
 # ★★★ 2026-10-17 裁：**本体不再碰结果** —— 退订 world/exec/result、不记结果、不回转。
@@ -74,6 +76,8 @@ class World:
             % (len(self.ontology.object_types), len(self.ontology.link_types),
                len(self.ontology.action_types), len(self.ontology.functions)))
         self.registry = {}      # ★ 注册表（名字 → 五格）
+        # ★★ 载体报来的「我能做什么」（★ 可用性，模型要用）
+        self.carrier_caps = {"available": [], "unsupported": [], "at": None, "by": None}
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
@@ -154,9 +158,12 @@ class World:
             log("进程上报 %s ⇒ 拒：%s" % (cls or "?", why))
             return
         # ★ 照类的字段校验：必填齐不齐、有没有多塞
+        # ★★★ 先摘出【能力上报】—— 那不是 service 类的格（★ 塞进去会被「多塞了」拒）
+        caps_avail = msg.get("actions_available")
+        caps_unsup = msg.get("actions_unsupported")
         fields = {}
         for k, v in msg.items():
-            if k in ("class",):
+            if k in ("class", "actions_available", "actions_unsupported"):
                 continue
             fields[k] = v
         # ★ 兼容：上报方用 local_id，本体字段叫 name
@@ -190,6 +197,14 @@ class World:
             self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why, "body": msg})
             log("进程上报 %s ⇒ 拒：%s" % (cls, why))
             return
+        # ★★ 载体报到时带了「我能做什么」⇒ 记下来（★ 给模型看，★ 也给查世界答）
+        if caps_avail or caps_unsup:
+            self.carrier_caps = {"available": caps_avail or [],
+                                 "unsupported": caps_unsup or [],
+                                 "by": "%s/%s" % (cls, fields.get("name", "?")),
+                                 "at": None}
+            log("★ 载体报了能力：可用 %d ／ 不支持 %d" % (
+                len(self.carrier_caps["available"]), len(self.carrier_caps["unsupported"])))
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
         seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, inst.instance_id), "after": fields})
         log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）" % (cls, inst.instance_id, seq, inst.instance_id))
@@ -258,7 +273,8 @@ def main():
     session.declare_subscriber(T_ASK, lambda s: _ask_and_forward(s, w, session))
     session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
     session.declare_subscriber(T_QUERY, lambda s: _query_and_reply(s, w, session))
-    log("   订上了：%s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY))
+    session.declare_subscriber(T_NOTICE, lambda s: _notice_and_forward(s, w, session))
+    log("   订上了：%s ／ %s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY, T_NOTICE))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:
         while True:
@@ -347,7 +363,11 @@ def _query_and_reply(smp, w, session):
                 data["instances"][tid] = n
         elif kind == "actions":
             data = {"ontology": sorted(w.ontology.action_types.keys()),
-                    "registry": sorted(w.registry.keys())}
+                    "registry": sorted(w.registry.keys()),
+                    # ★★ 载体报的可用性（★ 模型据此只挑能跑的）
+                    "available": sorted(w.carrier_caps.get("available") or []),
+                    "unsupported": sorted(w.carrier_caps.get("unsupported") or []),
+                    "reported_by": w.carrier_caps.get("by")}
         elif kind == "types":
             data = {tid: sorted(ot.properties.keys()) for tid, ot in w.ontology.object_types.items()}
         elif kind == "type":
@@ -379,6 +399,31 @@ def _query_and_reply(smp, w, session):
         out = {"id": rid, "kind": kind, "ok": False, "why": str(e)}
         log("查世界 %s ⇒ 拒：%s" % (kind, e))
     session.put(T_QUERY_RESULT, json.dumps(out, ensure_ascii=False))
+
+
+def _notice_and_forward(smp, w, session):
+    """★★ 宣告过本体 —— ★ 作者令（逐字）：「**而且是要经过我的本体**」。
+
+    ★ 谁发：★ agent ／ 任何一方想「广播一件事」。
+    ★ 本体干什么：★ ① 认（有没有 kind）★ ② 盖章 ★ ③ 记账 ★ ④ 转
+    ★ 本体【不】干什么：★ 不看内容（那是信纸，★ 机制只看信封）。
+    """
+    try:
+        msg = json.loads(smp.payload.to_string())
+    except Exception:
+        return
+    kind = msg.get("kind") or ""
+    if not kind:
+        w.stamp("act", kind_of="notice-reject", why="没有 kind")
+        log("宣告 ⇒ 拒：没有 kind")
+        return
+    # ★ 认：宣告的种类在册吗（families 里登记的）
+    at = w.stamp("act", kind_of="notice", notice_kind=kind,
+                  by=msg.get("by"), about=msg.get("about"),
+                  size=len(smp.payload.to_string()))
+    log("宣告 %s（%s，%d 字节）⇒ 转给界面" % (kind, at, len(smp.payload.to_string())))
+    # ★ 转：★ 本体【不碰内容】，★ 原样转给 GUI
+    session.put(T_UI_FRAME, smp.payload.to_string())
 
 
 if __name__ == "__main__":

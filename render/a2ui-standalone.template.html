@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>AIOS · A2UI 渲染（自包含）</title>
+<style>
+  :root { --bg:#0d1117; --fg:#e6edf3; --dim:#8b949e; --line:#30363d; --card:#161b22; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.6 -apple-system,"Segoe UI","Noto Sans CJK SC",sans-serif; background:var(--bg); color:var(--fg); }
+  #wrap { padding:16px; }
+  .a2ui-text { white-space:pre-wrap; }
+  .a2ui-text b { color:var(--accent); }
+  .a2ui-column { display:flex; flex-direction:column; gap:10px; }
+  .a2ui-row { display:flex; flex-direction:row; gap:10px; align-items:center; }
+  .a2ui-list { display:flex; flex-direction:column; gap:6px; }
+  .a2ui-card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .a2ui-divider { border:0; border-top:1px solid var(--line); margin:8px 0; }
+  .a2ui-button { background:var(--accent); color:#0d1117; font-weight:600; border:0; border-radius:6px; padding:7px 14px; }
+  .a2ui-input { background:#0d1117; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 9px; }
+  .a2ui-unknown { color:#f85149; border:1px dashed #f85149; border-radius:6px; padding:4px 8px; }
+  .a2ui-icon { font-size:18px; }
+  .a2ui-img { max-width:100%; border-radius:8px; }
+  #meta { color:var(--dim); font-size:12px; padding:4px 0 10px; }
+</style></head><body><div id="wrap"><div id="meta"></div><div id="err" style="color:#f85149;font-size:20px;white-space:pre-wrap"></div><div id="stage"></div></div>
+<script>
+let FRAME = null;
+try { FRAME = __FRAME_JSON__; } catch (e) { document.getElementById('err').textContent = 'FRAME 解析失败: ' + e; throw e; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function md(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+function fold(frame){
+  const surfaces = new Map();
+  for (const m of (frame.messages||[])) {
+    if (m.createSurface) { const s=m.createSurface; surfaces.set(s.surfaceId,{surfaceId:s.surfaceId,catalogId:s.catalogId||"",components:new Map(),order:[],root:null}); }
+    if (m.updateComponents) { const u=m.updateComponents; const s=surfaces.get(u.surfaceId); if(!s) continue;
+      for (const c of (u.components||[])) { s.components.set(c.id,c); s.order.push(c.id); } }
+    if (m.beginRendering) { const s=surfaces.get(m.beginRendering.surfaceId); if(s) s.root=m.beginRendering.root; }
+  }
+  for (const s of surfaces.values()) { if(!s.root){ const refd=new Set(); for(const c of s.components.values()){ for(const k of (c.children||[])) refd.add(k); if(c.child) refd.add(c.child);} const top=[...s.components.keys()].filter(k=>!refd.has(k)); s.root=top[0]||null; } }
+  return surfaces;
+}
+let unknown=0, total=0;
+function draw(c, comps){ total++; const t=c.component||"(无名)"; let el;
+  switch(t){
+    case "Text": el=document.createElement("div"); el.className="a2ui-text"; el.innerHTML=md(c.text); break;
+    case "Column": el=document.createElement("div"); el.className="a2ui-column"; break;
+    case "Row": el=document.createElement("div"); el.className="a2ui-row"; break;
+    case "List": el=document.createElement("div"); el.className="a2ui-list"; break;
+    case "Card": el=document.createElement("div"); el.className="a2ui-card"; break;
+    case "Divider": el=document.createElement("hr"); el.className="a2ui-divider"; break;
+    case "Button": el=document.createElement("button"); el.className="a2ui-button"; el.textContent=c.text||c.label||"按钮"; break;
+    case "TextField": el=document.createElement("input"); el.className="a2ui-input"; el.placeholder=c.label||c.placeholder||""; break;
+    case "CheckBox": el=document.createElement("label"); el.innerHTML='<input type="checkbox"> '+esc(c.label||""); break;
+    case "Slider": el=document.createElement("input"); el.type="range"; break;
+    case "DateTimeInput": el=document.createElement("input"); el.type="datetime-local"; break;
+    case "ChoicePicker": el=document.createElement("select"); el.className="a2ui-input"; (c.options||[]).forEach(o=>{const op=document.createElement("option");op.textContent=(o&&o.label)||o;el.appendChild(op);}); break;
+    case "Icon": el=document.createElement("span"); el.className="a2ui-icon"; el.textContent=c.name||"?"; break;
+    case "Image": el=document.createElement("img"); el.className="a2ui-img"; el.src=c.url||""; el.alt=c.description||""; break;
+    case "Video": el=document.createElement("video"); el.controls=true; el.src=c.url||""; break;
+    case "AudioPlayer": el=document.createElement("audio"); el.controls=true; el.src=c.url||""; break;
+    case "Tabs": el=document.createElement("div"); el.className="a2ui-column"; break;
+    case "Modal": el=document.createElement("dialog"); el.open=true; break;
+    default: el=document.createElement("div"); el.className="a2ui-unknown"; el.textContent="未知组件："+t; unknown++;
+  }
+  const kids=(t==="Card"&&c.child)?[c.child]:(c.children||[]);
+  for(const k of kids){ const ch=comps.get(k); if(ch) el.appendChild(draw(ch,comps)); }
+  return el;
+}
+try {
+const surfs=fold(FRAME); const stage=document.getElementById("stage"); const meta=document.getElementById("meta");
+let n=0;
+for(const s of surfs.values()){ if(s.root&&s.components.has(s.root)){ stage.appendChild(draw(s.components.get(s.root), s.components)); n++; } }
+meta.textContent = "surface " + n + " ／ 组件 " + total + " ／ 未知 " + unknown + " ／ 帧：" + (FRAME.name||"(无名)");
+document.title = "A2UI " + total + " 组件 未知" + unknown;
+} catch (e) { document.getElementById("err").textContent = "渲染失败: " + e + "\n" + (e.stack||""); }
+</script></body></html>

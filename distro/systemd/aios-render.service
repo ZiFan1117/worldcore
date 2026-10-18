@@ -1,0 +1,19 @@
+[Unit]
+Description=AI-OS.NET A2UI 渲染器（HTTP，给浏览器读帧）
+After=aios-gui.service
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/render/www
+ExecStart=/usr/bin/python3 -m http.server 8808 --bind 127.0.0.1
+Restart=always
+RestartSec=3
+ProtectSystem=strict
+RuntimeDirectory=aios
+# ★ 只读挂在 /usr/lib/aios 上不影响 /run
+ReadOnlyPaths=/usr/lib/aios
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,26 @@
+# ★★★ AI-OS profile patch —— ★ 把【动手的手脚】交给本体管（★ 先改一部分）
+#
+# ★ 作者令（逐字）：「我们先改一部分 tool-bash／tool-pwsh／tool-fs／」
+#
+# ★ 本步只关三个（★ 其余 fs-search／web／workflow／subagent 【先不动】）：
+#   · tool-bash   → DSH 的 `bash` 工具（跑 shell）
+#   · tool-pwsh   → DSH 的 `pwsh` 工具（跑 PowerShell）
+#   · tool-fs     → DSH 的 read／write／edit／read_image（读写改文件）
+#
+# ★ 关掉后：★ 这三类事【只能】经 world_ask ⇒ 本体（认名字／判许可／盖章／记账）⇒ 载体
+# ★ 保留：world_query（问）／ world_ask（做）／ world_ui（画）—— ★ 全过本体
+
+# ── 关三个 ────────────────────────────────────────────────
+- id: tool-bash
+  disabled: true
+
+- id: tool-pwsh
+  disabled: true
+
+- id: tool-fs
+  disabled: true
+
+# ── 挂我们的世界插件 ──────────────────────────────────────
+- insert:
+    - id: aios-world
+      name: 'dsh-plugin-aios-world'

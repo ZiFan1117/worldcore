@@ -1,0 +1,11 @@
+{
+  "name": "dsh-plugin-aios-world",
+  "version": "0.3.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "description": "AI-OS 世界插件 —— DSH 只能通过【本体】做事、用【A2UI】出界面（经 world_cli 桥）",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

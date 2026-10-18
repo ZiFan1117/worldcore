@@ -212,6 +212,9 @@ def probe_availability(rows):
 def main():
     rows = load_map(MAP_PATH)
     ok, missing = probe_availability(rows)
+    # ★★ 报到时带上「我能做什么」（★ 模型据此只挑能跑的）
+    ME["actions_available"] = ok
+    ME["actions_unsupported"] = sorted(missing.keys())
     log("★ 可用动作 %d 个；本发行版不支持 %d 个" % (len(ok), len(missing)))
     for n in sorted(missing)[:8]:
         log("   ✗ %s（%s）" % (n, missing[n]))
