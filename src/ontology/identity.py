@@ -30,7 +30,9 @@ _TICKETS = {}
 # ★ 测试账号（★ 作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
 TEST_USER = "zhang"
 TEST_PASS = "0"
-TICKET_TTL = 8 * 3600   # ★ 8 小时
+# ★ 票的有效期。★ 默认 8 小时；★ 测试时用环境变量 AIOS_TICKET_TTL 设成 1 秒验「过期会拒」。
+import os as _os
+TICKET_TTL = int(_os.environ.get("AIOS_TICKET_TTL") or (8 * 3600))
 
 
 def authenticate(params, log=print):
