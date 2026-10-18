@@ -2,9 +2,9 @@
 #   ★ 作者令（逐字）：「文档也不要全推上去啊，直接有用的推，能说明问题的推…所以梳理我们13这个文件夹下面的所有东西」
 #   ★ 又：「都不用推，就把那个证明了的那几个进程推上去，不就完事了」
 
-# ★★★ 上游 39 个 crate 【已删】（作者令：「全可以删除了，现在没啥用」）
+# ★★★ 另一套发行版的 39 个 crate 【已删】
 
-# 上游的规格／站点／工具
+# 另一套规格／站点／工具
 /001.AI-OS.NET--SPECREV.1/
 /002.AI-OS.NET--SPECREV.2/
 /003.AI-OS.NET--SPECREV.3/
@@ -64,10 +64,10 @@
 # 旧代码归档
 /src/legacy/
 
-# 上游的单元（22 个，起不来）
+# 归档的单元（22 个，起不来）
 /scripts/release/systemd/upstream/
 
-# ★ distro/ 里上游的子系统（★ 我们只用 computer/ ＋ deploy.sh ＋ desktop/aios-session ＋ systemd/ 的 7 个单元）
+# ★ distro/ 里外部的子系统（★ 我们只用 computer/ ＋ deploy.sh ＋ desktop/aios-session ＋ systemd/ 的 7 个单元）
 /scripts/release/aios-boot/
 /scripts/release/bin/
 /scripts/release/build/

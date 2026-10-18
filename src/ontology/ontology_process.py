@@ -35,7 +35,7 @@ import zenoh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)                      # 本原子目录（ontology_definition）
-sys.path.insert(0, os.path.dirname(HERE))     # py/ 根（foundry_ontology 上游料）
+sys.path.insert(0, os.path.dirname(HERE))     # src/ 根（foundry_ontology 目录）
 from ontology_definition import build_aios_ontology  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 

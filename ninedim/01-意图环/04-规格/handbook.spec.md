@@ -69,7 +69,7 @@
 |---|---|
 | ★ **A 我方内核** | ★ 有 `functions.entries`（**9 条**，含 `inputs`／`output_type`）⇒ ★ **原料在**；★ **没有「按身份生成的视图」** |
 | ★ **B VM demo 链** | ★ **无** |
-| ★ **C 上游 AIOS** | ★ 有 `AdapterManifest`（★ 适配器声明表）；★ **不是按身份裁剪的手册** |
+| ★ **C 外部 AIOS** | ★ 有 `AdapterManifest`（★ 适配器声明表）；★ **不是按身份裁剪的手册** |
 | ★ **D 08 上一代** | ★ 有 `cap.d`（`capability ↔ provider`）；★ **那是机制表，不是手册** |
 | ★ **E SysKnife** | ★ 有 `KNOWN_ACTIONS`（**名字 ＋ 一句话**）＋ `describe()` 同形的对外面；★ **参数不在表里**（★ 在函数签名里） |
 | ★ **P** | ★★ **最接近**：★ `describe()` 逐字「**for MCP tool listing**」—— ★ 但★ **它不裁剪** |

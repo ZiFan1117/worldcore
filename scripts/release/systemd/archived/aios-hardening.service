@@ -1,0 +1,21 @@
+[Unit]
+Description=AI-OS.NET Hardening Scanner
+Documentation=https://ai-os.net/docs/hardening
+# NB: After=multi-user.target + WantedBy=multi-user.target is an ordering
+# cycle (systemd SKIPs the unit). Order after the evidence log instead.
+After=aios-evidence-log.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/aios/aios-system run-service aios-hardening --config /etc/aios/config.toml --once
+RemainAfterExit=yes
+LimitNOFILE=65536
+PrivateTmp=yes
+ProtectSystem=strict
+# /var/lib/aios/state: run-service writes its readiness state file there
+ReadWritePaths=/var/lib/aios/hardening /run/aios /var/lib/aios/state
+NoNewPrivileges=yes
+SELinuxContext=-system_u:system_r:aios_hardening_t:s0
+
+[Install]
+WantedBy=multi-user.target
