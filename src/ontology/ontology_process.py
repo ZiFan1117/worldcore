@@ -19,8 +19,8 @@
   · world/appear          ← 成为个体
   · world/alive           ← 报到
   · world/ask             ← ★ 请求入口（只有本体订它）
-  · world/exec            → 转发给载体
-  · world/exec/result     ← 载体回结果
+  · world/exec            → 转发给计算机
+  · world/exec/result     ← 计算机回结果
   · world/ask/result      → 回传给请求方
 """
 
@@ -32,7 +32,9 @@ import time
 
 import zenoh
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)                      # 本原子目录（ontology_definition）
+sys.path.insert(0, os.path.dirname(HERE))     # py/ 根（foundry_ontology 上游料）
 from ontology_definition import build_aios_ontology  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
@@ -53,9 +55,9 @@ T_QUERY_RESULT = "world/query/result"
 T_NOTICE = "world/notice"            # ★★ 宣告入口（★ 作者裁：所有交互过本体 ⇒ 帧也过）
 T_UI_FRAME = "world/ui/frame"        # 本体【转】给 GUI 的那一面   # ★ 结果先回本体（★ 所有交互过本体）
 T_EXEC = "world/exec"
-T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；载体跑完 ⇒ 也发这里）
+T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；计算机跑完 ⇒ 也发这里）
 # ★★★ 2026-10-17 裁：**本体不再碰结果** —— 退订 world/exec/result、不记结果、不回转。
-#     ★ 原则：★ 「谁干的谁报」—— 结果由载体直接回给请求方，本体不在那条路上。
+#     ★ 原则：★ 「谁干的谁报」—— 结果由计算机直接回给请求方，本体不在那条路上。
 
 REG_PATH = os.environ.get("AIOS_REGISTRY", "/var/lib/aios/ontology/registry.jsonl")
 LEDGER_PATH = os.environ.get("AIOS_LEDGER", "/var/lib/aios/ontology/ledger.jsonl")
@@ -76,8 +78,8 @@ class World:
             % (len(self.ontology.object_types), len(self.ontology.link_types),
                len(self.ontology.action_types), len(self.ontology.functions)))
         self.registry = {}      # ★ 注册表（名字 → 五格）
-        # ★★ 载体报来的「我能做什么」（★ 可用性，模型要用）
-        self.carrier_caps = {"available": [], "unsupported": [], "at": None, "by": None}
+        # ★★ 计算机报来的「我能做什么」（★ 可用性，模型要用）
+        self.computer_caps = {"available": [], "unsupported": [], "at": None, "by": None}
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
@@ -197,14 +199,14 @@ class World:
             self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why, "body": msg})
             log("进程上报 %s ⇒ 拒：%s" % (cls, why))
             return
-        # ★★ 载体报到时带了「我能做什么」⇒ 记下来（★ 给模型看，★ 也给查世界答）
+        # ★★ 计算机报到时带了「我能做什么」⇒ 记下来（★ 给模型看，★ 也给查世界答）
         if caps_avail or caps_unsup:
-            self.carrier_caps = {"available": caps_avail or [],
+            self.computer_caps = {"available": caps_avail or [],
                                  "unsupported": caps_unsup or [],
                                  "by": "%s/%s" % (cls, fields.get("name", "?")),
                                  "at": None}
-            log("★ 载体报了能力：可用 %d ／ 不支持 %d" % (
-                len(self.carrier_caps["available"]), len(self.carrier_caps["unsupported"])))
+            log("★ 计算机报了能力：可用 %d ／ 不支持 %d" % (
+                len(self.computer_caps["available"]), len(self.computer_caps["unsupported"])))
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
         seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, inst.instance_id), "after": fields})
         log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）" % (cls, inst.instance_id, seq, inst.instance_id))
@@ -319,7 +321,7 @@ def _ask_and_forward(smp, w, session):
 
 
 def _result_and_reply(smp, w, session):
-    """★ 载体跑完 ⇒ 结果先回本体 ⇒ 本体记账 ⇒ 判「谁能看」⇒ 回给请求方。
+    """★ 计算机跑完 ⇒ 结果先回本体 ⇒ 本体记账 ⇒ 判「谁能看」⇒ 回给请求方。
 
     ★★ 2026-10-17 裁：**所有交互都过本体** —— 结果也不例外。
     """
@@ -364,10 +366,10 @@ def _query_and_reply(smp, w, session):
         elif kind == "actions":
             data = {"ontology": sorted(w.ontology.action_types.keys()),
                     "registry": sorted(w.registry.keys()),
-                    # ★★ 载体报的可用性（★ 模型据此只挑能跑的）
-                    "available": sorted(w.carrier_caps.get("available") or []),
-                    "unsupported": sorted(w.carrier_caps.get("unsupported") or []),
-                    "reported_by": w.carrier_caps.get("by")}
+                    # ★★ 计算机报的可用性（★ 模型据此只挑能跑的）
+                    "available": sorted(w.computer_caps.get("available") or []),
+                    "unsupported": sorted(w.computer_caps.get("unsupported") or []),
+                    "reported_by": w.computer_caps.get("by")}
         elif kind == "types":
             data = {tid: sorted(ot.properties.keys()) for tid, ot in w.ontology.object_types.items()}
         elif kind == "type":

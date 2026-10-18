@@ -1,6 +1,6 @@
 [Unit]
-Description=AI-OS.NET 载体（Python）—— 这台计算机在【世界里】的代言
-Documentation=https://ai-os.net/docs/carrier
+Description=AI-OS.NET 计算机（Python）—— 这台机器在【世界里】的代言与执行
+Documentation=https://ai-os.net/docs/computer
 # ★★★ 作者：四个独立进程，谁也不等谁 ⇒ 不 After=／不 Wants=／不 Requires=。
 
 [Service]
@@ -8,8 +8,8 @@ Type=simple
 WorkingDirectory=/usr/lib/aios/py
 Environment=PYTHONUNBUFFERED=1
 Environment=AIOS_BUS=tcp/127.0.0.1:7447
-Environment=AIOS_CARRIER_MAP=/usr/lib/aios/command-map.jsonl
-ExecStart=/usr/bin/python3 /usr/lib/aios/py/carrier_process.py
+Environment=AIOS_COMPUTER_MAP=/usr/lib/aios/command-map.jsonl
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/computer/computer_process.py
 Restart=always
 RestartSec=3
 LimitNOFILE=65536

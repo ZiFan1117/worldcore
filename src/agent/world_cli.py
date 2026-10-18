@@ -6,7 +6,7 @@
      python3 world_cli.py ask    '{"action":"sys.GetMemoryInfo","params":{}}'
      python3 world_cli.py frame  '<A2UI 帧 JSON>'
 
-   ★ 它【不执行】、不判许可 —— 那是本体和载体的事。
+   ★ 它【不执行】、不判许可 —— 那是本体和计算机的事。
 """
 import json
 import sys

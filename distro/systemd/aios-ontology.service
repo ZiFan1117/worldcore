@@ -13,7 +13,7 @@ Environment=PYTHONUNBUFFERED=1
 Environment=AIOS_REGISTRY=/var/lib/aios/ontology/registry.jsonl
 Environment=AIOS_LEDGER=/var/lib/aios/ontology/ledger.jsonl
 Environment=AIOS_BUS=tcp/127.0.0.1:7447
-ExecStart=/usr/bin/python3 /usr/lib/aios/py/ontology_process.py
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/ontology/ontology_process.py
 Restart=always
 RestartSec=3
 LimitNOFILE=65536

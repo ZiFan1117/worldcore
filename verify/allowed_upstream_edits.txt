@@ -18,7 +18,7 @@ README.md                                         # 退役上游前门，换成�
 crates/aios-fs/src/in_memory.rs                   # ★ 静默降级的如实登记注释（2 行；T-30 待办：改成「不登记即拒」）  T-30
 crates/aios-worldcore/src/engine/mod.rs  # 接 transport 口（T-270）
 crates/aios-worldcore/src/engine/transport.rs  # 新增：总线收成一个口（T-270）
-crates/aios-carrier/  # 我方新增 crate：载体进程（T-312 搬出内核 crate —— 一个原子一个夹）
+crates/aios-carrier/  # 我方新增 crate：载体进程（T-312）【2026-10-18 **已删除**：VM 全 Python，Rust 侧 carrier/computer crate 退役；映射表移到 distro/computer/command-map.jsonl】
 Cargo.toml  # 加 zenoh 到 workspace.dependencies（T-271 总线就是 zenoh）
 crates/aios-worldcore/Cargo.toml  # 加 optional zenoh ＋ feature bus-zenoh（T-271）
 crates/aios-worldcore/src/engine/transport/zenoh_impl.rs  # 新增：Transport 的 zenoh 实现（T-271）
@@ -26,27 +26,31 @@ distro/systemd/aios-bus.service  # 新增：总线进程的单元（T-273，总�
 distro/systemd/aios-ontology.service  # 新增：本体进程的单元（T-273，本体是单独进程且最先起）
 crates/aios-worldcore/src/bin/ontology.rs  # 新增：本体进程（第一张通行证：启动即装载本体）（T-278）
 distro/bin/start-ontology.sh  # 新增：本体进程的起法（测试阶段；服务化是终态）（T-284）
-distro/systemd/aios-carrier.service  # 新增：载体进程的单元（四个独立进程之一，不与总线/本体互相依赖）（T-310）
+distro/systemd/aios-carrier.service  # 新增：载体进程的单元（T-310）【2026-10-18 已改名为 aios-computer.service，此行为旧路径登记】
+distro/systemd/aios-computer.service  # 新增：计算机进程的单元（2026-10-18 作者令统一为 computer；原 aios-carrier 改名）
 crates/aios-gui/  # 新增 crate：GUI 进程（世界 ↔ 人 之间那一面，类=surface）（T-311）
 distro/systemd/aios-gui.service  # 新增：GUI 进程的单元（四个独立进程之一，不互相依赖）（T-311）
 py/  # 新增目录：P（foundry-ontology-open，MIT）的 core+engine ＋ 我们的 ontology_definition.py（T-331 决定直接用 P 做本体）
+src/  # 2026-10-18 代码根改名：py/ → src/（作者令：不用 py，直接放 src；旧 py/ 路径由上一行登记）
 py/LICENSE-foundry-ontology-open  # MIT 全文（Copyright (c) 2025 Pankaj Kumar）
 py/NOTICE.md  # 来源与改动声明
-py/ontology_definition.py  # 我们的本体（按 P 格式）；py/ontology_process.py  # Python 本体进程（只认/盖章/转/记）（T-331/T-334）
+src/ontology/ontology_definition.py  # 我们的本体（按 P 格式）；src/ontology/ontology_process.py  # Python 本体进程（只认/盖章/转/记）；2026-10-18 一进程一夹重排 + py→src
 render/  # 新增目录：A2UI 渲染器（单文件 HTML ＋ 渲染核心 mjs ＋ Node 单测 ＋ 样例帧）（T-336）
 crates/aios-gui/src/main.rs  # appear 载荷照本体 surface 字段（T-339）
 crates/aios-carrier/src/main.rs  # appear 载荷照本体 service 字段（T-339）
-py/carrier_process.py  # 载体（Python 版，全改 Python 后的实现）（T-340）
-py/gui_process.py  # GUI（Python 版）（T-340）
-py/ledger_process.py  # 账房（第五个进程，订 ** 抄全量流量）（T-344）
-py/polkit_gen.py  # 本体生成 polkit policy（T-347）
+py/carrier_process.py  # 载体（Python 版，T-340）【2026-10-18 已改名为 py/computer_process.py，此行为旧路径登记】
+src/computer/computer_process.py  # 计算机（Python 版；2026-10-18 一进程一夹：src/computer/）
+src/gui/gui_process.py  # GUI（Python 版；2026-10-18 一进程一夹：src/gui/）
+src/legacy/ledger_process.py  # 旧账房（第五个进程，账房已砍 T-349；2026-10-18 移到 legacy/，待人裁删）
+src/ontology/polkit_gen.py  # 本体生成 polkit policy（2026-10-18 一进程一夹：src/ontology/）
 distro/polkit/net.ai-os.worldcore.policy  # 生成的策略（T-347）
 distro/carrier/sysknife-actions.json  # 从 sysknife 抄的 178 个动作名（MIT，T-352）
 distro/carrier/sysknife-command-map.json  # sysknife 抽出的命令映射（MIT，T-353）
-distro/carrier/command-map-sysknife.jsonl  # sysknife 抽出的命令映射（MIT，T-353）
-py/agent_llm.py  # 模型驱动的 agent（全走本体，T-357）
-py/agent_process.py  # 小 agent（固定逻辑版，T-355）
-py/world_cli.py  # 总线桥（给 Node 插件用，T-357）
+distro/carrier/command-map-sysknife.jsonl  # sysknife 抽出的命令映射（MIT，T-353）【2026-10-18 已改名为 distro/computer/，此行为旧路径登记】
+distro/computer/  # 新增：计算机进程的数据目录（2026-10-18 作者令统一为 computer；原 distro/carrier 改名）
+src/agent/agent_llm.py  # 模型驱动的 agent（全走本体；2026-10-18 一进程一夹：src/agent/）
+src/agent/agent_process.py  # 小 agent（固定逻辑版；2026-10-18 一进程一夹：src/agent/）
+src/agent/world_cli.py  # 总线桥（给 Node 插件用；属 agent 原子的总线适配件；2026-10-18 一进程一夹）
 dsh-plugins/aios-world/  # DSH 世界插件（T-357）
 dsh-plugins/profile/aios-world.patch.yml  # profile 补丁：关动手工具（T-357）
 distro/systemd/aios-agent.service  # agent 常驻单元（T-355）
@@ -54,3 +58,8 @@ distro/systemd/aios-render.service  # A2UI 渲染 HTTP 单元（T-355）
 render/a2ui-live.html  # 活渲染器（读落盘帧，变了就重画，T-356）
 render/a2ui-standalone.template.html  # 自包含渲染模板（取证用，T-356）
 render/make-standalone.py  # 把帧灌进模板（取证用，T-356）
+src/presentation/presentation_process.py  # 呈现（Python 半）：合成器 ＋ 4 动作 ＋ TCP 桥（T-358）
+src/presentation/render_main.dart  # 渲染器（Flutter 半）：接 genui，按 layout 叠（T-358）
+src/presentation/login_frame.py  # 登录画布（呈现出；测试账号 zhang/0）（T-358）
+src/space/space_process.py  # 个人空间：报 space、出桌面画布、验登录（T-358）
+src/space/desktop_frame.py  # 桌面画布（带 layout）（T-358）

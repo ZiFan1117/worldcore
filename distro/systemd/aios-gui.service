@@ -9,7 +9,7 @@ WorkingDirectory=/usr/lib/aios/py
 Environment=PYTHONUNBUFFERED=1
 Environment=AIOS_BUS=tcp/127.0.0.1:7447
 Environment=AIOS_GUI_FRAME_OUT=/run/aios/gui-frame.json
-ExecStart=/usr/bin/python3 /usr/lib/aios/py/gui_process.py
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/gui/gui_process.py
 Restart=always
 RestartSec=3
 LimitNOFILE=65536

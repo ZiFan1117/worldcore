@@ -1,0 +1,208 @@
+# -*- coding: utf-8 -*-
+"""AIOS 个人空间进程 —— ★ 人的地盘；★ 它出【画布（surface）】。
+
+★ 作者令（逐字，2026-10-18）：
+  ·「我们要实现的是【成像】和【surface】，按照我们的逻辑来实现，包括 space」
+  ·「呈现和画布是说和画布 surface」（★ 合并的是【呈现＋画布】，★ 不是【呈现＋空间】）
+  ·「个人空间下面是不是要有一套（布局）……这个应该有一套」⇒ ★ 布局【它自己给】
+  ·「我需要多个画布，这是事实，而且是不同人的画布」
+
+★★ 它是什么（本体 space 定义逐字）：
+  「人的地盘（归属与激活状态）。一人一份、在册≠激活：登录只把当前人的空间置 active；
+    布局/壁纸/偏好等细节【不进本体】。」
+
+★★ 它干什么：
+  ① 报个体 space/<user>（owner = human/<user>，state = active/inactive）
+  ② 出【桌面画布】surface/desktop-<user>（★ 带 layout：摆放归它）
+  ③ 收 world/ui/act（★ 人的动作，经本体转来）
+
+★★ 它不是什么：不画像素、不合成、不裁决 —— 那些是【呈现】的事。
+"""
+import json
+import os
+import time
+
+import zenoh
+
+from desktop_frame import desktop_frame
+
+T_NOTICE = "world/notice"
+T_ACT = "world/ui/act"
+T_ASK = "world/ask"
+T_REGISTER = "world/register"
+T_EXEC = "world/exec"
+T_RESULT = "world/exec/result"
+
+# ★★ 测试账号（作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
+TEST_USER = os.environ.get("AIOS_TEST_USER") or "zhang"
+TEST_PASS = os.environ.get("AIOS_TEST_PASS") or "0"
+
+# ★★ 个人空间对外的三个动作（★ 登录入口 ＋ 布局；摆放归它）
+ACTIONS = [
+    {"action": "space.login",      "kind": "write", "why": "登录：验人、置空间 active、出桌面画布"},
+    {"action": "space.set_layout", "kind": "write", "why": "改布局（摆放归个人空间）"},
+    {"action": "space.get_layout", "kind": "read",  "why": "读布局"},
+]
+
+ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
+USER = os.environ.get("AIOS_USER") or "zhang"
+STATE = os.environ.get("AIOS_SPACE_STATE") or "active"
+
+ME = {"class": "space", "name": USER, "owner": USER, "state": STATE}
+
+
+def log(*a):
+    print("[个人空间]", *a, flush=True)
+
+
+class Space:
+    def __init__(self, session):
+        self.s = session
+        self.surface_id = "surface/desktop-" + USER
+        self.state = STATE
+        self.n_members = 0
+
+    def announce(self):
+        self.s.put("world/appear", json.dumps(ME, ensure_ascii=False))
+        log("① 个体：space/%s（owner=%s，%s）" % (ME["name"], ME["owner"], self.state))
+
+    def register_actions(self):
+        # ★★ 本体 on_register 要的五格
+        for a in ACTIONS:
+            self.s.put(T_REGISTER, json.dumps({
+                "action": a["action"],
+                "function": a["action"].split(".", 1)[-1],
+                "registered_by": "space/" + USER,
+                "registered_by_kind": "space",
+                "required_roles": ["space"],
+                "kind": a["kind"],
+                "why": a["why"],
+            }, ensure_ascii=False))
+        log("① 注册动作 %d 个：%s" % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
+
+    def on_exec(self, sample):
+        try:
+            d = json.loads(sample.payload.to_bytes())
+        except Exception:
+            return
+        # ★★ 只接【自己那一类】（本体广播 world/exec，带 route=注册者 kind）
+        if d.get("route") and d.get("route") != "space":
+            return
+        rid, act, params = d.get("id"), d.get("action") or "", d.get("params") or {}
+        ok, body = self.dispatch(act, params)
+        self.s.put(T_RESULT, json.dumps({
+            "id": rid, "action": act, "ok": ok, "body": body, "by": "space/" + USER,
+        }, ensure_ascii=False))
+        log("④ 执行 %s ⇒ ok=%s（%s）" % (act, ok, str(body)[:60].replace(chr(10), " ")))
+
+    def dispatch(self, act, params):
+        if act == "space.login":
+            # ★★ 验（★ 测试账号 zhang / 0；接入做了以后由接入选 Permit）
+            who = params.get("user") or ""
+            pw = params.get("pass")
+            if who != TEST_USER or (pw is not None and str(pw) != TEST_PASS):
+                log("③ 登录被拒：user=%s（期望 %s／%s）" % (who, TEST_USER, TEST_PASS))
+                return False, "登录失败：用户名或密码不对（★ 测试账号 %s ／ %s）" % (TEST_USER, TEST_PASS)
+            log("③ 登录通过：%s" % who)
+            self.s.put("world/appear", json.dumps({
+                "class": "human", "name": who,
+                "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }, ensure_ascii=False))
+            self.state = "active"
+            self.s.put("world/appear", json.dumps({
+                "class": "space", "name": USER, "owner": who, "state": "active",
+            }, ensure_ascii=False))
+            self.draw()
+            return True, "登录成功：human/%s 已报，space/%s ⇒ active，桌面画布已出" % (who, USER)
+        if act == "space.set_layout":
+            lay = params.get("layout") or {}
+            if not lay:
+                return False, "缺参数 layout"
+            self.layout = lay
+            self.draw()
+            return True, "布局已改（%d 层），桌面画布重出" % len(lay.get("layers") or [])
+        if act == "space.get_layout":
+            return True, getattr(self, "layout", None) or {"layers": []}
+        return False, "不认识的动作 %s" % act
+
+    def draw(self):
+        f = desktop_frame(self.surface_id, USER, self.n_members)
+        n = len(f["messages"][1]["updateComponents"]["components"])
+        self.s.put(T_NOTICE, json.dumps({
+            "kind": "a2ui.frame",
+            "by": "world://space/" + USER,
+            "about": "桌面",
+            "frame": f,
+        }, ensure_ascii=False))
+        log("② 出桌面画布 %s（%d 组件，layout %d 层）"
+            % (self.surface_id, n, len(f["layout"]["layers"])))
+
+    def on_act(self, sample):
+        try:
+            d = json.loads(sample.payload.to_bytes())
+        except Exception:
+            return
+        _a = d.get("action") or {}
+        if isinstance(_a, dict) and isinstance(_a.get("event"), dict):
+            name = _a["event"].get("name") or ""
+        else:
+            name = _a.get("name") or ""
+        log("③ 人的动作：%s（comp=%s）" % (name, d.get("component")))
+        if name == "space.login":
+            # ★ 有人要登录 —— 是谁？★ 我这里是那个人的空间 ⇒ 报 human 并把空间置 active
+            params = act.get("params") or {}
+            who = params.get("user") or USER
+            log("③ 登录请求 user=%s ⇒ 报 human/%s ＋ 空间 active" % (who, who))
+            self.s.put("world/appear", json.dumps({
+                "class": "human", "name": who,
+                "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }, ensure_ascii=False))
+            self.state = "active"
+            self.s.put("world/appear", json.dumps({
+                "class": "space", "name": USER, "owner": who, "state": "active",
+            }, ensure_ascii=False))
+            self.draw()
+
+    def on_frame(self, sample):
+        """★ 收到别人给的 layout（★ 比如呈现的登录画布）⇒ 记住，★ 自己的画布不抢。"""
+        try:
+            d = json.loads(sample.payload.to_bytes())
+        except Exception:
+            return
+        if d.get("kind") != "a2ui.frame":
+            return
+        log("② 收到画布（by=%s）" % d.get("by"))
+
+
+def main():
+    log("① 连总线 %s …" % ENDPOINT)
+    c = zenoh.Config()
+    c.insert_json5("mode", chr(34) + "client" + chr(34))
+    c.insert_json5("scouting/multicast/enabled", "false")
+    c.insert_json5("connect/endpoints", json.dumps([ENDPOINT]))
+    s = zenoh.open(c)
+    log("   连上了")
+    sp = Space(s)
+    sp.announce()
+    sp.register_actions()
+    # ★★ 作者令：登录界面先出来 ⇒ 桌面【等登录过了再出】（★ AIOS_SPACE_DRAW_AT_BOOT=1 可让它一启动就出）
+    if os.environ.get("AIOS_SPACE_DRAW_AT_BOOT") == "1":
+        sp.draw()
+    else:
+        log("★ 桌面画布【等登录】（★ space.login 通过后才出）")
+    s.declare_subscriber(T_ACT, sp.on_act)
+    s.declare_subscriber(T_NOTICE, sp.on_frame)
+    s.declare_subscriber(T_EXEC, sp.on_exec)
+    log("④ 订 %s ＋ %s ＋ %s" % (T_ACT, T_NOTICE, T_EXEC))
+    log("★ 个人空间起来了 —— 等登录 ＋ 收人的动作（★ 桌面画布登录后才出）")
+    try:
+        while True:
+            time.sleep(3600)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        s.close()
+
+
+if __name__ == "__main__":
+    main()

@@ -46,6 +46,8 @@ CRITERIA = [
     "c24_a2ui_projection.py",
     "c25_bus_and_ontology_units.py",
     "c26_only_zenoh_no_data_plane.py",
+    "c27_file_length.py",
+    "c28_py_layout.py",
 ]
 
 

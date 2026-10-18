@@ -7,10 +7,10 @@
 ★ 它做四件（★ 全是【通过本体】，★ 不直连任何服务）：
   ① 注册：★ 发 `world/appear`（类 agent）⇒ 成为个体
   ② 问世界：★ 发 `world/query`（kind=world）⇒ 知道有什么
-  ③ 做事：★ 发 `world/ask`（sys.GetServiceStatus / sys.GetMemoryInfo …）⇒ 本体转给载体执行
+  ③ 做事：★ 发 `world/ask`（sys.GetServiceStatus / sys.GetMemoryInfo …）⇒ 本体转给计算机执行
   ④ 出界面：★ 把结果拼成 A2UI 帧 ⇒ 发 `world/ui/frame` ⇒ GUI 落盘 ⇒ 渲染器画
 
-★ 它不做：不执行命令（★ 载体执行）、不判许可（★ 本体判）、不画（★ 渲染器画）。
+★ 它不做：不执行命令（★ 计算机执行）、不判许可（★ 本体判）、不画（★ 渲染器画）。
 """
 
 import json
@@ -46,7 +46,7 @@ class Agent:
     # ── ① 注册 ──
     def appear(self):
         me = {"class": "agent", "name": NAME, "did": DID,
-              "manifest": "py/agent_process.py（小 agent，通过本体做事）", "state": "running"}
+              "manifest": "src/agent/agent_process.py（小 agent，通过本体做事）", "state": "running"}
         self.s.put(T_APPEAR, json.dumps(me, ensure_ascii=False))
         log("① 发 appear：agent/%s ⇒ 等本体认" % NAME)
 
@@ -61,7 +61,7 @@ class Agent:
             time.sleep(0.1)
         return {"ok": False, "why": "查询超时"}
 
-    # ── ③ 做事（★ 走本体 ⇒ 本体转给载体）──
+    # ── ③ 做事（★ 走本体 ⇒ 本体转给计算机）──
     def act(self, action, params=None, timeout=20):
         rid = "a-" + uuid.uuid4().hex[:8]
         msg = {"id": rid, "action": action, "actor": "world://agent/" + NAME,
@@ -119,7 +119,7 @@ class Agent:
             kids = []
             t2 = nid("t")
             comps.append({"id": t2, "component": "Text",
-                          "text": "**通过本体做的事**（world/ask ⇒ 本体 ⇒ 载体）"})
+                          "text": "**通过本体做的事**（world/ask ⇒ 本体 ⇒ 计算机）"})
             kids.append(t2)
             for p in probes:
                 x = nid("t")

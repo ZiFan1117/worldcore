@@ -5,7 +5,7 @@
  *                 「这个那那就写个桥吧，写个桥吧」
  * ★ 作者裁（逐字）：「所有的交互啥的必须过这个所谓的本体……除了这个数据是那啥的」
  *
- * ★★ 传输：★ 经【桥】`/usr/lib/aios/py/world_cli.py` —— 它是总线的【正规 Python 客户端】。
+ * ★★ 传输：★ 经【桥】`/usr/lib/aios/src/agent/world_cli.py` —— 它是总线的【正规 Python 客户端】（属 agent 原子的总线适配件）。
  *    ★ 为什么用桥：★ Node 的 zenoh 绑定【全试死了】——
  *      · zenoh-node 只有 peer 模式（孤岛，实测收不到）
  *      · zenoh-ts 要 remote-api 插件（下不到）
@@ -28,7 +28,7 @@ export const name = "aios-world";
 /** Services used. */
 export const inject = ["tools"];
 
-const CLI = process.env.AIOS_WORLD_CLI || "/usr/lib/aios/py/world_cli.py";
+const CLI = process.env.AIOS_WORLD_CLI || "/usr/lib/aios/src/agent/world_cli.py";
 const PY = process.env.AIOS_PYTHON || "/usr/bin/python3";
 const AGENT = process.env.AIOS_AGENT_NAME || "dsh";
 

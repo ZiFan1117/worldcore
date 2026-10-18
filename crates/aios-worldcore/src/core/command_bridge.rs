@@ -141,9 +141,9 @@ mod tests {
     use super::*;
     use crate::core::types::Who;
 
-    // ★★ 载体的自己的数据（T-299 搬家）—— ★ 不再 include 本体那一侧的件。
-    // ★★ 映射表已归位到载体自己的窝（T-312：`crates/aios-carrier/data/`）。
-    const MAP: &str = include_str!("../../../aios-carrier/data/command-map.jsonl");
+    // ★★ 计算机的映射表（VM 全 Python 后，Rust 侧的 aios-computer crate 已退役）
+    // ★★ 映射表现在住 distro/computer/（数据面；Python 进程与 C22 判据共用同一份）。
+    const MAP: &str = include_str!("../../../../distro/computer/command-map.jsonl");
     const ONT: &str = include_str!("../../../aios-ontology/data/ontology.json");
 
     fn temp(tag: &str) -> String {

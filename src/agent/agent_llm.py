@@ -7,11 +7,11 @@
 ★ 一轮四步（★ 每步都过本体，★ 一步都不绕过）：
   ① 问本体：★ `world/query` ⇒ 「世界有什么」（类／个体数／动作清单）
   ② 问模型：★ 「看着这个世界，你下一步要做什么？」⇒ 返回 `{"action": ..., "params": {...}}`
-  ③ 做事：★ `world/ask` ⇒ 本体 ⇒ 载体 ⇒ 结果
+  ③ 做事：★ `world/ask` ⇒ 本体 ⇒ 计算机 ⇒ 结果
   ④ 问模型：★ 「结果是这样，画成 A2UI」⇒ 返回组件 JSON ⇒ `world/notice` ⇒ 本体 ⇒ GUI
 
 ★ 安全：★ 模型【只能】从【本体给的动作清单】里挑 ⇒ 挑了不在册的 ⇒ 本体拒（★ 有实测）。
-★ 它不执行任何命令（★ 载体执行）、不判许可（★ 本体判）、不自己发帧（★ 经 world/notice）。
+★ 它不执行任何命令（★ 计算机执行）、不判许可（★ 本体判）、不自己发帧（★ 经 world/notice）。
 """
 
 import json
@@ -77,7 +77,7 @@ class Agent:
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
             "class": "agent", "name": NAME, "did": DID,
-            "manifest": "py/agent_llm.py（模型驱动；★ 全走本体）", "state": "running"}))
+            "manifest": "src/agent/agent_llm.py（模型驱动；★ 全走本体）", "state": "running"}))
         log("① 发 appear：agent/%s" % NAME)
 
     def query(self, **kw):

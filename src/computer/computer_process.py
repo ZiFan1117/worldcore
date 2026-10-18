@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""AIOS 载体进程（Python）—— ★ 这台计算机在【世界里】的代言。
+"""AIOS 计算机进程（Python）—— ★ 这台机器在【世界里】的代言与执行。
 
 ★ 作者裁（2026-10-17）：「**全改成 Python 版本吧**」。
+★ 作者裁（2026-10-18）：「**就一个进程、一个类、一个个体**」⇒ 统一为 `computer`（计算机）。
 
 ★ 两个面：
-  ① **上向（报机器）**：★ 起来 ⇒ 报 `service/carrier`（成为个体）＋ 报在册动作（`world/alive`）
+  ① **上向（报机器）**：★ 起来 ⇒ 报 `computer/<hostname>`（成为个体）＋ 报在册动作（`world/alive`）
   ② **下向（执行）**：★ 收 `world/exec` ⇒ 查映射表 ⇒ `subprocess` 起程序 ⇒ 回 `world/exec/result`
 
 ★ 它【不做】的：★ 不裁决、★ 不记账、★ 不持身份（★ 名字永远在本体里，★ 它只说「我活着」）。
@@ -17,6 +18,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -29,13 +31,14 @@ T_EXEC = "world/exec"
 T_RESULT = "world/exec/result"   # ★★★ 2026-10-17 裁：**所有交互都过本体** —— 结果先回本体，本体判完再回请求方。
 # ★ 作者令（逐字）：「所有的交互啥的必须过这个所谓的本体……除了这个数据是那啥的」
 
-MAP_PATH = os.environ.get("AIOS_CARRIER_MAP", "/usr/lib/aios/command-map.jsonl")
+MAP_PATH = os.environ.get("AIOS_COMPUTER_MAP", "/usr/lib/aios/command-map.jsonl")
 ZENOH_ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
-ME = {"class": "service", "name": "carrier", "unit": "aios-carrier", "state": "running"}
+COMPUTER_NAME = os.environ.get("AIOS_COMPUTER_NAME") or socket.gethostname()
+ME = {"class": "computer", "name": COMPUTER_NAME, "hostname": COMPUTER_NAME, "state": "in-service"}
 
 
 def log(*a):
-    print("[载体]", *a, flush=True)
+    print("[计算机]", *a, flush=True)
 
 
 def load_map(path):
@@ -88,7 +91,7 @@ def _expand(tok, params, missing):
 def _run_file_mechanism(reg, params):
     """★ 文件类机制（★ 从 sysknife 的 FileScan/FileWrite/FilePatch/FileDelete 来）。
 
-    ★★ 这类动作【不是跑命令】—— ★ 是【直接读写文件】。★ 载体代劳。
+    ★★ 这类动作【不是跑命令】—— ★ 是【直接读写文件】。★ 计算机代劳。
     """
     mech = reg.get("mechanism") or ""
     missing = []
@@ -136,11 +139,11 @@ def run_action(rows, action, params):
       ① `{x}` ← `params[x]`（★ 缺参就拒，不静默）；`{args}` 是【整体参数】
       ② 映射表的 `env` 作为环境变量
       ③ **执行时重新探测程序在不在**（★ 不只在启动时探）
-      ④ 文件类机制（FileScan/Write/Patch/Delete）由载体代劳
+      ④ 文件类机制（FileScan/Write/Patch/Delete）由计算机代劳
     """
     reg = rows.get(action)
     if reg is None:
-        return False, "载体侧不认识 %s（映射表里没有）" % action
+        return False, "计算机侧不认识 %s（映射表里没有）" % action
     params = params if isinstance(params, dict) else {}
     mech = reg.get("mechanism") or "Command"
     if mech != "Command":
@@ -232,11 +235,11 @@ def main():
 
     # ★★ 上向 ①：成为个体（★ 照本体 `service` 类的字段）
     session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
-    log("③ 成为个体：service/carrier（%s）" % ME["state"])
+    log("③ 成为个体：computer/%s（%s）" % (COMPUTER_NAME, ME["state"]))
 
     # ★★ 上向 ②：报到（★ 说「这些名字我活着」；★ 启动【不注册】）
     for name in rows:
-        session.put(T_ALIVE, json.dumps({"action": name, "by": "carrier"}, ensure_ascii=False))
+        session.put(T_ALIVE, json.dumps({"action": name, "by": COMPUTER_NAME}, ensure_ascii=False))
     log("④ 报到完成：%d 条（★ 启动【不注册】）" % len(rows))
 
     # ★★ 下向：收请求
@@ -245,6 +248,12 @@ def main():
             msg = json.loads(smp.payload.to_string())
         except Exception as e:
             log("请求不是 JSON（%s）" % e)
+            return
+        # ★★ 只接【自己那一类】（本体广播 world/exec，带 route=注册者 kind）
+        #    ★ 现取：sys.* 的 route 是 "world"（本体内置加载，不经 world/register）；
+        #    所以 computer 接 ["computer", "world", None, ""]，只拒【明确是别人的】。
+        route = msg.get("route")
+        if route not in (None, "", "computer", "world"):
             return
         action = msg.get("action") or ""
         params = msg.get("params") or {}
@@ -259,7 +268,7 @@ def main():
 
     session.declare_subscriber(T_EXEC, on_exec)
     log("⑤ 订上了 %s（★ 一次声明、长期持有）" % T_EXEC)
-    log("★ 载体起来了 —— 报机器 ＋ 执行 ＋ 回话（★ 不裁决、不记账、不持身份）")
+    log("★ 计算机起来了 —— 报机器 ＋ 执行 ＋ 回话（★ 不裁决、不记账、不持身份）")
 
     try:
         while True:

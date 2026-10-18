@@ -1,11 +1,11 @@
 [Unit]
 Description=AI-OS.NET 真 agent（Python）—— 模型在环里：自己决定做什么、自己决定画什么；全走本体
-After=aios-bus.service aios-ontology.service aios-carrier.service aios-gui.service
-Wants=aios-bus.service aios-ontology.service aios-carrier.service aios-gui.service
+After=aios-bus.service aios-ontology.service aios-computer.service aios-gui.service
+Wants=aios-bus.service aios-ontology.service aios-computer.service aios-gui.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/lib/aios/py/agent_llm.py
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/agent/agent_llm.py
 Restart=always
 RestartSec=8
 Environment=PYTHONIOENCODING=utf-8

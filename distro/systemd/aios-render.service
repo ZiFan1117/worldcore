@@ -1,19 +1,23 @@
 [Unit]
-Description=AI-OS.NET A2UI 渲染器（HTTP，给浏览器读帧）
-After=aios-gui.service
+Description=AI-OS.NET A2UI 渲染器（Flutter）—— ★ 呈现的渲染半：收合成清单、按 layout 叠、画上屏
+Documentation=https://ai-os.net/docs/render
+# ★★★ 作者：四个独立进程，谁也不等谁 ⇒ 不 After=／不 Wants=／不 Requires=。
+#   ★ 但它【必须】在有 X 之后才有屏 —— 所以只对 graphical 目标挂 WantedBy，不硬拉。
 
 [Service]
 Type=simple
-WorkingDirectory=/usr/lib/aios/render/www
-ExecStart=/usr/bin/python3 -m http.server 8808 --bind 127.0.0.1
+WorkingDirectory=/opt/aiosr/build/linux/x64/release/bundle
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/run/lightdm/root/:0
+Environment=LIBGL_ALWAYS_SOFTWARE=1
+Environment=GDK_BACKEND=x11
+Environment=HOME=/root
+ExecStart=/opt/aiosr/build/linux/x64/release/bundle/aios_render
 Restart=always
-RestartSec=3
-ProtectSystem=strict
-RuntimeDirectory=aios
-# ★ 只读挂在 /usr/lib/aios 上不影响 /run
-ReadOnlyPaths=/usr/lib/aios
-PrivateTmp=yes
+RestartSec=5
+# ★ 它要开窗口 ⇒ 不能 ProtectSystem=strict 那种把 /tmp、/dev 都掐了
+PrivateTmp=no
 NoNewPrivileges=yes
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
