@@ -51,6 +51,34 @@
 # 上游的单元（22 个，起不来）
 /distro/systemd/upstream/
 
+# ★ distro/ 里上游的子系统（★ 我们只用 computer/ ＋ deploy.sh ＋ desktop/aios-session ＋ systemd/ 的 7 个单元）
+/distro/aios-boot/
+/distro/bin/
+/distro/build/
+/distro/cloud/
+/distro/compliance/
+/distro/first-boot/
+/distro/installer/
+/distro/polkit/
+/distro/repo/
+/distro/secureboot/
+/distro/security/
+/distro/update/
+/distro/SUPPORT-LIFECYCLE.md
+/distro/desktop/README.md
+/distro/desktop/aios-plasma.desktop
+/distro/desktop/confine/
+/distro/desktop/plasma-autostart/
+/distro/desktop/sddm-aios-theme/
+/distro/desktop/session-manager.sh
+/distro/desktop/tests/
+/distro/systemd/DAEMON-ARCHITECTURE.md
+/distro/systemd/aios.target
+/distro/systemd/aios-security-score.sh
+
 # Python 缓存
+/.ai/
+/.opencode/
+
 __pycache__/
 *.pyc
