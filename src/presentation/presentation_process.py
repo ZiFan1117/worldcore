@@ -145,7 +145,8 @@ class Presentation:
         self.b.on_act = self.on_act
         self.b.on_connect = self.compose   # ★ 渲染器一连上就重推
         self.lock = threading.Lock()
-        self.shown = {}     # surfaceId -> frame（★ 瞬时：show 进、retract 出）
+        self.shown = {}
+        self.ticket_scope = []   # ★ 我这张票能看谁（★ 登录后填；★ 空＝只看公开）     # surfaceId -> frame（★ 瞬时：show 进、retract 出）
         self.layout = None  # ★ 布局【由空间给】，呈现只按它叠
         self.actives = {}   # user -> {"state": "active"/"inactive", "surface": id}
 
@@ -238,14 +239,35 @@ class Presentation:
         return False, "不认识的动作 %s" % act
 
     # ── 收画布 ──────────────────────────────────────────────────
-    def on_notice(self, sample):
+    def on_notice(self, smp):
+        """★★ 收【本体转来的】画布 —— ★ 信封上带 `to`（谁该看）；★ 我们拿【自己的票】来对。
+        ★ 作者裁（逐字）：「这不是有票吗？票不是决定了是给哪个人的吗？……谁登录进来，你就给谁看呀」
+        """
         try:
-            d = json.loads(sample.payload.to_bytes())
+            env = json.loads(smp.payload.to_string())
         except Exception:
             return
-        if d.get("kind") != "a2ui.frame":
+        if env.get("kind") != "a2ui.frame":
             return
-        f = d.get("frame") or {}
+        # ★ 票 ⇒ 我在替谁看（★ 没登录时为空 ⇒ 只收【公开】的）
+        with self.lock:
+            mine = self.ticket_scope
+        to = env.get("to") or ""
+        if to and to not in (mine or []):
+            log("② 画布 %s 是给 %s 的，★ 我的票不含 ⇒ 不收" % (env.get("about"), to))
+            return
+        f = self._frame_of(env)
+        if not f:
+            return
+        self._absorb(f, env)
+
+    def _frame_of(self, env):
+        """★ 从本体信封里取 frame（★ 本体不碰信纸，原样带过来）。"""
+        f = env.get("frame")
+        return f if isinstance(f, dict) else None
+
+    def _absorb(self, f, env):
+        """★★ 收下一张画布 ⇒ 合。★ 桌面画布来了就撤登录画布。"""
         sid = _surface_of(f)
         if not sid:
             return
@@ -254,17 +276,13 @@ class Presentation:
             if f.get("layout"):
                 self.layout = f["layout"]
             self.shown[sid] = f
-            # ★★ 桌面画布来了 ⇒ 【撤登录画布】（★ 画布瞬时：login retract、desktop show）
             login_sid = "surface/login-" + SCREEN
             if role == "desktop" and login_sid in self.shown and login_sid != sid:
                 self.shown.pop(login_sid, None)
                 log("★ 桌面画布到了 ⇒ 登录画布 %s 已 retract" % login_sid)
-        log("② 收到画布 %s（role=%s，%d 字节）⇒ 合" % (sid, role or "-", len(json.dumps(f))))
+        log("② 收到画布 %s（role=%s，by=%s）⇒ 合" % (sid, role or "-", env.get("by") or "-"))
         self.compose()
 
-    # ── 合成器（★ 我们的；A2UI 规范【没有】这一层）─────────────────
-    #   ★ A2UI 只描述【一张画布内部】；★ 多张怎么摞，规范不写 ⇒ 这一层是我们补的。
-    #   输入：layout（也是我们的扩展）＋ shown 表；★ 输出：合成清单 ⇒ 渲染器。
     def compose(self):
         with self.lock:
             layout, shown = self.layout, dict(self.shown)
@@ -300,6 +318,9 @@ class Presentation:
         if not tk:
             return
         log("③ 拿到票 %s…（who=%s）⇒ 凭票进空间" % (tk[:10], b.get("who")))
+        with self.lock:
+            self.ticket_scope = b.get("scope") or []   # ★ 票的 scope ⇒ 我能看谁
+        log("③ 我的票能看：%s" % (self.ticket_scope,))
         self.s.put(T_ASK, json.dumps({
             "id": "space-" + str(int(time.time() * 1000)),
             "action": "space.login",
@@ -358,7 +379,7 @@ def main():
     p = Presentation(s, bridge)
     p.announce()
     p.register_actions()
-    s.declare_subscriber(T_NOTICE, p.on_notice)
+    s.declare_subscriber("world/ui/frame", p.on_notice)   # ★ 只收【本体转来的】（★ 不直接抄广播）
     s.declare_subscriber(T_EXEC, p.on_exec)
     # ★★ 本体的回话（★ 认证拿到票后，凭票进空间）
     s.declare_subscriber("world/ask/result", p.on_ask_result)

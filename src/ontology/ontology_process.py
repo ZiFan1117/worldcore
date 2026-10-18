@@ -444,9 +444,30 @@ def _notice_and_forward(smp, w, session):
     at = w.stamp("act", kind_of="notice", notice_kind=kind,
                   by=msg.get("by"), about=msg.get("about"),
                   size=len(smp.payload.to_string()))
-    log("宣告 %s（%s，%d 字节）⇒ 转给界面" % (kind, at, len(smp.payload.to_string())))
-    # ★ 转：★ 本体【不碰内容】，★ 原样转给 GUI
-    session.put(T_UI_FRAME, smp.payload.to_string())
+    # ★★★ 「给谁看」—— ★ 作者裁（逐字）：「这不是有票吗？票不是决定了是给哪个人的吗？
+    #    发布能不能给这个人看，那肯定是能的呀。那谁登录进来，你就给谁看呀」
+    #    ★ 所以：★ 从 by 推出【这张画布属于谁】⇒ 盖上 to ⇒ 呈现拿【票】来对。
+    by = msg.get("by") or ""
+    to = ""
+    # ★★ 规则一：★ 空间发的 ⇒ 给【那个空间的主人】（★ 从 by 直接推）
+    if by.startswith("world://space/"):
+        to = "space:" + by[len("world://space/"):].split("/")[0]
+    else:
+        # ★★ 规则二：★ 别的（agent／presentation／…）⇒ 给【当前登录的人】
+        #    ★ 作者裁（逐字）：「谁登录进来，你就给谁看呀」
+        #    ★ 本体【记着票】⇒ 有票的人就是"登录的人"；多个票 ⇒ 每人一份（这里取第一张）。
+        _who = [t for t in (list(identity._TICKETS.values())) if t["expires_at"] > time.time()]
+        if _who:
+            to = "space:" + _who[0]["user"]
+        else:
+            # ★ 没人登录 ⇒ 公开（谁都能看）；★ 这是"还没人登录"时的过渡
+            to = ""
+    # ★ 包一层信封：★ 本体【不碰信纸】（frame 原样），★ 但把【章】和【给谁】写在信封上
+    env = {"kind": kind, "by": by, "about": msg.get("about"),
+           "to": to, "stamped_at": at, "size": len(smp.payload.to_string()),
+           "frame": msg.get("frame")}
+    log("宣告 %s（%s，%d 字节）⇒ 转给界面（to=%s）" % (kind, at, env["size"], to or "（公开）"))
+    session.put(T_UI_FRAME, json.dumps(env, ensure_ascii=False))
 
 
 if __name__ == "__main__":
