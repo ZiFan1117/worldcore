@@ -68,3 +68,4 @@ distro/systemd/aios-presentation.service  # 呈现/个人空间单元（T-360）
 distro/systemd/aios-space.service  # 呈现/个人空间单元（T-360）
 distro/desktop/aios-session  # X 会话脚本：只挂会话，不起渲染器（T-361）
 distro/systemd/aios-presentation-render.service  # 呈现的渲染半（Flutter）单元（T-362）
+src/ontology/identity.py  # 认证（认/发票/查票/销票）—— 本体四件第一件「认」（T-363）

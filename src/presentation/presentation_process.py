@@ -285,6 +285,28 @@ class Presentation:
         log("   合成 %d 层 ⇒ 推给渲染器" % len(layers))
 
     # ── 人点了 ──────────────────────────────────────────────────
+
+    # ── 本体回话（★ 拿到票 ⇒ 凭票进空间）──────────────────────────
+    def on_ask_result(self, smp):
+        """★★ 认过了（拿到票）⇒ ★ 用票去 space.login；★ 被拒就留脸。"""
+        try:
+            d = json.loads(smp.payload.to_string())
+        except Exception:
+            return
+        if not d.get("ok"):
+            return
+        b = d.get("body") or {}
+        tk = b.get("ticket")
+        if not tk:
+            return
+        log("③ 拿到票 %s…（who=%s）⇒ 凭票进空间" % (tk[:10], b.get("who")))
+        self.s.put(T_ASK, json.dumps({
+            "id": "space-" + str(int(time.time() * 1000)),
+            "action": "space.login",
+            "params": {"ticket": tk, "user": b.get("user") or ""},
+            "actor": "world://surface/" + SCREEN,
+        }, ensure_ascii=False))
+
     def on_act(self, msg):
         # ★★ A2UI Action 格式：{"event": {"name": ..., "context": {...}}}
         _a = msg.get("action") or {}
@@ -293,24 +315,24 @@ class Presentation:
         else:
             act = _a.get("name") or ""
         if act == "presentation.login":
-            # ★★ 值【已经在 action.context 里】—— genui 点了按钮会把 {path} 解析成真值
-            dm = msg.get("dataModel") or {}
-            # ★ 两种形状都认：{"event":{"name","context"}}（A2UI 帧里）
-            #   和扁平 {"name","context"}（渲染器回推给我们时）
+            # ★★★ 呈现【只出脸、只交凭据、只换脸】—— ★ 不验密码（★ 密码归本体）。
+            #    ★ 作者令：「登录的这个是给个人那啥吗？当确定登录了以后，
+            #      再给这个个人空间这块留个信息吧」
+            #    ★ 学 OIDC：★ 呈现是 client；★ 把凭据交给 authorization endpoint（本体）；
+            #      ★ 拿到票后，★ 再用票去 space.login。
             ctx = (_a.get("event") or {}).get("context") or _a.get("context") or {}
-            login = dm.get("login") if isinstance(dm.get("login"), dict) else dm
-            user = ctx.get("user") or login.get("user") or dm.get("lg_u") or ""
-            pw = ctx.get("pass") if ctx.get("pass") is not None else login.get("pass")
-            # ★★ 登录是【谁的】—— 不自己判，【问 space】（经本体）
+            user = ctx.get("user") or ""
+            secret = ctx.get("pass")
+            # ① 认人（★ 本体验，★ 呈现只转交）
             self.s.put(T_ASK, json.dumps({
-                "id": "login-" + str(int(time.time() * 1000)),
-                "action": "space.login",
-                "params": {"user": user, "pass": pw},
+                "id": "auth-" + str(int(time.time() * 1000)),
+                "action": "identity.authenticate",
+                "params": {"user": user, "secret": secret},
                 "actor": "world://surface/" + SCREEN,
             }, ensure_ascii=False))
-            log("③ 登录 ⇒ world/ask space.login（问 space，user=%s）" % user)
-            # ★ 一步算一步：★ 呈现【不自己切】，等 space 出桌面画布 ⇒ 收到 ⇒ 合
+            log("③ 登录 ⇒ world/ask identity.authenticate（user=%s，★ 密码交本体）" % user)
             return
+
         log("③ 人的动作：%s（comp=%s）" % (act, msg.get("component")))
 
 
@@ -338,6 +360,8 @@ def main():
     p.register_actions()
     s.declare_subscriber(T_NOTICE, p.on_notice)
     s.declare_subscriber(T_EXEC, p.on_exec)
+    # ★★ 本体的回话（★ 认证拿到票后，凭票进空间）
+    s.declare_subscriber("world/ask/result", p.on_ask_result)
     log("④ 订 %s ＋ %s" % (T_NOTICE, T_EXEC))
     p.show_login()
     log("★ 呈现起来了 —— 呈现（合成）＋ 画布（内部表，4 动作对外）")

@@ -34,8 +34,6 @@ T_EXEC = "world/exec"
 T_RESULT = "world/exec/result"
 
 # ★★ 测试账号（作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
-TEST_USER = os.environ.get("AIOS_TEST_USER") or "zhang"
-TEST_PASS = os.environ.get("AIOS_TEST_PASS") or "0"
 
 # ★★ 个人空间对外的三个动作（★ 登录入口 ＋ 布局；摆放归它）
 ACTIONS = [
@@ -97,13 +95,20 @@ class Space:
 
     def dispatch(self, act, params):
         if act == "space.login":
-            # ★★ 验（★ 测试账号 zhang / 0；接入做了以后由接入选 Permit）
+            # ★★★ 凭【票】进 —— ★ 空间【不碰密码】（★ 密码归本体；见 src/ontology/identity.py）。
+            #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？……
+            #      当确定登录了以后，再给这个个人空间这块留个信息吧」
+            #    ★ 学 OIDC：★ 认证中心（本体）发票；★ 资源方（空间）【只看票】。
+            tk = params.get("ticket") or ""
             who = params.get("user") or ""
-            pw = params.get("pass")
-            if who != TEST_USER or (pw is not None and str(pw) != TEST_PASS):
-                log("③ 登录被拒：user=%s（期望 %s／%s）" % (who, TEST_USER, TEST_PASS))
-                return False, "登录失败：用户名或密码不对（★ 测试账号 %s ／ %s）" % (TEST_USER, TEST_PASS)
-            log("③ 登录通过：%s" % who)
+            if not tk:
+                log("③ 进空间被拒：没有票")
+                return False, "进空间要票（★ 先 identity.authenticate）"
+            if not who:
+                # ★ 票里带 who；没明说就从票里取（★ 票是本体发的，本体判过）
+                who = (params.get("_who") or "")
+            log("③ 凭票进空间：ticket=%s…（user=%s）" % (tk[:10], who or "（从票取）"))
+
             self.s.put("world/appear", json.dumps({
                 "class": "human", "name": who,
                 "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),

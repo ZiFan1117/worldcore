@@ -29,6 +29,7 @@ import json
 import os
 import sys
 import time
+import identity
 
 import zenoh
 
@@ -310,6 +311,26 @@ def _ask_and_forward(smp, w, session):
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2},
                                              ensure_ascii=False))
         return
+    # ★★★ 本地执行的动作（★ 不外转）：认证类 —— 「认」本来就是本体的事。
+    #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？」
+    #    ★ 学 PAM／OIDC：★ 认过 ⇒ 发票；★ 别人【只看票，不碰密码】。
+    if name.startswith("identity."):
+        ok, body = identity.dispatch(name, msg.get("params") or {}, log=log)
+        w.stamp("act", kind_of="result", rid=msg.get("id"), action=name, ok=ok, body=body)
+        log("认证 %s ⇒ ok=%s" % (name, ok))
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": ok, "body": body},
+                                             ensure_ascii=False))
+        return
+
+    # ★★ 要票的动作：space.* 凭票（★ 作者：拿了票个人空间就能查了）
+    if name.startswith("space.") and name != "space.login":
+        t, why_t = identity.check(msg.get("params") or {})
+        if t is None:
+            w.stamp("act", kind_of="reject", action=name, actor=msg.get("actor"), why=why_t)
+            log("拒 %s ⇒ %s" % (name, why_t))
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t},
+                                                 ensure_ascii=False))
+            return
     seq = w.stamp("act", kind_of="ask", action=name, actor=msg.get("actor"),
                   rid=msg.get("id"), params=msg.get("params"),
                   route=reg.get("registered_by_kind"))

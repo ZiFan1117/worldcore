@@ -366,8 +366,20 @@ def _load_human_side_grants(o):
          [], ["user", "agent"]),
         ("presentation.get_surface", "查某一张的画布内容（只读）",
          [("surface", PropertyType.STRING, True)], ["user", "agent"]),
-        ("space.login", "登录：验人、置空间 active、出桌面画布",
-         [("user", PropertyType.STRING, True)], ["user", "presence"]),
+        # ★★★ 认证 ＝ 本体的事（★ 本体四件第一件就是「认」）
+        #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？登录的这个是给个人那啥吗？
+        #      当确定登录了以后，再给这个个人空间这块留个信息吧」
+        #    ★ 模型学 PAM／OIDC：★ 认证（你是谁）和授权（你能干什么）分开；
+        #      ★ 认过 ⇒ 发【票】；★ 别人【只看票，不碰密码】。
+        ("identity.authenticate", "认人：验身份凭据，通过则发一张票（★ 密码归本体，不归空间）",
+         [("user", PropertyType.STRING, True), ("secret", PropertyType.STRING, False)],
+         ["user", "presence"]),
+        ("identity.session", "查票：这张票是谁、什么时候过期（只读）",
+         [("ticket", PropertyType.STRING, True)], ["user", "agent", "presence"]),
+        ("identity.revoke", "销票：主动作废（比如退出）",
+         [("ticket", PropertyType.STRING, True)], ["user"]),
+        ("space.login", "凭【票】进空间：认过了才给开（★ 不再验密码 —— 密码归本体）",
+         [("ticket", PropertyType.STRING, True)], ["user", "presence"]),
         ("space.set_layout", "改布局（摆放归个人空间）",
          [("layout", PropertyType.STRING, True)], ["user", "agent"]),
         ("space.get_layout", "读布局（只读）", [], ["user", "agent"]),
@@ -398,8 +410,15 @@ def _load_human_side_grants(o):
         "presentation.get_surface":     {"who": ["world://user", "world://agent"],
                                          "why": "查某一张的画布内容（只读；占位）"},
         # ★ 个人空间：登录入口 ＋ 布局（摆放归它）
+        # ★★★ 认证：★ 谁都能【试图】认（不然登不进去）；★ 但【认过才发票】。
+        "identity.authenticate": {"who": ["world://user", "world://presence", "world://surface"],
+                                  "why": "认人（★ 谁都可能来认；★ 通过才发票）"},
+        "identity.session":      {"who": ["world://user", "world://agent", "world://presence"],
+                                  "why": "查票（只读）"},
+        "identity.revoke":       {"who": ["world://user"], "why": "销票（退出）"},
+        # ★ 进空间要【票】—— ★ 空间【不碰密码】
         "space.login":          {"who": ["world://user", "world://presence", "world://surface"],
-                                 "why": "登录（接入未做，暂由呈现代问；占位）"},
+                                 "why": "凭票进空间（★ 票由 identity.authenticate 发）"},
         "space.set_layout":     {"who": ["world://user", "world://agent"],
                                  "why": "改布局（摆放归个人空间；占位）"},
         "space.get_layout":     {"who": ["world://user", "world://agent"],
