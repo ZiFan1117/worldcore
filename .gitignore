@@ -31,9 +31,28 @@
 /MILESTONES.md
 /ai-os-logo-home.png
 
-# ★ 九维（NineDim）的档案 —— ★ 本地留着，不推
-/ninedim/
-/ninedim/99-旧料/
+# ★★ 九维（NineDim）的档案 —— 作者令：只推【能说明问题的】，流水不推
+#    ★ 写法要点：★ Git 里【目录被排除后 ! 救不回子文件】⇒ 必须用 /* 逐层放行。
+/ninedim/*
+!/ninedim/01-意图环
+!/ninedim/06-变更
+!/ninedim/_索引.md
+!/ninedim/_索引-工程域结构与命名.md
+!/ninedim/config.json
+# ★ 01-意图环 全部推（★ 书／规格／设计／需求 —— 能说明「为什么这么设计」）
+/ninedim/01-意图环/*
+!/ninedim/01-意图环/**
+# ★ 06-变更：★ 只推【结论件】，过程流水不推
+/ninedim/06-变更/*
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane
+/ninedim/06-变更/2026-10-13-aios-semantic-plane/*
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/改动对照.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/一页纸-*.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/说明-*.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/设计-*.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/提案-*.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/需求-*.md
+!/ninedim/06-变更/2026-10-13-aios-semantic-plane/规格-*.md
 
 # 判据 —— 本地留着，不推（作者令：都不用推）
 /scripts/release/evidence/
