@@ -14,7 +14,18 @@ Restart=always
 RestartSec=3
 LimitNOFILE=65536
 PrivateTmp=yes
-ProtectSystem=strict
+# ★★ 加固（逐条有据）：它是【执行器】—— 156 条 `sys.*` 映射 ⇒ subprocess 起程序 ＋ 文件类机制直接
+#   open(path,"w")（★ 现读 computer_process.py 第 91–132 行）。★ 所以【不能】ProtectSystem=strict：
+#   ★ strict 把【整个文件系统】挂成只读 ⇒ zypper／systemctl／usermod 这些真要去写 /etc、/usr 的动作
+#   ★ 全会被 EROFS 打死 ⇒ 取 full（只读 /usr、/boot、/efi、/etc；/var、/tmp、/home 仍可写）。
+#   ★ 边界（如实）：写 /etc 的动作（sys.AddPackageRepository 等）与 usermod/userdel 在 full 下仍会失败；
+#   ★ 那是 full 的代价，不是 bug —— 再放开就只能是 ProtectSystem=no（★ 那就不加固了）。
+ProtectSystem=full
+# ★ HOME 只留可读：不许借执行器的壳往 /home、/root 写东西
+ProtectHome=read-only
+# ★★ 但【设备】必须看得见：eject／brightnessctl／硬件类动作要 /dev、/sys
+#   ⇒ PrivateDevices 必须 no（★ systemd 默认值就是 no，显式写出来，防以后被人一刀切成 yes）。
+PrivateDevices=no
 NoNewPrivileges=yes
 
 [Install]

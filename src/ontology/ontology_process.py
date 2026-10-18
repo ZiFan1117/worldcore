@@ -216,13 +216,11 @@ class World:
     def can_execute(self, actor, capability):
         """★ 照本体 `permissions` 判「这个主体能不能做这个动作」。
 
-        ★ 口径（全是本体里现成的）：
-          ① `permissions.default` ＝ **"deny"** ⇒ ★ 没条文的动作【一律拒】；
-          ② `permissions.grants[capability].who` ＝ 主体列表 ⇒ ★ 不在里面就拒；
-          ③ ★ 前缀匹配：★ `who` 里写 `world://user`，★ `actor` 是 `world://user/zhang` ⇒ **算在**。
-
+        ★ 口径：default=deny ⇒ 没条文拒；grants[cap].who 不在就拒；who 前缀匹配。
         ★ 返回 (True, None) 或 (False, 为什么)。
         """
+        if not actor:
+            return False, "没有身份（★ 请求要带 actor，或带票）"
         perms = (self.ontology.metadata or {}).get("permissions") or {}
         grants = perms.get("grants") or {}
         g = grants.get(capability)
@@ -263,8 +261,6 @@ def main():
     conf = zenoh.Config()
     # ★★★ 实测出来的三条（2026-10-17，VM 上四种组合都试过）：
     #   ① mode=peer 时「跨进程收不到」（同进程收发正常）—— 本环境 multicast 发现坏了；
-    #   ② mode=client 时「跨进程收得到」✓ —— 客户端只连 router，不靠发现；
-    #   ③ 所以【本体必须用 client】；同时把 multicast scouting 关掉，免得它去瞎发现。
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([ZENOH_ENDPOINT]))
@@ -302,17 +298,36 @@ def _ask_and_forward(smp, w, session):
         log("拒 %s ⇒ %s" % (name, why))
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why}, ensure_ascii=False))
         return
-    # ★★ 闸②：这个主体获准做吗（照本体 permissions；默认拒绝）
-    actor = msg.get("actor") or "world://anonymous"
-    allowed, why2 = w.can_execute(actor, name)
+    # ★★ 闸①.5：验票（★ 票是「认过了」的证据，比请求自称的 actor 可信）
+    actor = msg.get("actor")
+    ticket = msg.get("ticket") or (msg.get("params") or {}).get("ticket")
+    if ticket:
+        t, why_t = identity.check({"ticket": ticket})
+        if t is None:
+            w.stamp("act", kind_of="reject-ticket", action=name, actor=actor, why=why_t)
+            log("拒 %s ⇒ %s" % (name, why_t))
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t}, ensure_ascii=False))
+            return
+        actor = t["who"]          # ★ 有票 ⇒ 票里的 who 覆盖 actor（★ 票是认过的证据）
+    # ★★ 闸②：无 actor 且无有效票 ⇒ ★ 显式拒绝（★ 不再默默塞匿名）
+    #    ★★★ 例外：★ 认证动作本该没有身份（★ 人要登录时还没身份；
+    #       ★ 不放行就成了「要登录先得有身份」的死结）。
+    _noid_exempt = name == "identity.authenticate"
+    if not actor and not _noid_exempt:
+        why_noid = "没有身份（★ 请求要带 actor，或带票）"
+        w.stamp("act", kind_of="reject-noid", action=name, why=why_noid)
+        log("拒 %s ⇒ %s" % (name, why_noid))
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_noid}, ensure_ascii=False))
+        return
+    # ★★ 闸③：许可（★ 认证动作不过闸 —— 它是入口；凭据校验在 identity 里）
+    allowed, why2 = (True, None) if _noid_exempt else w.can_execute(actor, name)
     if not allowed:
         w.stamp("act", kind_of="reject-permit", action=name, actor=actor, why=why2)
         log("拒 %s ⇒ %s" % (name, why2))
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2},
                                              ensure_ascii=False))
         return
-    # ★★★ 本地执行的动作（★ 不外转）：认证类 —— 「认」本来就是本体的事。
-    #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？」
+    # ★★★ 本地执行：认证类 —— 「认」本来就是本体的事（★ 不外转）
     #    ★ 学 PAM／OIDC：★ 认过 ⇒ 发票；★ 别人【只看票，不碰密码】。
     if name.startswith("identity."):
         ok, body = identity.dispatch(name, msg.get("params") or {}, log=log)
@@ -324,7 +339,7 @@ def _ask_and_forward(smp, w, session):
 
     # ★★ 要票的动作：space.* 凭票（★ 作者：拿了票个人空间就能查了）
     if name.startswith("space.") and name != "space.login":
-        t, why_t = identity.check(msg.get("params") or {})
+        t, why_t = identity.check({"ticket": ticket})
         if t is not None:
             # ★★ 还要验【这张票是不是这个空间的】—— ★ 票的 scope 里得有它。
             #    ★ 作者裁（逐字）：「票不是决定了是给哪个人的吗？」
@@ -334,16 +349,16 @@ def _ask_and_forward(smp, w, session):
                 why_t = "票里没有 %s（★ 这张票只能看 %s）" % (_want, _sc)
                 t = None
         if t is None:
-            w.stamp("act", kind_of="reject", action=name, actor=msg.get("actor"), why=why_t)
+            w.stamp("act", kind_of="reject", action=name, actor=actor, why=why_t)
             log("拒 %s ⇒ %s" % (name, why_t))
             session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t},
                                                  ensure_ascii=False))
             return
-    seq = w.stamp("act", kind_of="ask", action=name, actor=msg.get("actor"),
+    seq = w.stamp("act", kind_of="ask", action=name, actor=actor,
                   rid=msg.get("id"), params=msg.get("params"),
                   route=reg.get("registered_by_kind"))
     out = {"id": msg.get("id"), "at": seq, "action": name,
-           "params": msg.get("params") or {}, "actor": msg.get("actor"),
+           "params": msg.get("params") or {}, "actor": actor,
            "route": reg.get("registered_by_kind")}
     log("转 %s（%s）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
     session.put(T_EXEC, json.dumps(out, ensure_ascii=False))

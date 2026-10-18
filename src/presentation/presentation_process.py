@@ -313,7 +313,12 @@ class Presentation:
             return
         if not d.get("ok"):
             return
-        b = d.get("body") or {}
+        # ★★ 2026-10-18 修：body 不一定是 dict —— ★ 有的动作（如 space.login）
+        #    返回【字符串】"登录成功：…" ⇒ 这里曾抛 AttributeError: 'str' object has no attribute 'get'，
+        #    ★ 后果：★ 呈现回调炸了，★ 第二次点登录【毫无反应】（★ 现取日志 callback error）。
+        b = d.get("body")
+        if not isinstance(b, dict):
+            return
         tk = b.get("ticket")
         if not tk:
             return

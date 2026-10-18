@@ -12,6 +12,10 @@ ExecStart=/usr/bin/python3 /usr/lib/aios/src/presentation/presentation_process.p
 Restart=always
 RestartSec=3
 PrivateTmp=yes
+# ★★ 加固：源码逐行读过（presentation_process.py）—— 它只做三件：
+#   ① 连 zenoh（client）② 起本机 TCP 桥 127.0.0.1:7450 ③ 画布只存内存（self.shown）。
+#   ⇒ ★ 不写盘 ⇒ ★ 不给 ReadWritePaths（★ 给了反而是洞）。
+ProtectSystem=strict
 NoNewPrivileges=yes
 
 [Install]

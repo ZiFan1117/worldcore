@@ -19,7 +19,14 @@ Environment=HOME=/root
 ExecStart=/opt/aiosr/build/linux/x64/release/bundle/aios-presentation-render
 Restart=always
 RestartSec=5
-# ★ 它要开窗口 ⇒ 不能 ProtectSystem=strict 那种把 /tmp、/dev 都掐了
+# ★★ 加固：只读系统区（/usr、/boot、/efi、/etc）。它自己的程序在 /opt（不受影响），
+#   ★ 它要写的 /tmp、/root（HOME）、/run 都保持可写。
+ProtectSystem=full
+# ★★★ 故意【不加】ProtectHome=read-only：现取它的 cgroup 里就有
+#   xdg-document-portal（fusermount3 -- /root/.cache/doc）＋ gvfsd-fuse（/root/.gvfs）＋ dbus-launch，
+#   ★ 它们都要写 $HOME（HOME=/root）⇒ 掐了 HOME 会把这一串 portal 弄崩。
+# ★★★ 也【故意不改】PrivateTmp：DISPLAY=:0 的本地 socket 在 /tmp/.X11-unix/X0（现取），
+#   换成 PrivateTmp=yes 会把这个路径藏掉、只剩 abstract socket ⇒ 有黑屏风险（★ 作者令：别把它弄崩）。
 PrivateTmp=no
 NoNewPrivileges=yes
 

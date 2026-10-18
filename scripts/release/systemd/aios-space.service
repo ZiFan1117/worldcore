@@ -12,6 +12,9 @@ ExecStart=/usr/bin/python3 /usr/lib/aios/src/space/space_process.py
 Restart=always
 RestartSec=3
 PrivateTmp=yes
+# ★★ 加固：源码逐行读过（space_process.py）—— 只连 zenoh、报个体、出画布／记布局，
+#   ★ 全部在内存（self.state／self.layout）⇒ ★ 不写盘 ⇒ ★ 不给 ReadWritePaths。
+ProtectSystem=strict
 NoNewPrivileges=yes
 
 [Install]

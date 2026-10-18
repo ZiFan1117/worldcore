@@ -12,8 +12,13 @@ Environment=AIOS_AGENT_NAME=dsh
 Environment=AIOS_AGENT_ROUND=45
 # ★★ API key 不进 unit（★ 单独放 /etc/aios/llm.env，★ 权限 600）
 EnvironmentFile=-/etc/aios/llm.env
+# ★★ 加固（已经是最强档，保留不降级）：agent 只做两件 —— zenoh 说话 ＋ urllib 调模型 API（要网络）；
+#   ★ 源码逐行读过（agent_llm.py）：不写盘（无 open(…,"w")／无临时文件）⇒ strict 不会弄死它。
+#   ★★ 不降成 full（full 保护面更小），也【不加】PrivateNetwork（★ 它必须出网调模型）。
 ProtectSystem=strict
-ReadWritePaths=/var/lib/aios /run/aios
+# ★ ReadWritePaths 前加 `-`：★ 目录不存在时 systemd 会 setup 失败（★ 总线踩过 226/NAMESPACE）——
+#   ★ 加了 - ⇒ 不存在就跳过，等总线／本体把目录建出来（★ 作者裁：进程之间互不等待）。
+ReadWritePaths=-/var/lib/aios -/run/aios
 PrivateTmp=yes
 NoNewPrivileges=yes
 

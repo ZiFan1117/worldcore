@@ -111,7 +111,11 @@ class Space:
 
             self.s.put("world/appear", json.dumps({
                 "class": "human", "name": who,
-                "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                # ★★ 2026-10-18 修：★ human.last_seen 定义是 "integer  # UNIX 秒"（★ ontology.json 现取），
+                #    ★ 原来传 ISO 字符串 ⇒ 本体拒（★ 现取报错：
+                #    "last_seen: invalid literal for int() with base 10: '2026-10-18T17:19:35'"）。
+                #    ★ 后果：★ 登录成功了但【人没成为个体】—— 静默失败，最坏的一类。
+                "last_seen": int(time.time()),
             }, ensure_ascii=False))
             self.state = "active"
             self.s.put("world/appear", json.dumps({
