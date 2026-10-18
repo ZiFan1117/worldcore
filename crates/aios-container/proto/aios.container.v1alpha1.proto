@@ -1,6 +1,0 @@
-syntax = "proto3";
-
-package aios.container.v1alpha1;
-
-// Stub service for future gRPC surface (T-XXX).
-service ContainerService {}

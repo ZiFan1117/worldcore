@@ -1,6 +1,0 @@
-syntax = "proto3";
-
-package aios.eval.v1alpha1;
-
-service EvaluationService {
-}

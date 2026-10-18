@@ -1,57 +1,56 @@
-# Logs from external tooling
-firebase-debug.log
-*.log
+# ★★★ 不推的：★ 本地留着，但【不进 git 索引】
+#   ★ 作者令（逐字）：「文档也不要全推上去啊，直接有用的推，能说明问题的推…所以梳理我们13这个文件夹下面的所有东西」
+#   ★ 又：「都不用推，就把那个证明了的那几个进程推上去，不就完事了」
 
-# Playwright MCP captures
-.playwright-mcp/
+# 上游的 39 个 crate（34 万行）—— 我们只借用了 foundry-ontology 的目录形状
+/crates/*
+!/crates/aios-ontology/
+/crates/aios-ontology/*
+!/crates/aios-ontology/data/
+/crates/aios-ontology/data/*
+!/crates/aios-ontology/data/ontology.json
 
-# AI agent / IDE local config (kept empty in tree)
-.agents/
-.codex/
+# 上游的规格／站点／工具
+/001.AI-OS.NET--SPECREV.1/
+/002.AI-OS.NET--SPECREV.2/
+/003.AI-OS.NET--SPECREV.3/
+/003.GRANT_APPLICATIONS/
+/site/
+/tools/
+/.github/
+/.gitlab-ci.yml
+/Cargo.toml
+/Cargo.lock
+/CLAUDE.md
+/CONTRIBUTING.md
+/CODE_OF_CONDUCT.md
+/GOVERNANCE.md
+/MAINTAINERS.md
+/SECURITY.md
+/SUPPORT.md
+/MILESTONES.md
+/ai-os-logo-home.png
 
-# Local brand/source media workspace.
-# Site-ready public assets live under site/public/.
-logo/
+# ★ 九维（NineDim）的档案 —— ★ 本地留着，不推
+/ninedim/
 
-# Private funding / grant research — must NOT be committed to the public repo.
-# (Public grant records live under 003.GRANT_APPLICATIONS/.)
-docs/
+# 判据 —— 本地留着，不推（作者令：都不用推）
+/verify/
+/AGENTS.md
+/PROVENANCE.md
 
-# OS / editor noise
-.DS_Store
-Thumbs.db
-*.swp
-*~
+# 截图证据 —— 本地留着，不推
+/render/
 
-# Future build outputs (placeholders for when implementation begins)
-target/
-node_modules/
-dist/
-.astro/
-/build/
+# 插件在试用 —— 先不推
+/dsh-plugins/
+
+# 旧代码归档
+/src/legacy/
+
+# 上游的单元（22 个，起不来）
+/distro/systemd/upstream/
+
+# Python 缓存
 __pycache__/
 *.pyc
-distro/build/out/
-distro/build/aios-rev*.iso
-distro/first-boot/target/
-.ai/scratch/
-
-# Capella tooling
-tools/capella/.venv/
-tools/capella/.capella-venv/
-tools/capella/output/build_report.json
-tools/capella/output/gap_report.json
-
-# aios-renderer-web Next.js build artefacts
-crates/aios-renderer-web/web-app/node_modules/
-crates/aios-renderer-web/web-app/.next/
-crates/aios-renderer-web/web-app/out/
-crates/aios-renderer-web/web-app/tsconfig.tsbuildinfo
-crates/aios-renderer-web/web-app/pnpm-workspace.yaml
-rust_out
-.gitnexus
-.claude/
-distro/build/aios-rev11-kde*.iso
-
-# Generated compliance audit exports (aios-compliance-export.py)
-distro/compliance/export/
