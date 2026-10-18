@@ -51,7 +51,7 @@ if [ -f "$REPO/crates/aios-ontology/data/ontology.json" ]; then
 fi
 
 echo "=== 3 systemd 单元 ==="
-for u in aios-bus aios-computer aios-ontology aios-presentation aios-space aios-presentation-render aios-gui aios-agent; do
+for u in aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent; do
   s="$REPO/distro/systemd/$u.service"
   if [ -f "$s" ]; then
     [ -f "$UNITDIR/$u.service" ] && cp -a "$UNITDIR/$u.service" "/etc/systemd/system/$u.service.bak-$TS"
@@ -85,13 +85,13 @@ if [ $RESTART -eq 0 ]; then echo "=== 5 不重启（--no-restart）==="; exit 0;
 echo "=== 5 重启 ==="
 systemctl stop aios-carrier 2>/dev/null || true
 systemctl disable aios-carrier 2>/dev/null || true
-for u in aios-bus aios-computer aios-ontology aios-presentation aios-space aios-presentation-render aios-gui aios-agent; do
+for u in aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent; do
   systemctl restart "$u" 2>/dev/null || systemctl start "$u" 2>/dev/null || true
   sleep 1
 done
 sleep 4
-for u in aios-bus aios-computer aios-ontology aios-gui aios-agent; do
-  printf '  %-20s %s\n' "$u" "$(systemctl is-active "$u")"
+for u in aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent; do
+  printf '  %-24s %s\n' "$u" "$(systemctl is-active "$u")"
 done
 
 echo "=== 6 日志尾 ==="

@@ -6,11 +6,12 @@
 
 | 件 | 原来在哪 | 为什么挪过来 |
 |---|---|---|
-| `gui_process.py` | `src/gui/` | ★ **旧 GUI 进程** —— 它报 `surface` 类（★ 本体已撤销该类，**现取报错**：`进程上报 surface ⇒ 拒：类不在册`）。★ 已被 `src/presentation/`（呈现）替代。 |
 | `ledger_process.py` | `src/legacy/` | 旧账本进程 —— 账本已进本体（`ontology_process.py` 的 stamp）。 |
 | `agent_process.py` | `src/agent/` | ★ 旧 agent（★ 只「试验一下」的那版）—— 已被 `agent_llm.py`（真 agent，模型在环）替代。 |
 | `world_cli.py` | `src/agent/` | 命令行调试工具 —— 不在跑。 |
 | `polkit_gen.py` | `src/ontology/` | 生成 polkit 条文 —— ★ **现取：全仓无人引用**，没接上。 |
+
+★ **`gui_process.py` 【已删】**（★ 作者令：「aios-gui 删除」）—— ★ 它报 `surface` 类被本体拒，★ 功能并由 `src/presentation/` 接管。
 
 ## 规矩
 
