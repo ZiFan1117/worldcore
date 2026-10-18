@@ -16,7 +16,7 @@ Environment=XAUTHORITY=/run/lightdm/root/:0
 Environment=LIBGL_ALWAYS_SOFTWARE=1
 Environment=GDK_BACKEND=x11
 Environment=HOME=/root
-ExecStart=/opt/aiosr/build/linux/x64/release/bundle/aios_render
+ExecStart=/opt/aiosr/build/linux/x64/release/bundle/aios-presentation-render
 Restart=always
 RestartSec=5
 # ★ 它要开窗口 ⇒ 不能 ProtectSystem=strict 那种把 /tmp、/dev 都掐了

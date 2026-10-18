@@ -25,6 +25,8 @@ echo "=== 1 我方源码 src/ ==="
 rm -rf "$PREFIX/src"
 mkdir -p "$PREFIX/src"
 cp -a "$REPO/src/." "$PREFIX/src/"
+# ★★ 旧代码【不部署】—— src/legacy/ 只是归档（★ 作者令：统一放到一个地方，而且没啥用了）
+rm -rf "$PREFIX/src/legacy"
 find "$PREFIX/src" -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
 echo "  py: $(find "$PREFIX/src" -name '*.py' | wc -l) 个"
 
