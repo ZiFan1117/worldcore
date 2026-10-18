@@ -3,6 +3,12 @@ Description=AI-OS.NET 计算机（Python）—— 这台机器在【世界里】
 Documentation=https://ai-os.net/docs/computer
 # ★★★ 作者：四个独立进程，谁也不等谁 ⇒ 不 After=／不 Wants=／不 Requires=。
 
+# ★★★ 2026-10-18 判：★ ProtectSystem=full【就是该的】，不是将就。
+#   ★ 代价要说清：★ 写 /etc 的动作（sys.AddPackageRepository 等）和
+#     usermod／hostnamectl 一类在 full 下【会失败】。
+#   ★★ 那是【故意的】—— ★ 执行器【不该】替人改系统级配置；
+#     真要改，★ 该由【人】在【接入】那一侧做，★ 不是执行器偷偷做。
+#   ★ 要 156 条全活只能 ProtectSystem=no（★ 等于不加固）⇒ ★ 不取。
 [Service]
 Type=simple
 WorkingDirectory=/usr/lib/aios/py
