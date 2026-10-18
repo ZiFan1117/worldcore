@@ -44,7 +44,15 @@ if [ -f "$PREFIX/command-map-sysknife.jsonl" ]; then
   cp -a "$PREFIX/command-map-sysknife.jsonl" "$PREFIX/command-map.jsonl"
   echo "  command-map.jsonl ← sysknife版（$(wc -l < "$PREFIX/command-map.jsonl") 条）"
 fi
-if [ -f "$REPO/src/ontology/data/ontology.json" ]; then
+# ★★★ 2026-10-18：本体【从代码导出】，不再 cp 一个旧 JSON。
+#   ★ 理由：ontology_process.py L77 是 build_aios_ontology() —— 运行时用代码，不读 JSON。
+#   ★ JSON 只是导出物；这里现场导一份，保证【和代码同版本】。
+if [ -f "$REPO/scripts/release/export-ontology.py" ]; then
+  if [ -f "$PREFIX/ontology.json" ]; then cp -a "$PREFIX/ontology.json" "$PREFIX/ontology.json.bak-$TS"; fi
+  python3 "$REPO/scripts/release/export-ontology.py" --out "$PREFIX/ontology.json" 2>&1 | tail -2 || true
+  echo "  ontology.json  $(stat -c%s "$PREFIX/ontology.json" 2>/dev/null || echo 0) 字节（从代码导出）"
+fi
+if false; then
   [ -f "$PREFIX/ontology.json" ] && cp -a "$PREFIX/ontology.json" "$PREFIX/ontology.json.bak-$TS"
   cp -a "$REPO/src/ontology/data/ontology.json" "$PREFIX/ontology.json"
   echo "  ontology.json  $(stat -c%s "$PREFIX/ontology.json") 字节"

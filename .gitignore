@@ -92,6 +92,13 @@
 /scripts/release/systemd/aios.target
 /scripts/release/systemd/aios-security-score.sh
 
+# ★★★ 2026-10-18 作者令（逐字）：「本体数据现在我们代码中不是实现了吗？为什么要推这个呢？」
+#   ★ 事实：ontology_process.py L77 是 build_aios_ontology() —— 运行时用【代码】，不读 JSON。
+#   ★ 所以 JSON 是【导出物】：可用 scripts/release/export-ontology.py 现场生成。
+#   ★★ 但 notes（513KB 知识库，89% 体量）在代码里【没映射】⇒ 它本地留着当存档，只是不进 git。
+/src/ontology/data/ontology.json
+/src/ontology/data/a2ui-catalog-basic.json
+
 # Python 缓存
 /.ai/
 /.opencode/
