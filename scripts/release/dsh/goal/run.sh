@@ -67,6 +67,18 @@ echo "$LAW" | grep -q "一致" || bad="$bad law-check-failed"
 for u in aios-bus aios-ontology aios-space aios-presentation aios-presentation-render aios-agent aios-computer; do
   systemctl is-active --quiet "$u" || bad="$bad $u-down"
 done
+# ④b 判据护栏（★ 判据不推；仅当本机有 scripts/test 且工作副本已对齐 origin/main 才跑）
+if [ -f "$WORK/scripts/test/check.py" ]; then
+  if [ "$(git -C "$WORK" rev-list --count origin/main..HEAD 2>/dev/null || echo 1)" = "0" ]; then
+    if [ -f /usr/local/bin/aios-gate.sh ]; then
+      bash /usr/local/bin/aios-gate.sh "$WORK" >> "$OUTDIR/$STAMP.log" 2>&1 || bad="$bad gate-red"
+    else
+      bad="$bad gate-missing"
+    fi
+  else
+    echo "gate-skip:drift（工作副本未对齐 origin/main；合并后自动启用）" >> "$OUTDIR/$STAMP.log"
+  fi
+fi
 
 if [ -n "$bad" ]; then
   echo "## $(date -Is) 验收红：$bad → 回滚并停目标链" >> "$GOALDIR/progress.md"
