@@ -172,6 +172,15 @@ function renderComp(c, map, sid) {
       return d;
     }
     case "Icon":   return textEl(({home:"🏠",settings:"⚙️",menu:"☰",close:"✕"}[(c.name||"")] || "❓"));
+    case "TextField": {
+      const d = document.createElement("input");
+      d.placeholder = c.label || c.text || "输入…";
+      d.value = c.value || "";
+      d.onchange = () => post({op:"ui", surface:sid,
+        action:{event:{name:"text.changed", context:{component:c.id, value:d.value}}},
+        component:c.id}).then(r => addLog("输入 " + c.id + ": " + JSON.stringify(r)));
+      return d;
+    }
     default:       return textEl("[" + (c.component || "?") + "]");
   }
 }
