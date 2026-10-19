@@ -2026,6 +2026,87 @@
         "why": "退休一个对象（★ 同一动作名、按对象类型选执行者）"
       },
       "metadata": {}
+    },
+    {
+      "id": "agent.launch",
+      "label": "打开智能体窗口",
+      "description": "★ 应用动作：人点桌面上的「智能体」图标 ⇒ 经本体（许可/凭证/账）⇒ 转给 agent ⇒ agent 才出窗口。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://presence",
+          "world://agent"
+        ],
+        "why": "应用窗口（点击经本体；谁启动谁注册）"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "agent.close",
+      "label": "关闭智能体窗口",
+      "description": "★ 应用动作：点窗口右上角「关闭」⇒ 经本体 ⇒ 转给 agent ⇒ agent 停画；画布由呈现按理由撤回。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "surface",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": "要关的窗口（surface id）"
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent"
+        ],
+        "why": "应用窗口（点击经本体；谁启动谁注册）"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

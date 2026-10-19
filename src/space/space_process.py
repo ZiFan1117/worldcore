@@ -69,6 +69,18 @@ class Space:
         self.n_members = 0
         # ★★ 摆放归个人空间：客画布（别的提供者给的 surface）⇒ surfaceId -> rect
         self.guests = {}
+        self.ticket = ""          # ★ 登录拿到的票（点图标/关窗口时以「人」的身份向本体发请求）
+        self.zoomed = {}          # ★ 窗口缩放状态：surface -> True(最大化)/False(还原)
+
+    def _ask(self, action, params, tag=""):
+        """★ 个人空间以【人】的身份向本体发请求：点击/关窗口都必须过本体（许可/凭证/记账）。"""
+        rid = "sp-%s-%d" % (tag or "ask", int(time.time() * 1000))
+        msg = {"id": rid, "action": action, "actor": "world://user/" + USER,
+               "params": params or {}}
+        if self.ticket:
+            msg["ticket"] = self.ticket
+        self.s.put(T_ASK, json.dumps(msg, ensure_ascii=False))
+        log("③ 向本体发 %s（id=%s）" % (action, rid))
 
     def announce(self):
         self.s.put("world/appear", json.dumps(ME, ensure_ascii=False))
@@ -131,6 +143,8 @@ class Space:
             #      当确定登录了以后，再给这个个人空间这块留个信息吧」
             #    ★ 学 OIDC：★ 认证中心（本体）发票；★ 资源方（空间）【只看票】。
             tk = params.get("ticket") or ""
+            if tk:
+                self.ticket = tk          # ★ 记下票：之后以人的身份点图标/关窗口
             who = params.get("user") or ""
             if not tk:
                 log("③ 进空间被拒：没有票")
@@ -211,6 +225,31 @@ class Space:
                 "reporter": "world://space/" + USER,
             }, ensure_ascii=False))
             self.draw()
+        # ── ★ 2026-10-19：桌面图标与窗口按钮 ──
+        _evx = _a.get("event") if isinstance(_a, dict) else None
+        ctx = (_evx or {}).get("context") or {}
+        if name == "space.icon_clicked":
+            icon = ctx.get("icon") or d.get("component") or ""
+            log("③ 点了图标：%s" % icon)
+            if icon == "ic_agent":
+                self._ask("agent.launch", {}, "launch")
+        elif name == "space.window_close":
+            sid = ctx.get("surface") or ""
+            log("③ 关窗口：%s" % sid)
+            if sid:
+                self.guests.pop(sid, None)
+                if sid.startswith("agent/"):
+                    self._ask("agent.close", {"surface": sid}, "ac")
+                self._ask("presentation.retract_surface",
+                          {"surface": sid, "reason": "窗口关闭"}, "retract")
+                self.draw()
+        elif name == "space.window_zoom":
+            sid = ctx.get("surface") or ""
+            if sid in self.guests:
+                self.zoomed[sid] = not self.zoomed.get(sid)
+                self.guests[sid] = ([0, 0, 1220, 720] if self.zoomed[sid]
+                                    else [640, 40, 620, 500])
+                self.draw()
 
     def on_envelope(self, sample):
         """★★ 别的提供者给的画布（经本体转来）⇒ ★ 摆放归个人空间：记下并重出桌面（带上它的层）。

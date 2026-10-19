@@ -408,6 +408,8 @@ class Presentation:
             return
 
         log("③ 人的动作：%s（comp=%s）" % (act, msg.get("component")))
+        # ★★ 2026-10-19：人的动作（点图标/窗口按钮）⇒ 转给【个人空间】处理（谁是桌面主人谁管）
+        self.s.put(T_ACT, json.dumps(msg, ensure_ascii=False))
 
 
 def _surface_of(frame):

@@ -23,6 +23,15 @@ import uuid
 
 import zenoh
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_SRC = os.path.dirname(_HERE)
+for _p in (os.path.join(_SRC, "ontology"), os.path.join(_SRC, "presentation")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
+from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
+
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NAME = os.environ.get("AIOS_AGENT_NAME", "dsh")
 DID = os.environ.get("AIOS_AGENT_DID", "did:aios:agent:" + NAME)
@@ -38,6 +47,8 @@ T_ASK_RESULT = "world/ask/result"
 T_QUERY = "world/query"
 T_QUERY_RESULT = "world/query/result"
 T_NOTICE = "world/notice"
+T_EXEC = "world/exec"
+T_REGISTER = "world/register"
 
 
 def log(*a):
@@ -74,6 +85,7 @@ class Agent:
         self.s = session
         self.ask_results = {}
         self.query_results = {}
+        self.launched = False      # ★ 窗口是否已打开（点图标经本体批准后才置 True）
 
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
@@ -107,6 +119,29 @@ class Agent:
         self.s.put(T_NOTICE, json.dumps({
             "kind": "a2ui.frame", "by": "world://agent/" + NAME,
             "about": about, "frame": frame}, ensure_ascii=False))
+
+    def register(self):
+        """★ 谁启动谁注册：窗口动作由 agent 提供 ⇒ 本体把 agent.launch/close 转给我。"""
+        for aid in ("agent.launch", "agent.close"):
+            self.s.put(T_REGISTER, json.dumps({
+                "action": aid,
+                "function": aid.split(".", 1)[-1],
+                "registered_by": "agent/" + NAME,
+                "registered_by_kind": "agent",
+                "required_roles": ["agent"],
+                "kind": "invoke",
+                "why": "应用窗口：谁启动谁注册",
+            }, ensure_ascii=False))
+        log("① 注册应用动作：agent.launch／agent.close（route=agent）")
+
+    def build_launch_frame(self):
+        """★ 启动时先出一张【静态窗口】（不用等模型）：标题栏＋一行说明。"""
+        return build_frame([
+            {"id": "root", "component": "Column", "children": ["a_title", "a_line"]},
+            {"id": "a_title", "component": "Text", "text": "**智能体已启动**（经本体批准）"},
+            {"id": "a_line", "component": "Text",
+             "text": "我是 agent/" + NAME + "：每 45 秒看一次世界，结果画在这扇窗里。点右上角 × 关闭。"},
+        ])
 
 
 SYS_PLAN = (
@@ -155,16 +190,18 @@ def _frame_problems(frame):
 
 
 def build_frame(comps):
-    """★ 把模型给的组件数组包成一帧（surface 名＝agent/<名字>）。"""
+    """★ 把内容组件包成一帧：surface ＝ agent/<名字>；★ 统一套【窗口壳】（标题栏＋缩放/关闭）。"""
+    surface = "agent/%s" % NAME
+    comps = wrap_window("智能体 · " + NAME, list(comps), surface)
     return {"version": "v1.0",
             "name": "模型画的界面（★ agent/%s 经本体）" % NAME,
             "messages": [
                 {"version": "v1.0", "createSurface": {
-                    "surfaceId": "agent/%s" % NAME,
+                    "surfaceId": surface,
                     "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
                     "sendDataModel": True}},
                 {"version": "v1.0", "updateComponents": {
-                    "surfaceId": "agent/%s" % NAME, "components": comps}},
+                    "surfaceId": surface, "components": comps}},
             ]}
 
 
@@ -195,8 +232,40 @@ def main():
     time.sleep(1.5)
     a.appear()
     time.sleep(2.0)
+
+    def on_exec(m):
+        """★ 窗口动作（agent.launch／agent.close）：验本体凭证 ⇒ 开/关窗口。"""
+        try:
+            d = json.loads(m.payload.to_string())
+        except Exception:
+            return
+        if d.get("route") and d.get("route") != "agent":
+            return
+        aid = d.get("action") or ""
+        if aid not in ("agent.launch", "agent.close"):
+            return
+        params = d.get("params") or {}
+        ok, why = permit.verify(d.get("permit"), aid, params)
+        if ok:
+            ok, why = permit.consume_via_ontology(session, d.get("permit"), aid, params)
+        if not ok:
+            log("★ 窗口动作 %s 没凭证/凭证不能用：%s" % (aid, why))
+            return
+        if aid == "agent.launch":
+            a.launched = True
+            a.notice(a.build_launch_frame(), "智能体窗口（启动）")
+            log("★ 收到 agent.launch（凭证过）⇒ 出窗口")
+        else:
+            a.launched = False
+            log("★ 收到 agent.close ⇒ 停画（画布由呈现撤回，理由随账）")
+
+    session.declare_subscriber(T_EXEC, on_exec)
+    a.register()
     rnd = 0
     while True:
+        if not a.launched:                 # ★ 没被点开之前不画（窗口由点击打开）
+            time.sleep(1.0)
+            continue
         rnd += 1
         log("———— 第 %d 轮 ————" % rnd)
         world = a.query(kind="world")
