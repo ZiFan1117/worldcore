@@ -138,7 +138,8 @@ class World:
         self.ledger.flush()
         # ★★ 2026-10-19（P8）：账落完 ⇒ 推一条【事件】（只公开字段；params/body/why 一律不带）
         _ev_ok = fields.get("kind_of") in ("ask", "reject", "result", "appear", "register") \
-            or (fields.get("kind_of") == "notice" and fields.get("notice_kind") == "ui.act")
+            or (fields.get("kind_of") == "notice" and fields.get("notice_kind") == "ui.act"
+                and fields.get("ui_action"))
         if self.publish and family == "act" and _ev_ok:
             ev = {"kind": "world.event", "at": at,
                   "kind_of": fields.get("kind_of"),

@@ -77,6 +77,19 @@ def row_space(row, w):
     return None
 
 
+def visible_rows(rows, viewer, vspace, w):
+    """★ 读闸：只留 viewer 自己的、或 viewer 空间的行。"""
+    out = []
+    for r in rows:
+        if r.get("actor") == viewer:
+            out.append(r)
+            continue
+        s = row_space(r, w)
+        if s and s == vspace:
+            out.append(r)
+    return out
+
+
 def applied(r):
     """★ 这一笔算「成了」吗？（ask/register/notice 是尝试本身；result 看 ok）"""
     return r.get("kind_of") in ("ask", "register", "notice", "appear") or (
@@ -152,9 +165,7 @@ def handle(smp, w, session, log=print):
             viewer, vspace, why_v = viewer_of(msg, w)
             if viewer is None:
                 raise ValueError("查历史要能核身份：%s" % why_v)
-            rows = [r for r in rows
-                    if r.get("actor") == viewer or
-                    (row_space(r, w) is not None and row_space(r, w) == vspace)]
+            rows = visible_rows(rows, viewer, vspace, w)
             for k in ("actor", "action", "code", "kind_of", "permit", "subject", "category"):
                 v = flt.get(k) if k in flt else msg.get(k)
                 if v:
@@ -173,6 +184,31 @@ def handle(smp, w, session, log=print):
                     "applied": len([r for r in tail if applied(r)]),
                     "rejected": len([r for r in tail if rejected(r)]),
                     "rows": tail}
+        elif kind == "events":
+            # ★★ 事件回放（P8 补漏）：从账里取最近事件，按身份/空间过滤，缩成事件形状
+            viewer, vspace, why_v = viewer_of(msg, w)
+            if viewer is None:
+                raise ValueError("查事件要能核身份：%s" % why_v)
+            rows, bad_lines = read_ledger(getattr(w.ledger, "name", "") or "")
+            cand = [r for r in rows
+                    if r.get("kind_of") in ("ask", "reject", "result", "appear", "register")
+                    or (r.get("kind_of") == "notice" and r.get("notice_kind") == "ui.act")]
+            rows = visible_rows(cand, viewer, vspace, w)
+            # ★ ui.act 是「人的公开动作」事件（notice 行没有 actor）⇒ 回放时对所有已核身份可见
+            rows += [r for r in cand if r not in rows and r.get("notice_kind") == "ui.act"]
+            rows.sort(key=lambda r: str(r.get("at") or ""))
+            limit = int(msg.get("limit") or 50)
+            limit = max(1, min(limit, 500))
+            tail = rows[-limit:]
+            evs = []
+            for r in tail:
+                evs.append({"at": r.get("at"), "kind_of": r.get("kind_of"),
+                            "action": r.get("action") or r.get("ui_action"),
+                            "actor": r.get("actor"), "ok": r.get("ok"),
+                            "code": r.get("code"), "category": r.get("category"),
+                            "space": row_space(r, w)})
+            data = {"count": len(evs), "total": len(rows), "bad_lines": bad_lines,
+                    "viewer": viewer, "space": vspace, "events": evs}
         elif kind == "overview":
             # ★★ 本体「一眼看全」：给本体窗口用（类/接口/关系/动作/个体/注册表/账）
             classes = {}
