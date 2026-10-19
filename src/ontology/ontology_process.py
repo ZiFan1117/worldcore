@@ -30,6 +30,8 @@ import os
 import sys
 import time
 import identity
+import permit
+import world_query
 
 import zenoh
 
@@ -79,6 +81,7 @@ class World:
             % (len(self.ontology.object_types), len(self.ontology.link_types),
                len(self.ontology.action_types), len(self.ontology.functions)))
         self.registry = {}      # ★ 注册表（名字 → 五格）
+        self.appeared = {}      # ★ 报过到的个体（class/name）—— 判「每报一个都要能核验」
         # ★★ 计算机报来的「我能做什么」（★ 可用性，模型要用）
         self.computer_caps = {"available": [], "unsupported": [], "at": None, "by": None}
         self._load_registry()
@@ -208,6 +211,8 @@ class World:
                                  "at": None}
             log("★ 计算机报了能力：可用 %d ／ 不支持 %d" % (
                 len(self.computer_caps["available"]), len(self.computer_caps["unsupported"])))
+        # ★ 记下「报过到」：之后它自称这个身份，本体要能核得上（闸②.5）
+        self.appeared["%s/%s" % (cls, fields.get("name", "?"))] = True
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
         seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, inst.instance_id), "after": fields})
         log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）" % (cls, inst.instance_id, seq, inst.instance_id))
@@ -271,7 +276,7 @@ def main():
     session.declare_subscriber(T_APPEAR, lambda s: w.on_appear(s))
     session.declare_subscriber(T_ASK, lambda s: _ask_and_forward(s, w, session))
     session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
-    session.declare_subscriber(T_QUERY, lambda s: _query_and_reply(s, w, session))
+    session.declare_subscriber(T_QUERY, lambda s: world_query.handle(s, w, session, log))
     session.declare_subscriber(T_NOTICE, lambda s: _notice_and_forward(s, w, session))
     log("   订上了：%s ／ %s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY, T_NOTICE))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
@@ -319,6 +324,16 @@ def _ask_and_forward(smp, w, session):
         log("拒 %s ⇒ %s" % (name, why_noid))
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_noid}, ensure_ascii=False))
         return
+    # ★★ 闸②.5：★ 每报一个都要能核验 —— 人 ⇒ 必须有票；其他 ⇒ 必须报过到、成为过个体。
+    #    ★ 作者令（逐字整理）：「一个进程可报多个个体，但每报一个都要能核验」。
+    if not _noid_exempt:
+        _a_ok, _a_why = identity.actor_ok(actor, bool(ticket), w.appeared)
+        if not _a_ok:
+            w.stamp("act", kind_of="reject-ident", action=name, actor=actor, why=_a_why)
+            log("拒 %s ⇒ %s" % (name, _a_why))
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _a_why},
+                                                 ensure_ascii=False))
+            return
     # ★★ 闸③：许可（★ 认证动作不过闸 —— 它是入口；凭据校验在 identity 里）
     allowed, why2 = (True, None) if _noid_exempt else w.can_execute(actor, name)
     if not allowed:
@@ -359,7 +374,9 @@ def _ask_and_forward(smp, w, session):
                   route=reg.get("registered_by_kind"))
     out = {"id": msg.get("id"), "at": seq, "action": name,
            "params": msg.get("params") or {}, "actor": actor,
-           "route": reg.get("registered_by_kind")}
+           "route": reg.get("registered_by_kind"),
+           # ★★ 本体【唯一发许可处】：转发时带上凭证；执行器验不过就拒（见 src/ontology/permit.py）
+           "permit": permit.issue(name, msg.get("params"), actor)}
     log("转 %s（%s）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
     session.put(T_EXEC, json.dumps(out, ensure_ascii=False))
 
@@ -378,73 +395,6 @@ def _result_and_reply(smp, w, session):
     log("结果 %s（%s，ok=%s）⇒ 回请求方" % (msg.get("action"), at, msg.get("ok")))
     session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "at": at, **msg},
                                          ensure_ascii=False))
-
-
-def _query_and_reply(smp, w, session):
-    """★★ 查世界 —— ★ 作者令：「查世界状态也要过本体」「查历史也要过本体」。
-
-    ★ 作者列的要素（逐字）：「**有几个个体，有哪些 action，它们的关系是什么等等**」
-
-    支持的问法（`kind`）：
-      · world   → 世界概览（每类几个、动作清单）
-      · actions → 动作清单（本体 9 个 ＋ 注册表 11 个）
-      · types   → 类型清单（9 类）
-      · type    → 某一类的个体（★ 用 P 的 ObjectStore.search）
-      · one     → 一个个体（★ 用 ObjectStore.get）
-      · link    → 沿关系走（★ 用 OntologyQuery.navigate）
-    """
-    try:
-        msg = json.loads(smp.payload.to_string())
-    except Exception:
-        return
-    rid = msg.get("id")
-    kind = msg.get("kind") or "world"
-    try:
-        if kind == "world":
-            data = {"types": {}, "actions": sorted(w.ontology.action_types.keys()),
-                    "registry": len(w.registry), "instances": {}}
-            for tid in w.ontology.object_types:
-                n = w.store.count(tid)
-                data["types"][tid] = len(w.ontology.object_types[tid].properties)
-                data["instances"][tid] = n
-        elif kind == "actions":
-            data = {"ontology": sorted(w.ontology.action_types.keys()),
-                    "registry": sorted(w.registry.keys()),
-                    # ★★ 计算机报的可用性（★ 模型据此只挑能跑的）
-                    "available": sorted(w.computer_caps.get("available") or []),
-                    "unsupported": sorted(w.computer_caps.get("unsupported") or []),
-                    "reported_by": w.computer_caps.get("by")}
-        elif kind == "types":
-            data = {tid: sorted(ot.properties.keys()) for tid, ot in w.ontology.object_types.items()}
-        elif kind == "type":
-            tid = msg.get("type") or ""
-            if tid not in w.ontology.object_types:
-                raise ValueError("类型不在册：%s" % tid)
-            rows = w.store.search(tid)
-            data = [{"id": r.instance_id, "properties": r.properties} for r in rows]
-        elif kind == "one":
-            iid = msg.get("id_of") or msg.get("instance") or ""
-            inst = w.store.get(iid)
-            if inst is None:
-                raise ValueError("个体不存在：%s" % iid)
-            data = {"id": inst.instance_id, "type": inst.object_type_id,
-                    "properties": inst.properties, "links": inst.links,
-                    "created_by": inst.created_by}
-        elif kind == "link":
-            tid = msg.get("type") or ""
-            lk = msg.get("link") or ""
-            from foundry_ontology.engine.query_engine import OntologyQuery
-            rows = OntologyQuery(w.store, tid).navigate(lk).all()
-            data = {"link": lk, "count": len(rows),
-                    "targets": [{"id": r.instance_id, "properties": r.properties} for r in rows]}
-        else:
-            raise ValueError("不认识的 kind：%s" % kind)
-        out = {"id": rid, "kind": kind, "ok": True, "data": data}
-        log("查世界 %s ⇒ ok（%d 字节）" % (kind, len(json.dumps(data, ensure_ascii=False))))
-    except Exception as e:
-        out = {"id": rid, "kind": kind, "ok": False, "why": str(e)}
-        log("查世界 %s ⇒ 拒：%s" % (kind, e))
-    session.put(T_QUERY_RESULT, json.dumps(out, ensure_ascii=False))
 
 
 def _notice_and_forward(smp, w, session):

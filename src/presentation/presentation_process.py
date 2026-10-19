@@ -24,6 +24,7 @@
 import json
 import os
 import socket
+import sys
 import threading
 import time
 
@@ -31,6 +32,10 @@ import zenoh
 
 from login_frame import login_frame
 from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  # noqa: F401
+
+# ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
+from permit import verify_and_consume  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -204,6 +209,13 @@ class Presentation:
         rid = d.get("id")
         act = d.get("action") or ""
         params = d.get("params") or {}
+        _ok, _why = verify_and_consume(d.get("permit"), act, params)
+        if not _ok:
+            log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
+            self.s.put(T_RESULT, json.dumps({
+                "id": rid, "action": act, "ok": False, "body": None, "by": "presentation/" + SCREEN,
+                "error": "没有本体的许可（凭据校验不过）：%s" % _why}, ensure_ascii=False))
+            return
         ok, body = self.dispatch(act, params)
         self.s.put(T_RESULT, json.dumps({
             "id": rid, "action": act, "ok": ok, "body": body,

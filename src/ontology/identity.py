@@ -73,6 +73,29 @@ def revoke(params, log=print):
     return True, {"revoked": True}
 
 
+# ★★ 呈现／画布没有自己的进程 ⇒ 脸归提供者：`surface/x` 由 `presentation/x` 代报（四归属）。
+_ALIAS = {"surface": "presentation"}
+
+
+def actor_ok(actor, has_ticket, appeared):
+    """★ 核验 actor：人 ⇒ 必须凭票；其他 ⇒ 必须【报过到、成为过个体】。
+
+    ★ 作者令（逐字整理）：「一个进程可报多个个体，但每报一个都要能核验」。
+    ★ 返回 (True, None) 或 (False, 为什么)。
+    """
+    if not actor or not actor.startswith("world://"):
+        return False, "身份格式不对（要 world://<类>/<名>）：%r" % (actor,)
+    cls, _, name = actor[len("world://"):].partition("/")
+    if cls == "user":
+        if not has_ticket:
+            return False, "人要有票（★ 每报一个都要能核验：人由登录进程报）"
+        return True, None
+    cls = _ALIAS.get(cls, cls)
+    if "%s/%s" % (cls, name) not in appeared:
+        return False, "这个身份没有报到过（★ 每报一个都要能核验）：%s" % actor
+    return True, None
+
+
 def check(params):
     """★★ 验票 —— 别人（空间／呈现）要【替某人做事】时，拿票来。
     ★ 返回 (ticket_dict, why)；成功时 why 为 None。"""

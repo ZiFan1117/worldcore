@@ -58,6 +58,16 @@ if false; then
   echo "  ontology.json  $(stat -c%s "$PREFIX/ontology.json") 字节"
 fi
 
+# ★★ 许可密钥（本体签发凭据／执行器验证凭据 用同一把）—— 首次生成，之后保留
+if [ ! -f /usr/lib/aios/permit.key ]; then
+  head -c 32 /dev/urandom | base64 > /usr/lib/aios/permit.key
+  chmod 600 /usr/lib/aios/permit.key
+  echo "  生成许可密钥 /usr/lib/aios/permit.key（600）"
+else
+  echo "  许可密钥已在：/usr/lib/aios/permit.key"
+fi
+restorecon /usr/lib/aios/permit.key 2>/dev/null || true
+
 echo "=== 3 systemd 单元 ==="
 for u in aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent; do
   s="$REPO/scripts/release/systemd/$u.service"

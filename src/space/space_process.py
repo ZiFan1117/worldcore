@@ -20,11 +20,16 @@
 """
 import json
 import os
+import sys
 import time
 
 import zenoh
 
 from desktop_frame import desktop_frame
+
+# ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
+from permit import verify_and_consume  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -59,6 +64,8 @@ class Space:
         self.surface_id = "surface/desktop-" + USER
         self.state = STATE
         self.n_members = 0
+        # ★★ 摆放归个人空间：客画布（别的提供者给的 surface）⇒ surfaceId -> rect
+        self.guests = {}
 
     def announce(self):
         self.s.put("world/appear", json.dumps(ME, ensure_ascii=False))
@@ -87,6 +94,13 @@ class Space:
         if d.get("route") and d.get("route") != "space":
             return
         rid, act, params = d.get("id"), d.get("action") or "", d.get("params") or {}
+        _ok, _why = verify_and_consume(d.get("permit"), act, params)
+        if not _ok:
+            log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
+            self.s.put(T_RESULT, json.dumps({
+                "id": rid, "action": act, "ok": False, "body": None, "by": "space/" + USER,
+                "error": "没有本体的许可（凭据校验不过）：%s" % _why}, ensure_ascii=False))
+            return
         ok, body = self.dispatch(act, params)
         self.s.put(T_RESULT, json.dumps({
             "id": rid, "action": act, "ok": ok, "body": body, "by": "space/" + USER,
@@ -135,7 +149,8 @@ class Space:
         return False, "不认识的动作 %s" % act
 
     def draw(self):
-        f = desktop_frame(self.surface_id, USER, self.n_members)
+        extra = [{"surface": k, "rect": v} for k, v in self.guests.items()]
+        f = desktop_frame(self.surface_id, USER, self.n_members, extra)
         n = len(f["messages"][1]["updateComponents"]["components"])
         self.s.put(T_NOTICE, json.dumps({
             "kind": "a2ui.frame",
@@ -176,6 +191,32 @@ class Space:
             }, ensure_ascii=False))
             self.draw()
 
+    def on_envelope(self, sample):
+        """★★ 别的提供者给的画布（经本体转来）⇒ ★ 摆放归个人空间：记下并重出桌面（带上它的层）。
+
+        ★ 作者口径：「画面＝提供者的脸／摆放归个人空间」；呈现拿到新 layout 后才合成它。
+        """
+        try:
+            env = json.loads(sample.payload.to_string())
+        except Exception:
+            return
+        if env.get("kind") != "a2ui.frame":
+            return
+        by = env.get("by") or ""
+        if by.startswith("world://space/"):
+            return                      # ★ 自己的桌面，不摆
+        to = env.get("to") or ""
+        if to and to != "space:" + USER:
+            return                      # ★ 写给别人的空间，不看
+        frame = env.get("frame")
+        sid = _surface_of(frame) if isinstance(frame, dict) else None
+        if not sid or sid == self.surface_id:
+            return
+        if sid not in self.guests and len(self.guests) < 4:
+            self.guests[sid] = [640, 40, 620, 500]
+            log("② 收到画布 %s（by=%s）⇒ ★ 摆进桌面（客画布 %d 张）" % (sid, by, len(self.guests)))
+            self.draw()
+
     def on_frame(self, sample):
         """★ 收到别人给的 layout（★ 比如呈现的登录画布）⇒ 记住，★ 自己的画布不抢。"""
         try:
@@ -185,6 +226,15 @@ class Space:
         if d.get("kind") != "a2ui.frame":
             return
         log("② 收到画布（by=%s）" % d.get("by"))
+
+
+def _surface_of(frame):
+    """★ 从一帧 A2UI 里取 surfaceId（同呈现的取法）。"""
+    for m in (frame.get("messages") or []):
+        cs = m.get("createSurface") or m.get("updateComponents") or {}
+        if cs.get("surfaceId"):
+            return cs["surfaceId"]
+    return None
 
 
 def main():
@@ -206,7 +256,8 @@ def main():
     s.declare_subscriber(T_ACT, sp.on_act)
     s.declare_subscriber(T_NOTICE, sp.on_frame)
     s.declare_subscriber(T_EXEC, sp.on_exec)
-    log("④ 订 %s ＋ %s ＋ %s" % (T_ACT, T_NOTICE, T_EXEC))
+    s.declare_subscriber("world/ui/frame", sp.on_envelope)   # ★ 别人给的画布 ⇒ 我摆
+    log("④ 订 %s ＋ %s ＋ %s ＋ world/ui/frame" % (T_ACT, T_NOTICE, T_EXEC))
     log("★ 个人空间起来了 —— 等登录 ＋ 收人的动作（★ 桌面画布登录后才出）")
     try:
         while True:

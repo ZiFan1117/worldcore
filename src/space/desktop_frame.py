@@ -10,7 +10,7 @@ ICONS = [
 ]
 
 
-def desktop_frame(surface_id, user, n_members):
+def desktop_frame(surface_id, user, n_members, guests=None):
     now = time.strftime("%Y-%m-%d %H:%M")
     comps = [
         {"id": "root", "component": "Column",
@@ -34,12 +34,18 @@ def desktop_frame(surface_id, user, n_members):
                       # ★★ A2UI 的 Action 格式：{"event": {"name", "context"}}
                       "action": {"event": {"name": "space.icon_clicked",
                                            "context": {"icon": ic["id"]}}}})
+    # ★★ 摆放归个人空间：桌面是第 0 层；别的提供者给的画布（客画布）由空间【摆】上去（附 rect）。
+    #    rect 是渲染器认的 [x, y, w, h]；矩形由空间给 —— 渲染器不布局。
+    layers = [{"surface": surface_id, "z": 0, "active": True}]
+    for i, g in enumerate(guests or []):
+        layers.append({"surface": g.get("surface"), "z": 10 + i, "active": True,
+                       "rect": g.get("rect") or [640, 40, 620, 500]})
     return {
         "version": "v1.0",
         "name": user + " 的桌面",
         "role": "desktop",
         # ★★★ 同 login_frame：layout 是【我们的扩展】，A2UI 不管多 surface 叠。
-        "layout": {"layers": [{"surface": surface_id, "z": 0, "active": True}]},
+        "layout": {"layers": layers},
         "messages": [
             {"version": "v1.0", "createSurface": {
                 "surfaceId": surface_id, "sendDataModel": True,
