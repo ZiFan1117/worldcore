@@ -27,6 +27,7 @@ import zenoh
 
 from desktop_frame import desktop_frame
 from activity import ActivityMixin   # ★ 活动窗口（P8 事件流；C27 拆文件）
+from lifecycle import LifecycleMixin   # ★ 生命周期（退出；C27 拆文件）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
@@ -86,7 +87,7 @@ def log(*a):
     print("[个人空间]", *a, flush=True)
 
 
-class Space(ActivityMixin):
+class Space(ActivityMixin, LifecycleMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
@@ -209,6 +210,7 @@ class Space(ActivityMixin):
                 "reporter": "world://space/" + USER,
             }, ensure_ascii=False))
             self.draw()
+            self.request_replay()   # ★ P8 掉线补推：登录后回放最近事件（经本体；activity.py）
             return True, "登录成功：human/%s 已报，space/%s ⇒ active，桌面画布已出" % (who, USER)
         if act == "space.set_layout":
             lay = params.get("layout") or {}
@@ -332,24 +334,6 @@ class Space(ActivityMixin):
                                     else [640, 40, 620, 500])
                 self.draw()
 
-    def logout(self):
-        """★ 退出：销票（经本体）⇒ 空间 inactive ⇒ 请呈现回登录画布（经本体转）。"""
-        if self.ticket:
-            self._ask("identity.revoke", {"ticket": self.ticket}, "revoke")
-        self.ticket = ""
-        self.state = "inactive"
-        self.guests.clear()
-        self.own.clear()
-        self.events.clear()
-        self.activity_open = False
-        self.s.put("world/appear", json.dumps({
-            "class": "space", "name": USER, "owner": USER, "state": "inactive",
-            "reporter": "world://space/" + USER}, ensure_ascii=False))
-        self.s.put(T_NOTICE, json.dumps({
-            "kind": "space.logout", "by": "world://space/" + USER,
-            "about": "退出登录"}, ensure_ascii=False))
-        log("③ 退出：票已销、空间 inactive、请呈现回登录画布")
-
     def on_ask_result(self, sample):
         """★ 空间发的请求有回话了（这台机器）⇒ 画一扇自己的窗口。"""
         try:
@@ -378,6 +362,10 @@ class Space(ActivityMixin):
             return
         p = self.pending.pop(d.get("id") or "", None)
         if not p or not d.get("ok"):
+            return
+        if p["kind"] == "replay":
+            n = self.apply_replay(d.get("data") or {})
+            log("② 回放最近事件 %d 条（掉线补漏）" % n)
             return
         if p["kind"] == "overview":
             data = d.get("data") or {}

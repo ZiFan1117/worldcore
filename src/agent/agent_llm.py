@@ -265,6 +265,13 @@ def main():
     time.sleep(1.5)
     a.appear()
     time.sleep(2.0)
+    # ★ P8 补漏（2026-10-20）：启动时回放最近事件（掉线期间发生的事，进规划上下文）
+    boot = a.query(kind="events", limit=20)
+    for e in (boot.get("data") or {}).get("events") or []:
+        a.events.append({k: e.get(k) for k in
+                         ("at", "kind_of", "action", "actor", "ok", "code", "space")})
+    a.events = a.events[-30:]
+    log("① 回放最近事件 %d 条（掉线补漏）" % len(a.events))
 
     def on_exec(m):
         """★ 窗口动作（agent.launch／agent.close）：验本体凭证 ⇒ 开/关窗口。"""

@@ -5,6 +5,7 @@
 ★ 这里只做：收本空间事件 ⇒ 活动窗口实时重画；窗口开关由 space_process 的图标处理。
 """
 import json
+import time
 
 
 class ActivityMixin:
@@ -49,3 +50,23 @@ class ActivityMixin:
         self._ask("presentation.retract_surface",
                   {"surface": sid, "reason": "关闭活动窗口"}, "retract")
         self.draw()
+
+    def request_replay(self):
+        """★ P8 掉线补推：登录后回放最近事件（要有票；经本体）。"""
+        if not getattr(self, "ticket", ""):
+            return
+        rid = "sp-replay-%d" % int(time.time() * 1000)
+        self.pending[rid] = {"kind": "replay"}
+        self.s.put("world/query", json.dumps(
+            {"id": rid, "kind": "events", "ticket": self.ticket, "limit": 30},
+            ensure_ascii=False))
+
+    def apply_replay(self, data):
+        """★ 把回放结果并进 self.events（去重后保留最近 40 条）。"""
+        evs = (data or {}).get("events") or []
+        for e in evs:
+            self.events.append(e)
+        self.events = self.events[-40:]
+        if self.activity_open:
+            self._draw_activity()
+        return len(evs)
