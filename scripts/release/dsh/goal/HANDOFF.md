@@ -96,6 +96,15 @@ systemctl stop aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer
 - **恢复**：判据回退到 C1–C46（与 worktree 匹配）⇒ `gate_rc=0`；`ALERT` 归档；三条 timer 重启。
 - **教训**：升级判据前**先把源码 commit 进工作副本**；不要以未提交状态同步。看门狗也已改为「只在单元真的 failed 时才停 timer」（避免恢复后又被旧 `ExecMainStatus` 连坐）。
 
+## 五之四、session 结束时的状态（2026-10-20 23:0x CEST 记录）
+
+- 目标链：**正常运行中**（22:00 事故已恢复；22:30、23:00 两轮 `changed=1`、`gate_rc=0` 全绿）；
+- 定时器：goal/evolve/optimize 全 **active**；`goal-stop` 仍定在 **00:00:00 CEST** 停链；
+- 快照：`20261019-220116`、`20261019-230111` 等，每小时一份；
+- 判据：主机 repo **58 条**全绿；VM 工作副本临时 **C1–C46**（升 58 前先把源码 commit 进工作副本）；
+- 未完成：记忆/委托草案等签、场景加载、真账 restore 演练、真人语音验收、06:00 停链**还没到点**；
+- 结论：**目标未完成（截止未到）**；接手按本页清单核对即可。
+
 ## 六、06:00 核对清单
 
 ```sh
