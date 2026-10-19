@@ -78,6 +78,7 @@ class Agent:
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
             "class": "agent", "name": NAME, "did": DID,
+            "reporter": "world://agent/" + NAME,
             "manifest": "src/agent/agent_llm.py（模型驱动；★ 全走本体）", "state": "running"}))
         log("① 发 appear：agent/%s" % NAME)
 

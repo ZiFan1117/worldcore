@@ -16,7 +16,7 @@ from foundry_ontology.core import (
     ActionType, ActionParameter, ValidationRule, OntologyFunction,
 )
 from foundry_ontology.core.data_types import PropertyType
-
+from world_codes import REJECT_CODES, reject_category, load_authority  # noqa: F401
 
 def build_aios_ontology() -> Ontology:
     o = Ontology("aios_world", "AIOS 世界本体", str(1))
@@ -335,8 +335,25 @@ def build_aios_ontology() -> Ontology:
     #   ★ 风险等级【不抄】—— 作者裁：「风险分级不能自动批，这个东西是本体里头批不批」。
     # ── ★ 2026-10-18：人侧动作的【许可条文】（动作由提供者进程注册，不在此建 ActionType）──
     _load_human_side_grants(o)
+    load_authority(o)
     _load_sysknife_actions(o)
+    _normalize_grants(o)      # ★ who/scope 归一（必须在两个装载器之后）
     return o
+
+
+def _normalize_grants(o):
+    """★ 2026-10-19 修「who/scope 同词两义」：借来的条文里 `who`＝授权者、`scope`＝生效许可。
+
+    ★ 13 自己新增的行（人侧＋sysknife 只读）原来只有 `who`（当时当「被允许的主体」用）
+      ⇒ 这里补 `scope`，`who` 归位成授权者（占位：今天没有授权动作；who 只作条文）。
+    """
+    grants = (o.metadata.setdefault("permissions", {})).setdefault("grants", {})
+    for name, g in grants.items():
+        if name.startswith("_") or not isinstance(g, dict) or g.get("scope"):
+            continue
+        g["scope"] = list(g.get("who") or [])
+        g["who"] = ["world://user"]
+        g["_note"] = "who＝授权者（占位）；scope＝生效许可（can_execute 读 scope）"
 
 
 if __name__ == "__main__":

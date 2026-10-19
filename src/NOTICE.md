@@ -29,3 +29,4 @@
 | **2** | `foundry_ontology/core/ontology.py` | 加 `metadata: dict` | 装世界机制（envelope／families／permissions／governance） |
 | **3** | `foundry_ontology/core/function.py` | 加 `metadata: dict = None` ＋ `__post_init__` | 装 `transport`／`endpoint` |
 | **4** | ★ `foundry_ontology/engine/object_store.py` | `sqlite3.connect(..., check_same_thread=False)` ＋ `threading.Lock()` | **本体在主线程建 store，而 zenoh 回调在别的线程跑** ⇒ 不放开就报「SQLite objects created in a thread…」 |
+| **5** | ★ `foundry_ontology/engine/object_store.py` | `create()`：`instance_id` 撞车（→ 已存在同 id、**不同类**）时，把【类型】加进 id | ★ 借来的代码是**全局 instance_id**（上游同一缺陷，见 `_scratch/palantir-open-source/code-notes/02-cloudbadal.md` §0 第 6 条）：`human/zhang` 与 `space/zhang` 同 id ⇒ 后者**悄悄覆盖**前者 ＝ 假账。判据 **C30** 钉住它。 |

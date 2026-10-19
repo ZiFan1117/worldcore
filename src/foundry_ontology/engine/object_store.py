@@ -127,6 +127,13 @@ class ObjectStore:
         )
         if ot.primary_key and ot.primary_key not in inst.properties:
             inst.properties[ot.primary_key] = inst.instance_id
+        # ★ 本仓补丁（2026-10-19）：instance_id 全局唯一 ⇒ 跨类撞车（human/zhang 与 space/zhang 都是 "zhang"，
+        #   后者会把前者悄悄覆盖 = 假账）。撞车时把【类型】加进 id。见 src/NOTICE.md「本仓补丁 5」。
+        _old = self._objects.get(inst.instance_id)
+        if _old is not None and _old.object_type_id != type_id:
+            inst.instance_id = "%s/%s" % (type_id, inst.instance_id)
+            if ot.primary_key:
+                inst.properties[ot.primary_key] = inst.instance_id
         self._objects[inst.instance_id] = inst
         self._persist(inst)
         return inst

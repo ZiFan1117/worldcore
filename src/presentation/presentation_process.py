@@ -164,7 +164,8 @@ class Presentation:
     def announce(self):
         self.s.put("world/appear", json.dumps({
             "class": "presentation", "name": SCREEN, "host": HOST,
-            "state": "active", "compositor_kind": "flutter"}, ensure_ascii=False))
+            "state": "active", "compositor_kind": "flutter",
+            "reporter": "world://presentation/" + SCREEN}, ensure_ascii=False))
         log("① 个体：presentation/%s（active／flutter）" % SCREEN)
         log("   ★ 画布【不报个体】—— 提案逐字：画布是瞬时的，不注册，只走 show → retract")
 
@@ -217,6 +218,7 @@ class Presentation:
             log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
             self.s.put(T_RESULT, json.dumps({
                 "id": rid, "action": act, "ok": False, "body": None, "by": "presentation/" + SCREEN,
+                "code": "PERMIT_DENIED",
                 "error": "没有本体的许可（凭据校验不过）：%s" % _why}, ensure_ascii=False))
             return
         ok, body = self.dispatch(act, params)

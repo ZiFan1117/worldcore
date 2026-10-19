@@ -81,19 +81,53 @@ def actor_ok(actor, has_ticket, appeared):
     """★ 核验 actor：人 ⇒ 必须凭票；其他 ⇒ 必须【报过到、成为过个体】。
 
     ★ 作者令（逐字整理）：「一个进程可报多个个体，但每报一个都要能核验」。
-    ★ 返回 (True, None) 或 (False, 为什么)。
+    ★ 返回 (True, None, None) 或 (False, 为什么, 拒绝码)。
     """
     if not actor or not actor.startswith("world://"):
-        return False, "身份格式不对（要 world://<类>/<名>）：%r" % (actor,)
+        return False, "身份格式不对（要 world://<类>/<名>）：%r" % (actor,), "IDENTITY_FORMAT_BAD"
     cls, _, name = actor[len("world://"):].partition("/")
     if cls == "user":
         if not has_ticket:
-            return False, "人要有票（★ 每报一个都要能核验：人由登录进程报）"
-        return True, None
+            return False, "人要有票（★ 每报一个都要能核验：人由登录进程报）", "HUMAN_NEEDS_TICKET"
+        return True, None, None
     cls = _ALIAS.get(cls, cls)
     if "%s/%s" % (cls, name) not in appeared:
-        return False, "这个身份没有报到过（★ 每报一个都要能核验）：%s" % actor
-    return True, None
+        return False, "这个身份没有报到过（★ 每报一个都要能核验）：%s" % actor, "IDENTITY_NOT_REPORTED"
+    return True, None, None
+
+
+def authority_ok(cls, reporter, appeared, reporters_map):
+    """★ 状态所有权：这个类的事实只能由它的【提供者】报（借自订单样板的权威线）。
+
+    ★ `reporters_map` ＝ 本体里每类的 `_authority.reporters`（world://<提供者>）。
+    ★ 返回 (True, None, None) 或 (False, 为什么, 拒绝码)。
+    ★ 限度（如实）：总线不认证发送者 ⇒「谁报的」今天仍是自报；这挡住**报错类**，挡不住**冒充**。
+    """
+    if not reporter or not reporter.startswith("world://"):
+        return False, "报到要带 reporter（谁报的）：%r" % (reporter,), "IDENTITY_FORMAT_BAD"
+    rcls, _, rname = reporter[len("world://"):].partition("/")
+    allowed = list((reporters_map or {}).get(cls) or [])
+    # ★ 允许表里是【actor 前缀】（如 world://space）——按前缀判，别按类名判
+    if not any(reporter == a or reporter.startswith(a.rstrip("/") + "/") for a in allowed):
+        return False, "「%s」类的事实不归 world://%s 报（允许：%s）" % (cls, rcls, allowed or "无"), "AUTHORITY_NOT_OWNER"
+    if cls == rcls:
+        return True, None, None                 # ★ 自报：进程报自己，不要求先出现过
+    if "%s/%s" % (rcls, rname) not in appeared:
+        return False, "报告者自己还没报到过：%s" % reporter, "IDENTITY_NOT_REPORTED"
+    return True, None, None
+
+
+def load_appeared(ontology, store):
+    """★ 从【个体表】读回「谁报过到」——本体重启后不必等各进程重新报到。
+
+    ★ 个体表是持久的（ObjectStore/SQLite），报到本来就不该只活在内存里。
+    """
+    out = {}
+    for tid in ontology.object_types:
+        for inst in store.search(tid):
+            name = (inst.properties or {}).get("name") or inst.instance_id
+            out["%s/%s" % (tid, name)] = True
+    return out
 
 
 def check(params):

@@ -53,7 +53,8 @@ MAX_GUESTS = int(os.environ.get("AIOS_GUESTS_MAX") or "0")
 USER = os.environ.get("AIOS_USER") or "zhang"
 STATE = os.environ.get("AIOS_SPACE_STATE") or "active"
 
-ME = {"class": "space", "name": USER, "owner": USER, "state": STATE}
+ME = {"class": "space", "name": USER, "owner": USER, "state": STATE,
+      "reporter": "world://space/" + USER}
 
 
 def log(*a):
@@ -104,6 +105,7 @@ class Space:
             log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
             self.s.put(T_RESULT, json.dumps({
                 "id": rid, "action": act, "ok": False, "body": None, "by": "space/" + USER,
+                "code": "PERMIT_DENIED",
                 "error": "没有本体的许可（凭据校验不过）：%s" % _why}, ensure_ascii=False))
             return
         ok, body = self.dispatch(act, params)
@@ -130,6 +132,7 @@ class Space:
 
             self.s.put("world/appear", json.dumps({
                 "class": "human", "name": who,
+                "reporter": "world://space/" + USER,
                 # ★★ 2026-10-18 修：★ human.last_seen 定义是 "integer  # UNIX 秒"（★ ontology.json 现取），
                 #    ★ 原来传 ISO 字符串 ⇒ 本体拒（★ 现取报错：
                 #    "last_seen: invalid literal for int() with base 10: '2026-10-18T17:19:35'"）。
@@ -139,6 +142,7 @@ class Space:
             self.state = "active"
             self.s.put("world/appear", json.dumps({
                 "class": "space", "name": USER, "owner": who, "state": "active",
+                "reporter": "world://space/" + USER,
             }, ensure_ascii=False))
             self.draw()
             return True, "登录成功：human/%s 已报，space/%s ⇒ active，桌面画布已出" % (who, USER)
@@ -188,11 +192,13 @@ class Space:
             self.state = "active"
             self.s.put("world/appear", json.dumps({
                 "class": "human", "name": who,
+                "reporter": "world://space/" + USER,
                 # ★ human.last_seen 是 integer（UNIX 秒）；原来传 ISO 字符串 ⇒ 本体拒。
                 "last_seen": int(time.time()),
             }, ensure_ascii=False))
             self.s.put("world/appear", json.dumps({
                 "class": "space", "name": USER, "owner": who, "state": "active",
+                "reporter": "world://space/" + USER,
             }, ensure_ascii=False))
             self.draw()
 

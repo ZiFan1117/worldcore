@@ -39,7 +39,8 @@ T_RESULT = "world/exec/result"   # ★★★ 2026-10-17 裁：**所有交互都�
 MAP_PATH = os.environ.get("AIOS_COMPUTER_MAP", "/usr/lib/aios/command-map.jsonl")
 ZENOH_ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 COMPUTER_NAME = os.environ.get("AIOS_COMPUTER_NAME") or socket.gethostname()
-ME = {"class": "computer", "name": COMPUTER_NAME, "hostname": COMPUTER_NAME, "state": "in-service"}
+ME = {"class": "computer", "name": COMPUTER_NAME, "hostname": COMPUTER_NAME,
+      "state": "in-service", "reporter": "world://computer/" + COMPUTER_NAME}
 
 
 def log(*a):
@@ -219,6 +220,7 @@ def handle_exec(msg, rows, session):
     if not ok:
         log("拒 %s（id=%s）⇒ 没有本体的许可：%s" % (action, rid, why))
         return {"id": rid, "action": action, "ok": False, "body": None,
+                "code": "PERMIT_DENIED",
                 "error": "没有本体的许可（凭据校验不过）：%s" % why}
     log("收到 %s（id=%s，凭证过）" % (action, rid))
     ok2, body = run_action(rows, action, params)

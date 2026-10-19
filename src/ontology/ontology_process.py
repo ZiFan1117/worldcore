@@ -32,6 +32,7 @@ import time
 import identity
 import permit
 import world_query
+from world_codes import reject_category
 
 import zenoh
 
@@ -92,6 +93,11 @@ class World:
         # ★★ ABox：个体表（★ P 的 ObjectStore，SQLite 持久化）
         os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
         self.store = ObjectStore(self.ontology, db_path=STORE_PATH)
+        # ★★ 报到记录从【个体表】读回（不是只活在内存里）⇒ 本体重启后不必等人家重新报到
+        self.appeared = identity.load_appeared(self.ontology, self.store)
+        # ★★ 每类的「提供者」（状态所有权；见 world_codes.AUTHORITY_REPORTERS）
+        self.reporters = {tid: ((ot.metadata or {}).get("_authority") or {}).get("reporters") or []
+                          for tid, ot in self.ontology.object_types.items()}
         log("② 注册表 %d 条；账本 %s" % (len(self.registry), LEDGER_PATH))
 
     # ── 注册表 ──
@@ -128,6 +134,16 @@ class World:
         self.ledger.flush()
         return at
 
+    def reject(self, code, action=None, actor=None, why="", **kw):
+        """★ 每次拒绝都落账，带【闭集码】＋类别（借自订单样板：拒绝码是给机器看的）。
+
+        ★ 码不在闭集 ⇒ 类别记 system 并留痕（判据 C29 会抓「谁发了不在闭集的码」）。
+        """
+        cat = reject_category(code) or "system"
+        log("拒 %s ⇒ [%s/%s] %s" % (action or "?", code, cat, why))
+        return self.stamp("act", kind_of="reject", code=code, category=cat,
+                          action=action, actor=actor, why=why, **kw)
+
     # ── ① 认 ──
     def recognize(self, name, roles=None):
         """查注册表：在册吗？谁能用？★ 不在册就拒。"""
@@ -155,23 +171,23 @@ class World:
         try:
             msg = json.loads(smp.payload.to_string())
         except Exception as e:
-            log("进程上报：不是 JSON（%s）" % e)
+            self.reject("BAD_MESSAGE", action="appear", why="不是 JSON（%s）" % e)
             return
         cls = msg.get("class") or ""
         # ★ 认：类在册吗？
         ot = self.ontology.object_types.get(cls)
         if ot is None:
             why = "类不在册（世界没有「%s」这一类）" % cls
-            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why})
-            log("进程上报 %s ⇒ 拒：%s" % (cls or "?", why))
+            self.reject("APPEAR_CLASS_UNKNOWN", action="appear:" + cls, why=why, **{"class": cls})
             return
         # ★ 照类的字段校验：必填齐不齐、有没有多塞
         # ★★★ 先摘出【能力上报】—— 那不是 service 类的格（★ 塞进去会被「多塞了」拒）
         caps_avail = msg.get("actions_available")
         caps_unsup = msg.get("actions_unsupported")
+        reporter = msg.get("reporter") or ""      # ★ 谁报的（权威线用；不参与字段校验）
         fields = {}
         for k, v in msg.items():
-            if k in ("class", "actions_available", "actions_unsupported"):
+            if k in ("class", "actions_available", "actions_unsupported", "reporter"):
                 continue
             fields[k] = v
         # ★ 兼容：上报方用 local_id，本体字段叫 name
@@ -194,16 +210,21 @@ class World:
             if bad_value:
                 why.append("取值域不对：" + "；".join(bad_value))
             why_s = "；".join(why)
-            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why_s, "body": msg})
-            log("进程上报 %s ⇒ 拒：%s" % (cls, why_s))
+            self.reject("APPEAR_FIELDS_INVALID", action="appear:" + cls, why=why_s,
+                        **{"class": cls, "body": msg})
+            return
+        # ★★ 权威线（借自订单样板：有效性先于权威）：这个类的事实只许它的【提供者】报
+        _ok, _why, _code = identity.authority_ok(cls, reporter, self.appeared, self.reporters)
+        if not _ok:
+            self.reject(_code, action="appear:" + cls, actor=reporter, why=_why, **{"class": cls})
             return
         # ★★ 建个体（★ 用 P 的 ObjectStore.create —— 它会【按类型再校一遍】）
         try:
             inst = self.store.create(cls, dict(fields), created_by="world")
         except Exception as e:
             why = "建个体失败：%s" % e
-            self.stamp("act", kind_of="appear-reject", **{"class": cls, "why": why, "body": msg})
-            log("进程上报 %s ⇒ 拒：%s" % (cls, why))
+            self.reject("APPEAR_CREATE_FAILED", action="appear:" + cls, why=why,
+                        **{"class": cls, "body": msg})
             return
         # ★★ 计算机报到时带了「我能做什么」⇒ 记下来（★ 给模型看，★ 也给查世界答）
         if caps_avail or caps_unsup:
@@ -216,14 +237,19 @@ class World:
         # ★ 记下「报过到」：之后它自称这个身份，本体要能核得上（闸②.5）
         self.appeared["%s/%s" % (cls, fields.get("name", "?"))] = True
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
-        seq = self.stamp("change", kind_of="appear", **{"class": cls, "subject": "%s/%s" % (cls, inst.instance_id), "after": fields})
-        log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）" % (cls, inst.instance_id, seq, inst.instance_id))
+        seq = self.stamp("change", kind_of="appear",
+                         **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", inst.instance_id)),
+                            "after": fields})
+        log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）"
+            % (cls, fields.get("name", "?"), seq, inst.instance_id))
 
     # ── ★★ 执行面 ①：谁能做这个动作（T-342 真做）──
     def can_execute(self, actor, capability):
         """★ 照本体 `permissions` 判「这个主体能不能做这个动作」。
 
-        ★ 口径：default=deny ⇒ 没条文拒；grants[cap].who 不在就拒；who 前缀匹配。
+        ★ 口径：default=deny ⇒ 没条文拒；grants[cap].**scope** 不在就拒；scope 前缀匹配。
+        ★★ 2026-10-19 修：原先读的是 `who` —— 借来的条文里 `who` 是**授权者**、`scope` 才是**生效许可**；
+           同词两义会让「本该放行的主体」被静默拒掉（现取：presence/omarchy 查 notice.mute 被判拒）。
         ★ 返回 (True, None) 或 (False, 为什么)。
         """
         if not actor:
@@ -233,11 +259,11 @@ class World:
         g = grants.get(capability)
         if g is None:
             return False, "这个动作没有许可条文（permissions.default = %r ⇒ 默认拒绝）" % perms.get("default")
-        who = g.get("who") or []
-        for w in who:
+        scope = g.get("scope") or []
+        for w in scope:
             if actor == w or actor.startswith(w.rstrip("/") + "/"):
                 return True, None
-        return False, "actor=%s 不在许可里（谁可以：%s）" % (actor, who)
+        return False, "actor=%s 不在许可里（scope：%s）" % (actor, scope)
 
     # ── ② 注册（安装时一次）──
     def on_register(self, smp):
@@ -252,11 +278,14 @@ class World:
                    if not reg.get(k)]
         ok = not missing
         why = "收下" if ok else ("缺格 " + ",".join(missing))
-        seq = self.stamp("act", kind_of="register", actor=reg.get("registered_by", "?"),
-                         action=name, ok=ok, why=why, body=reg)
         if ok:
+            seq = self.stamp("act", kind_of="register", actor=reg.get("registered_by", "?"),
+                             action=name, ok=True, why=why, body=reg)
             self.registry[name] = reg
             self._append_registry(reg)
+        else:
+            seq = self.reject("REGISTER_INCOMPLETE", action=name,
+                              actor=reg.get("registered_by", "?"), why=why, body=reg)
         log("注册 %s ⇒ %s（%s，在册 %d 条）" % (name or "?", why, seq, len(self.registry)))
         return seq
 
@@ -298,14 +327,15 @@ def _ask_and_forward(smp, w, session):
     try:
         msg = json.loads(smp.payload.to_string())
     except Exception:
+        w.reject("BAD_MESSAGE", action="ask", why="ask 不是 JSON")
         return
     name = msg.get("action") or ""
     # ★★ 闸①：名字在册吗
     reg, why = w.recognize(name, msg.get("roles"))
     if reg is None:
-        w.stamp("act", kind_of="reject", action=name, actor=msg.get("actor"), why=why)
-        log("拒 %s ⇒ %s" % (name, why))
-        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why}, ensure_ascii=False))
+        w.reject("UNKNOWN_ACTION", action=name, actor=msg.get("actor"), why=why)
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why,
+                                              "code": "UNKNOWN_ACTION"}, ensure_ascii=False))
         return
     # ★★ 闸①.5：验票（★ 票是「认过了」的证据，比请求自称的 actor 可信）
     actor = msg.get("actor")
@@ -313,9 +343,9 @@ def _ask_and_forward(smp, w, session):
     if ticket:
         t, why_t = identity.check({"ticket": ticket})
         if t is None:
-            w.stamp("act", kind_of="reject-ticket", action=name, actor=actor, why=why_t)
-            log("拒 %s ⇒ %s" % (name, why_t))
-            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t}, ensure_ascii=False))
+            w.reject("BAD_TICKET", action=name, actor=actor, why=why_t)
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t,
+                                                  "code": "BAD_TICKET"}, ensure_ascii=False))
             return
         actor = t["who"]          # ★ 有票 ⇒ 票里的 who 覆盖 actor（★ 票是认过的证据）
     # ★★ 闸②：无 actor 且无有效票 ⇒ ★ 显式拒绝（★ 不再默默塞匿名）
@@ -324,33 +354,35 @@ def _ask_and_forward(smp, w, session):
     _noid_exempt = name == "identity.authenticate"
     if not actor and not _noid_exempt:
         why_noid = "没有身份（★ 请求要带 actor，或带票）"
-        w.stamp("act", kind_of="reject-noid", action=name, why=why_noid)
-        log("拒 %s ⇒ %s" % (name, why_noid))
-        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_noid}, ensure_ascii=False))
+        w.reject("NO_IDENTITY", action=name, why=why_noid)
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_noid,
+                                              "code": "NO_IDENTITY"}, ensure_ascii=False))
         return
     # ★★ 闸②.5：★ 每报一个都要能核验 —— 人 ⇒ 必须有票；其他 ⇒ 必须报过到、成为过个体。
     #    ★ 作者令（逐字整理）：「一个进程可报多个个体，但每报一个都要能核验」。
     if not _noid_exempt:
-        _a_ok, _a_why = identity.actor_ok(actor, bool(ticket), w.appeared)
+        _a_ok, _a_why, _a_code = identity.actor_ok(actor, bool(ticket), w.appeared)
         if not _a_ok:
-            w.stamp("act", kind_of="reject-ident", action=name, actor=actor, why=_a_why)
-            log("拒 %s ⇒ %s" % (name, _a_why))
-            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _a_why},
-                                                 ensure_ascii=False))
+            w.reject(_a_code, action=name, actor=actor, why=_a_why)
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _a_why,
+                                                  "code": _a_code}, ensure_ascii=False))
             return
     # ★★ 闸③：许可（★ 认证动作不过闸 —— 它是入口；凭据校验在 identity 里）
     allowed, why2 = (True, None) if _noid_exempt else w.can_execute(actor, name)
     if not allowed:
-        w.stamp("act", kind_of="reject-permit", action=name, actor=actor, why=why2)
-        log("拒 %s ⇒ %s" % (name, why2))
-        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2},
-                                             ensure_ascii=False))
+        w.reject("PERMISSION_DENIED", action=name, actor=actor, why=why2)
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2,
+                                              "code": "PERMISSION_DENIED"}, ensure_ascii=False))
         return
     # ★★★ 本地执行：认证类 —— 「认」本来就是本体的事（★ 不外转）
     #    ★ 学 PAM／OIDC：★ 认过 ⇒ 发票；★ 别人【只看票，不碰密码】。
     if name.startswith("identity."):
         ok, body = identity.dispatch(name, msg.get("params") or {}, log=log)
-        w.stamp("act", kind_of="result", rid=msg.get("id"), action=name, ok=ok, body=body)
+        if ok:
+            w.stamp("act", kind_of="result", rid=msg.get("id"), action=name, ok=True, body=body)
+        else:
+            w.reject("BAD_CREDENTIAL", action=name, actor=actor,
+                     why=(body or {}).get("why") if isinstance(body, dict) else str(body))
         log("认证 %s ⇒ ok=%s" % (name, ok))
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": ok, "body": body},
                                              ensure_ascii=False))
@@ -368,10 +400,9 @@ def _ask_and_forward(smp, w, session):
                 why_t = "票里没有 %s（★ 这张票只能看 %s）" % (_want, _sc)
                 t = None
         if t is None:
-            w.stamp("act", kind_of="reject", action=name, actor=actor, why=why_t)
-            log("拒 %s ⇒ %s" % (name, why_t))
-            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t},
-                                                 ensure_ascii=False))
+            w.reject("TICKET_SCOPE_DENIED", action=name, actor=actor, why=why_t)
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t,
+                                                  "code": "TICKET_SCOPE_DENIED"}, ensure_ascii=False))
             return
     # ★★ 本体【唯一发许可处】：先签发凭证 ⇒ 再把凭证号记进【本体的账】⇒ 转发时带上凭证
     pm = permit.issue(name, msg.get("params"), actor)
@@ -394,8 +425,10 @@ def _result_and_reply(smp, w, session):
         msg = json.loads(smp.payload.to_string())
     except Exception:
         return
+    _code = msg.get("code")
     at = w.stamp("act", kind_of="result", rid=msg.get("id"),
-                  action=msg.get("action"), ok=msg.get("ok"), body=msg.get("body"))
+                  action=msg.get("action"), ok=msg.get("ok"), body=msg.get("body"),
+                  code=_code, category=(reject_category(_code) or "system") if _code else None)
     log("结果 %s（%s，ok=%s）⇒ 回请求方" % (msg.get("action"), at, msg.get("ok")))
     session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "at": at, **msg},
                                          ensure_ascii=False))
@@ -414,8 +447,7 @@ def _notice_and_forward(smp, w, session):
         return
     kind = msg.get("kind") or ""
     if not kind:
-        w.stamp("act", kind_of="notice-reject", why="没有 kind")
-        log("宣告 ⇒ 拒：没有 kind")
+        w.reject("BAD_MESSAGE", action="notice", why="宣告没有 kind")
         return
     # ★ 认：宣告的种类在册吗（families 里登记的）
     at = w.stamp("act", kind_of="notice", notice_kind=kind,

@@ -4,10 +4,43 @@
 ★ 作者令（逐字整理）：「**查世界状态也要过本体**」「**查历史也要过本体**」；
   「有几个个体，有哪些 action，它们的关系是什么等等」。
 
-★ 它是本体的一个【问法】，不是第二个本体：只读 `w.ontology` / `w.store` / `w.registry`，
+★ 它是本体的一个【问法】，不是第二个本体：只读 `w.ontology` / `w.store` / `w.registry` / **账**，
   **不改世界、不记账、不转发动作**。
+
+★★ 2026-10-19 补 `kind="history"`：作者令「**查历史也要过本体**」。历史从【账】翻（不另造一份），
+  成功与被拒两侧都在（借自订单样板：每次尝试都留痕）。
 """
 import json
+import os
+
+
+def read_ledger(path):
+    """★ 从账本读回历史（只读；坏行跳过但计数）。"""
+    rows, bad = [], 0
+    if not path or not os.path.exists(path):
+        return rows, bad
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                bad += 1
+    return rows, bad
+
+
+def applied(r):
+    """★ 这一笔算「成了」吗？（ask/register/notice 是尝试本身；result 看 ok）"""
+    return r.get("kind_of") in ("ask", "register", "notice", "appear") or (
+        r.get("kind_of") == "result" and r.get("ok") is True)
+
+
+def rejected(r):
+    """★ 这一笔算「被拒」吗？（reject 行；或 ok=False 的 result）"""
+    return r.get("kind_of") == "reject" or (
+        r.get("kind_of") == "result" and r.get("ok") is False)
 
 
 def handle(smp, w, session, log=print):
@@ -56,6 +89,27 @@ def handle(smp, w, session, log=print):
             rows = OntologyQuery(w.store, tid).navigate(lk).all()
             data = {"link": lk, "count": len(rows),
                     "targets": [{"id": r.instance_id, "properties": r.properties} for r in rows]}
+        elif kind == "history":
+            # ★★ 查历史（作者令「查历史也要过本体」）：过滤条件取 filter 或顶层同名字段
+            flt = msg.get("filter") or {}
+            rows, bad_lines = read_ledger(getattr(w.ledger, "name", "") or "")
+            for k in ("actor", "action", "code", "kind_of", "permit", "subject", "category"):
+                v = flt.get(k) if k in flt else msg.get(k)
+                if v:
+                    rows = [r for r in rows if r.get(k) == v]
+            since = flt.get("since") or msg.get("since")
+            if since:
+                rows = [r for r in rows if str(r.get("at") or "") >= str(since)]
+            until = flt.get("until") or msg.get("until")
+            if until:
+                rows = [r for r in rows if str(r.get("at") or "") <= str(until)]
+            limit = int(flt.get("limit") or msg.get("limit") or 50)
+            limit = max(1, min(limit, 500))
+            tail = rows[-limit:]
+            data = {"count": len(tail), "total": len(rows), "bad_lines": bad_lines,
+                    "applied": len([r for r in tail if applied(r)]),
+                    "rejected": len([r for r in tail if rejected(r)]),
+                    "rows": tail}
         else:
             raise ValueError("不认识的 kind：%s" % kind)
         out = {"id": rid, "kind": kind, "ok": True, "data": data}
