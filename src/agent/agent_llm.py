@@ -47,6 +47,7 @@ T_ASK_RESULT = "world/ask/result"
 T_QUERY = "world/query"
 T_QUERY_RESULT = "world/query/result"
 T_NOTICE = "world/notice"
+T_EVENT = "world/event"
 T_EXEC = "world/exec"
 T_REGISTER = "world/register"
 
@@ -86,6 +87,7 @@ class Agent:
         self.ask_results = {}
         self.query_results = {}
         self.launched = False      # ★ 窗口是否已打开（点图标经本体批准后才置 True）
+        self.events = []           # ★（P8）世界推来的事件（最近 30 条）
 
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
@@ -131,6 +133,19 @@ class Agent:
         b = r.get("body") or {}
         return {"surfaces": {"count": b.get("count"), "surfaces": b.get("surfaces")},
                 "layout": b.get("layout"), "screen": b.get("screen")}
+
+    def _remember_event(self, sample):
+        """★（P8）订阅 world/event：把世界正在发生的事记下来（给规划上下文用）。"""
+        try:
+            e = json.loads(sample.payload.to_string())
+        except Exception:
+            return
+        self.events.append({k: e.get(k) for k in
+                            ("at", "kind_of", "action", "actor", "ok", "code", "space")})
+        self.events = self.events[-30:]
+
+    def recent_events(self, n=8):
+        return self.events[-n:]
 
     def notice(self, frame, about):
         self.s.put(T_NOTICE, json.dumps({
@@ -278,6 +293,7 @@ def main():
             log("★ 收到 agent.close ⇒ 停画（画布由呈现撤回，理由随账）")
 
     session.declare_subscriber(T_EXEC, on_exec)
+    session.declare_subscriber(T_EVENT, a._remember_event)   # ★（P8）实时事件
     a.register()
     rnd = 0
     while True:
@@ -305,6 +321,7 @@ def main():
             "available_actions": avail,
             "unsupported_count": len(acts_data.get("unsupported") or []),
             "screen": screen,          # ★ 屏上有什么（呈现/空间经本体答的）
+            "activity": a.recent_events(8),   # ★（P8）世界最近发生的事（实时推来的）
         }
         ctx = json.dumps(ctx_obj, ensure_ascii=False)
         plan, err = ask_llm(SYS_PLAN, ctx)

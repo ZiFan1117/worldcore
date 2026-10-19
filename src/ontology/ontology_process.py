@@ -58,7 +58,8 @@ T_ASK = "world/ask"
 T_EXEC_RESULT = "world/exec/result"
 T_QUERY = "world/query"              # ★★ 查世界（★ 作者令：所有交互过本体）
 T_QUERY_RESULT = "world/query/result"
-T_NOTICE = "world/notice"            # ★★ 宣告入口（★ 作者裁：所有交互过本体 ⇒ 帧也过）
+T_NOTICE = "world/notice"
+T_EVENT = "world/event"             # ★ 事件流：账落完 ⇒ 推给订阅者（人/agent 双向）            # ★★ 宣告入口（★ 作者裁：所有交互过本体 ⇒ 帧也过）
 T_UI_FRAME = "world/ui/frame"        # 本体【转】给 GUI 的那一面   # ★ 结果先回本体（★ 所有交互过本体）
 T_EXEC = "world/exec"
 T_ASK_RESULT = "world/ask/result"   # ★ 请求方订这一个就够（本体拒 ⇒ 发这里；计算机跑完 ⇒ 也发这里）
@@ -90,6 +91,7 @@ class World:
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
+        self.publish = None      # ★ 由 main 注入 session.put；stamp 后推 world/event
         # ★★ 一号一用的账【在本体】：用过哪些凭证号，从盘上读回（重启不忘）
         self.used_permits = permit.load_used(permit.ledger_path(self))
         # ★★ ABox：个体表（★ P 的 ObjectStore，SQLite 持久化）
@@ -134,6 +136,19 @@ class World:
         row = {"at": at, "family": family, **fields}
         self.ledger.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.ledger.flush()
+        # ★★ 2026-10-19（P8）：账落完 ⇒ 推一条【事件】（只公开字段；params/body/why 一律不带）
+        if self.publish and family == "act" and \
+                fields.get("kind_of") in ("ask", "reject", "result", "appear", "register"):
+            ev = {"kind": "world.event", "at": at,
+                  "kind_of": fields.get("kind_of"), "action": fields.get("action"),
+                  "actor": fields.get("actor"), "ok": fields.get("ok"),
+                  "code": fields.get("code"), "category": fields.get("category"),
+                  "subject": fields.get("subject"),
+                  "space": _space_of_actor(fields.get("actor"))}
+            try:
+                self.publish(T_EVENT, json.dumps(ev, ensure_ascii=False))
+            except Exception as e:
+                log("事件推送失败：%s" % e)
         return at
 
     def reject(self, code, action=None, actor=None, why="", **kw):
@@ -293,6 +308,21 @@ class World:
 
 
 
+def _space_of_actor(actor):
+    """★ 事件属于哪个空间：人/空间进程 ⇒ 自己的；agent ⇒ 当前登录人的（单用户假设）。"""
+    actor = actor or ""
+    if not actor.startswith("world://"):
+        return ""
+    cls, _, name = actor[len("world://"):].partition("/")
+    if cls in ("user", "space"):
+        return "space:" + name
+    if cls == "agent":
+        for t in (getattr(identity, "_TICKETS", {}) or {}).values():
+            if (t.get("expires_at") or 0) > time.time():
+                return "space:" + (t.get("user") or "")
+    return ""
+
+
 def main():
     w = World()
     log("③ 连总线 %s …" % ZENOH_ENDPOINT)
@@ -304,6 +334,7 @@ def main():
     conf.insert_json5("connect/endpoints", json.dumps([ZENOH_ENDPOINT]))
     session = zenoh.open(conf)
     log("   连上了")
+    w.publish = session.put        # ★ P8：事件流从这里推
     log("④ 订话题 …")
     session.declare_subscriber(T_REGISTER, lambda s: w.on_register(s))
     session.declare_subscriber(T_APPEAR, lambda s: w.on_appear(s))

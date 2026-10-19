@@ -26,6 +26,7 @@ import time
 import zenoh
 
 from desktop_frame import desktop_frame
+from activity import ActivityMixin   # ★ 活动窗口（P8 事件流；C27 拆文件）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
@@ -37,6 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from permit import verify, consume_via_ontology  # noqa: E402
 
 T_NOTICE = "world/notice"
+T_EVENT = "world/event"
 T_ACT = "world/ui/act"
 T_ASK = "world/ask"
 T_REGISTER = "world/register"
@@ -84,10 +86,11 @@ def log(*a):
     print("[个人空间]", *a, flush=True)
 
 
-class Space:
+class Space(ActivityMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
+        self.user = USER          # ★ 活动窗口用（activity.py 的 mixin）
         self.state = STATE
         self.n_members = 0
         # ★★ 摆放归个人空间：客画布（别的提供者给的 surface）⇒ surfaceId -> rect
@@ -96,6 +99,8 @@ class Space:
         self.zoomed = {}          # ★ 窗口缩放状态：surface -> True(最大化)/False(还原)
         self.own = {}             # ★ 空间自己出的窗口：surface -> {"frame", "rect"}
         self.pending = {}         # ★ 已发请求：rid -> {"kind"}（回话到了再画窗口）
+        self.events = []          # ★（P8）世界推来的事件（实时）
+        self.activity_open = False  # ★ 活动窗口开着吗
 
     def _ask(self, action, params, tag=""):
         """★ 个人空间以【人】的身份向本体发请求：点击/关窗口都必须过本体（许可/凭证/记账）。"""
@@ -297,11 +302,15 @@ class Space:
                 rid = "sp-q-%d" % int(time.time() * 1000)
                 self.pending[rid] = {"kind": "actions"}
                 self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "actions"}, ensure_ascii=False))
+            elif icon == "ic_activity":
+                self.toggle_activity()
             elif icon == "ic_logout":
                 self.logout()
         elif name == "space.window_close":
             sid = ctx.get("surface") or ""
             log("③ 关窗口：%s" % sid)
+            if sid == "space/activity-" + USER:
+                self.activity_open = False
             if sid:
                 self.own.pop(sid, None)
                 self.guests.pop(sid, None)
@@ -331,6 +340,8 @@ class Space:
         self.state = "inactive"
         self.guests.clear()
         self.own.clear()
+        self.events.clear()
+        self.activity_open = False
         self.s.put("world/appear", json.dumps({
             "class": "space", "name": USER, "owner": USER, "state": "inactive",
             "reporter": "world://space/" + USER}, ensure_ascii=False))
@@ -473,6 +484,7 @@ def main():
     s.declare_subscriber("world/ui/frame", sp.on_envelope)   # ★ 别人给的画布 ⇒ 我摆
     s.declare_subscriber(T_ASK_RESULT, sp.on_ask_result)     # ★ 空间的请求回话（这台机器）
     s.declare_subscriber(T_QUERY_RESULT, sp.on_query_result) # ★ 查世界的回话（能做什么）
+    s.declare_subscriber(T_EVENT, sp.on_event)               # ★（P8）世界推来的事件（实时）
     log("④ 订 %s ＋ %s ＋ %s ＋ world/ui/frame ＋ 回话" % (T_ACT, T_NOTICE, T_EXEC))
     log("★ 个人空间起来了 —— 等登录 ＋ 收人的动作（★ 桌面画布登录后才出）")
     try:
