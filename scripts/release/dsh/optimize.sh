@@ -1,5 +1,5 @@
 #!/bin/bash
-# ★ AI-OS「自优化」agent 的一轮 —— 给 DSH 高权限，但**先快照、后验收、坏了回滚**。
+# ★ worldcore「自优化」agent 的一轮 —— 给 DSH 高权限，但**先快照、后验收、坏了回滚**。
 # 每 12 小时一轮；产物：/root/aios-optimize-reports/<stamp>.md；改动只 commit 在本地仓，绝不 push。
 set -euo pipefail
 export PATH=/opt/nodejs/bin:${PATH}
@@ -24,7 +24,7 @@ tar -czf "$SNAP" \
   /etc/systemd/system/aios-*.service /etc/systemd/system/aios-*.timer \
   >/dev/null 2>&1 || true
 
-TASK="你是 AI-OS 的『环境自优化工程师』，拥有本机 root 权限。目标：让这个世界更稳、更省、更可维护。
+TASK="你是 worldcore 的『环境自优化工程师』，拥有本机 root 权限。目标：让这个世界更稳、更省、更可维护。
 ★ 铁律（违反即失败）：
 - 绝不 git push；绝不关 aios-bus；绝不 rm -rf /；不动 /etc/passwd、/etc/shadow；不把自己（DSH）删掉。
 - 一次只做【一处最小、可验证】的改进；没有明确收益就【只写报告、不动手】。

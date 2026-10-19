@@ -1,5 +1,5 @@
 #!/bin/bash
-# ★ AI-OS 限时目标的一轮：高权限自优化，带快照/验收/回滚/进度/到点停。
+# ★ worldcore 限时目标的一轮：高权限自优化，带快照/验收/回滚/进度/到点停。
 set -uo pipefail
 export PATH=/opt/nodejs/bin:${PATH}
 if [ -f /root/.dsh/env.dsh ]; then set -a; . /root/.dsh/env.dsh; set +a; fi
@@ -87,6 +87,7 @@ if ! git diff --cached --quiet 2>/dev/null; then
   CHANGED=1
 fi
 echo "## $(date -Is) round=$STAMP changed=$CHANGED report=$OUTDIR/$STAMP.md" >> "$GOALDIR/progress.md"
+echo "## $(date -Is) round=$STAMP changed=$CHANGED report=$OUTDIR/$STAMP.md" >> "$GOALDIR/board.md"
 
 # ⑥ 连续无进展计数（没执行/没改东西）→ 停链等人
 N=$(cat "$GOALDIR/noprogress" 2>/dev/null || echo 0)

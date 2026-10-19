@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS 限时目标定时器（每 30 分钟一轮，到点自动停）
+Description=worldcore 限时目标定时器（每 30 分钟一轮，到点自动停）
 
 [Timer]
 OnCalendar=*:0/30

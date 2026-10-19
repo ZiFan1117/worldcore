@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS 环境自优化定时器（每 12 小时）
+Description=worldcore 环境自优化定时器（每 12 小时）
 
 [Timer]
 OnCalendar=00/12:00:00

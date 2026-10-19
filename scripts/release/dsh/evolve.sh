@@ -1,5 +1,5 @@
 #!/bin/bash
-# ★ AI-OS DSH「本体进化」循环 —— ★ 只提案，不落法、不改仓库、不提交、不推送。
+# ★ worldcore DSH「本体进化」循环 —— ★ 只提案，不落法、不改仓库、不提交、不推送。
 # 由 aios-dsh-evolve.timer 定时调用；产物在 /root/aios-proposals/<stamp>.md。
 set -euo pipefail
 export PATH=/opt/nodejs/bin:${PATH}
@@ -13,7 +13,7 @@ cd "$WORK"
 git checkout -q -- . 2>/dev/null || true
 git clean -qfd 2>/dev/null || true
 
-TASK="你是 AI-OS 本体的『进化工程师』。只做【提案】，绝对不改仓库、不提交、不推送。
+TASK="你是 worldcore 本体的『进化工程师』。只做【提案】，绝对不改仓库、不提交、不推送。
 步骤：
 1) 读 $WORK/src/ontology/world.json（法的全文）；
 2) 读 /var/lib/aios/ontology/ledger.jsonl 的最后 300 行（只做统计，别贴票据明文）；

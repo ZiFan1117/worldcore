@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS 目标到点强制停链（06:00 Asia/Shanghai）
+Description=worldcore 目标到点强制停链（06:00 Asia/Shanghai）
 
 [Service]
 Type=oneshot

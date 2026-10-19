@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS 本体进化（DSH · 只提案不落法）
+Description=worldcore 本体进化（DSH · 只提案不落法）
 After=network-online.target aios-ontology.service
 Wants=network-online.target
 

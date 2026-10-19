@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS 环境自优化（DSH · 高权限 · 先快照后验收）
+Description=worldcore 环境自优化（DSH · 高权限 · 先快照后验收）
 After=network-online.target aios-ontology.service aios-watchdog.service
 
 [Service]
