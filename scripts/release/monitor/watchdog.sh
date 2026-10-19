@@ -42,7 +42,7 @@ if ! echo "$LAW_OUT" | grep -q "一致"; then
   if [ -f "$SNAP" ]; then
     tar -xzf "$SNAP" -C / >/dev/null 2>&1 || mark "快照恢复失败"
     systemctl daemon-reload >/dev/null 2>&1 || true
-    for u in aios-ontology aios-guard aios-space aios-presentation aios-presentation-render aios-agent; do
+    for u in aios-ontology aios-guard aios-web aios-space aios-presentation aios-presentation-render aios-agent; do
       systemctl restart "$u" >/dev/null 2>&1 || true
     done
     sleep 3
