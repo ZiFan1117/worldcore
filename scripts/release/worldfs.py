@@ -20,6 +20,7 @@ import sys
 
 LEDGER = os.environ.get("AIOS_LEDGER", "/var/lib/aios/ontology/ledger.jsonl")
 DEFAULT_OUT = os.environ.get("AIOS_WORLDFS", "/var/lib/aios/world")
+SCENES = os.environ.get("AIOS_SCENES_DIR", "/var/lib/aios/scenes")
 KEEP = ("at", "family", "kind_of", "action", "actor", "ok", "code", "category",
         "subject", "notice_kind", "ui_action", "route")
 HIDDEN = ("params", "body", "why", "ticket", "secret", "password")
@@ -91,7 +92,29 @@ def cmd_export(args):
     idx += ["", "## 动作 Top 20", ""]
     for a, n in by_action.most_common(20):
         idx.append("- `%s`：%d" % (a, n))
-    idx += ["", "## 目录", "", "- `events/<日期>/<小时>.jsonl`：一行一事件（公开字段）", ""]
+    # ★ P3：场景（画布）也进世界文件树 —— 从空间落盘的 JSON 直接拷过来
+    scene_files = []
+    if os.path.isdir(SCENES):
+        sdir = os.path.join(out, "scenes")
+        os.makedirs(sdir, exist_ok=True)
+        for fn in sorted(os.listdir(SCENES)):
+            if fn.endswith(".json"):
+                try:
+                    with open(os.path.join(SCENES, fn), encoding="utf-8") as f:
+                        data = f.read()
+                    with open(os.path.join(sdir, fn), "w", encoding="utf-8") as f:
+                        f.write(data)
+                    scene_files.append(fn)
+                except Exception:
+                    continue
+    idx += ["", "## 场景（画布 JSON）", ""]
+    if scene_files:
+        for fn in scene_files:
+            idx.append("- `scenes/%s`" % fn)
+    else:
+        idx.append("- （还没有场景文件）")
+    idx += ["", "## 目录", "", "- `events/<日期>/<小时>.jsonl`：一行一事件（公开字段）",
+            "- `scenes/<surface>.json`：画布帧（原样，人能读）", ""]
     with open(os.path.join(out, "INDEX.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(idx) + "\n")
     print("worldfs=%s  files=%d  events=%d" % (out, len(buckets), sum(by_kind.values())))
