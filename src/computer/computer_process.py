@@ -54,7 +54,8 @@ def load_map(path):
                 continue
             try:
                 r = json.loads(line)
-            except Exception:
+            except Exception as e:
+                log("★★ 映射表这一行不是 JSON ⇒ 跳过（不许静默）：%s" % e)
                 continue
             if r.get("action"):
                 rows[r["action"]] = r
@@ -112,10 +113,16 @@ def _run_file_mechanism(reg, params):
             f.write(content)
         return True, "写了 %s（%d 字节）" % (path, len(content))
     if mech == "FileDelete":
+        # ★★★ 2026-10-19 判据 C10（凡清除必留证）：删除必须【写理由】——
+        #   ★ 理由随结果回本体 ⇒ 进账（`kind_of=result` 那一笔把 body 一起记）⇒ 这一笔可被任何人复核。
+        #   ★ 不许「笔误了事」：没有理由 ⇒ 拒，不删。
+        reason = (params.get("reason") or "").strip()
+        if not reason:
+            return False, "删除要写理由（★ 凡清除必留证：params.reason 不能空）"
         if not os.path.exists(path):
             return False, "没有这个文件：%s" % path
         os.remove(path)
-        return True, "删了 %s" % path
+        return True, "删了 %s（理由：%s）" % (path, reason)
     if mech == "FilePatch":
         search = reg.get("search") or ""
         replace = reg.get("replace") or ""

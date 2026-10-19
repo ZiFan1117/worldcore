@@ -159,14 +159,18 @@ class Space:
         log("③ 人的动作：%s（comp=%s）" % (name, d.get("component")))
         if name == "space.login":
             # ★ 有人要登录 —— 是谁？★ 我这里是那个人的空间 ⇒ 报 human 并把空间置 active
-            params = act.get("params") or {}
+            # ★★ 2026-10-19 修：原来这里写的 `act.get("params")` —— `act` 在这个函数里【不存在】
+            #   （形参是 sample／局部叫 d）⇒ 一点登录就是 NameError，回调直接炸。
+            _ev = _a.get("event") if isinstance(_a, dict) else None
+            params = d.get("params") or ((_ev or {}).get("context") if isinstance(_ev, dict) else None) or {}
             who = params.get("user") or USER
             log("③ 登录请求 user=%s ⇒ 报 human/%s ＋ 空间 active" % (who, who))
+            self.state = "active"
             self.s.put("world/appear", json.dumps({
                 "class": "human", "name": who,
-                "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                # ★ human.last_seen 是 integer（UNIX 秒）；原来传 ISO 字符串 ⇒ 本体拒。
+                "last_seen": int(time.time()),
             }, ensure_ascii=False))
-            self.state = "active"
             self.s.put("world/appear", json.dumps({
                 "class": "space", "name": USER, "owner": who, "state": "active",
             }, ensure_ascii=False))

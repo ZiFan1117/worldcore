@@ -82,8 +82,8 @@
 | ★ 本体 | ★ **11 类 / 5 关系 / 19 动作 / 9 函数** | ★ `build_aios_ontology()` |
 | ★ 命令映射 | ★ **156 条** | ★ 只读 40 条自动放行；变更 116 条默认拒（要人确认） |
 | ★ 进程 | ★ **7 个在跑**（★ 6 个我们的 ＋ 1 个总线） | ★ `systemctl is-active` |
-| ★ 代码 | ★ **3,886 行**（★ 六个进程 ＋ 对象模型） | ★ 见 §四 |
-| ★ 判据 | ★ **28 条** | ★ `scripts/test/check.py` |
+| ★ 代码 | ★ **4,047 行**（★ 六个进程目录全部源码 ＋ 对象模型，含渲染半） | ★ 见 §四 |
+| ★ 判据 | ★ **28 条** | ★ `scripts/test/check.py`（现取：全绿 rc=0；反例自检 rc=0） |
 
 ## ★★★ 现取：验过什么（不是"应该能行"）
 
@@ -100,8 +100,11 @@
 | 9 | 呈现按票过滤（★ 冒充者被拒） | ✓ |
 | 10 | ★★ **登录 ⇒ 切桌面** | ✓ |
 | 11 | `surface` 类撤销生效 | ✓ |
+| 12 | ★★ **删除／撤画布必须写理由**（无理由 ⇒ 拒、且不删；有理由 ⇒ 随结果进账） | ✓ |
+| 13 | ★★ **不合 A2UI 目录的帧整帧拒**（不静默过滤） | ✓ |
+| 14 | ★★ **删 crate 后 156 条映射表重新现取**（可用 59 ／ 本发行版不支持 97；只读动作真跑过） | ✓ |
 
-★★ **⇒ 11 条全过**（★ 每条都有现取日志／截图）。
+★★ **⇒ 以上全过**（★ 每条都有现取日志／截图）。
 
 ## ★★ 还没做的（★ 如实）
 
@@ -109,6 +112,8 @@
 |---|---|
 | ★★ **人确认**（★ 变更类 116 条全拒） | ★ 标准还没定（★ 谁批／怎么批／批了记哪／管多久 四格全空）⇒ ★ **写在书 6.9** |
 | ★ **身份由入口给出** | ★ 现在 `actor` 从请求里取；★ **但有票时票覆盖它** |
+| ★ **动作级审批凭据**（绑动作＋参数、一号一用） | ★ 未实现（★ `permit` 待作者裁；今天是「票」＋ 本体判定） |
+| ★ **多 surface 摆放** | ★ 呈现按个人空间给的 layout 叠；★ agent 帧今天收下、但没铺进布局 |
 | ★ 多个人同时在线 | ★ 只有一个 `space/zhang` |
 | ★ 大对象货运道 / 四值头部 / 说法自指纹 | ★ 现在用不上（★ 见书第四章） |
 
@@ -118,28 +123,29 @@
 
 ```
 src/
-  ontology/              ★★ 本体 —— 1,076 行 / 3 件
+  ontology/              ★★ 本体 —— 1,074 行 / 3 件
     ontology_definition.py     ★ 世界的法律：11 类 ＋ 5 关系 ＋ 19 动作 ＋ 许可条文
     ontology_process.py        ★ 本体进程：认 · 盖章 · 转 · 记（＋ 闸①②③）
     identity.py                ★ 认证：认人 / 发票 / 查票 / 销票
     data/a2ui-catalog-basic.json   ★ A2UI 元件白名单
 
-  computer/              ★ 计算机（执行器）—— 284 行
-    computer_process.py        ★ 读映射表 ⇒ 调命令 ⇒ 回话
+  computer/              ★ 计算机（执行器）—— 290 行
+    computer_process.py        ★ 读映射表 ⇒ 调命令 ⇒ 回话（★ 清除要写理由）
 
-  presentation/          ★★ 呈现 —— 799 行 / 3 件
+  presentation/          ★★ 呈现 —— 922 行 / 4 件
     presentation_process.py    ★ 合成器 ＋ 4 动作 ＋ 本机 TCP 桥（7450）
     login_frame.py             ★ 登录画布
+    frame_schema.py            ★ A2UI 目录白名单 ＋ 整帧校验（不合 ⇒ 整帧拒）
     render_main.dart           ★ 渲染半（Flutter ＋ genui）
 
-  space/                 ★ 个人空间 —— 269 行 / 2 件
+  space/                 ★ 个人空间 —— 271 行 / 2 件
     space_process.py           ★ 凭票进 ＋ 出画布 ＋ 给布局
     desktop_frame.py           ★ 桌面画布（18 组件 ＋ layout）
 
-  agent/                 ★ 智能体 —— 219 行
-    agent_llm.py               ★ 模型在环：问世界 ⇒ 决定 ⇒ 出帧
+  agent/                 ★ 智能体 —— 265 行
+    agent_llm.py               ★ 模型在环：问世界 ⇒ 决定 ⇒ 出帧（★ 发帧前自核 A2UI 目录）
 
-  foundry_ontology/      ★ 对象模型 —— 1,239 行 / 14 件
+  foundry_ontology/      ★ 对象模型 —— 1,225 行 / 14 件
     core/                      ★ 类型定义（ObjectType / ActionType / LinkType / Interface）
     engine/                    ★ 运行时（ObjectStore / QueryEngine / AuditLog / ActionExecutor）
 

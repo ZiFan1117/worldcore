@@ -16,6 +16,7 @@
 
 import json
 import os
+import sys
 import time
 import urllib.request
 import uuid
@@ -122,12 +123,49 @@ SYS_PLAN = (
 SYS_DRAW = (
     "你是 AI-OS 世界的界面作者。给你【世界状态】和【刚做的那件事的结果】，\n"
     "请输出一帧 A2UI v1.0 的【组件数组】—— 只输出数组本身，不要外层包裹。\n"
-    "可用组件：Text(text, 支持 **粗体**)、Column(children)、Row(children)、Card(child)、"
-    "List(children)、Divider、Button(text)、Icon(name)。\n"
+    "可用组件（只许这些，名字逐字）：\n"
+    "· Text(text) —— 支持 **粗体**\n"
+    "· Column(children)／Row(children)／List(children) —— children 是【id 字符串数组】\n"
+    "· Card(child) —— child 是【一个 id 字符串】\n"
+    "· Divider\n"
+    "· Button(child) —— ★ child 必须是【某个 Text 组件的 id】，Button 自己不写文字\n"
+    "· Icon(name)\n"
+    "★★ 铁律（不合就不发）：children／child 里只许写【组件的 id 字符串】，"
+    "绝不许把组件对象内联进去；Button 必须写成 "
+    "{\"id\":\"…\",\"component\":\"Button\",\"child\":\"<某个Text的id>\"}。\n"
     "★ 第一个组件必须是 {\"id\":\"root\",\"component\":\"Column\",\"children\":[…]}\n"
-    "★ 每个组件必须有唯一 id（root 除外用别的）。★ 简洁、最多 15 个组件。\n"
-    '★ 严格输出 JSON：{"components": [...]}'
+    "★ 每个组件 id 唯一。★ 最多 15 个组件。\n"
+    "★ 严格输出 JSON：{\"components\": [...]}"
 )
+
+
+def _frame_problems(frame):
+    """★ 发之前自己按 A2UI 目录核一遍（与呈现同一份 frame_schema）——不合就不发。
+
+    ★ 核不了（目录件/模块不在）⇒ 也算问题 ⇒ 不发：★ 宁可不画，也不发「不知道合不合」的帧。
+    """
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        sys.path.insert(0, os.path.join(os.path.dirname(here), "presentation"))
+        import frame_schema  # noqa: E402
+        return frame_schema.validate_frame(frame)
+    except Exception as e:
+        return ["核不了帧（%s: %s）" % (type(e).__name__, str(e)[:120])]
+
+
+def build_frame(comps):
+    """★ 把模型给的组件数组包成一帧（surface 名＝agent/<名字>）。"""
+    return {"version": "v1.0",
+            "name": "模型画的界面（★ agent/%s 经本体）" % NAME,
+            "messages": [
+                {"version": "v1.0", "createSurface": {
+                    "surfaceId": "agent/%s" % NAME,
+                    "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+                    "sendDataModel": True}},
+                {"version": "v1.0", "updateComponents": {
+                    "surfaceId": "agent/%s" % NAME, "components": comps}},
+            ]}
+
 
 
 def main():
@@ -199,16 +237,25 @@ def main():
             time.sleep(ROUND)
             continue
         comps = draw["components"]
-        frame = {"version": "v1.0",
-                 "name": "模型画的界面（★ agent/%s 经本体）" % NAME,
-                 "messages": [
-                     {"version": "v1.0", "createSurface": {
-                         "surfaceId": "agent/%s" % NAME,
-                         "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
-                         "sendDataModel": True}},
-                     {"version": "v1.0", "updateComponents": {
-                         "surfaceId": "agent/%s" % NAME, "components": comps}},
-                 ]}
+        frame = build_frame(comps)
+        probs = _frame_problems(frame)
+        if probs:
+            log("④ 帧不合 A2UI 目录 ⇒ ★ 不发（不静默过滤）：%s" % "；".join(probs[:3]))
+            # ★ 给模型一次【看见自己错在哪】的机会：把问题回给同一次画帧
+            draw2, err3 = ask_llm(
+                SYS_DRAW + "\n★★ 你上一次的画被拒，原因：" + "；".join(probs[:3]) +
+                "\n严格按铁律重画一帧。", payload)
+            if err3 or not isinstance(draw2, dict) or not isinstance(draw2.get("components"), list):
+                log("④ 重画失败：%s ⇒ 本轮不发帧" % (err3 or "返回不是 components 数组"))
+                time.sleep(ROUND)
+                continue
+            comps = draw2["components"]
+            frame = build_frame(comps)
+            probs = _frame_problems(frame)
+            if probs:
+                log("④ 重画仍不合目录 ⇒ 本轮不发帧：%s" % "；".join(probs[:3]))
+                time.sleep(ROUND)
+                continue
         a.notice(frame, "模型画的界面")
         log("④ 发帧（★ 经本体 world/notice）：%d 个组件" % len(comps))
         time.sleep(ROUND)

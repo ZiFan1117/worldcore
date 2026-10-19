@@ -313,10 +313,10 @@
   {
    "action": "sys.AptListUpgradable",
    "mechanism": "Command",
-   "program": "bash",
+   "program": "apt",
    "args": [
-    "-c",
-    "apt list --upgradable 2>/dev/null"
+    "list",
+    "--upgradable"
    ],
    "env": {},
    "params": []
@@ -324,10 +324,12 @@
   {
    "action": "sys.AptHistoryList",
    "mechanism": "Command",
-   "program": "bash",
+   "program": "grep",
    "args": [
-    "-c",
-    "grep -A 4 '^Start-Date' /var/log/apt/history.log | tail -n 80"
+    "-A",
+    "4",
+    "^Start-Date",
+    "/var/log/apt/history.log"
    ],
    "env": {},
    "params": []
@@ -1301,7 +1303,8 @@
    "args": [],
    "env": {},
    "params": [
-    "repo_id"
+    "repo_id",
+    "reason"
    ]
   },
   {
@@ -1413,15 +1416,13 @@
   {
    "action": "sys.CheckPendingReboot",
    "mechanism": "Command",
-   "program": "bash",
+   "program": "test",
    "args": [
-    "-c",
-    "{script}"
+    "-f",
+    "/var/run/reboot-required"
    ],
    "env": {},
-   "params": [
-    "script"
-   ]
+   "params": []
   },
   {
    "action": "sys.UbuntuReleaseUpgrade",

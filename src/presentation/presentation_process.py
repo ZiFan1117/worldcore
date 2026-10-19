@@ -30,6 +30,7 @@ import time
 import zenoh
 
 from login_frame import login_frame
+from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  # noqa: F401
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -56,6 +57,10 @@ ACTIONS = [
 
 def log(*a):
     print("[呈现]", *a, flush=True)
+
+
+# ★★ A2UI 目录白名单与整帧校验在 frame_schema.py（C27：一文件一块）；本文件只用它。
+#    ★ 口径：「只借 A2UI 的目录白名单 ＋ 没相容目录就不发」；不合 ⇒ 整帧拒（不静默过滤）。
 
 
 class Bridge:
@@ -212,6 +217,10 @@ class Presentation:
             frame = params.get("frame") or {}
             if not sid or not frame:
                 return False, "缺参数：surface 和 frame 都要给"
+            bad = validate_frame(frame)
+            if bad:
+                log("④ 画布不合 A2UI 目录 ⇒ ★ 整帧拒（不静默过滤）：%s" % "；".join(bad[:3]))
+                return False, "帧不合 A2UI 基本目录：%s" % "；".join(bad[:5])
             with self.lock:
                 self.shown[sid] = frame
                 if frame.get("layout"):
@@ -221,10 +230,15 @@ class Presentation:
                 sid, len(json.dumps(frame)), len(self.shown))
         if act == "presentation.retract_surface":
             sid = params.get("surface") or ""
+            # ★★★ 判据 C10（凡清除必留证）：撤画布必须【写理由】，理由随结果回本体 ⇒ 进账。
+            reason = (params.get("reason") or "").strip()
+            if not reason:
+                return False, "撤下画布要写理由（★ 凡清除必留证：params.reason 不能空）"
             with self.lock:
                 had = self.shown.pop(sid, None) is not None
             self.compose()
-            return had, ("已撤下 %s" % sid if had else "本来就没有 %s" % sid)
+            return had, ("已撤下 %s（理由：%s）" % (sid, reason) if had
+                         else "本来就没有 %s（理由：%s）" % (sid, reason))
         if act == "presentation.list_surfaces":
             with self.lock:
                 rows = [{"surface": k, "bytes": len(json.dumps(v)),
@@ -267,7 +281,14 @@ class Presentation:
         return f if isinstance(f, dict) else None
 
     def _absorb(self, f, env):
-        """★★ 收下一张画布 ⇒ 合。★ 桌面画布来了就撤登录画布。"""
+        """★★ 收下一张画布 ⇒ 合。★ 桌面画布来了就撤登录画布。
+
+        ★★★ 判据 C24：不合 A2UI 基本目录的帧【整帧拒】—— ★ 不许静默过滤掉不认的元件。
+        """
+        bad = validate_frame(f)
+        if bad:
+            log("② 画布不合 A2UI 目录 ⇒ ★ 整帧拒（不静默过滤）：%s" % "；".join(bad[:3]))
+            return
         sid = _surface_of(f)
         if not sid:
             return
