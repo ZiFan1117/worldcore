@@ -39,6 +39,26 @@ def log(*a):
     print("[web]", *a, flush=True)
 
 
+def scenes_dir():
+    return os.environ.get("AIOS_SCENES_DIR", "/var/lib/aios/scenes")
+
+
+def list_scenes():
+    """★ P3：列出已落盘的画布文件（人能看世界有哪些场景）。"""
+    d = scenes_dir()
+    if not os.path.isdir(d):
+        return []
+    return sorted(n for n in os.listdir(d) if n.endswith(".json"))
+
+
+def read_scene(surface):
+    """★ 按 surface id 读场景文件（surface/desktop-zhang → surface_desktop-zhang.json）。"""
+    name = str(surface or "").replace("/", "_") + ".json"
+    p = os.path.join(scenes_dir(), name)
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def agent_heartbeat(path=None):
     """★（P7）读 agent 心跳（默认 /run/aios/agent-heartbeat.json），返回 (ok, hb, age秒)。"""
     p = path or os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
@@ -274,6 +294,18 @@ class Handler(BaseHTTPRequestHandler):
                     "</script>" % blob)
             html = html.replace("</body>", tail + "</body>")
             self._send(200, html, "text/html; charset=utf-8")
+            return
+        if path.startswith("/scenes"):
+            self._send(200, {"ok": True, "scenes": list_scenes()})
+            return
+        if path.startswith("/scene"):
+            from urllib.parse import parse_qs
+            q = parse_qs(urlsplit(self.path).query)
+            surface = (q.get("surface") or [""])[0]
+            try:
+                self._send(200, {"ok": True, "scene": read_scene(surface)})
+            except Exception as e:
+                self._send(404, {"ok": False, "why": "没有这个场景：%s（%s）" % (surface, e)})
             return
         if path.startswith("/agent"):
             ok, hb, age = agent_heartbeat()
