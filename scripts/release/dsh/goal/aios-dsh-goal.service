@@ -1,0 +1,16 @@
+[Unit]
+Description=AI-OS 限时目标（DSH · 高权限 · 到点停）
+After=network-online.target aios-ontology.service aios-watchdog.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/aios-work
+EnvironmentFile=-/root/.dsh/env.dsh
+Environment=AIOS_DSH_WORK=/root/aios-work
+Environment=AIOS_OPTIMIZE_REPORTS=/root/aios-goal-reports
+ExecStart=/usr/local/bin/aios-goal-run.sh
+TimeoutStartSec=2400
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

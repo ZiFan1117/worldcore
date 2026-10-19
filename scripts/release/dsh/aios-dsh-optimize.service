@@ -1,0 +1,16 @@
+[Unit]
+Description=AI-OS 环境自优化（DSH · 高权限 · 先快照后验收）
+After=network-online.target aios-ontology.service aios-watchdog.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/aios-work
+EnvironmentFile=-/root/.dsh/env.dsh
+Environment=AIOS_DSH_WORK=/root/aios-work
+Environment=AIOS_OPTIMIZE_REPORTS=/root/aios-optimize-reports
+ExecStart=/root/aios-dsh-optimize.sh
+TimeoutStartSec=2400
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

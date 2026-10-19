@@ -1,0 +1,12 @@
+[Unit]
+Description=AI-OS 看门狗（单元/本体/资源/定时器体检；坏了自愈或停机）
+After=network-online.target aios-ontology.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/aios-watchdog.sh
+TimeoutStartSec=300
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

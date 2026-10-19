@@ -1,0 +1,10 @@
+[Unit]
+Description=AI-OS 目标截止定时器（绝对时刻；错过也会由下一轮脚本兜底）
+
+[Timer]
+OnCalendar=2026-10-20 00:00:00
+Persistent=true
+Unit=aios-goal-stop.service
+
+[Install]
+WantedBy=timers.target

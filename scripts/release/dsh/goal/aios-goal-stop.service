@@ -1,0 +1,9 @@
+[Unit]
+Description=AI-OS 目标到点强制停链（06:00 Asia/Shanghai）
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/aios-goal-stop.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,94 @@
+#!/bin/bash
+# ★ AI-OS 看门狗 —— 只做一件事：别让（自优化的）系统自己跑崩。
+# 每 3 分钟一次：
+#   ① 7 个单元都活着（掉了就重启，记下来）
+#   ② 本体还能装起来（export-law --check；坏了就用 last-good 快照恢复）
+#   ③ 磁盘/内存/负载不越线
+#   ④ 进化/自优化定时器没连环失败（失败就停 timer，等人看）
+# 输出：/var/log/aios-watchdog.log（人看）＋ /var/log/aios-watchdog.jsonl（一行一读数）
+set -uo pipefail
+
+UNITS="aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent"
+LOG=/var/log/aios-watchdog.log
+JSONL=/var/log/aios-watchdog.jsonl
+BACKUP_DIR=/var/backups/aios
+SNAP="$BACKUP_DIR/lastgood.tar.gz"
+TS=$(date -Is)
+fail=0
+notes=""
+
+say() { echo "[$(date -Is)] $*" | tee -a "$LOG" >>/dev/null; }
+mark() { notes="$notes; $*"; fail=1; }
+
+# ① 单元（★ 掉线被拉起 = 记一笔但【不算失败】；只有拉不起来才算红）
+for u in $UNITS; do
+  if ! systemctl is-active --quiet "$u"; then
+    say "单元 $u 不活 → 重启"
+    systemctl restart "$u" >/dev/null 2>&1 || true
+    sleep 3
+    if systemctl is-active --quiet "$u"; then
+      notes="$notes; 已拉起 $u"
+    else
+      mark "unit $u 重启后仍不活"
+    fi
+  fi
+done
+
+# ② 本体还装得起来
+LAW_OUT=$(PYTHONIOENCODING=utf-8 python3 /root/aios/scripts/release/export-law.py --check 2>&1 | tail -1)
+if ! echo "$LAW_OUT" | grep -q "一致"; then
+  mark "law check FAILED: $LAW_OUT"
+  say "本体装不起来 → 用 last-good 快照恢复（$SNAP）"
+  if [ -f "$SNAP" ]; then
+    tar -xzf "$SNAP" -C / >/dev/null 2>&1 || mark "快照恢复失败"
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    for u in aios-ontology aios-space aios-presentation aios-presentation-render aios-agent; do
+      systemctl restart "$u" >/dev/null 2>&1 || true
+    done
+    sleep 3
+    systemctl is-active --quiet aios-ontology || mark "恢复后本体仍不活"
+  else
+    mark "没有 last-good 快照，无法恢复"
+  fi
+fi
+
+# ③ 资源
+DISK=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+MEM=$(free -m | awk '/^Mem:/{print $7}')
+if [ "${DISK:-100}" -ge 95 ]; then mark "disk ${DISK}%"; fi
+if [ "${MEM:-0}" -lt 200 ]; then mark "mem avail ${MEM}MB"; fi
+
+# ④ 定时器失败（连续失败 = 别让它继续跑）
+for t in aios-dsh-evolve.timer aios-dsh-optimize.timer aios-dsh-goal.timer; do
+  if systemctl is-enabled --quiet "$t" 2>/dev/null; then
+    svc=${t%.timer}.service
+    rc=$(systemctl show -p ExecMainStatus --value "$svc" 2>/dev/null || echo "")
+    if [ "${rc:-0}" != "0" ]; then
+      mark "timer $t 的上一轮失败 rc=$rc"
+      say "停掉 $t（等人看）"
+      systemctl stop "$t" >/dev/null 2>&1 || true
+    fi
+  fi
+done
+
+# 成功 → 每小时刷新一次 last-good 快照
+if [ "$fail" -eq 0 ]; then
+  mkdir -p "$BACKUP_DIR"
+  if [ ! -f "$SNAP" ] || [ $(( $(date +%s) - $(stat -c %Y "$SNAP" 2>/dev/null || echo 0) )) -gt 3600 ]; then
+    tar -czf "$SNAP" \
+      /root/aios/src /usr/lib/aios/src /root/.dsh/profiles \
+      /etc/systemd/system/aios-*.service /etc/systemd/system/aios-*.timer \
+      >/dev/null 2>&1 || mark "快照失败"
+  fi
+fi
+
+if [ "$fail" -ne 0 ]; then
+  say "红：$notes → 停掉进化/自优化定时器，等人看"
+  systemctl stop aios-dsh-evolve.timer aios-dsh-optimize.timer >/dev/null 2>&1 || true
+fi
+printf '{"at":"%s","fail":%d,"notes":%s,"units_ok":%d,"disk":%s,"mem_avail":%s,"law":"%s"}\n' \
+  "$TS" "$fail" "$(printf '%s' "$notes" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || echo '""')" \
+  "$(for u in $UNITS; do systemctl is-active --quiet "$u" && echo 1; done | wc -l)" \
+  "${DISK:-?}" "${MEM:-?}" "$(echo "$LAW_OUT" | sed 's/"/\\"/g')" >> "$JSONL"
+[ -s "$LOG" ] && tail -n 2000 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
+exit "$fail"

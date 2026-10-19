@@ -1,0 +1,11 @@
+[Unit]
+Description=AI-OS 限时目标定时器（每 30 分钟一轮，到点自动停）
+
+[Timer]
+OnCalendar=*:0/30
+Persistent=true
+RandomizedDelaySec=30
+Unit=aios-dsh-goal.service
+
+[Install]
+WantedBy=timers.target

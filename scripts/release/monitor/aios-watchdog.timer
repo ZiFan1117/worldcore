@@ -1,0 +1,11 @@
+[Unit]
+Description=AI-OS 看门狗定时器（每 3 分钟）
+
+[Timer]
+OnCalendar=*:0/3
+Persistent=true
+RandomizedDelaySec=20
+Unit=aios-watchdog.service
+
+[Install]
+WantedBy=timers.target

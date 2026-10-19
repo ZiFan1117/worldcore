@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 43 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 44 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,6 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| 看门狗＋限时目标 | 看门狗每 3 分钟：7 单元／本体可装起／资源线／定时器失败即停；目标链每 30 分钟一轮（高权限、快照、验收红回滚），**06:00 Asia/Shanghai 到点强制停链** |
 | DSH（VM） | 已装 **0.2.1-rc.2**（npm `latest` 同版）；headless 经本体问出 22 个注册动作；evolve 能改 `world.json`＋`export-law --check`＋还原；**每 6 小时一轮进化提案**（只提案、不落法、不推） |
 | 账的读闸 | **秘密不落账**（票/密码脱敏）＋**匿名查历史拒**＋**人只看自己空间、Agent 只看自己＋当前空间**（跨空间授权未做） |
 | 界面/桌面状态动作 | 提供者**注册时就预留** `presentation.state`／`space.state`；问一次回全（surfaces/layout/screen/actives；user/state/guests/own）；Agent 用它看屏 |
@@ -352,11 +353,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**43 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**44 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (43/43, rc=0)
+python scripts/test/check.py              → all green (44/44, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -369,6 +370,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| Watchdog + timed goal | watchdog every 3 min: 7 units / ontology loads / resources / timers; goal chain every 30 min (high privilege, snapshot, rollback on red), **hard stop at 06:00 Asia/Shanghai** |
 | DSH (VM) | installed **0.2.1-rc.2** (same as npm `latest`); headless asks the ontology and gets 22 registered actions; evolve can edit `world.json` + `export-law --check` + revert; **an evolution proposal every 6 hours** (proposal only, never signs, never pushes) |
 | Ledger read gate | **no secrets in the ledger** (tickets/passwords redacted) + **anonymous history refused** + **humans see only their space, agents see themselves + the current space** (cross-space grants not done yet) |
 | UI/desktop state actions | providers reserve `presentation.state` / `space.state` **at registration time**; one call returns everything (surfaces/layout/screen/actives; user/state/guests/own); the agent uses it to see the screen |
