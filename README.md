@@ -174,7 +174,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 世界分叉/时间线（P4） | `world_snapshot.py fork --snap DIR --name X` 拷出一个平行世界（`fork.json` 记 parent，不改原件）；`timeline` 列快照＋分叉 |
 | 世界快照（P4） | `scripts/release/world_snapshot.py`：账＋注册表＋对象库＋法源打包成快照；`verify` 验、`restore --yes` 回滚（先备份）；`prune --keep 24`；**每小时定时快照**；不含票/密码 |
 | P8 事件回放 | `world/query kind=events`：从账里回放最近事件（按身份/空间过滤，只公开字段）——掉线后可补看 |
-| P8 事件流 | 本体账落完即推 `world/event`（只公开字段）；空间按空间过滤并实时重画「活动」窗口；Agent 订阅事件进规划上下文（activity）；**登录/启动时回放最近事件（掉线补推）** |
+| P8 事件流 | 本体账落完即推 `world/event`（只公开字段）；空间按空间过滤并实时重画「活动」窗口；Agent 订阅事件进规划上下文（activity）；**登录/启动时回放最近事件（掉线补推），带游标 `since` 精确续传** |
 | 看门狗＋限时目标 | 看门狗每 3 分钟：7 单元／本体可装起／资源线／定时器失败即停；目标链每 30 分钟一轮（高权限、快照、验收红回滚），**06:00 Asia/Shanghai 到点强制停链** |
 | DSH（VM） | 已装 **0.2.1-rc.2**（npm `latest` 同版）；headless 经本体问出 22 个注册动作；evolve 能改 `world.json`＋`export-law --check`＋还原；**每 6 小时一轮进化提案**（只提案、不落法、不推） |
 | 账的读闸 | **秘密不落账**（票/密码脱敏）＋**匿名查历史拒**＋**人只看自己空间、Agent 只看自己＋当前空间**（跨空间授权未做） |
@@ -393,7 +393,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | World fork/timeline (P4) | `world_snapshot.py fork --snap DIR --name X` copies a snapshot into a parallel world (`fork.json` records the parent; original untouched); `timeline` lists snapshots + forks |
 | World snapshot (P4) | `scripts/release/world_snapshot.py`: packs ledger + registry + object store + law into a snapshot; `verify` checks it, `restore --yes` rolls back (with pre-restore backups); `prune --keep 24`; **hourly timer**; no tickets/passwords |
 | P8 event replay | `world/query kind=events`: replays recent events from the ledger (identity/space filtered, public fields only) — recovery after a dropped connection |
-| P8 event stream | the ontology pushes `world/event` after each ledger row (public fields only); the space filters by space and live-redraws the “activity” window; the agent subscribes and feeds events into its planning context; **recent events are replayed on login/startup (offline catch-up)** |
+| P8 event stream | the ontology pushes `world/event` after each ledger row (public fields only); the space filters by space and live-redraws the “activity” window; the agent subscribes and feeds events into its planning context; **recent events are replayed on login/startup (offline catch-up) with a `since` cursor** |
 | Watchdog + timed goal | watchdog every 3 min: 7 units / ontology loads / resources / timers; goal chain every 30 min (high privilege, snapshot, rollback on red), **hard stop at 06:00 Asia/Shanghai** |
 | DSH (VM) | installed **0.2.1-rc.2** (same as npm `latest`); headless asks the ontology and gets 22 registered actions; evolve can edit `world.json` + `export-law --check` + revert; **an evolution proposal every 6 hours** (proposal only, never signs, never pushes) |
 | Ledger read gate | **no secrets in the ledger** (tickets/passwords redacted) + **anonymous history refused** + **humans see only their space, agents see themselves + the current space** (cross-space grants not done yet) |

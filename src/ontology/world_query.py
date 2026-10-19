@@ -197,6 +197,10 @@ def handle(smp, w, session, log=print):
             # ★ ui.act 是「人的公开动作」事件（notice 行没有 actor）⇒ 回放时对所有已核身份可见
             rows += [r for r in cand if r not in rows and r.get("notice_kind") == "ui.act"]
             rows.sort(key=lambda r: str(r.get("at") or ""))
+            # ★ P8 精确续传（2026-10-20）：since 之后的事件（严格大于，避免重复回放游标那条）
+            since = msg.get("since") or (msg.get("filter") or {}).get("since")
+            if since:
+                rows = [r for r in rows if str(r.get("at") or "") > str(since)]
             limit = int(msg.get("limit") or 50)
             limit = max(1, min(limit, 500))
             tail = rows[-limit:]
@@ -207,8 +211,11 @@ def handle(smp, w, session, log=print):
                             "actor": r.get("actor"), "ok": r.get("ok"),
                             "code": r.get("code"), "category": r.get("category"),
                             "space": row_space(r, w)})
+            cursor = (tail[-1].get("at") if tail else
+                      (rows[-1].get("at") if rows else (since or None)))
             data = {"count": len(evs), "total": len(rows), "bad_lines": bad_lines,
-                    "viewer": viewer, "space": vspace, "events": evs}
+                    "viewer": viewer, "space": vspace, "events": evs,
+                    "cursor": cursor}
         elif kind == "overview":
             # ★★ 本体「一眼看全」：给本体窗口用（类/接口/关系/动作/个体/注册表/账）
             classes = {}

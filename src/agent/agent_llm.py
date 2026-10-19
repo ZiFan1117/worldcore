@@ -134,6 +134,28 @@ class Agent:
         return {"surfaces": {"count": b.get("count"), "surfaces": b.get("surfaces")},
                 "layout": b.get("layout"), "screen": b.get("screen")}
 
+    def _cursor_path(self):
+        d = os.environ.get("AIOS_CURSOR_DIR", "/var/lib/aios/cursors")
+        return os.path.join(d, "agent-dsh.json")
+
+    def _read_cursor(self):
+        try:
+            with open(self._cursor_path(), encoding="utf-8") as f:
+                return json.load(f).get("cursor")
+        except Exception:
+            return None
+
+    def _write_cursor(self, cur):
+        if not cur:
+            return
+        try:
+            p = self._cursor_path()
+            os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump({"cursor": cur}, f, ensure_ascii=False)
+        except Exception:
+            pass
+
     def _remember_dict(self, e):
         """★ 去重后记一条（实时推与回放可能重复）。"""
         ev = {k: e.get(k) for k in
@@ -144,6 +166,7 @@ class Agent:
             return False
         self.events.append(ev)
         self.events = self.events[-30:]
+        self._write_cursor(ev.get("at"))
         return True
 
     def _remember_event(self, sample):
@@ -276,9 +299,12 @@ def main():
     a.appear()
     time.sleep(2.0)
     # ★ P8 补漏（2026-10-20）：启动时回放最近事件（掉线期间发生的事，进规划上下文）
-    boot = a.query(kind="events", limit=20)
+    cur = a._read_cursor()
+    boot = a.query(kind="events", limit=20, since=cur) if cur else a.query(kind="events", limit=20)
     for e in (boot.get("data") or {}).get("events") or []:
         a._remember_dict(e)
+    data = boot.get("data") or {}
+    a._write_cursor(data.get("cursor") or (a.events[-1].get("at") if a.events else None))
     log("① 回放最近事件 %d 条（掉线补漏）" % len(a.events))
 
     def on_exec(m):

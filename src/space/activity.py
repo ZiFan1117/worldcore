@@ -5,7 +5,35 @@
 ★ 这里只做：收本空间事件 ⇒ 活动窗口实时重画；窗口开关由 space_process 的图标处理。
 """
 import json
+import os
 import time
+
+def _cursor_dir():
+    return os.environ.get("AIOS_CURSOR_DIR", "/var/lib/aios/cursors")
+
+
+def _cursor_path(name):
+    return os.path.join(_cursor_dir(), name + ".json")
+
+
+def _read_cursor(name):
+    try:
+        with open(_cursor_path(name), encoding="utf-8") as f:
+            return json.load(f).get("cursor")
+    except Exception:
+        return None
+
+
+def _write_cursor(name, cursor):
+    if not cursor:
+        return
+    try:
+        os.makedirs(_cursor_dir(), exist_ok=True)
+        with open(_cursor_path(name), "w", encoding="utf-8") as f:
+            json.dump({"cursor": cursor, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, f,
+                      ensure_ascii=False)
+    except Exception:
+        pass
 
 
 class ActivityMixin:
@@ -65,15 +93,22 @@ class ActivityMixin:
             return
         rid = "sp-replay-%d" % int(time.time() * 1000)
         self.pending[rid] = {"kind": "replay"}
-        self.s.put("world/query", json.dumps(
-            {"id": rid, "kind": "events", "ticket": self.ticket, "limit": 30},
-            ensure_ascii=False))
+        since = _read_cursor("space-" + self.user)
+        q = {"id": rid, "kind": "events", "ticket": self.ticket, "limit": 30}
+        if since:
+            q["since"] = since
+        print("[个人空间] ② 回放请求（since=%s）" % (since or "无（首次）"), flush=True)
+        self.s.put("world/query", json.dumps(q, ensure_ascii=False))
 
     def apply_replay(self, data):
         """★ 把回放结果并进 self.events（去重后保留最近 40 条）。"""
         evs = (data or {}).get("events") or []
         for e in evs:
             self._remember(e)
+        cur = (data or {}).get("cursor")
+        if not cur and evs:
+            cur = evs[-1].get("at")
+        _write_cursor("space-" + self.user, cur)
         if self.activity_open:
             self._draw_activity()
         return len(evs)
