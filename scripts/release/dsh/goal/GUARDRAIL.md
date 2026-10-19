@@ -45,3 +45,12 @@ bash /usr/local/bin/aios-gate.sh /root/aios-work   # 0=绿；1=红；2=环境
   改动对照 T-407，不擅自改。
 - 对齐判断改为 `git merge-base --is-ancestor origin/main HEAD`（合并后仍 ahead，但已含主机全部提交）。
 
+## 六、事故与自愈（2026-10-20 凌晨）
+
+- **事故**：18:30 那轮 agent 想优化自己（health.sh 预跑、changed 计数），直接改了 `/usr/local/bin/aios-goal-run.sh`，
+  改出**语法错**（`unexpected EOF while looking for matching '"'`，systemd `status=127`）。看门狗按设计停掉三条定时器，等人看。
+- **处置**：从本仓 `scripts/release/dsh/goal/run.sh`（T-407 版）装回 `/usr/local/bin`；`bash -n` 两脚本通过；
+  三条 timer 恢复；立刻起一轮验证。
+- **加固**：看门狗新增 ②b——`bash -n /usr/local/bin/aios-goal-run.sh` / `aios-gate.sh` 不过就从 `/root/aios` 恢复；
+  `GUARDRAIL.md` 规矩：**agent 要改 runner，只能改 `/root/aios-work` 里的副本并交人安装，不许直接改 `/usr/local/bin`**。
+

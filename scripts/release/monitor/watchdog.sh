@@ -52,6 +52,30 @@ if ! echo "$LAW_OUT" | grep -q "一致"; then
   fi
 fi
 
+# ②b ★ 目标脚本完整性（2026-10-20 事故）：agent 自改可能把 goal-run 写坏 ⇒ bash -n 不过就从 /root/aios 恢复
+if ! bash -n /usr/local/bin/aios-goal-run.sh 2>/dev/null; then
+  say "goal-run 语法坏了 → 从 /root/aios 恢复"
+  if [ -f /root/aios/scripts/release/dsh/goal/run.sh ]; then
+    cp /root/aios/scripts/release/dsh/goal/run.sh /usr/local/bin/aios-goal-run.sh
+    chmod 755 /usr/local/bin/aios-goal-run.sh
+    restorecon /usr/local/bin/aios-goal-run.sh 2>/dev/null || true
+    bash -n /usr/local/bin/aios-goal-run.sh 2>/dev/null && notes="$notes; goal-run 已恢复" || mark "goal-run 恢复后语法仍坏"
+  else
+    mark "goal-run 语法坏且没有恢复源"
+  fi
+fi
+if ! bash -n /usr/local/bin/aios-gate.sh 2>/dev/null; then
+  say "gate 语法坏了 → 从 /root/aios 恢复"
+  if [ -f /root/aios/scripts/release/dsh/goal/gate.sh ]; then
+    cp /root/aios/scripts/release/dsh/goal/gate.sh /usr/local/bin/aios-gate.sh
+    chmod 755 /usr/local/bin/aios-gate.sh
+    restorecon /usr/local/bin/aios-gate.sh 2>/dev/null || true
+    notes="$notes; gate 已恢复"
+  else
+    mark "gate 语法坏且没有恢复源"
+  fi
+fi
+
 # ③ 资源
 DISK=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 MEM=$(free -m | awk '/^Mem:/{print $7}')
