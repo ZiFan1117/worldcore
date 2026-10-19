@@ -164,7 +164,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
 | 记忆系统（提案） | 记忆＝**世界里的对象**（记忆/关系/动作/账），不是向量库当真相；写经本体、读按 owner/空间；**法改动待作者签**（`ninedim/…/提案-记忆系统-按本体理念-待裁-2026-10-20.md`） |
-| 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体 |
+| 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录（kiosk/截图） |
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
 | 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
@@ -380,7 +380,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
 | Memory system (proposal) | memory = **first-class world objects** (objects/relations/actions/ledger), not a vector DB as truth; written through the ontology, read scoped by owner/space; **law change awaits the author's signature** |
-| Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology |
+| Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login (kiosk/screenshots) |
 | Permission enforcement (guard-exec) | `src/guard/guard_exec.py`: applies **Landlock** (an LSM usable from userspace) to confine a child process's file access; `--dry-run` shows the plan, `--apply` enforces; out-of-policy writes are rejected by the kernel |
 | Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
 | World as files (P3) | `scripts/release/worldfs.py`: read-only export of the ledger into `events/<date>/<hour>.jsonl` + `INDEX.md` (greppable, queryable); public fields only — never params/tickets/body; systemd every 15 min |

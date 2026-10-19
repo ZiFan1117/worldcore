@@ -86,7 +86,16 @@ function connect() {
     else if (d.type === "event") addLog("event: " + JSON.stringify(d.event).slice(0, 160));
     else if (d.type === "logout") { surfacesClear(); addLog("已退出"); }
   });
-  es.onopen = () => setStatus("已连接（SSE）");
+  es.onopen = () => {
+    setStatus("已连接（SSE）");
+    // ★ 免交互演示/截图：?user=zhang&secret=0 连上就自动登录（也可给 kiosk 用）
+    if (autoUser && !autoTried) {
+      autoTried = true;
+      $("#user").value = autoUser;
+      $("#pass").value = autoSecret || "0";
+      login();
+    }
+  };
   es.onerror = () => setStatus("连接断开，重试中…");
 }
 
@@ -192,6 +201,9 @@ function speak(t) {
   window.speechSynthesis.speak(u);
 }
 
+const QS = new URLSearchParams(location.search);
+const autoUser = QS.get("user"), autoSecret = QS.get("secret");
+let autoTried = false;
 let rec = null, micOn = false;
 function toggleMic() {
   if (micOn) { micOn = false; if (rec) rec.stop(); $("#mic").textContent = "🎤 说话"; return; }

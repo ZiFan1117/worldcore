@@ -19,6 +19,7 @@ import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 
 import zenoh
 
@@ -172,14 +173,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         app = self.server.app
-        if self.path in ("/", "/index.html", "/voice.html"):
+        path = urlsplit(self.path).path   # ★ 去掉查询串（?user=…&secret=… 仍走页面）
+        if path in ("/", "/index.html", "/voice.html"):
             try:
                 with open(HTML, encoding="utf-8") as f:
                     self._send(200, f.read(), "text/html; charset=utf-8")
             except FileNotFoundError:
                 self._send(500, "voice.html 不在", "text/plain; charset=utf-8")
             return
-        if self.path.startswith("/events"):
+        if path.startswith("/events"):
             q = app.add_client()
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream; charset=utf-8")
