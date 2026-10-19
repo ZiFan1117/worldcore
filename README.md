@@ -171,6 +171,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
 | 长程闭环评估（P6） | `scripts/release/dsh/goal/round_eval.py`：把每轮报告/提交扫成 `rounds.jsonl`（证据/回滚/提交/缺报告都能数）；systemd 每 15 分钟 |
+| 世界分叉/时间线（P4） | `world_snapshot.py fork --snap DIR --name X` 拷出一个平行世界（`fork.json` 记 parent，不改原件）；`timeline` 列快照＋分叉 |
 | 世界快照（P4） | `scripts/release/world_snapshot.py`：账＋注册表＋对象库＋法源打包成快照；`verify` 验、`restore --yes` 回滚（先备份）；`prune --keep 24`；**每小时定时快照**；不含票/密码 |
 | P8 事件回放 | `world/query kind=events`：从账里回放最近事件（按身份/空间过滤，只公开字段）——掉线后可补看 |
 | P8 事件流 | 本体账落完即推 `world/event`（只公开字段）；空间按空间过滤并实时重画「活动」窗口；Agent 订阅事件进规划上下文（activity）；**登录/启动时回放最近事件（掉线补推）** |
@@ -389,6 +390,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
 | World as files (P3) | `scripts/release/worldfs.py`: read-only export of the ledger into `events/<date>/<hour>.jsonl` + `INDEX.md` (greppable, queryable); public fields only — never params/tickets/body; systemd every 15 min |
 | Long-horizon loop eval (P6) | `scripts/release/dsh/goal/round_eval.py`: turns each round's report/commit into `rounds.jsonl` (evidence / rollback / commit / missing reports are countable); systemd every 15 min |
+| World fork/timeline (P4) | `world_snapshot.py fork --snap DIR --name X` copies a snapshot into a parallel world (`fork.json` records the parent; original untouched); `timeline` lists snapshots + forks |
 | World snapshot (P4) | `scripts/release/world_snapshot.py`: packs ledger + registry + object store + law into a snapshot; `verify` checks it, `restore --yes` rolls back (with pre-restore backups); `prune --keep 24`; **hourly timer**; no tickets/passwords |
 | P8 event replay | `world/query kind=events`: replays recent events from the ledger (identity/space filtered, public fields only) — recovery after a dropped connection |
 | P8 event stream | the ontology pushes `world/event` after each ledger row (public fields only); the space filters by space and live-redraws the “activity” window; the agent subscribes and feeds events into its planning context; **recent events are replayed on login/startup (offline catch-up)** |

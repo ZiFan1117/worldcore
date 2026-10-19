@@ -9,6 +9,9 @@
   python3 world_snapshot.py list [--dir DIR]       # 列表（每份的 law hash / 账行数）
   python3 world_snapshot.py verify --snap DIR      # 验：文件齐、meta 齐、law hash 对得上
   python3 world_snapshot.py prune [--keep 24]       # 只留最近 N 份（定时快照用）
+  python3 world_snapshot.py fork --snap DIR --name NAME [--dir FORKDIR]
+      # 分叉：从一份快照拷出一个「平行世界」（不改原件）；fork.json 记 parent
+  python3 world_snapshot.py timeline [--dir DIR]    # 时间线：快照＋分叉（谁从谁分出来）
   python3 world_snapshot.py restore --snap DIR --yes [--restart]
       # 回滚：先备份现文件为 *.pre-restore-<ts>，再覆盖；--restart 才重启本体/空间（默认不重启）
 
@@ -117,6 +120,71 @@ def cmd_prune(args):
     return 0
 
 
+def cmd_fork(args):
+    """★ 分叉：从快照拷出一个平行世界（只读源；不改原件）。"""
+    if not os.path.isdir(args.snap):
+        print("拒：快照不存在 %s" % args.snap)
+        return 1
+    src_meta = os.path.join(args.snap, META)
+    if not os.path.isfile(src_meta):
+        print("拒：%s 不是快照（没有 %s）" % (args.snap, META))
+        return 1
+    base = args.dir or os.path.join(os.path.dirname(os.path.abspath(args.snap)), "forks")
+    name = args.name or _stamp()
+    dst = os.path.join(base, name)
+    if os.path.exists(dst) and not args.yes:
+        print("拒：分叉已存在 %s（要覆盖加 --yes）" % dst)
+        return 1
+    os.makedirs(base, exist_ok=True)
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    shutil.copytree(args.snap, dst)
+    with open(src_meta, encoding="utf-8") as f:
+        m = json.load(f)
+    fork = {"name": name, "parent": os.path.basename(os.path.abspath(args.snap)),
+            "parent_path": os.path.abspath(args.snap),
+            "at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+            "law": m.get("law"), "ledger_rows": m.get("ledger_rows"),
+            "files": m.get("files")}
+    with open(os.path.join(dst, "fork.json"), "w", encoding="utf-8") as f:
+        json.dump(fork, f, ensure_ascii=False, indent=2)
+    print("fork=%s" % dst)
+    print("parent=%s  ledger_rows=%s" % (fork["parent"], fork["ledger_rows"]))
+    return 0
+
+
+def cmd_timeline(args):
+    """★ 时间线：快照（根目录）＋分叉（forks 子目录），标出 parent。"""
+    d = args.dir or DEFAULT_DIR
+    rows = []
+    if os.path.isdir(d):
+        for name in sorted(os.listdir(d)):
+            mp = os.path.join(d, name, META)
+            if os.path.isfile(mp):
+                try:
+                    m = json.load(open(mp, encoding="utf-8"))
+                except Exception:
+                    continue
+                rows.append(("snapshot", name, "-", m.get("at"), m.get("ledger_rows")))
+    fdir = os.path.join(d, "forks")
+    if os.path.isdir(fdir):
+        for name in sorted(os.listdir(fdir)):
+            fp = os.path.join(fdir, name, "fork.json")
+            if not os.path.isfile(fp):
+                continue
+            try:
+                f = json.load(open(fp, encoding="utf-8"))
+            except Exception:
+                continue
+            rows.append(("fork", name, f.get("parent") or "-", f.get("at"),
+                         f.get("ledger_rows")))
+    for kind, name, parent, at, n in rows:
+        print("%-8s %-28s parent=%-24s at=%s rows=%s"
+              % (kind, name, parent, at, n))
+    print("total=%d" % len(rows))
+    return 0
+
+
 def cmd_verify(args):
     bad = []
     p = os.path.join(args.snap, META)
@@ -176,6 +244,15 @@ def main(argv=None):
     l = sub.add_parser("list")
     l.add_argument("--dir")
     l.set_defaults(func=cmd_list)
+    fk = sub.add_parser("fork")
+    fk.add_argument("--snap", required=True)
+    fk.add_argument("--name", required=True)
+    fk.add_argument("--dir")
+    fk.add_argument("--yes", action="store_true")
+    fk.set_defaults(func=cmd_fork)
+    tl = sub.add_parser("timeline")
+    tl.add_argument("--dir")
+    tl.set_defaults(func=cmd_timeline)
     v = sub.add_parser("verify")
     v.add_argument("--snap", required=True)
     v.set_defaults(func=cmd_verify)
