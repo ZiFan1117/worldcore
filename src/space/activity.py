@@ -20,10 +20,18 @@ class ActivityMixin:
         sp = e.get("space") or ""
         if sp and sp != "space:" + self.user:
             return
-        self.events.append(e)
-        self.events = self.events[-40:]
+        self._remember(e)
         if self.activity_open:
             self._draw_activity()
+
+    def _remember(self, e):
+        """★ 去重（实时推与回放可能重复）：同 at/kind/action/actor 只留一条。"""
+        key = (e.get("at"), e.get("kind_of"), e.get("action"), e.get("actor"))
+        if any((x.get("at"), x.get("kind_of"), x.get("action"), x.get("actor")) == key
+               for x in self.events[-20:]):
+            return
+        self.events.append(e)
+        self.events = self.events[-40:]
 
     def _draw_activity(self):
         sid = "space/activity-" + self.user
@@ -65,8 +73,7 @@ class ActivityMixin:
         """★ 把回放结果并进 self.events（去重后保留最近 40 条）。"""
         evs = (data or {}).get("events") or []
         for e in evs:
-            self.events.append(e)
-        self.events = self.events[-40:]
+            self._remember(e)
         if self.activity_open:
             self._draw_activity()
         return len(evs)

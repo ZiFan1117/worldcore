@@ -134,15 +134,25 @@ class Agent:
         return {"surfaces": {"count": b.get("count"), "surfaces": b.get("surfaces")},
                 "layout": b.get("layout"), "screen": b.get("screen")}
 
+    def _remember_dict(self, e):
+        """★ 去重后记一条（实时推与回放可能重复）。"""
+        ev = {k: e.get(k) for k in
+              ("at", "kind_of", "action", "actor", "ok", "code", "space")}
+        key = (ev.get("at"), ev.get("kind_of"), ev.get("action"), ev.get("actor"))
+        if any((x.get("at"), x.get("kind_of"), x.get("action"), x.get("actor")) == key
+               for x in self.events[-20:]):
+            return False
+        self.events.append(ev)
+        self.events = self.events[-30:]
+        return True
+
     def _remember_event(self, sample):
         """★（P8）订阅 world/event：把世界正在发生的事记下来（给规划上下文用）。"""
         try:
             e = json.loads(sample.payload.to_string())
         except Exception:
             return
-        self.events.append({k: e.get(k) for k in
-                            ("at", "kind_of", "action", "actor", "ok", "code", "space")})
-        self.events = self.events[-30:]
+        self._remember_dict(e)
 
     def recent_events(self, n=8):
         return self.events[-n:]
@@ -268,9 +278,7 @@ def main():
     # ★ P8 补漏（2026-10-20）：启动时回放最近事件（掉线期间发生的事，进规划上下文）
     boot = a.query(kind="events", limit=20)
     for e in (boot.get("data") or {}).get("events") or []:
-        a.events.append({k: e.get(k) for k in
-                         ("at", "kind_of", "action", "actor", "ok", "code", "space")})
-    a.events = a.events[-30:]
+        a._remember_dict(e)
     log("① 回放最近事件 %d 条（掉线补漏）" % len(a.events))
 
     def on_exec(m):
