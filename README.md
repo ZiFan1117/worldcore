@@ -1,6 +1,6 @@
-<p align="center"><img src="ai-os-logo-home.png" alt="AI-OS" width="120"></p>
+<p align="center"><img src="ai-os-logo-home.png" alt="worldcore" width="120"></p>
 
-# 语义世界 · world-core / Semantic World · world-core
+# worldcore · 语义世界 / Semantic World
 
 > ★ **一个世界，说法只有一份。** / **One world, one vocabulary.**
 >

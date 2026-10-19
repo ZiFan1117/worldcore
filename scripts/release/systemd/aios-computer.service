@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET 计算机（Python）—— 这台机器在【世界里】的代言与执行
+Description=worldcore 计算机（Python）—— 这台机器在【世界里】的代言与执行
 Documentation=https://ai-os.net/docs/computer
 # ★★★ 作者：四个独立进程，谁也不等谁 ⇒ 不 After=／不 Wants=／不 Requires=。
 

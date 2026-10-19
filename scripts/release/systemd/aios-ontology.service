@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET 本体进程（Python）—— 世界唯一的耦合点：只认、只盖章、只转、只记
+Description=worldcore 本体进程（Python）—— 世界唯一的耦合点：只认、只盖章、只转、只记
 Documentation=https://ai-os.net/docs/ontology
 # ★★★ 作者定基调：一个总线 ＋ 一个本体 ＋ 相关进程。
 #   ⇒ 本体【不等】总线（不 After=/不 Wants=/不 Requires=）；连不上就 Restart 自己重试。

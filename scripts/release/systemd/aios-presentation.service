@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET 呈现（Python 半）—— 一块屏的呈现设施：订总线、只合 shown 的画布、推给 A2UI 渲染器
+Description=worldcore 呈现（Python 半）—— 一块屏的呈现设施：订总线、只合 shown 的画布、推给 A2UI 渲染器
 
 [Service]
 Type=simple

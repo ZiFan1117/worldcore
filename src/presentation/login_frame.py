@@ -16,7 +16,7 @@ def login_frame(surface_id, screen_name):
     comps = [
         {"id": "root", "component": "Column",
          "children": ["lg_t", "lg_s", "lg_d", "lg_u", "lg_p", "lg_bt", "lg_b", "lg_d2", "lg_note"]},
-        {"id": "lg_t", "component": "Text", "text": "**AI-OS**"},
+        {"id": "lg_t", "component": "Text", "text": "**worldcore**"},
         {"id": "lg_s", "component": "Text", "text": "请登录 —— " + now},
         {"id": "lg_d", "component": "Divider"},
         # ★★ TextField 的 value 必须【绑到 dataModel 路径】，否则打字只在本地、拿不到值
@@ -42,7 +42,7 @@ def login_frame(surface_id, screen_name):
     ]
     return {
         "version": "v1.0",
-        "name": "AI-OS 登录",
+        "name": "worldcore 登录",
         "role": "login",
         # ★★★ layout 是【我们的扩展】—— A2UI v0.9.1 规范【没有】多 surface 叠的概念
         #    （现取：createSurface 只有 surfaceId/catalogId/theme/sendDataModel 四字段；

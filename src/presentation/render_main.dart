@@ -1,4 +1,4 @@
-// ★ AI-OS A2UI 渲染器（Flutter 半）—— ★ 只画，不管世界。
+// ★ worldcore A2UI 渲染器（Flutter 半）—— ★ 只画，不管世界。
 //
 // ★ 作者令（逐字，2026-10-18）：
 //   ·「我们只用 A2UI，不用 GTK」      ⇒ ★ 渲染【只用 A2UI】（包 genui）
@@ -24,7 +24,7 @@ class AiosRenderApp extends StatelessWidget {
   const AiosRenderApp({super.key});
   @override
   Widget build(BuildContext c) => MaterialApp(
-        title: 'AI-OS',
+        title: 'worldcore',
         debugShowCheckedModeBanner: false,
         // ★ 2026-10-19：换成【亮色主题】（原来 dark ⇒ 屏上黑漆漆一片）
         theme: ThemeData(
@@ -310,7 +310,7 @@ class _RenderScreenState extends State<RenderScreen> {
                   color: const Color(0xFF2F6FEB),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('AI-OS',
+                child: const Text('worldcore',
                     style: TextStyle(fontSize: 12, color: Colors.white,
                                      fontWeight: FontWeight.w700)),
               ),

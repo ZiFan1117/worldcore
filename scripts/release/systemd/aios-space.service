@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET 个人空间 —— 人的地盘：报 space、出桌面画布、收人的动作
+Description=worldcore 个人空间 —— 人的地盘：报 space、出桌面画布、收人的动作
 
 [Service]
 Type=simple

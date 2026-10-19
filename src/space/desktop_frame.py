@@ -18,7 +18,7 @@ def desktop_frame(surface_id, user, n_members, guests=None):
     comps = [
         {"id": "root", "component": "Column",
          "children": ["dk_t", "dk_bar", "dk_d", "dk_grid", "dk_d2", "dk_note"]},
-        {"id": "dk_t", "component": "Text", "text": "**AI-OS · " + user + " 的个人空间**"},
+        {"id": "dk_t", "component": "Text", "text": "**worldcore · " + user + " 的个人空间**"},
         {"id": "dk_bar", "component": "Row", "children": ["dk_u", "dk_ts", "dk_w"]},
         {"id": "dk_u", "component": "Text", "text": "我：" + user},
         {"id": "dk_ts", "component": "Text", "text": now},

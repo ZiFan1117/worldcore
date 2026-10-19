@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET 呈现（渲染半 · Flutter）—— ★ 呈现的一部分：收合成清单、按 layout 叠、画上屏
+Description=worldcore 呈现（渲染半 · Flutter）—— ★ 呈现的一部分：收合成清单、按 layout 叠、画上屏
 Documentation=https://ai-os.net/docs/presentation
 # ★★★ 名字【必须带 presentation】—— 它不是独立的「渲染器进程」，
 #     是「借来的渲染引擎（genui）＋ 我们的进程」，合起来才是【呈现】。

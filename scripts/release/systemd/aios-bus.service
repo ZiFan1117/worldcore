@@ -1,5 +1,5 @@
 [Unit]
-Description=AI-OS.NET Semantic Bus (zenoh)
+Description=worldcore Semantic Bus (zenoh)
 Documentation=https://ai-os.net/docs/semantic-bus
 # ★★★ 作者裁（逐字）：「**本体，和总线两个不要有瓜葛，总线单独起**」。
 # ★★ 所以这里【没有任何 Before=/After=/Wants= 指向别的单元】—— ★ 它自己起、自己活。
