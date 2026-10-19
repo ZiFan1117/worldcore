@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 46 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 47 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,6 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| 世界快照（P4） | `scripts/release/world_snapshot.py`：账＋注册表＋对象库＋法源打包成快照；`verify` 验、`restore --yes` 回滚（先备份）；不含票/密码 |
 | P8 事件回放 | `world/query kind=events`：从账里回放最近事件（按身份/空间过滤，只公开字段）——掉线后可补看 |
 | P8 事件流 | 本体账落完即推 `world/event`（只公开字段）；空间按空间过滤并实时重画「活动」窗口；Agent 订阅事件进规划上下文（activity） |
 | 看门狗＋限时目标 | 看门狗每 3 分钟：7 单元／本体可装起／资源线／定时器失败即停；目标链每 30 分钟一轮（高权限、快照、验收红回滚），**06:00 Asia/Shanghai 到点强制停链** |
@@ -355,11 +356,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**46 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**47 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (46/46, rc=0)
+python scripts/test/check.py              → all green (47/47, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -372,6 +373,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| World snapshot (P4) | `scripts/release/world_snapshot.py`: packs ledger + registry + object store + law into a snapshot; `verify` checks it, `restore --yes` rolls back (with pre-restore backups); no tickets/passwords |
 | P8 event replay | `world/query kind=events`: replays recent events from the ledger (identity/space filtered, public fields only) — recovery after a dropped connection |
 | P8 event stream | the ontology pushes `world/event` after each ledger row (public fields only); the space filters by space and live-redraws the “activity” window; the agent subscribes and feeds events into its planning context |
 | Watchdog + timed goal | watchdog every 3 min: 7 units / ontology loads / resources / timers; goal chain every 30 min (high privilege, snapshot, rollback on red), **hard stop at 06:00 Asia/Shanghai** |
