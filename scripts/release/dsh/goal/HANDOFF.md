@@ -28,6 +28,11 @@
 ## 二、怎么查（一行命令）
 
 ```sh
+python3 /root/aios/scripts/release/status.py        # ★ 一屏看全（快照/进度/轮次摘要/游标/场景/世界文件/guard/单元）
+python3 /root/aios/scripts/release/status.py --json # 机读
+```
+
+```sh
 # 进度 / 报告 / 摘要 / 商量板
 tail -5 /root/aios-goals/progress.md
 ls -lt /root/aios-goal-reports/ | head
@@ -79,10 +84,11 @@ systemctl stop aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer
 ## 六、06:00 核对清单
 
 ```sh
-cat /root/aios-goals/DONE                       # 到点停链的标记
+python3 /root/aios/scripts/release/status.py     # ★ 一屏状态（含非 active 单元）
+cat /root/aios-goals/DONE                        # 到点停链的标记
 systemctl is-active aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer   # 应 inactive
-tail -10 /root/aios-goals/progress.md           # 最后几轮
-head -20 /root/aios-goals/rounds.md             # 轮次质量
+tail -10 /root/aios-goals/progress.md            # 最后几轮
+head -20 /root/aios-goals/rounds.md              # 轮次质量
 ls -lt /root/aios-goal-reports/ | head           # 各轮报告
 tail -2 /var/log/aios-watchdog.jsonl             # 最后健康读数
 ls -dt /var/backups/aios/world-snapshots/*/ | head -3  # 最后快照
