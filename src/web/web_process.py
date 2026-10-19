@@ -47,6 +47,8 @@ class WebApp:
         self.ticket = ""
         self.user = ""
         self.clients = []          # 每个 SSE 客户端一个 queue
+        self.recent_frames = []    # ★ 最近推过的 A2UI 帧（给 /render 静态预览）
+        self.render_wait = float(os.environ.get("AIOS_RENDER_WAIT", "3.0"))
         self.lock = threading.Lock()
 
     # ── SSE 扇出 ──
@@ -78,6 +80,9 @@ class WebApp:
         except Exception:
             return
         if d.get("kind") == "a2ui.frame":
+            with self.lock:
+                self.recent_frames.append(d.get("frame"))
+                self.recent_frames = self.recent_frames[-20:]
             self.feed({"type": "frame", "frame": d.get("frame"), "by": d.get("by")})
         elif d.get("kind") == "space.logout":
             self.ticket = ""
@@ -118,6 +123,19 @@ class WebApp:
                 sub.undeclare()
             except Exception:
                 pass
+
+    def login_and_wait(self, user, secret):
+        """★ 服务端登录，并等最近一帧 A2UI 帧（给 /render 同步预览）。"""
+        r = self.handle_cmd({"op": "login", "user": user, "secret": secret})
+        if not r.get("ok"):
+            return r
+        deadline = time.time() + self.render_wait
+        while time.time() < deadline:
+            with self.lock:
+                if self.recent_frames:
+                    break
+            time.sleep(0.05)
+        return r
 
     # ── 浏览器命令 ──
     def handle_cmd(self, d):
@@ -180,6 +198,30 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(200, f.read(), "text/html; charset=utf-8")
             except FileNotFoundError:
                 self._send(500, "voice.html 不在", "text/plain; charset=utf-8")
+            return
+        if path.startswith("/render"):
+            # ★ 静态预览（截图/kiosk/无异步）：服务端先登录，把最近 A2UI 帧注入页面同步渲染
+            from urllib.parse import parse_qs
+            q = parse_qs(urlsplit(self.path).query)
+            user = (q.get("user") or [""])[0]
+            secret = (q.get("secret") or [""])[0]
+            out = app.login_and_wait(user, secret)
+            if not out.get("ok"):
+                self._send(400, out, "text/plain; charset=utf-8")
+                return
+            try:
+                with open(HTML, encoding="utf-8") as f:
+                    html = f.read()
+            except FileNotFoundError:
+                self._send(500, "voice.html 不在", "text/plain; charset=utf-8")
+                return
+            frames = list(app.recent_frames)
+            blob = json.dumps(frames, ensure_ascii=False).replace("</", "<\\/")
+            tail = ("<script>window.PRELOAD_FRAMES = %s;"
+                    "window.PRELOAD_FRAMES.forEach(function (f) { renderFrame(f); });"
+                    "</script>" % blob)
+            html = html.replace("</body>", tail + "</body>")
+            self._send(200, html, "text/html; charset=utf-8")
             return
         if path.startswith("/events"):
             q = app.add_client()
