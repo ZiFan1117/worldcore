@@ -1,0 +1,4 @@
+{
+  "read_only": ["/usr", "/lib", "/lib64", "/etc", "/proc", "/sys", "/dev", "/run", "/bin", "/sbin"],
+  "read_write": ["/tmp"]
+}
