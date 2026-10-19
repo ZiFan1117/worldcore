@@ -1,212 +1,399 @@
-# 语义世界 · world-core
+<p align="center"><img src="ai-os-logo-home.png" alt="AI-OS" width="120"></p>
 
----
+# 语义世界 · world-core / Semantic World · world-core
 
-# 一、我们要干一件什么事
-
-> ★★ **今天的操作系统只认「进程、文件、权限」。它不认「谁、能干什么、干了什么、长什么样」。**
+> ★ **一个世界，说法只有一份。** / **One world, one vocabulary.**
 >
-> ★ 于是每接一个新东西（一个智能体、一个应用、一台机器），都要重新商量一遍"我们怎么说话"——**每接一次谈一次**。
->
-> ★★★ **我们要干的，就是把「说法」这一层单独做出来：** 一个世界里，**说法只有一份**，谁接进来都按它说；
-> 谁说了什么、谁允许的、发生在第几位，**记在一本账上**，事后查得到；**只有人能下正式结论**。
-
-★ **一句话**：★ **给机器们立一套「共同的语义」——不是又一个系统，是那套系统们都得照着说的东西。**
+> [中文](#中文) ｜ [English](#english)
 
 ---
 
-# 二、现在设计的框架是什么样
+# 中文
 
-## ★★ 三层，一条线
+## 一、我们要干什么
 
-```
-        ★ 人 ／ 智能体 ／ 应用 ／ 服务
-                 │  都只【说同一套话】
-                 ▼
-   ★★★ 本体（语义核）—— 只做四件：认 · 盖章 · 转 · 记
-                 │
-       ┌─────────┼─────────┬──────────┐
-       ▼         ▼         ▼          ▼
-     计算机     呈现     个人空间    智能体
-     （执行）  （上屏）  （人的地盘） （模型在环）
-```
+**问题**：今天的操作系统只认「进程、文件、权限」。它不认「**谁**、**能干什么**、**干了什么**、**长什么样**」。
+于是每接一个新东西（一个智能体、一个应用、一台机器），都要重新商量一遍"我们怎么说话"——**每接一次，谈一次**。
 
-## ★★★ 本体的四件事（核心就这四样）
+**目标**：把「说法」这一层单独做出来——
 
-| ★ | ★ 做什么 | ★ 落在哪 |
-|---|---|---|
-| ★★ **认** | ★ 这个名字在册吗？这个身份是真的吗？ | ★ `recognize()` ＋ `identity.*`（认人／发票／查票／销票） |
-| ★★ **盖章** | ★ 记下来：谁、何时、做了什么、被允许吗 | ★ `stamp()` —— ★ **写进一本只增不改的账** |
-| ★★ **转** | ★ 该谁干就转给谁（本体自己不干）；★ 转发**带凭证**，执行器验不过就拒 | ★ `world/exec` 带 `route` ＋ `permit` |
-| ★★ **记** | ★ 查：有什么类、有什么个体、有什么动作、历史是什么 | ★ `world/query` |
+- 一个世界里，**说法只有一份**，谁接进来都按它说；
+- 谁说了什么、谁允许的、发生在第几位，**记在一本账上**，事后查得到；
+- **正式结论与签字只有人能下**，机器只出发现。
 
-## ★★ 三条不许破的线
+**不是又一个系统**，而是**所有系统都得照着说的那一层**：语义核（本体）＋ 一条唯一写路径 ＋ 一本只增不改的账。
 
-1. ★★ **一本账**：★ 真相只有一处，状态从账折出来，**不许两份**；
-2. ★★ **一个入口写**：★ 谁想改世界，只能往账上加一条，**不许绕**；
-3. ★★★ **只有人能签**：★ **正式结论与签字只有人能下**，机器只出发现。
+## 二、核心原则
 
-## ★★ 六个进程 ＋ 一个总线
+1. **本体只做四件事：认 · 盖章 · 转 · 记。** 本体自己不执行、不渲染、不碰机器。
+2. **一个入口写。** 动作（action）是唯一的世界写通道；执行器必须持有**本体签发的凭证**（permit）才能动手，且凭证一号一用。
+3. **一本账。** 只增不改：成功的、**被拒的**尝试都留痕；拒绝码是**闭集**（业务／身份／权限／输入／系统五类）。
+4. **只有人能签。** 智能体只出发现清单，不代签、不代填结论。
+5. **法是一份声明件。** 本体定义在 `src/ontology/world.json`（类／属性／接口／关系／动作语义／许可条文），
+   代码只负责**解析 → 校验 → 装载**；**坏法装载即失败**，不是跑一半才发现。
+6. **界面是协议，不是代码。** 提供者各自出画布（A2UI v1.0），个人空间负责摆放，呈现负责合成；
+   渲染器是 Flutter ＋ `genui`（A2UI 官方渲染）。
 
-| ★ 进程 | ★ 是什么 | ★ 干什么 |
-|---|---|---|
-| **aios-bus** | ★ 总线（zenohd） | ★ **借的**。所有进程只通过它说话 |
-| **aios-ontology** | ★★ **本体** | ★ **认 · 盖章 · 转 · 记** |
-| **aios-computer** | ★ 计算机 | ★ **执行器** —— 只执行，不裁决 |
-| **aios-presentation** | ★★ **呈现** | ★ 合成器 ＋ 4 动作 ＋ 本机 TCP 桥 |
-| **aios-presentation-render** | ★ 呈现的**渲染半** | ★ Flutter ＋ `genui`（A2UI 官方渲染器） |
-| **aios-space** | ★ 个人空间 | ★ 人的地盘：出画布 ＋ 给布局 |
-| **aios-agent** | ★ 智能体 | ★ 模型在环 |
+## 三、现在的系统结构
 
-★ **为什么呈现是两个进程**：`genui` 是 Flutter 包，跑不进 Python、也不会说 zenoh ⇒ 只能分两半；
-★ **但它们合起来才是一个「呈现」**（★ 所以单元名都带 `presentation`）。
-
----
-
-# 三、现在实现了什么
-
-## ★★ 能跑通的一条链
+### 3.1 运行时拓扑（7 个 systemd 单元，1 条总线）
 
 ```
-★ 开机 ⇒ 登录界面
-★ 人输 zhang / 0 ⇒ 点登录
-★   本体【认】⇒ 发一张票（8 小时有效，scope: space:zhang）
-★   凭票进个人空间 ⇒ 桌面画布出屏
-★★ 甲登录只能看甲的；乙登录只能看乙的（★ 票的 scope 说了算）
+        人（登录界面）／ 智能体 ／ 应用
+                    │  都只说同一套话
+                    ▼
+   ★ 本体 aios-ontology —— 只做四件：认 · 盖章 · 转 · 记
+                    │  world/exec（带 route ＋ 本体签发的凭证）
+   ┌──────────┬─────┴──────┬──────────────┬───────────────┐
+   ▼          ▼            ▼              ▼               ▼
+计算机      呈现         个人空间        智能体         渲染半
+(执行)     (合成)       (人的地盘)      (模型在环)      (Flutter＋genui)
+   │          │
+   └──── 全部经总线 zenoh（aios-bus）说话 ────┘
 ```
 
-## ★★★ 现取：实现了多少
+### 3.2 进程与职责
 
-| ★ 项 | ★ 数 | ★ 现取 |
+| 单元 | 角色 | 做什么 |
 |---|---|---|
-| ★ 本体 | ★ **11 类 / 5 关系 / 19 动作 / 9 函数** | ★ `build_aios_ontology()` |
-| ★ 命令映射 | ★ **156 条** | ★ 只读 40 条自动放行；变更 116 条默认拒（要人确认） |
-| ★ 进程 | ★ **7 个在跑**（★ 6 个我们的 ＋ 1 个总线） | ★ `systemctl is-active` |
-| ★ 代码 | ★ **4,832 行**（★ 六个进程目录全部源码 ＋ 对象模型，含渲染半） | ★ 见 §四 |
-| ★ 判据 | ★ **37 条** | ★ `scripts/test/check.py`（现取：全绿 rc=0；反例自检 rc=0） |
+| `aios-bus` | 总线（zenohd，外部件） | 所有进程只通过它说话 |
+| `aios-ontology` | **本体** | 认名／验票／验身份／判许可／跑前置条件／路由／发凭证／记账／查世界 |
+| `aios-computer` | 计算机（执行器） | 验凭证 → 读映射表 → 调程序 → 回话；清除类必须写理由 |
+| `aios-presentation` | 呈现（合成器） | 管"此刻屏上有什么"，出画／撤画／合成层 |
+| `aios-presentation-render` | 渲染半 | Flutter ＋ genui，把 A2UI 帧画出来 |
+| `aios-space` | 个人空间 | 人的地盘：登录后出桌面，摆放各提供者的画布 |
+| `aios-agent` | 智能体 | 模型在环：问世界 → 决定 → 经本体做事 → 出帧 |
 
-## ★★★ 现取：验过什么（不是"应该能行"）
+### 3.3 一次请求的路径（本体里的闸，顺序不许换）
 
-| ★ # | ★ 判据 | ★ 结果 |
+```
+world/ask
+  → ① 名字在册？            拒绝码：UNKNOWN_ACTION
+  → ①.5 参数齐/类型/取值？   拒绝码：PARAM_MISSING / PARAM_INVALID
+  → ①.5b 票有效？           拒绝码：BAD_TICKET / TICKET_SCOPE_DENIED
+  → ② 有身份？              拒绝码：NO_IDENTITY
+  → ②.5 身份可核？（人凭票，其他凭报到）  拒绝码：HUMAN_NEEDS_TICKET / IDENTITY_NOT_REPORTED
+  → ③ 许可条文放行？         拒绝码：PERMISSION_DENIED
+  → ④ 前置条件成立？         拒绝码：PRECONDITION_FAILED / INTERFACE_NOT_IMPLEMENTED / PROVIDER_NOT_DECLARED
+  → ⑤ 路由（绑接口按对象类型选执行者；否则按注册者）
+  → ⑥ 发凭证 ＋ 转发 world/exec；结果回本体、记账、回请求方
+```
+
+**被拒也记账**：每次拒绝落一行（`kind_of=reject` ＋ 闭集码 ＋ 类别）。
+
+### 3.4 总线话题
+
+| 话题 | 方向 | 用途 |
 |---|---|---|
-| 1 | 密码错 ⇒ 拒 | ✓ |
-| 2 | 密码对 ⇒ 发票 | ✓ |
-| 3 | 无票查空间 ⇒ 拒 | ✓ |
-| 4 | **凭票查空间 ⇒ 通** | ✓ |
-| 5 | 票过期 ⇒ 拒（★ TTL 设 1 秒实测） | ✓ |
-| 6 | 销票后 ⇒ 拒 | ✓ |
-| 7 | ★★ **甲的票查不到乙的** | ✓ |
-| 8 | 画布过本体（★ 本体盖 `to`） | ✓ |
-| 9 | 呈现按票过滤（★ 冒充者被拒） | ✓ |
-| 10 | ★★ **登录 ⇒ 切桌面** | ✓ |
-| 11 | `surface` 类撤销生效 | ✓ |
-| 12 | ★★ **删除／撤画布必须写理由**（无理由 ⇒ 拒、且不删；有理由 ⇒ 随结果进账） | ✓ |
-| 13 | ★★ **不合 A2UI 目录的帧整帧拒**（不静默过滤） | ✓ |
-| 14 | ★★ **删 crate 后 156 条映射表重新现取**（可用 59 ／ 本发行版不支持 97；只读动作真跑过） | ✓ |
-| 15 | ★★ **许可凭证**（本体发、绑动作＋参数、有期限、一号一用；执行器没凭证就拒、重放也拒） | ✓ |
-| 16 | ★★ **身份要能核**（人凭票；其他凭报到；没报到 ⇒ 拒） | ✓ |
-| 17 | ★★ **多画布摆放**（agent 的画布由个人空间摆进桌面；屏上合成 **2 层**） | ✓ |
-| 18 | ★★ **一号一用的账在本体**（用过的凭证落盘＋账本一行；重开本体仍拒；执行器不记账） | ✓ |
-| 19 | ★★ **条文单义**（`who`＝授权者／`scope`＝生效许可；判定只读 scope） | ✓ |
-| 20 | ★★ **拒绝码是闭集＋每次尝试都留痕**（业务／身份／权限／输入／系统五类） | ✓ |
-| 21 | ★★ **状态所有权**（冒充代报 ⇒ 拒；同名个体不跨类撞车） | ✓ |
-| 22 | ★★ **查历史也过本体**（`world/query kind=history`；成功与被拒两侧都在） | ✓ |
-| 23 | ★★ **参数在本体先校验**（缺参/类型/取值域 ⇒ 机器可读码 `PARAM_*`；合规不误伤） | ✓ |
-| 24 | ★★ **应用手册从本体派生**（动作清单≡在册动作；带参数/许可/拒绝码/话题；`手册.json`＋`.md`） | ✓ |
-| 25 | ★★ **语义导出**（本体 ⇒ OWL Turtle ＋ SHACL；数量对得上、导出确定；单向构建产物） | ✓ |
-| 26 | ★★ **定义在声明件里**（`world.json` 是唯一权威；坏法装载前就被拦；代码不再手写定义） | ✓ |
-| 27 | ★★ **动作语义**（前置条件／效果／失败策略声明在动作上；可判的在转发前真跑；效果进账） | ✓ |
-| 28 | ★★ **接口与运行时多态**（4 个接口；`object.retire` 同一动作名按对象类型选执行者） | ✓ |
+| `world/ask` | → 本体 | 请求入口（只有本体订） |
+| `world/ask/result` | → 请求方 | 拒绝原因 / 执行结果 |
+| `world/exec` | 本体 → 执行者 | 转发动作（带 `route` 与 permit） |
+| `world/register` | 提供者 → 本体 | 注册动作（谁启动谁注册） |
+| `world/appear` | 提供者 → 本体 | 报到（成为个体；带 `reporter`，状态所有权） |
+| `world/query` | 任意 → 本体 | 查世界／查动作／查历史 |
+| `world/notice` | 提供者 → 本体 → 呈现 | 宣告（画布帧经本体） |
+| `world/ui/act` | 呈现 → 个人空间 | 人在界面上的动作（点击等） |
+| `world/ui/frame` | 本体 → 呈现 | 盖过章、写好收件人的画布信封 |
 
-★★ **⇒ 以上全过**（★ 每条都有现取日志／截图）。
+### 3.5 数据载体（一份事实一个载体）
 
-## ★★ 还没做的（★ 如实）
-
-| ★ 没做 | ★ 为什么 |
+| 载体 | 是什么 |
 |---|---|
-| ★★ **人确认**（★ 变更类 116 条全拒） | ★ 标准还没定（★ 谁批／怎么批／批了记哪／管多久 四格全空）⇒ ★ **写在书 6.9** |
-| ★★ **总线 ACL（谁能发／收哪个话题）未配** | ★ 总线只监听本机 127.0.0.1，但**能登上这台机器的人**可以往任意话题发／听；★ 凭证层只管「指令有没有本体许可」，不管「这条连接是谁」。★ 要配得先给每个进程一个身份（zenoh 的账号／证书）再写允许规则，上一会话没打通 |
-| ★ **事务／回滚／补偿**（效果目前是**声明**＋记账，不自动执行、失败不自动回滚） | ★ 订单样板那一层的「真事务」；我们的执行器是外部命令/界面，副作用不可逆，回滚要逐个动作裁 |
-| ★ **MCP 工具面** | ★ 手册已从本体生成；MCP server 还没做（agent 侧仍是手写 DSH 插件） |
-| ★ **对象级版本链** | ★ 今天只有「事件史」（账）；个体没有更新/撤下的写路径，版本链等写路径齐了再做 |
-| ★ **业务前置条件的具体规则**（可判的条件框架已落；今天只有 `object.retire` 用了 4 条可判条件） | ★ 规则内容是业务判断，要人裁；判据只钉「声明了、可判的跑、声明式的可见」 |
-| ★ 多个人同时在线 | ★ 只有一个 `space/zhang` |
-| ★ 大对象货运道 / 四值头部 / 说法自指纹 | ★ 现在用不上（★ 见书第四章） |
+| `src/ontology/world.json` | **法**：本体声明件（唯一权威；人可审、可 diff） |
+| `/var/lib/aios/ontology/ledger.jsonl` | **账**：只增不改；每行带时间戳 |
+| `/var/lib/aios/ontology/objects.db` | **个体表**（SQLite）：报到过的个体与当前字段 |
+| `/var/lib/aios/ontology/registry.jsonl` | **注册表**：哪些动作由哪个进程提供 |
+| `/var/lib/aios/ontology/permits.jsonl` | **凭证账**：一号一用的凭证使用记录 |
 
----
+### 3.6 本体规模（现取）
 
-# 四、代码结构
+- **11 个类**（人／智能体／应用／服务／设备／工作流／账本／端口／空间／呈现／计算机）
+- **4 个接口**（可标识／有状态／有主／可退休）＋ 运行时多态（`object.retire` 同一动作按对象类型选执行者）
+- **5 条关系**、**20 个世界动作**（含参数、前置条件、效果、失败策略、许可条文）＋ **156 个命令动作**（系统命令映射）＝ **176 个在册动作**
+- **9 个函数声明**（目前是占位：还没有函数运行时）
+- 动作契约：参数校验、前置条件、效果清单、拒绝码、失败策略；账里带 `route`／`effects`
+
+### 3.7 界面
+
+- 登录：呈现出登录画布 → 认证走本体 → 拿票 → 凭票进个人空间 → 桌面画布；
+- 画布：每个提供者出自己的一张（A2UI v1.0），个人空间按 `layout.layers`（层 z＋矩形 rect）摆放；
+- 呈现按票过滤：谁的票看谁的画布（甲登录看不到乙的）；
+- 正在进行：桌面图标网格、应用窗口（标题栏＋缩放/关闭）、多窗口（见「还没做」）。
+
+### 3.8 仓库目录（实际在跑的）
 
 ```
-src/
-  ontology/              ★★ 本体 —— 1,701 行 / 12 件（＋ world.json 声明件）
-    world.json                 ★★ **法**：声明件（类／属性／接口／关系／动作语义／许可条文／世界机制）
-    law_loader.py              ★ 声明件 → 解析 → **校验** → 建本体（坏法装载即失败）
-    law_dump.py                ★ 本体 → 声明件（生成物／一致性比对）
-    ontology_definition.py     ★ 只做装载：load_law() ＋ 映射表补 sys.* ＋ 契约默认值
-    ontology_process.py        ★ 本体进程：认 · 盖章 · 转 · 记（＋ 闸①②②.5③）
-    identity.py                ★ 认证：认人 / 发票 / 查票 / 销票 ＋ 身份核验 ＋ 状态所有权核验
-    world_codes.py             ★ 两张闭集表：拒绝码（业务/身份/权限/输入/系统）＋ 每类事实的提供者
-    permit.py                  ★ 审批凭据：本体签发＋记本体的账；执行器只验签＋问一句
-    world_query.py             ★ 查世界/查历史（C27／C31）
-    grants.py                  ★ 人侧许可条文 ＋ who/scope 归一
-    sysknife_actions.py        ★ 从映射表建 sys.* 动作（参数从表抄）
-    action_contract.py         ★ 动作契约：参数／前置条件／效果／失败策略 ＋ 多态路由
-    ask_path.py                ★ 请求入口的一条闸路（认名→参数→票→身份→许可→条件→路由→转）
-    data/a2ui-catalog-basic.json   ★ A2UI 元件白名单
-
-  computer/              ★ 计算机（执行器）—— 334 行
-    computer_process.py        ★ 先验许可凭证 ⇒ 读映射表 ⇒ 调命令 ⇒ 回话（★ 清除要写理由）
-
-  presentation/          ★★ 呈现 —— 949 行 / 4 件
-    presentation_process.py    ★ 合成器 ＋ 4 动作 ＋ 本机 TCP 桥（7450）
-    login_frame.py             ★ 登录画布
-    frame_schema.py            ★ A2UI 目录白名单 ＋ 整帧校验（不合 ⇒ 整帧拒）
-    render_main.dart           ★ 渲染半（Flutter ＋ genui）
-
-  space/                 ★ 个人空间 —— 350 行 / 2 件
-    space_process.py           ★ 凭票进 ＋ 出画布 ＋ 给布局（★ 别人的画布由它摆，不设上限）
-    desktop_frame.py           ★ 桌面画布（18 组件 ＋ layout）
-
-  agent/                 ★ 智能体 —— 266 行
-    agent_llm.py               ★ 模型在环：问世界 ⇒ 决定 ⇒ 出帧（★ 发帧前自核 A2UI 目录）
-
-  foundry_ontology/      ★ 对象模型 —— 1,232 行 / 14 件（★ 本仓补丁：个体 id 跨类撞车时加类型前缀）
-    core/                      ★ 类型定义（ObjectType / ActionType / LinkType / Interface）
-    engine/                    ★ 运行时（ObjectStore / QueryEngine / AuditLog / ActionExecutor）
-
-  legacy/                ★ 旧代码归档 —— 不部署
-
+src/                     语义面（Python）
+  ontology/              本体：world.json（法）＋ 装载/校验 ＋ 认·盖章·转·记
+  presentation/          呈现：合成器 ＋ 登录帧 ＋ A2UI 校验 ＋ 渲染半（Flutter）
+  space/                 个人空间：桌面 ＋ 布局
+  computer/              计算机：执行器（命令映射表）
+  agent/                 智能体：模型在环
+  foundry_ontology/      对象模型库（上游件，见 src/NOTICE.md）
+  legacy/                旧代码归档（不部署）
 scripts/
-  release/               ★ 部署
-    deploy.sh                  ★ 幂等部署（拷代码 ＋ 装单元 ＋ 恢复 SELinux ＋ 重启）
-    export-ontology.py         ★ 从代码导出本体 JSON（构建产物）
-    make-manual.py             ★ 从本体生成应用手册（json＋md；构建产物）
-    export-owl.py              ★ 本体 ⇒ OWL Turtle ＋ SHACL（单向构建产物）
-    export-law.py              ★ 本体 ⇄ 声明件（导出／`--check` 一致性）
-    systemd/                   ★ 7 个单元
-    computer/                  ★ 命令映射表（156 条）
-    desktop/aios-session       ★ X 会话（只挂会话，不起渲染器）
-
-  test/                  ★ 判据 37 条
-  dsh-plugins/           ★ DSH 世界的插件
-
-ninedim/                 ★ 档案
-  01-意图环/                  ★ 书／策划／需求／设计／规格／计划
-  06-变更/                    ★ 变更盒（改动对照 ＋ 结论件）
+  release/               幂等部署链 ＋ 生成物（ontology.json／手册／OWL）
+  test/                  判据（开发面；按作者令不随仓发布）
+ninedim/                 工程档案：书／策划／需求／设计／规格／变更盒
+site/                    项目站点
+.github/                 协作模板
 ```
 
-## ★★ 怎么装
+> 注：仓库根的 `Cargo.toml` 指向上游 AIOS 的 Rust workspace（`crates/…`，本副本未携带）；
+> **本仓当前实际运行的是 `src/` 语义面 ＋ `scripts/release/` 部署链**。
+
+## 四、验证与现状
+
+**判据 37 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+这里只报结论：
+
+```
+python scripts/test/check.py              → 全绿（37/37，rc=0）
+python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会绿）
+```
+
+**已验证（代表）**：
+
+| 组 | 验过什么 |
+|---|---|
+| 认证与身份 | 密码错拒／对则发票；票过期、销票后拒；甲票查不到乙；人凭票、其他凭报到，没报到拒 |
+| 许可与凭证 | 凭证绑动作＋参数、有期限、**一号一用**；执行器没凭证拒、重放拒；一号一用的账在本体 |
+| 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
+| 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
+| 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤 |
+
+**还没做（如实）**：
+
+| 没做 | 为什么 |
+|---|---|
+| 人确认（变更类动作默认拒） | "谁批／怎么批／批了记哪／管多久"四格未定 |
+| 总线 ACL（谁能发/收哪个话题） | 总线只听本机，但登录本机的人可发任意话题；需给进程身份后再配规则 |
+| 事务 / 回滚 / 补偿 | 效果目前是声明＋记账；外部副作用不可逆，回滚要逐个动作裁 |
+| 桌面图标网格与窗口（标题栏、缩放、关闭、多窗口） | 正在做；当前桌面是仪表盘式画布，点击只到 `world/ui/act` |
+| MCP 工具面 / 函数运行时 | 手册已从本体派生；MCP server 与只读函数执行器未做 |
+| 对象级版本链 | 今天只有事件史（账）；个体更新/撤下的写路径未齐 |
+| 多人在线 / 大对象货运道 | 单用户空间；数据面暂不需要 |
+
+## 五、怎么跑
 
 ```sh
-sudo REPO=. bash scripts/release/deploy.sh
+git clone <this repo>
+cd <this repo>
+sudo REPO=. bash scripts/release/deploy.sh    # 幂等：拷代码 ＋ 装单元 ＋ 恢复 SELinux ＋ 重启 7 个单元
 ```
 
-★ 目标机需要：openSUSE Leap 16 / systemd / python3 / zenohd / Flutter（渲染半）。
-★★ **幂等**：★ 可以反复跑。
+目标机：openSUSE Leap 16 / systemd / python3 / zenohd / Flutter（渲染半）。
+生成物（都是构建产物，改输入后重跑）：
+
+```sh
+python3 scripts/release/export-ontology.py      # 本体 → JSON
+python3 scripts/release/make-manual.py          # 本体 → 应用手册（json＋md）
+python3 scripts/release/export-owl.py           # 本体 → OWL Turtle ＋ SHACL（单向）
+python3 scripts/release/export-law.py --check   # 声明件 ≡ 运行中的法
+```
+
+## 六、来源与许可
+
+- 许可：见 [LICENSE](LICENSE)。
+- 对象模型库：取自 `foundry-ontology-open`（MIT），改动逐笔登记在 [src/NOTICE.md](src/NOTICE.md)。
+- 上游：AI-OS（Apache-2.0，其 Rust workspace 不在本副本内）。
+- 设计参考（只借形状、不借代码）：三个开源本体实现（订单型本体平台／借书平台骨架／教学版本体）。
+- 工程档案：[ninedim/](ninedim/)。
 
 ---
 
-# 五、许可
+# English
 
-见 `LICENSE`。
+## 1. What we are building
+
+**Problem.** Today's operating systems only recognize *processes, files and permissions*. They do not recognize
+**who** did something, **what** they were allowed to do, **what happened**, or **what it looked like**.
+Every time a new thing is wired in (an agent, an app, a machine), the same conversation starts over: *"how do we talk to each other?"*
+
+**Goal.** Build the *vocabulary layer* as a first-class thing:
+
+- **one world, one vocabulary** — everything that plugs in speaks it;
+- **who said what, who allowed it, and its position in the log** — recorded in one append-only ledger, queryable afterwards;
+- **only humans sign** — machines produce findings, never verdicts.
+
+This is **not yet another system**: it is the layer every system has to speak — a semantic core (ontology),
+one single write path, and one append-only ledger.
+
+## 2. Principles
+
+1. **The ontology does exactly four things: recognize · stamp · forward · record.** It never executes, renders or touches the machine.
+2. **One write path.** Actions are the only way to change the world; an executor must hold a **permit issued by the ontology**, and each permit is single-use.
+3. **One ledger.** Append-only: successes **and refusals** are recorded; refusal codes are a **closed set** (business / identity / permission / input / system).
+4. **Only humans sign.** Agents produce findings; they never sign or fill in verdicts.
+5. **The law is a declarative file.** The ontology is defined in `src/ontology/world.json` (classes / properties / interfaces / links / action semantics / grants);
+   code only parses, **validates** and loads it. **An invalid law fails at load time**, not halfway through a request.
+6. **The UI is a protocol, not code.** Each provider draws its own surface (A2UI v1.0), the personal space places it,
+   presentation composes it; the renderer is Flutter + `genui` (the official A2UI renderer).
+
+## 3. Current system structure
+
+### 3.1 Runtime topology (7 systemd units, 1 bus)
+
+```
+        human (login UI) / agent / apps
+                    │  all speak the same vocabulary
+                    ▼
+   ★ ontology (aios-ontology) — recognize · stamp · forward · record
+                    │  world/exec (route + ontology-signed permit)
+   ┌──────────┬─────┴──────┬──────────────┬───────────────┐
+   ▼          ▼            ▼              ▼               ▼
+computer  presentation  personal space  agent          renderer
+(execute) (compose)     (human's space) (model-in-loop) (Flutter + genui)
+   │          │
+   └──── everything talks over the zenoh bus (aios-bus) ────┘
+```
+
+### 3.2 Units and responsibilities
+
+| Unit | Role | What it does |
+|---|---|---|
+| `aios-bus` | bus (zenohd, external) | the only channel between processes |
+| `aios-ontology` | **ontology** | recognize / verify ticket / verify identity / authorize / run preconditions / route / issue permit / record / query |
+| `aios-computer` | computer (executor) | verify permit → read command map → run program → reply; removals must carry a reason |
+| `aios-presentation` | presentation (composer) | keeps "what is on screen now"; shows/retracts surfaces; composes layers |
+| `aios-presentation-render` | renderer half | Flutter + genui; renders A2UI frames |
+| `aios-space` | personal space | human's desktop; places surfaces from providers |
+| `aios-agent` | agent | model-in-the-loop: query world → decide → act through ontology → draw frames |
+
+### 3.3 The path of one request (gate order is fixed)
+
+```
+world/ask
+  → ① is the name registered?          UNKNOWN_ACTION
+  → ①.5 are parameters valid?          PARAM_MISSING / PARAM_INVALID
+  → ①.5b is the ticket valid?          BAD_TICKET / TICKET_SCOPE_DENIED
+  → ② is there an identity?            NO_IDENTITY
+  → ②.5 is the identity verifiable?    HUMAN_NEEDS_TICKET / IDENTITY_NOT_REPORTED
+  → ③ do the grants allow it?          PERMISSION_DENIED
+  → ④ do preconditions hold?           PRECONDITION_FAILED / INTERFACE_NOT_IMPLEMENTED / PROVIDER_NOT_DECLARED
+  → ⑤ routing (interface-based: pick executor by object type; else by registrant)
+  → ⑥ issue permit + forward to world/exec; result returns here, recorded, returned to caller
+```
+
+**Refusals are recorded too**: every rejection writes a row (`kind_of=reject` + closed-set code + category).
+
+### 3.4 Bus topics
+
+| Topic | Direction | Purpose |
+|---|---|---|
+| `world/ask` | → ontology | request entry (only the ontology subscribes) |
+| `world/ask/result` | → caller | refusal reason / execution result |
+| `world/exec` | ontology → executor | forwarded action (with `route` and permit) |
+| `world/register` | provider → ontology | register actions (whoever starts, registers) |
+| `world/appear` | provider → ontology | report-in (become an individual; carries `reporter`, i.e. state ownership) |
+| `world/query` | any → ontology | query world / actions / history |
+| `world/notice` | provider → ontology → presentation | announcement (frames go through the ontology) |
+| `world/ui/act` | presentation → personal space | human UI actions (clicks, etc.) |
+| `world/ui/frame` | ontology → presentation | stamped envelope with `to` (who may see it) |
+
+### 3.5 Data carriers (one fact, one carrier)
+
+| Carrier | What it is |
+|---|---|
+| `src/ontology/world.json` | **the law**: declarative ontology (single source of truth; reviewable, diffable) |
+| `/var/lib/aios/ontology/ledger.jsonl` | **the ledger**: append-only; each row timestamped |
+| `/var/lib/aios/ontology/objects.db` | **individuals** (SQLite): reported individuals and their current fields |
+| `/var/lib/aios/ontology/registry.jsonl` | **registry**: which action is provided by which process |
+| `/var/lib/aios/ontology/permits.jsonl` | **permit ledger**: single-use accounting of issued permits |
+
+### 3.6 Ontology scale (current)
+
+- **11 classes** (human / agent / application / service / device / workflow / ledger / port / space / presentation / computer)
+- **4 interfaces** (Identifiable / Stateful / Owned / Retirable) + runtime polymorphism (`object.retire` routes by object type)
+- **5 links**, **20 world actions** (parameters, preconditions, effects, failure policy, grants) + **156 command actions** (system command map) = **176 registered actions**
+- **9 function declarations** (placeholder: no function runtime yet)
+- Action contract: parameter validation, preconditions, effect list, refusal codes, failure policy; ledger rows carry `route` / `effects`
+
+### 3.7 UI
+
+- Login: presentation draws the login canvas → authentication goes through the ontology → ticket → personal space → desktop canvas;
+- Surfaces: each provider draws its own (A2UI v1.0); the personal space places them via `layout.layers` (z-order + rect);
+- Presentation filters by ticket: you only see the surfaces your ticket allows;
+- In progress: desktop icon grid, app windows (title bar + zoom/close), multi-window (see "Not done yet").
+
+### 3.8 Repository layout (what actually runs today)
+
+```
+src/                     semantic plane (Python)
+  ontology/              ontology: world.json (the law) + loader/validator + recognize/stamp/forward/record
+  presentation/          presentation: composer + login frame + A2UI validation + renderer half (Flutter)
+  space/                 personal space: desktop + layout
+  computer/              computer: executor (command map)
+  agent/                 agent: model-in-the-loop
+  foundry_ontology/      object model library (upstream; see src/NOTICE.md)
+  legacy/                archived old code (not deployed)
+scripts/
+  release/               idempotent deploy chain + generated artifacts (ontology.json / manual / OWL)
+  test/                  criteria (dev-only; per the author's decision, not shipped in this repo)
+ninedim/                 engineering docs: book / planning / requirements / design / spec / change box
+site/                    project site
+.github/                 collaboration templates
+```
+
+> Note: the root `Cargo.toml` points at the upstream AIOS Rust workspace (`crates/…`, not carried in this copy).
+> **What actually runs in this repository is the `src/` semantic plane + the `scripts/release/` deploy chain.**
+
+## 4. Verification and status
+
+**37 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
+
+```
+python scripts/test/check.py              → all green (37/37, rc=0)
+python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
+```
+
+**Verified (highlights)**:
+
+| Area | What was verified |
+|---|---|
+| Authentication & identity | wrong password refused / correct issues a ticket; expired & revoked tickets refused; Alice's ticket cannot read Bob's space; humans need tickets, others need to have reported in |
+| Authorization & permits | permits bind action + params, expire, are **single-use**; executors without a permit refuse; replay refused; single-use accounting lives in the ontology |
+| Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
+| Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
+| Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering |
+
+**Not done yet (honest list)**:
+
+| Not done | Why |
+|---|---|
+| Human approval (change-type actions are denied by default) | the four boxes — who approves / how / where recorded / for how long — are undefined |
+| Bus ACL (who may publish/subscribe to which topic) | the bus listens on localhost, but anyone logged into the machine can publish anywhere; needs per-process identity first |
+| Transactions / rollback / compensation | effects are declared and recorded today; external side effects are irreversible, rollback must be decided per action |
+| Desktop icon grid & app windows (title bar, zoom, close, multi-window) | in progress; today's desktop is a dashboard-style canvas and clicks only reach `world/ui/act` |
+| MCP tool surface / function runtime | the manual is generated from the ontology; the MCP server and a read-only function executor do not exist yet |
+| Object-level version chains | only the event history (ledger) exists; update/retract write paths are not complete |
+| Multi-user sessions / large-object data plane | single-user space; not needed yet |
+
+## 5. How to run
+
+```sh
+git clone <this repo>
+cd <this repo>
+sudo REPO=. bash scripts/release/deploy.sh    # idempotent: copy code, install units, restore SELinux, restart the 7 units
+```
+
+Target machine: openSUSE Leap 16 / systemd / python3 / zenohd / Flutter (renderer half).
+Generated artifacts (build products; re-run generators after changing inputs):
+
+```sh
+python3 scripts/release/export-ontology.py      # ontology → JSON
+python3 scripts/release/make-manual.py          # ontology → application manual (json + md)
+python3 scripts/release/export-owl.py           # ontology → OWL Turtle + SHACL (one-way export)
+python3 scripts/release/export-law.py --check   # declarative law ≡ running law
+```
+
+## 6. Provenance and license
+
+- License: see [LICENSE](LICENSE).
+- Object model library: from `foundry-ontology-open` (MIT); every change is registered in [src/NOTICE.md](src/NOTICE.md).
+- Upstream: AI-OS (Apache-2.0; its Rust workspace is not carried in this copy).
+- Design references (shape, not code): three open-source ontology implementations (an order-driven ontology platform, a library-platform skeleton, a teaching-grade ontology).
+- Engineering docs: [ninedim/](ninedim/).
