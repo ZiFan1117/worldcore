@@ -122,12 +122,15 @@ class Agent:
         ★ 作者口径：「如果 A 想知道界面上有哪些东西，可以直接请求这个界面、界面返回现在的状态给他」。
         ★ 返回 {"surfaces": …, "layout": …}；被拒就把原因带回来（不假装知道）。
         """
-        r = self.act("presentation.list_surfaces", {}, timeout=8)
+        r = self.act("presentation.state", {}, timeout=8)     # ★ 界面注册时预留的读状态动作
+        if not r.get("ok"):
+            r = self.act("presentation.list_surfaces", {}, timeout=8)   # 兼容旧提供者
         if not r.get("ok"):
             # ★ 被拒就把原因带回来（不假装知道）
             return {"surfaces": {"why": r.get("why") or r.get("code")}, "layout": None}
         b = r.get("body") or {}
-        return {"surfaces": b, "layout": b.get("layout")}
+        return {"surfaces": {"count": b.get("count"), "surfaces": b.get("surfaces")},
+                "layout": b.get("layout"), "screen": b.get("screen")}
 
     def notice(self, frame, about):
         self.s.put(T_NOTICE, json.dumps({

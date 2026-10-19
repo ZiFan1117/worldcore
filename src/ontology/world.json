@@ -2107,6 +2107,80 @@
         "why": "应用窗口（点击经本体；谁启动谁注册）"
       },
       "metadata": {}
+    },
+    {
+      "id": "presentation.state",
+      "label": "读界面状态",
+      "description": "★ 界面在注册时预留的【状态读取】动作：此刻屏上有什么、怎么摆、谁在前、合成器是什么。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "presentation_process.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent",
+          "world://presence"
+        ],
+        "why": "读界面/桌面状态（只读；★ 提供者在注册时就预留这个动作）"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "space.state",
+      "label": "读桌面状态",
+      "description": "★ 个人空间在注册时预留的【状态读取】动作：用户、空间状态、桌面 surface、客画布、自有窗口、成员数。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "space_process.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent",
+          "world://presence"
+        ],
+        "why": "读界面/桌面状态（只读；★ 提供者在注册时就预留这个动作）"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

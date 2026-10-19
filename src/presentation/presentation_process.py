@@ -57,6 +57,8 @@ ACTIONS = [
     {"action": "presentation.retract_surface", "kind": "write", "why": "撤下一张画布"},
     {"action": "presentation.list_surfaces",   "kind": "read",  "why": "查：此刻有哪几张（★ 作者点名要的）"},
     {"action": "presentation.get_surface",     "kind": "read",  "why": "查：某一张的画布内容"},
+    # ★ 2026-10-19：注册时就预留「读状态」动作（桌面/界面现在什么状态）
+    {"action": "presentation.state",           "kind": "read",  "why": "读界面状态（屏上有什么/怎么摆/谁在前/合成器）"},
 ]
 
 
@@ -228,7 +230,21 @@ class Presentation:
         }, ensure_ascii=False))
         log("④ 执行 %s ⇒ ok=%s（%s）" % (act, ok, str(body)[:60].replace(chr(10), " ")))
 
+    def _state(self):
+        """★ 界面状态（只读）：屏上有什么、怎么摆、谁在前、谁有权限看、合成器。"""
+        with self.lock:
+            rows = [{"surface": k, "bytes": len(json.dumps(v)),
+                     "name": v.get("name"), "role": v.get("role")}
+                    for k, v in self.shown.items()]
+            return {"count": len(rows), "surfaces": rows, "layout": self.layout,
+                    "actives": dict(self.actives), "screen": SCREEN,
+                    "compositor": "flutter", "ticket_scope": list(self.ticket_scope)}
+
     def dispatch(self, act, params):
+        if act == "presentation.state":        # ★ 注册时预留的「读状态」动作
+            body = self._state()
+            body["at"] = time.time()
+            return True, body
         if act == "object.retire":      # ★ 多态动作：路由到 presentation 的那一支
             subject = params.get("subject") or ""
             me = "presentation/" + SCREEN
@@ -267,15 +283,7 @@ class Presentation:
             return had, ("已撤下 %s（理由：%s）" % (sid, reason) if had
                          else "本来就没有 %s（理由：%s）" % (sid, reason))
         if act == "presentation.list_surfaces":
-            # ★★ 2026-10-19：连【布局】一起给 —— Agent 问一次界面就知道「屏上有什么、怎么摆的」
-            with self.lock:
-                rows = [{"surface": k, "bytes": len(json.dumps(v)),
-                         "name": v.get("name"), "role": v.get("role")}
-                        for k, v in self.shown.items()]
-                layout = self.layout
-                actives = dict(self.actives)
-            return True, {"count": len(rows), "surfaces": rows,
-                          "layout": layout, "actives": actives}
+            return True, self._state()
         if act == "presentation.get_surface":
             sid = params.get("surface") or ""
             with self.lock:

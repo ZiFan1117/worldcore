@@ -66,6 +66,8 @@ ACTIONS = [
     {"action": "space.login",      "kind": "write", "why": "登录：验人、置空间 active、出桌面画布"},
     {"action": "space.set_layout", "kind": "write", "why": "改布局（摆放归个人空间）"},
     {"action": "space.get_layout", "kind": "read",  "why": "读布局"},
+    # ★ 2026-10-19：注册时就预留「读桌面状态」动作
+    {"action": "space.state",      "kind": "read",  "why": "读桌面状态（用户/状态/画布/窗口/成员）"},
 ]
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
@@ -151,6 +153,15 @@ class Space:
         log("④ 执行 %s ⇒ ok=%s（%s）" % (act, ok, str(body)[:60].replace(chr(10), " ")))
 
     def dispatch(self, act, params):
+        if act == "space.state":       # ★ 注册时预留的「读桌面状态」动作
+            return True, {"user": USER, "state": self.state,
+                          "surface": self.surface_id,
+                          "guests": dict(self.guests),
+                          "own": {k: (v.get("rect") if isinstance(v, dict) else None)
+                                  for k, v in self.own.items()},
+                          "n_members": self.n_members,
+                          "has_ticket": bool(self.ticket),
+                          "at": time.time()}
         if act == "object.retire":      # ★ 多态动作：路由到 space 的那一支
             subject = params.get("subject") or ""
             me = "space/" + USER
