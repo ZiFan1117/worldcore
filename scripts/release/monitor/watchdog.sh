@@ -1,14 +1,14 @@
 #!/bin/bash
 # ★ AI-OS 看门狗 —— 只做一件事：别让（自优化的）系统自己跑崩。
 # 每 3 分钟一次：
-#   ① 7 个单元都活着（掉了就重启，记下来）
+#   ① 9 个单元都活着（掉了就重启，记下来；2026-10-20 加 guard/web）
 #   ② 本体还能装起来（export-law --check；坏了就用 last-good 快照恢复）
 #   ③ 磁盘/内存/负载不越线
 #   ④ 进化/自优化定时器没连环失败（失败就停 timer，等人看）
 # 输出：/var/log/aios-watchdog.log（人看）＋ /var/log/aios-watchdog.jsonl（一行一读数）
 set -uo pipefail
 
-UNITS="aios-bus aios-ontology aios-computer aios-presentation aios-presentation-render aios-space aios-agent"
+UNITS="aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent"
 LOG=/var/log/aios-watchdog.log
 JSONL=/var/log/aios-watchdog.jsonl
 BACKUP_DIR=/var/backups/aios
@@ -42,7 +42,7 @@ if ! echo "$LAW_OUT" | grep -q "一致"; then
   if [ -f "$SNAP" ]; then
     tar -xzf "$SNAP" -C / >/dev/null 2>&1 || mark "快照恢复失败"
     systemctl daemon-reload >/dev/null 2>&1 || true
-    for u in aios-ontology aios-space aios-presentation aios-presentation-render aios-agent; do
+    for u in aios-ontology aios-guard aios-space aios-presentation aios-presentation-render aios-agent; do
       systemctl restart "$u" >/dev/null 2>&1 || true
     done
     sleep 3
