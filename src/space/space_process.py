@@ -29,7 +29,7 @@ from desktop_frame import desktop_frame
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
-from permit import verify_and_consume  # noqa: E402
+from permit import verify, consume_via_ontology  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -48,6 +48,8 @@ ACTIONS = [
 ]
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
+# ★ 客画布上限：0 ＝ 不设上限（★ 作者更正：不许写死「只摆四张」）
+MAX_GUESTS = int(os.environ.get("AIOS_GUESTS_MAX") or "0")
 USER = os.environ.get("AIOS_USER") or "zhang"
 STATE = os.environ.get("AIOS_SPACE_STATE") or "active"
 
@@ -94,7 +96,10 @@ class Space:
         if d.get("route") and d.get("route") != "space":
             return
         rid, act, params = d.get("id"), d.get("action") or "", d.get("params") or {}
-        _ok, _why = verify_and_consume(d.get("permit"), act, params)
+        _ok, _why = verify(d.get("permit"), act, params)
+        if _ok:
+            # ★ 一号一用的账在本体：只问一句（执行器不记账）
+            _ok, _why = consume_via_ontology(self.s, d.get("permit"), act, params)
         if not _ok:
             log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
             self.s.put(T_RESULT, json.dumps({
@@ -212,8 +217,9 @@ class Space:
         sid = _surface_of(frame) if isinstance(frame, dict) else None
         if not sid or sid == self.surface_id:
             return
-        if sid not in self.guests and len(self.guests) < 4:
-            self.guests[sid] = [640, 40, 620, 500]
+        if sid not in self.guests and (MAX_GUESTS <= 0 or len(self.guests) < MAX_GUESTS):
+            # ★ 摆放策略（归个人空间）：先给右栏；多张时级联偏移一点，免得完全叠死
+            self.guests[sid] = [640, 40 + 16 * (len(self.guests) % 8), 620, 500]
             log("② 收到画布 %s（by=%s）⇒ ★ 摆进桌面（客画布 %d 张）" % (sid, by, len(self.guests)))
             self.draw()
 

@@ -87,6 +87,8 @@ class World:
         self._load_registry()
         os.makedirs(os.path.dirname(LEDGER_PATH), exist_ok=True)
         self.ledger = open(LEDGER_PATH, "a", encoding="utf-8")
+        # ★★ 一号一用的账【在本体】：用过哪些凭证号，从盘上读回（重启不忘）
+        self.used_permits = permit.load_used(permit.ledger_path(self))
         # ★★ ABox：个体表（★ P 的 ObjectStore，SQLite 持久化）
         os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
         self.store = ObjectStore(self.ontology, db_path=STORE_PATH)
@@ -278,6 +280,8 @@ def main():
     session.declare_subscriber(T_EXEC_RESULT, lambda s: _result_and_reply(s, w, session))
     session.declare_subscriber(T_QUERY, lambda s: world_query.handle(s, w, session, log))
     session.declare_subscriber(T_NOTICE, lambda s: _notice_and_forward(s, w, session))
+    # ★★ 一号一用：执行器来问「这张凭证用过没有」—— 记账在本体（见 permit.consume）
+    session.declare_subscriber(permit.T_CONSUME, lambda s: permit.handle_consume(s, w, session, log))
     log("   订上了：%s ／ %s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY, T_NOTICE))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:
@@ -369,14 +373,14 @@ def _ask_and_forward(smp, w, session):
             session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_t},
                                                  ensure_ascii=False))
             return
+    # ★★ 本体【唯一发许可处】：先签发凭证 ⇒ 再把凭证号记进【本体的账】⇒ 转发时带上凭证
+    pm = permit.issue(name, msg.get("params"), actor)
     seq = w.stamp("act", kind_of="ask", action=name, actor=actor,
                   rid=msg.get("id"), params=msg.get("params"),
-                  route=reg.get("registered_by_kind"))
+                  route=reg.get("registered_by_kind"), permit=(pm or {}).get("id"))
     out = {"id": msg.get("id"), "at": seq, "action": name,
            "params": msg.get("params") or {}, "actor": actor,
-           "route": reg.get("registered_by_kind"),
-           # ★★ 本体【唯一发许可处】：转发时带上凭证；执行器验不过就拒（见 src/ontology/permit.py）
-           "permit": permit.issue(name, msg.get("params"), actor)}
+           "route": reg.get("registered_by_kind"), "permit": pm}
     log("转 %s（%s）⇒ %s" % (name, seq, reg.get("registered_by_kind")))
     session.put(T_EXEC, json.dumps(out, ensure_ascii=False))
 

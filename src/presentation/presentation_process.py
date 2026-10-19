@@ -35,7 +35,7 @@ from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  #
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
-from permit import verify_and_consume  # noqa: E402
+from permit import verify, consume_via_ontology  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -209,7 +209,10 @@ class Presentation:
         rid = d.get("id")
         act = d.get("action") or ""
         params = d.get("params") or {}
-        _ok, _why = verify_and_consume(d.get("permit"), act, params)
+        _ok, _why = verify(d.get("permit"), act, params)
+        if _ok:
+            # ★ 一号一用的账在本体：只问一句（执行器不记账）
+            _ok, _why = consume_via_ontology(self.s, d.get("permit"), act, params)
         if not _ok:
             log("④ 拒 %s（id=%s）⇒ 没有本体的许可：%s" % (act, rid, _why))
             self.s.put(T_RESULT, json.dumps({

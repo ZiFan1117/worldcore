@@ -28,7 +28,7 @@ import zenoh
 # ★★ 本体发的审批凭据（permit.py 住在 src/ontology/）—— 执行器收指令前【必须验】它。
 import sys as _sys
 _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
-from permit import verify_and_consume  # noqa: E402
+from permit import verify, consume_via_ontology  # noqa: E402
 
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
@@ -202,17 +202,20 @@ def run_action(rows, action, params):
         return False, "%s 退出码 %s\n%s" % (program, p.returncode, err.strip()[:500])
     return True, out
 
-def handle_exec(msg, rows):
-    """★ 收一条 world/exec：**先验本体凭证** ⇒ 再执行。返回回话（回 world/exec/result）。
+def handle_exec(msg, rows, session):
+    """★ 收一条 world/exec：**先验本体凭证，再问本体准不准** ⇒ 才执行。返回回话（回 world/exec/result）。
 
-    ★★ 判据 C21：凭证绑「动作＋参数」、有期限、一号一用；验不过 ⇒ 拒（fail closed）。
+    ★★ 判据 C21：凭证绑「动作＋参数」、有期限；`一号一用` 的账在【本体】——
+      执行器【不记账】，只问一句 `world/permit/consume`；本体说行才执行（验不过／超时都拒）。
     ★ 这就是「本体是唯一发许可处」在【执行器这一侧】的兑现：绕开本体直接往总线发指令，
       没有本体签的凭证 ⇒ 一条也执行不了。
     """
     action = msg.get("action") or ""
     params = msg.get("params") or {}
     rid = msg.get("id") or ""
-    ok, why = verify_and_consume(msg.get("permit"), action, params)
+    ok, why = verify(msg.get("permit"), action, params)
+    if ok:
+        ok, why = consume_via_ontology(session, msg.get("permit"), action, params)
     if not ok:
         log("拒 %s（id=%s）⇒ 没有本体的许可：%s" % (action, rid, why))
         return {"id": rid, "action": action, "ok": False, "body": None,
@@ -288,7 +291,7 @@ def main():
         route = msg.get("route")
         if route not in (None, "", "computer", "world"):
             return
-        out = handle_exec(msg, rows)
+        out = handle_exec(msg, rows, session)
         log("回话 %s ⇒ ok=%s（★ 先回本体 %s）" % (out.get("action"), out.get("ok"), T_RESULT))
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 
