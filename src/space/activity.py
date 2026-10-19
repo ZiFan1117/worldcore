@@ -32,8 +32,9 @@ def _write_cursor(name, cursor):
         with open(_cursor_path(name), "w", encoding="utf-8") as f:
             json.dump({"cursor": cursor, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z")}, f,
                       ensure_ascii=False)
-    except Exception:
-        pass
+        print("[个人空间] ② 回放游标已记：%s" % str(cursor)[:19], flush=True)
+    except Exception as e:
+        print("[个人空间] 游标写失败：%s" % e, flush=True)
 
 
 class ActivityMixin:

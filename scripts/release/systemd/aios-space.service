@@ -12,9 +12,12 @@ ExecStart=/usr/bin/python3 /usr/lib/aios/src/space/space_process.py
 Restart=always
 RestartSec=3
 PrivateTmp=yes
-# ★★ 加固：源码逐行读过（space_process.py）—— 只连 zenoh、报个体、出画布／记布局，
-#   ★ 全部在内存（self.state／self.layout）⇒ ★ 不写盘 ⇒ ★ 不给 ReadWritePaths。
+# ★★ 加固：只连 zenoh、报个体、出画布／记布局。
+# ★★ 2026-10-20：P8 掉线补推要落【游标】到 /var/lib/aios/cursors ⇒ 只放开这一个目录
+#   （其余仍 ProtectSystem=strict 只读）。★ 现取教训：不给它写权限时游标写失败是
+#   `Read-only file system`，被 except 静默吞掉——现在写失败会打日志、且单元显式放开。
 ProtectSystem=strict
+ReadWritePaths=-/var/lib/aios/cursors
 NoNewPrivileges=yes
 
 [Install]
