@@ -163,6 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| 人确认/委托（提案） | 「四格」委托：范围/期限/次数/可撤，是本体的对象而非提示词；Agent 不能自签、不能替人点确认；**法改动待作者签**（`提案-人确认与委托四格-待裁-2026-10-20.md`） |
 | 记忆系统（提案） | 记忆＝**世界里的对象**（记忆/关系/动作/账），不是向量库当真相；写经本体、读按 owner/空间；**法改动待作者签**（`ninedim/…/提案-记忆系统-按本体理念-待裁-2026-10-20.md`） |
 | A2UI 跟版（P5） | `scripts/release/a2ui_conformance.py`：源码/动态帧用到的组件必须在 basic catalog 内，且 **Web 渲染器都有 case**（判据 C53） |
 | 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
@@ -380,6 +381,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| Human confirmation / delegation (proposal) | "Four-box" delegation: scope / expiry / max uses / revocable, a first-class world object rather than prompt text; agents can neither self-grant nor click confirm on behalf of humans; **law change awaits the author's signature** |
 | Memory system (proposal) | memory = **first-class world objects** (objects/relations/actions/ledger), not a vector DB as truth; written through the ontology, read scoped by owner/space; **law change awaits the author's signature** |
 | A2UI version conformance (P5) | `scripts/release/a2ui_conformance.py`: every component used in sources/generated frames must be in the basic catalog **and have a case in the Web renderer** (criterion C53) |
 | Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview (kiosk/screenshots) |
