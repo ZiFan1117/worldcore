@@ -1,0 +1,89 @@
+{
+  "proposal": "memory-v0",
+  "note": "记忆系统（待作者签）：记忆＝世界里的对象。写经本体（memory.remember）；读按 owner/空间（memory.recall 或 world/query kind=memory）；账里只记 ref/kind/about/source，不记 text 全文。",
+  "object_types": [
+    {
+      "id": "memory",
+      "label": "记忆",
+      "description": "一条记忆（事实/决定/偏好/片段）。★ 提案：记忆是世界里的一等对象，不是向量库里的影子；source 指向账，可追问「为什么记得」。",
+      "primary_key": "name",
+      "interfaces": ["Identifiable", "Owned", "Retirable"],
+      "provider": "world",
+      "authority": {"kind": "reported", "reporters": ["world://memory"]},
+      "metadata": {"wc_id": "wc:mem20261020_01", "instance_mode": "many"},
+      "properties": [
+        {"name": "name", "label": "name", "type": "STRING", "required": true, "primary": true, "options": null, "description": ""},
+        {"name": "owner", "label": "owner", "type": "OBJECT_REFERENCE", "required": true, "primary": false, "options": null, "description": "这条记忆属于谁（人/空间/agent）"},
+        {"name": "kind", "label": "kind", "type": "STRING", "required": true, "primary": false, "options": ["fact", "decision", "preference", "episode"], "description": ""},
+        {"name": "text", "label": "text", "type": "STRING", "required": true, "primary": false, "options": null, "description": "记忆正文（只进对象库，不进账）"},
+        {"name": "about", "label": "about", "type": "STRING", "required": false, "primary": false, "options": null, "description": "关联对象 id（先留 STRING，稳定后升关系）"},
+        {"name": "source", "label": "source", "type": "STRING", "required": false, "primary": false, "options": null, "description": "账里哪一笔（at 或 rid）"},
+        {"name": "importance", "label": "importance", "type": "INTEGER", "required": false, "primary": false, "options": null, "description": "1-5"},
+        {"name": "at", "label": "at", "type": "STRING", "required": false, "primary": false, "options": null, "description": "写入时间（ISO）"}
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "memory.remember",
+      "label": "memory.remember",
+      "description": "记住一件事（★ 提案 v0：只有人能写；agent 写要先有委托）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger"}],
+      "preconditions": [{"kind": "param_present", "name": "text"}],
+      "parameters": [
+        {"name": "text", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "kind", "type": "STRING", "required": false, "options": ["fact", "decision", "preference", "episode"], "description": ""},
+        {"name": "about", "type": "STRING", "required": false, "options": null, "description": ""},
+        {"name": "source", "type": "STRING", "required": false, "options": null, "description": ""},
+        {"name": "importance", "type": "INTEGER", "required": false, "options": null, "description": ""}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": "记忆写入由人发起；agent 要写得先有委托（另案）"},
+      "metadata": {"not_roles": ["不记账", "不核来源", "不做保留"]}
+    },
+    {
+      "id": "memory.recall",
+      "label": "memory.recall",
+      "description": "回想要记住的事（按 owner/空间过滤；v0 关键词/子串）",
+      "required_roles": ["human", "agent"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}],
+      "preconditions": [{"kind": "param_present", "name": "query"}],
+      "parameters": [
+        {"name": "query", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "limit", "type": "INTEGER", "required": false, "options": null, "description": "默认 10"},
+        {"name": "kind", "type": "STRING", "required": false, "options": ["fact", "decision", "preference", "episode"], "description": ""}
+      ],
+      "grant": {"who": ["world://user", "world://agent/dsh"], "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"], "why": ""},
+      "metadata": {"not_roles": ["不记账", "不算语义检索"]}
+    },
+    {
+      "id": "memory.forget",
+      "label": "memory.forget",
+      "description": "忘掉一条记忆（凡清除必留证：reason 必填）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger", "what": "reason"}, {"kind": "state_change", "of": "memory", "to": "retired"}],
+      "preconditions": [{"kind": "param_present", "name": "name"}, {"kind": "param_present", "name": "reason"}],
+      "parameters": [
+        {"name": "name", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "reason", "type": "STRING", "required": true, "options": null, "description": ""}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": ""},
+      "metadata": {"not_roles": ["不记账", "不留理由"]}
+    }
+  ]
+}
