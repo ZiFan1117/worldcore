@@ -1,0 +1,12 @@
+[Unit]
+Description=worldcore 世界文件导出（P3：只读把账导出成目录树）
+After=network-online.target aios-ontology.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /root/aios/scripts/release/worldfs.py export
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

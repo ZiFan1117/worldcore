@@ -1,0 +1,17 @@
+[Unit]
+Description=worldcore 权限进程（PDP：只决定，不执行；决定留在日志）
+After=network-online.target aios-ontology.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/guard
+Environment=AIOS_LAW_JSON=/usr/lib/aios/src/ontology/world.json
+Environment=AIOS_GUARD_SOCK=/run/aios/guard.sock
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/guard/guard_process.py
+Restart=always
+RestartSec=5
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

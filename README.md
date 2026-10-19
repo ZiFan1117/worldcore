@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 48 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 50 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,6 +163,8 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
+| 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
 | 长程闭环评估（P6） | `scripts/release/dsh/goal/round_eval.py`：把每轮报告/提交扫成 `rounds.jsonl`（证据/回滚/提交/缺报告都能数）；systemd 每 15 分钟 |
 | 世界快照（P4） | `scripts/release/world_snapshot.py`：账＋注册表＋对象库＋法源打包成快照；`verify` 验、`restore --yes` 回滚（先备份）；`prune --keep 24`；**每小时定时快照**；不含票/密码 |
 | P8 事件回放 | `world/query kind=events`：从账里回放最近事件（按身份/空间过滤，只公开字段）——掉线后可补看 |
@@ -357,11 +359,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**48 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**50 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (48/48, rc=0)
+python scripts/test/check.py              → all green (50/50, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -374,6 +376,8 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
+| World as files (P3) | `scripts/release/worldfs.py`: read-only export of the ledger into `events/<date>/<hour>.jsonl` + `INDEX.md` (greppable, queryable); public fields only — never params/tickets/body; systemd every 15 min |
 | Long-horizon loop eval (P6) | `scripts/release/dsh/goal/round_eval.py`: turns each round's report/commit into `rounds.jsonl` (evidence / rollback / commit / missing reports are countable); systemd every 15 min |
 | World snapshot (P4) | `scripts/release/world_snapshot.py`: packs ledger + registry + object store + law into a snapshot; `verify` checks it, `restore --yes` rolls back (with pre-restore backups); `prune --keep 24`; **hourly timer**; no tickets/passwords |
 | P8 event replay | `world/query kind=events`: replays recent events from the ledger (identity/space filtered, public fields only) — recovery after a dropped connection |

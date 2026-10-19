@@ -1,0 +1,11 @@
+[Unit]
+Description=worldcore 世界文件导出定时器（每 15 分钟，只读）
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+RandomizedDelaySec=45
+Unit=aios-worldfs.service
+
+[Install]
+WantedBy=timers.target
