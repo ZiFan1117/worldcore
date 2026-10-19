@@ -11,6 +11,7 @@ import json
 import action_contract
 import identity
 import permit
+from world_codes import redact_params
 
 T_ASK_RESULT = "world/ask/result"
 T_EXEC = "world/exec"
@@ -130,7 +131,7 @@ def handle(smp, w, session, log=print):
     _effects = (_at.metadata or {}).get("effects") if _at is not None else None
     pm = permit.issue(name, msg.get("params"), actor)
     seq = w.stamp("act", kind_of="ask", action=name, actor=actor,
-                  rid=msg.get("id"), params=msg.get("params"),
+                  rid=msg.get("id"), params=redact_params(msg.get("params")),
                   route=_route.get("kind"), permit=(pm or {}).get("id"),
                   effects=_effects,
                   declared_checks=[p.get("statement") for p in _declared if p.get("statement")],

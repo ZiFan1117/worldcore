@@ -97,6 +97,7 @@ class Agent:
     def query(self, **kw):
         rid = "l-" + uuid.uuid4().hex[:8]
         kw["id"] = rid
+        kw.setdefault("actor", "world://agent/" + NAME)   # ★ 读闸要核身份
         self.s.put(T_QUERY, json.dumps(kw, ensure_ascii=False))
         for _ in range(100):
             if rid in self.query_results:

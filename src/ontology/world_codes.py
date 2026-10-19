@@ -39,3 +39,32 @@ REJECT_CODES = {
 def reject_category(code):
     """★ 码 → 类别。**不在闭集 ⇒ 返回 None**（调用方按 system 记并留痕；判据 C29 会抓）。"""
     return REJECT_CODES.get(code)
+
+
+# ── 秘密参数不许落明文（2026-10-19，作者担心「账被翻」）──
+_SECRET_KEYS = ("ticket", "secret", "pass", "password", "token")
+_MASK = "…（已脱敏）"
+
+
+def redact_params(params):
+    """★ 写账前把【票/密码类】参数脱敏：账是证据，不是密码本。
+
+    ★ 只影响【落账的那一份】；转给执行器的参数仍是原样（否则登录就废了）。
+    ★ 递归处理嵌套 dict；别的键原样保留。
+    """
+    if not isinstance(params, dict):
+        return params
+    out = {}
+    changed = False
+    for k, v in params.items():
+        if k in _SECRET_KEYS and isinstance(v, str) and v:
+            out[k] = (v[:6] + _MASK) if len(v) > 6 else _MASK
+            changed = True
+        elif isinstance(v, dict):
+            out[k] = redact_params(v)
+            changed = changed or out[k] != v
+        else:
+            out[k] = v
+    if changed:
+        out["_redacted"] = True
+    return out

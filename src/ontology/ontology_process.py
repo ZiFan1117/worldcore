@@ -239,7 +239,7 @@ class World:
         # ★ 记下「报过到」：之后它自称这个身份，本体要能核得上（闸②.5）
         self.appeared["%s/%s" % (cls, fields.get("name", "?"))] = True
         # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
-        seq = self.stamp("change", kind_of="appear",
+        seq = self.stamp("change", kind_of="appear", actor=reporter,
                          **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", inst.instance_id)),
                             "after": fields})
         log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）"
