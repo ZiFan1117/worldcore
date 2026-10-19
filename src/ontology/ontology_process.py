@@ -137,10 +137,13 @@ class World:
         self.ledger.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.ledger.flush()
         # ★★ 2026-10-19（P8）：账落完 ⇒ 推一条【事件】（只公开字段；params/body/why 一律不带）
-        if self.publish and family == "act" and \
-                fields.get("kind_of") in ("ask", "reject", "result", "appear", "register"):
+        _ev_ok = fields.get("kind_of") in ("ask", "reject", "result", "appear", "register") \
+            or (fields.get("kind_of") == "notice" and fields.get("notice_kind") == "ui.act")
+        if self.publish and family == "act" and _ev_ok:
             ev = {"kind": "world.event", "at": at,
-                  "kind_of": fields.get("kind_of"), "action": fields.get("action"),
+                  "kind_of": fields.get("kind_of"),
+                  "action": fields.get("action") or fields.get("ui_action"),
+                  "component": fields.get("component"),
                   "actor": fields.get("actor"), "ok": fields.get("ok"),
                   "code": fields.get("code"), "category": fields.get("category"),
                   "subject": fields.get("subject"),
@@ -390,9 +393,13 @@ def _notice_and_forward(smp, w, session):
         w.reject("BAD_MESSAGE", action="notice", why="宣告没有 kind")
         return
     # ★ 认：宣告的种类在册吗（families 里登记的）
+    # ★ P8：人的动作（ui.act）要把动作名/组件带进账（事件流才能看见“人点了什么”）
+    _extra = {}
+    if kind == "ui.act":
+        _extra = {"ui_action": msg.get("name"), "component": msg.get("component")}
     at = w.stamp("act", kind_of="notice", notice_kind=kind,
                   by=msg.get("by"), about=msg.get("about"),
-                  size=len(smp.payload.to_string()))
+                  size=len(smp.payload.to_string()), **_extra)
     # ★★★ 「给谁看」—— ★ 作者裁（逐字）：「这不是有票吗？票不是决定了是给哪个人的吗？
     #    发布能不能给这个人看，那肯定是能的呀。那谁登录进来，你就给谁看呀」
     #    ★ 所以：★ 从 by 推出【这张画布属于谁】⇒ 盖上 to ⇒ 呈现拿【票】来对。
