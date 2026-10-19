@@ -110,6 +110,42 @@ def handle(smp, w, session, log=print):
                     "applied": len([r for r in tail if applied(r)]),
                     "rejected": len([r for r in tail if rejected(r)]),
                     "rows": tail}
+        elif kind == "overview":
+            # ★★ 本体「一眼看全」：给本体窗口用（类/接口/关系/动作/个体/注册表/账）
+            classes = {}
+            for tid, ot in w.ontology.object_types.items():
+                classes[tid] = {
+                    "label": getattr(ot, "display_name", "") or tid,
+                    "instances": w.store.count(tid),
+                    "interfaces": list(getattr(ot, "interfaces", None) or []),
+                    "provider": ((getattr(ot, "metadata", None) or {}).get("provider")),
+                }
+            rows, bad = read_ledger(getattr(w.ledger, "name", "") or "")
+            codes = {}
+            for r in rows:
+                if r.get("kind_of") == "reject":
+                    c = r.get("code") or "?"
+                    codes[c] = codes.get(c, 0) + 1
+            data = {
+                "classes": classes,
+                "counts": {
+                    "classes": len(w.ontology.object_types),
+                    "interfaces": len(w.ontology.interfaces),
+                    "links": len(w.ontology.link_types),
+                    "world_actions": len(w.ontology.action_types),
+                    "registry_actions": len(w.registry),
+                    "functions": len(w.ontology.functions),
+                    "individuals": sum(v["instances"] for v in classes.values()),
+                },
+                "interfaces": {
+                    iid: {"required": [p.name for p in (getattr(iface, "required_properties", None) or [])],
+                          "implementors": [tid for tid, ot in w.ontology.object_types.items()
+                                           if iid in (getattr(ot, "interfaces", None) or [])]}
+                    for iid, iface in w.ontology.interfaces.items()},
+                "ledger": {"rows": len(rows), "bad_lines": bad,
+                           "reject_codes": dict(sorted(codes.items(), key=lambda kv: -kv[1])[:8]),
+                           "last": rows[-8:]},
+            }
         else:
             raise ValueError("不认识的 kind：%s" % kind)
         out = {"id": rid, "kind": kind, "ok": True, "data": data}

@@ -272,7 +272,12 @@ class Space:
             if icon.endswith("_b"):
                 icon = icon[:-2]
             log("③ 点了图标：%s" % icon)
-            if icon == "ic_agent":
+            if icon == "ic_ontology":
+                rid = "sp-q-%d" % int(time.time() * 1000)
+                self.pending[rid] = {"kind": "overview"}
+                self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "overview"},
+                                               ensure_ascii=False))
+            elif icon == "ic_agent":
                 self._ask("agent.launch", {}, "launch")
             elif icon == "ic_computer":
                 rid = self._ask("sys.GetHostState", {}, "computer")
@@ -351,6 +356,31 @@ class Space:
             return
         p = self.pending.pop(d.get("id") or "", None)
         if not p or not d.get("ok"):
+            return
+        if p["kind"] == "overview":
+            data = d.get("data") or {}
+            c = data.get("counts") or {}
+            if isinstance(c.get("individuals"), int):
+                self.n_members = c["individuals"]   # ★ 桌面「世界：N 个成员」用真实个体数
+            rows = data.get("ledger") or {}
+            lines = [
+                "**本体空间一眼看全**（world/query kind=overview）",
+                "类 %s ／ 接口 %s ／ 关系 %s ／ 在册动作 %s ／ 注册动作 %s ／ 函数 %s"
+                % (c.get("classes"), c.get("interfaces"), c.get("links"),
+                   c.get("world_actions"), c.get("registry_actions"), c.get("functions")),
+                "个体 %s 个" % c.get("individuals"),
+                "账 %s 行；被拒码：%s" % (rows.get("rows"),
+                                        "、".join("%s×%s" % (k, v) for k, v in
+                                                 (rows.get("reject_codes") or {}).items()) or "（无）"),
+                "最近事件：" + "；".join(
+                    "%s %s" % (r.get("kind_of"), r.get("action") or r.get("kind") or "")
+                    for r in (rows.get("last") or [])[-4:]),
+            ]
+            sid = "space/ontology-" + USER
+            self.own[sid] = {"frame": self._own_window_frame(sid, "本体 · 一目了然", lines),
+                             "rect": [600, 40, 660, 520]}
+            log("② 本体窗口 ⇒ 出（%s 类／%s 动作）" % (c.get("classes"), c.get("world_actions")))
+            self.draw()
             return
         data = d.get("data") or {}
         avail = data.get("available") or data.get("actions") or []

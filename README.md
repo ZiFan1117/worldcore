@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 38 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 39 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,7 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
-| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋四个图标真实点击都经本体（开窗/查机器/查动作/退出）＋窗口缩放/关闭** |
+| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋五个图标真实点击都经本体（本体/开窗/查机器/查动作/退出）＋窗口缩放/关闭＋亮色主题与壁纸** |
 
 **还没做（如实）**：
 
@@ -174,7 +174,6 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 事务 / 回滚 / 补偿 | 效果目前是声明＋记账；外部副作用不可逆，回滚要逐个动作裁 |
 | **真·按需起进程**（窗口已能由点击打开，进程仍常驻） | 进程生命周期要改部署（agent 不再开机自启）＋关窗是否停进程要定；先做「窗口起来」 |
 | 窗口拖拽/自由缩放；多窗口同时打开 | 缩放＝最大化/还原；两个窗口同时开着还没专门验 |
-| 桌面「世界成员数」 | 显示 0（还没接查询）；不影响图标/窗口链路 |
 | MCP 工具面 / 函数运行时 | 手册已从本体派生；MCP server 与只读函数执行器未做 |
 | 对象级版本链 | 今天只有事件史（账）；个体更新/撤下的写路径未齐 |
 | 多人在线 / 大对象货运道 | 单用户空间；数据面暂不需要 |
@@ -347,11 +346,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**38 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**39 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (38/38, rc=0)
+python scripts/test/check.py              → all green (39/39, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -364,7 +363,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
-| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; all four icons verified with real clicks and go through the ontology (open window / query machine / query actions / logout); window zoom/close through the ontology** |
+| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; five icons verified with real clicks and go through the ontology (ontology overview / open window / query machine / query actions / logout); window zoom/close; light theme + wallpaper** |
 
 **Not done yet (honest list)**:
 
@@ -375,7 +374,6 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Transactions / rollback / compensation | effects are declared and recorded today; external side effects are irreversible, rollback must be decided per action |
 | **On-demand process start** (windows open on click; processes are still resident) | process lifecycle needs deployment changes (agent no longer auto-starts) and a decision on whether closing stops the process |
 | Window dragging / free resize; several windows open at once | zoom = maximize/restore; simultaneously-open windows not specifically verified yet |
-| Desktop “world members” count | shows 0 (query not wired); does not affect icons/windows |
 | MCP tool surface / function runtime | the manual is generated from the ontology; the MCP server and a read-only function executor do not exist yet |
 | Object-level version chains | only the event history (ledger) exists; update/retract write paths are not complete |
 | Multi-user sessions / large-object data plane | single-user space; not needed yet |

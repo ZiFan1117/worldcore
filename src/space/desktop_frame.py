@@ -3,6 +3,7 @@
 import time
 
 ICONS = [
+    {"id": "ic_ontology", "label": "本体", "emoji": "🗂️"},
     {"id": "ic_agent", "label": "智能体", "emoji": "🧠"},
     {"id": "ic_computer", "label": "这台机器", "emoji": "🖥️"},
     {"id": "ic_actions", "label": "能做什么", "emoji": "📋"},

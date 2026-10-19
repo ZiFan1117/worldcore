@@ -26,10 +26,12 @@ class AiosRenderApp extends StatelessWidget {
   Widget build(BuildContext c) => MaterialApp(
         title: 'AI-OS',
         debugShowCheckedModeBanner: false,
+        // ★ 2026-10-19：换成【亮色主题】（原来 dark ⇒ 屏上黑漆漆一片）
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF2F6FEB), brightness: Brightness.dark),
+              seedColor: const Color(0xFF2F6FEB), brightness: Brightness.light),
           useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFF4F7FC),
         ),
         home: const RenderScreen(),
       );
@@ -287,20 +289,47 @@ class _RenderScreenState extends State<RenderScreen> {
       }
     }
     return Scaffold(
-      body: Column(children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: const Color(0xFF141821),
-          child: Text('AI-OS · $_name\n$_status',
-              style: const TextStyle(fontSize: 11, color: Color(0xFF8B95A5))),
+      body: DecoratedBox(
+        // ★ 壁纸：淡蓝→淡紫渐变（原来纯黑底 ⇒「黑漆麻糊」）
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFEAF3FF), Color(0xFFF6EDFF)],
+          ),
         ),
-        Expanded(
-          child: stack.isEmpty
-              ? const Center(child: Text('还没有画布'))
-              : Stack(children: stack),
-        ),
-      ]),
+        child: Column(children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            color: const Color(0xFFFFFFFF),
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2F6FEB),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('AI-OS',
+                    style: TextStyle(fontSize: 12, color: Colors.white,
+                                     fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('$_name    $_status',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF6B7A90))),
+              ),
+            ]),
+          ),
+          Expanded(
+            child: stack.isEmpty
+                ? const Center(child: Text('还没有画布',
+                    style: TextStyle(color: Color(0xFF6B7A90))))
+                : Stack(children: stack),
+          ),
+        ]),
+      ),
     );
   }
 }
