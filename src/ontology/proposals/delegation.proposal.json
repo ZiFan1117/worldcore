@@ -1,0 +1,86 @@
+{
+  "proposal": "delegation-v0",
+  "note": "人确认与委托「四格」（待作者签）：委托＝世界里的对象（不是提示词）。四格＝范围(action)/期限(expires)/次数(max_uses)/可撤(revoked)。Agent 不能自签、不能替人点确认。",
+  "object_types": [
+    {
+      "id": "delegation",
+      "label": "委托",
+      "description": "人给 Agent 的一张限次/限期/可撤的通行证（四格）。★ 提案：授权必须是对象，不是字符串；撤/过期/用尽即失效，账可追。",
+      "primary_key": "name",
+      "interfaces": ["Identifiable", "Owned", "Retirable"],
+      "provider": "world",
+      "authority": {"kind": "reported", "reporters": ["world://human"]},
+      "metadata": {"wc_id": "wc:del20261020_01", "instance_mode": "many"},
+      "properties": [
+        {"name": "name", "label": "name", "type": "STRING", "required": true, "primary": true, "options": null, "description": ""},
+        {"name": "from", "label": "from", "type": "OBJECT_REFERENCE", "required": true, "primary": false, "options": null, "description": "授权人（human）"},
+        {"name": "to", "label": "to", "type": "OBJECT_REFERENCE", "required": true, "primary": false, "options": null, "description": "被授权者（agent）"},
+        {"name": "action", "label": "action", "type": "STRING", "required": true, "primary": false, "options": null, "description": "① 范围：允许的单个动作 id"},
+        {"name": "expires", "label": "expires", "type": "STRING", "required": true, "primary": false, "options": null, "description": "② 期限：ISO 时间"},
+        {"name": "max_uses", "label": "max_uses", "type": "INTEGER", "required": true, "primary": false, "options": null, "description": "③ 次数"},
+        {"name": "used", "label": "used", "type": "INTEGER", "required": false, "primary": false, "options": null, "description": "已用次数（账驱动）"},
+        {"name": "revoked", "label": "revoked", "type": "INTEGER", "required": false, "primary": false, "options": null, "description": "④ 可撤：0/1"}
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "delegate.grant",
+      "label": "delegate.grant",
+      "description": "签一张委托（只有人能签；Agent 不能自签）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger"}],
+      "preconditions": [{"kind": "param_present", "name": "to"}, {"kind": "param_present", "name": "action"}],
+      "parameters": [
+        {"name": "to", "type": "STRING", "required": true, "options": null, "description": "被授权 agent"},
+        {"name": "action", "type": "STRING", "required": true, "options": null, "description": "允许的单个动作 id"},
+        {"name": "expires", "type": "STRING", "required": true, "options": null, "description": "ISO 时间"},
+        {"name": "max_uses", "type": "INTEGER", "required": true, "options": null, "description": "最多几次"}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": "签字只有人；Agent 不在此列"},
+      "metadata": {"not_roles": ["不记账", "不核身份", "不设期限"]}
+    },
+    {
+      "id": "delegate.revoke",
+      "label": "delegate.revoke",
+      "description": "撤一张委托（凡撤必留证：reason 必填）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger", "what": "reason"}, {"kind": "state_change", "of": "delegation", "to": "revoked"}],
+      "preconditions": [{"kind": "param_present", "name": "name"}, {"kind": "param_present", "name": "reason"}],
+      "parameters": [
+        {"name": "name", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "reason", "type": "STRING", "required": true, "options": null, "description": ""}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": ""},
+      "metadata": {"not_roles": ["不记账", "不留理由"]}
+    },
+    {
+      "id": "delegate.list",
+      "label": "delegate.list",
+      "description": "看有哪些有效委托（人/agent 都可查，只读）",
+      "required_roles": ["human", "agent"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}],
+      "preconditions": [],
+      "parameters": [
+        {"name": "to", "type": "STRING", "required": false, "options": null, "description": "按被授权者过滤"}
+      ],
+      "grant": {"who": ["world://user", "world://agent/dsh"], "scope": ["world://user", "world://agent/dsh"], "why": ""},
+      "metadata": {"not_roles": ["不记账", "不改委托"]}
+    }
+  ]
+}
