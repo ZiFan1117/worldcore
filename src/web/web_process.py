@@ -298,6 +298,30 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/scenes"):
             self._send(200, {"ok": True, "scenes": list_scenes()})
             return
+        if path.startswith("/scene/view"):
+            # ★ P3：把「文件里的画布」直接渲染出来（不需要登录、不依赖实时 SSE）
+            from urllib.parse import parse_qs
+            q = parse_qs(urlsplit(self.path).query)
+            surface = (q.get("surface") or [""])[0]
+            try:
+                scene = read_scene(surface)
+            except Exception as e:
+                self._send(404, {"ok": False, "why": "没有这个场景：%s（%s）" % (surface, e)})
+                return
+            try:
+                with open(HTML, encoding="utf-8") as f:
+                    html = f.read()
+            except FileNotFoundError:
+                self._send(500, "voice.html 不在", "text/plain; charset=utf-8")
+                return
+            frames = [scene.get("frame")] if scene.get("frame") else []
+            blob = json.dumps(frames, ensure_ascii=False).replace("</", "<\\/")
+            tail = ("<script>window.PRELOAD_FRAMES = %s;"
+                    "window.PRELOAD_FRAMES.forEach(function (f) { renderFrame(f); });"
+                    "</script>" % blob)
+            html = html.replace("</body>", tail + "</body>")
+            self._send(200, html, "text/html; charset=utf-8")
+            return
         if path.startswith("/scene"):
             from urllib.parse import parse_qs
             q = parse_qs(urlsplit(self.path).query)
