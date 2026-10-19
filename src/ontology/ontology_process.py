@@ -32,6 +32,7 @@ import time
 import identity
 import permit
 import world_query
+import action_contract
 from world_codes import reject_category
 
 import zenoh
@@ -337,7 +338,16 @@ def _ask_and_forward(smp, w, session):
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why,
                                               "code": "UNKNOWN_ACTION"}, ensure_ascii=False))
         return
-    # ★★ 闸①.5：验票（★ 票是「认过了」的证据，比请求自称的 actor 可信）
+    # ★★ 闸①.5：参数（借自订单样板：**参数不合先拒**，机器可读码；有效性先于权威）
+    _at = w.ontology.action_types.get(name)
+    if _at is not None:
+        _p_ok, _p_why, _p_code = action_contract.validate_params(_at, msg.get("params"))
+        if not _p_ok:
+            w.reject(_p_code, action=name, actor=msg.get("actor"), why=_p_why)
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _p_why,
+                                                  "code": _p_code}, ensure_ascii=False))
+            return
+    # ★★ 闸①.5b：验票（★ 票是「认过了」的证据，比请求自称的 actor 可信）
     actor = msg.get("actor")
     ticket = msg.get("ticket") or (msg.get("params") or {}).get("ticket")
     if ticket:

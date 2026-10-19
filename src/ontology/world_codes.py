@@ -19,6 +19,8 @@ REJECT_CODES = {
     "AUTHORITY_NOT_OWNER": "permission",   # 不是这个类的提供者，不能报它的事实
     "REGISTER_INCOMPLETE": "input",        # 注册缺格
     "BAD_MESSAGE": "input",                # 报文不是 JSON
+    "PARAM_MISSING": "input",              # 缺必填参数（借自订单样板）
+    "PARAM_INVALID": "input",              # 参数取值/类型不对
     "NO_IDENTITY": "identity",             # 没身份
     "HUMAN_NEEDS_TICKET": "identity",      # 自称人但没有票
     "IDENTITY_NOT_REPORTED": "identity",   # 这个身份没报到过

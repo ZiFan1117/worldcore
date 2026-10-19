@@ -39,7 +39,7 @@ TICKET_TTL = int(_os.environ.get("AIOS_TICKET_TTL") or (8 * 3600))
 
 def authenticate(params, log=print):
     """★ 认人：验凭据，通过则发票。★ 返回 (ok, body)。"""
-    user = (params.get("user") or "").strip()
+    user = str(params.get("user") or "").strip()
     secret = params.get("secret")
     if user not in USERS or (secret is not None and str(secret) != USERS[user]):
         log("认被拒：user=%s" % user)

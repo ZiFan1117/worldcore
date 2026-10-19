@@ -17,6 +17,9 @@ from foundry_ontology.core import (
 )
 from foundry_ontology.core.data_types import PropertyType
 from world_codes import REJECT_CODES, reject_category, load_authority  # noqa: F401
+from grants import load_human_side_grants, normalize_grants  # noqa: F401
+from sysknife_actions import load_sysknife_actions  # noqa: F401
+from action_contract import load_action_contracts  # noqa: F401
 
 def build_aios_ontology() -> Ontology:
     o = Ontology("aios_world", "AIOS 世界本体", str(1))
@@ -334,165 +337,9 @@ def build_aios_ontology() -> Ontology:
     #   ★ 名字／程序／参数从 sysknife 的 ActionSpec 抽出来（MIT，见 distro/carrier/）。
     #   ★ 风险等级【不抄】—— 作者裁：「风险分级不能自动批，这个东西是本体里头批不批」。
     # ── ★ 2026-10-18：人侧动作的【许可条文】（动作由提供者进程注册，不在此建 ActionType）──
-    _load_human_side_grants(o)
+    load_human_side_grants(o)
     load_authority(o)
-    _load_sysknife_actions(o)
-    _normalize_grants(o)      # ★ who/scope 归一（必须在两个装载器之后）
+    load_sysknife_actions(o)
+    load_action_contracts(o)
+    normalize_grants(o)       # ★ who/scope 归一（必须在两个装载器之后）
     return o
-
-
-def _normalize_grants(o):
-    """★ 2026-10-19 修「who/scope 同词两义」：借来的条文里 `who`＝授权者、`scope`＝生效许可。
-
-    ★ 13 自己新增的行（人侧＋sysknife 只读）原来只有 `who`（当时当「被允许的主体」用）
-      ⇒ 这里补 `scope`，`who` 归位成授权者（占位：今天没有授权动作；who 只作条文）。
-    """
-    grants = (o.metadata.setdefault("permissions", {})).setdefault("grants", {})
-    for name, g in grants.items():
-        if name.startswith("_") or not isinstance(g, dict) or g.get("scope"):
-            continue
-        g["scope"] = list(g.get("who") or [])
-        g["who"] = ["world://user"]
-        g["_note"] = "who＝授权者（占位）；scope＝生效许可（can_execute 读 scope）"
-
-
-if __name__ == "__main__":
-    o = build_aios_ontology()
-    print("对象类型:", len(o.object_types), list(o.object_types))
-    print("关系类型:", len(o.link_types), list(o.link_types))
-    print("动作类型:", len(o.action_types), list(o.action_types))
-    print("函数    :", len(o.functions), list(o.functions))
-    print("机制(metadata):", list(o.metadata))
-
-def _load_human_side_grants(o):
-    """★ 2026-10-18：人侧动作的【许可条文】。
-
-    ★ 口径（书 §4.2）：没条文 ⇒ `permissions.default = deny` ⇒ **默认拒绝**。
-    ★ 这些动作的 ActionType 不写进 `actions`——由【提供者进程】注册（`registered_by_kind` 决定转给谁）；
-      这里只补许可条文，否则 `can_execute` 一律拒。
-    ★ 登录 / Permit 未实现 ⇒ 目前是【占位条文】（标“占位”），待人裁后收紧。
-    """
-    # ★★ 2026-10-18：呈现对外四个动作 ＋ 个人空间三个动作（画布已进呈现内部）
-    for _aid, _desc, _params, _roles in [
-        ("presentation.show_surface", "给一帧 A2UI ⇒ 画布出现/更新（同一 surfaceId 覆盖）",
-         [("surface", PropertyType.STRING, True), ("frame", PropertyType.STRING, True)],
-         ["user", "agent", "presence"]),
-        ("presentation.retract_surface", "撤下一张画布（★ 凡清除必留证：必须写 reason）",
-         [("surface", PropertyType.STRING, True), ("reason", PropertyType.STRING, True)],
-         ["user", "agent"]),
-        ("presentation.list_surfaces", "查此刻有哪几张画布（只读）",
-         [], ["user", "agent"]),
-        ("presentation.get_surface", "查某一张的画布内容（只读）",
-         [("surface", PropertyType.STRING, True)], ["user", "agent"]),
-        # ★★★ 认证 ＝ 本体的事（★ 本体四件第一件就是「认」）
-        #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？登录的这个是给个人那啥吗？
-        #      当确定登录了以后，再给这个个人空间这块留个信息吧」
-        #    ★ 模型学 PAM／OIDC：★ 认证（你是谁）和授权（你能干什么）分开；
-        #      ★ 认过 ⇒ 发【票】；★ 别人【只看票，不碰密码】。
-        ("identity.authenticate", "认人：验身份凭据，通过则发一张票（★ 密码归本体，不归空间）",
-         [("user", PropertyType.STRING, True), ("secret", PropertyType.STRING, False)],
-         ["user", "presence"]),
-        ("identity.session", "查票：这张票是谁、什么时候过期（只读）",
-         [("ticket", PropertyType.STRING, True)], ["user", "agent", "presence"]),
-        ("identity.revoke", "销票：主动作废（比如退出）",
-         [("ticket", PropertyType.STRING, True)], ["user"]),
-        ("space.login", "凭【票】进空间：认过了才给开（★ 不再验密码 —— 密码归本体）",
-         [("ticket", PropertyType.STRING, True)], ["user", "presence"]),
-        ("space.set_layout", "改布局（摆放归个人空间）",
-         [("layout", PropertyType.STRING, True)], ["user", "agent"]),
-        ("space.get_layout", "读布局（只读）", [], ["user", "agent"]),
-    ]:
-        o.register_action_type(ActionType(
-            action_id=_aid, description=_desc,
-            parameters=[ActionParameter(n, t, required=r) for n, t, r in _params],
-            validation_rules=[], effects=[],
-            metadata={"kind": "invoke", "implemented": "presentation_process.py / space_process.py",
-                      "reversible": True},
-            required_roles=_roles,
-        ))
-
-    grants = o.metadata.setdefault("permissions", {}).setdefault("grants", {})
-    rows = {
-        "space.status":         {"who": ["world://user", "world://agent"], "why": "只读状态（占位）"},
-        "space.activate":       {"who": ["world://user"], "why": "登录/切换时由接入触发（登录未实现，占位）"},
-        "space.deactivate":     {"who": ["world://user"], "why": "登出/切换（登录未实现，占位）"},
-        "space.set_wallpaper":  {"who": ["world://user"], "why": "改自己的地盘（占位）"},
-        # ★★ 2026-10-18 作者令「撤销画布这个类」⇒ 画布进【呈现内部的一张表】，
-        #    ★ 对外只开四个动作（同一 surfaceId 覆盖 ＝ 改）。
-        "presentation.show_surface":    {"who": ["world://user", "world://agent", "world://presence", "world://surface"],
-                                         "why": "给一帧 A2UI ⇒ 画布出现/更新（占位）"},
-        "presentation.retract_surface": {"who": ["world://user", "world://agent"],
-                                         "why": "撤下一张画布（占位）"},
-        "presentation.list_surfaces":   {"who": ["world://user", "world://agent"],
-                                         "why": "查此刻有哪几张（只读；占位）"},
-        "presentation.get_surface":     {"who": ["world://user", "world://agent"],
-                                         "why": "查某一张的画布内容（只读；占位）"},
-        # ★ 个人空间：登录入口 ＋ 布局（摆放归它）
-        # ★★★ 认证：★ 谁都能【试图】认（不然登不进去）；★ 但【认过才发票】。
-        "identity.authenticate": {"who": ["world://user", "world://presence", "world://surface"],
-                                  "why": "认人（★ 谁都可能来认；★ 通过才发票）"},
-        "identity.session":      {"who": ["world://user", "world://agent", "world://presence"],
-                                  "why": "查票（只读）"},
-        "identity.revoke":       {"who": ["world://user"], "why": "销票（退出）"},
-        # ★ 进空间要【票】—— ★ 空间【不碰密码】
-        "space.login":          {"who": ["world://user", "world://presence", "world://surface"],
-                                 "why": "凭票进空间（★ 票由 identity.authenticate 发）"},
-        "space.set_layout":     {"who": ["world://user", "world://agent"],
-                                 "why": "改布局（摆放归个人空间；占位）"},
-        "space.get_layout":     {"who": ["world://user", "world://agent"],
-                                 "why": "读布局（只读；占位）"},
-        "presentation.retract": {"who": ["world://user", "world://agent"], "why": "撤自己的表达（占位）"},
-        "presentation.notify":  {"who": ["world://user", "world://agent"], "why": "向人通知（占位）"},
-        "presentation.confirm": {"who": ["world://user"], "why": "人确认（占位）"},
-    }
-    for name, g in rows.items():
-        grants.setdefault(name, g)
-
-
-def _load_sysknife_actions(o):
-    """★ 从 sysknife 抽出的映射表动态建 ActionType（★ 名字用 sys.<PascalName>）。
-
-    文件：AIOS_SYSKNIFE_MAP（默认 /usr/lib/aios/sysknife-command-map.json）
-    缺文件 ⇒ 静默跳过（★ 不阻断本体起）。
-    """
-    path = os.environ.get("AIOS_SYSKNIFE_MAP", "/usr/lib/aios/sysknife-command-map.json")
-    if not os.path.exists(path):
-        return 0
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception:
-        return 0
-    n = 0
-    grants = o.metadata.setdefault("permissions", {}).setdefault("grants", {})
-    for a in data.get("actions", []):
-        name = a.get("action") or ""
-        if not name or name in o.action_types:
-            continue
-        try:
-            at = ActionType(
-                name,
-                name,
-                description="从 sysknife 抄的动作（MIT）—— 载体执行 %s %s"
-                            % (a.get("program", "?"), " ".join(a.get("args") or [])),
-                parameters=[],
-                effects=[],
-                validation_rules=[],
-                metadata={
-                    "what": "%s" % name,
-                    "not_roles": [],
-                    "implemented": "sysknife",
-                    "program": a.get("program"),
-                    "args": a.get("args") or [],
-                },
-            )
-            o.register_action_type(at)
-            # ★★ 只读动作（Get*/List*）默认放行：不用人确认（作者裁：批不批归本体）
-            # ★ 只读（Get*/List*）免确认；变更类【不给许可】⇒ 默认拒绝 ⇒ 要走人确认
-            if name.startswith("sys.Get") or name.startswith("sys.List"):
-                grants.setdefault(name, {"who": ["world://user", "world://agent/dsh"],
-                                        "why": "只读查询（从 sysknife 抄，MIT）"})
-            n += 1
-        except Exception:
-            continue
-    return n
