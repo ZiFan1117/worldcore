@@ -49,6 +49,7 @@ def main(argv=None):
     ap.add_argument("--progress", default="/root/aios-goals/progress.md")
     ap.add_argument("--workdir", default="/root/aios-work")
     ap.add_argument("--out", default="/root/aios-goals/rounds.jsonl")
+    ap.add_argument("--md", default="", help="另写一份人读的 rounds.md（给作者看）")
     a = ap.parse_args(argv)
     reps = []
     if os.path.isdir(a.reports):
@@ -71,6 +72,24 @@ def main(argv=None):
     with open(a.out, "w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    if a.md:
+        lines = ["# 目标链轮次摘要（自动生成）", "",
+                 "- 轮次数：%d" % len(rows),
+                 "- 缺报告：%d" % len([r for r in rows if not r["report_exists"]]),
+                 "- 弱报告（缺证据/回滚）：%d" % len([r for r in rows if not (r["has_evidence"] and r["has_rollback"])]),
+                 "- 看不到本地提交：%d" % len([r for r in rows if not r["commit_seen"]]),
+                 "", "| 轮次 | 报告 | 证据 | 回滚 | 本地提交 |", "|---|---|---|---|---|"]
+        for r in rows[-15:]:
+            lines.append("| %s | %s | %s | %s | %s |" % (
+                r["stamp"], "✓" if r["report_exists"] else "✗",
+                "✓" if r["has_evidence"] else "✗", "✓" if r["has_rollback"] else "✗",
+                "✓" if r["commit_seen"] else "✗"))
+        try:
+            with open(a.md, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+            print("md=%s" % a.md)
+        except Exception as e:
+            print("md 写失败：%s" % e, file=sys.stderr)
     missing = [r["stamp"] for r in rows if not r["report_exists"]]
     weak = [r["stamp"] for r in rows if not (r["has_evidence"] and r["has_rollback"])]
     no_commit = [r["stamp"] for r in rows if not r["commit_seen"]]

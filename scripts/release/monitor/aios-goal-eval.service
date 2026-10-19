@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/python3 /root/aios/scripts/release/dsh/goal/round_eval.py
+ExecStart=/usr/bin/python3 /root/aios/scripts/release/dsh/goal/round_eval.py --md /root/aios-goals/rounds.md
 Nice=10
 
 [Install]

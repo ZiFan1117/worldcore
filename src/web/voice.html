@@ -67,6 +67,7 @@ const $ = (s) => document.querySelector(s);
 const surfaces = {};      // surfaceId -> 组件数组
 let lastSurface = "";
 let es = null;
+const seenEvents = new Set();
 
 const QUICK = [["本体","ic_ontology"],["智能体","ic_agent"],["这台机器","ic_computer"],
                ["能做什么","ic_actions"],["退出","ic_logout"]];
@@ -84,7 +85,14 @@ function connect() {
   es.addEventListener("message", (ev) => {
     let d; try { d = JSON.parse(ev.data); } catch { return; }
     if (d.type === "frame") renderFrame(d.frame);
-    else if (d.type === "event") addLog("event: " + JSON.stringify(d.event).slice(0, 160));
+    else if (d.type === "event") {
+      const e = d.event || {};
+      const key = (e.at || "") + "|" + (e.action || "") + "|" + (e.actor || "");
+      if (!seenEvents.has(key)) {           // ★ 实时与补漏可能重复：同一条只显示一次
+        seenEvents.add(key);
+        addLog("event: " + JSON.stringify(e).slice(0, 160));
+      }
+    }
     else if (d.type === "logout") { surfacesClear(); addLog("已退出"); }
   });
   es.onopen = () => {
