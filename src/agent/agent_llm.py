@@ -115,6 +115,19 @@ class Agent:
             time.sleep(0.1)
         return {"ok": False, "why": "动作超时"}
 
+    def screen_state(self):
+        """★ 问界面「现在屏上有什么」——★ 经本体问呈现与空间（不用截图）。
+
+        ★ 作者口径：「如果 A 想知道界面上有哪些东西，可以直接请求这个界面、界面返回现在的状态给他」。
+        ★ 返回 {"surfaces": …, "layout": …}；被拒就把原因带回来（不假装知道）。
+        """
+        r = self.act("presentation.list_surfaces", {}, timeout=8)
+        if not r.get("ok"):
+            # ★ 被拒就把原因带回来（不假装知道）
+            return {"surfaces": {"why": r.get("why") or r.get("code")}, "layout": None}
+        b = r.get("body") or {}
+        return {"surfaces": b, "layout": b.get("layout")}
+
     def notice(self, frame, about):
         self.s.put(T_NOTICE, json.dumps({
             "kind": "a2ui.frame", "by": "world://agent/" + NAME,
@@ -151,6 +164,7 @@ SYS_PLAN = (
     "★ 你【不执行命令】—— 只能通过【世界】做事：从 available_actions 里挑一个。\n"
     "★ available_actions 是【完整且已核实】的清单（本机真能跑的）；清单外的不要挑。\n"
     "★ 只读动作（Get*／List*）随时可做；变更类会被人确认拦下。\n"
+    "★ screen 是【此刻屏上有什么】（surfaces／layout，来自呈现与空间，经本体）；可据此决定帮人做什么。\n"
     "★ 别每轮都挑同一个：换着查不同的面。\n"
     "★ 严格输出 JSON：{\"action\": \"动作名\", \"params\": {…}, \"why\": \"一句话\"}\n"
     "★ 实在没有可用动作时，输出 {\"action\": \"\"}。"
@@ -270,7 +284,10 @@ def main():
         log("———— 第 %d 轮 ————" % rnd)
         world = a.query(kind="world")
         acts = a.query(kind="actions")
-        log("① 问世界：ok=%s" % world.get("ok"))
+        screen = a.screen_state()      # ★ 问界面：此刻屏上有什么（经本体，不用截图）
+        log("① 问世界：ok=%s；看屏：surfaces=%s"
+            % (world.get("ok"),
+               str((screen.get("surfaces") or {}))[:120]))
         acts_data = acts.get("data") or {}
         # ★★★ 只把【本机可用】的动作给模型（★ 不截断！截断了它会以为清单不全而拒绝动手）
         avail = acts_data.get("available") or []
@@ -283,6 +300,7 @@ def main():
             },
             "available_actions": avail,
             "unsupported_count": len(acts_data.get("unsupported") or []),
+            "screen": screen,          # ★ 屏上有什么（呈现/空间经本体答的）
         }
         ctx = json.dumps(ctx_obj, ensure_ascii=False)
         plan, err = ask_llm(SYS_PLAN, ctx)

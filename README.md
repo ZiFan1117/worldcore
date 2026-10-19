@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 39 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 40 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,7 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
-| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋五个图标真实点击都经本体（本体/开窗/查机器/查动作/退出）＋窗口缩放/关闭＋亮色主题与壁纸** |
+| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋五个图标真实点击都经本体（本体/开窗/查机器/查动作/退出）＋窗口缩放/关闭＋亮色主题与壁纸**；**Agent 经本体问界面（presentation.list_surfaces 连布局一起返回）——不靠截图** |
 
 **还没做（如实）**：
 
@@ -346,11 +346,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**39 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**40 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (39/39, rc=0)
+python scripts/test/check.py              → all green (40/40, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -363,7 +363,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
-| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; five icons verified with real clicks and go through the ontology (ontology overview / open window / query machine / query actions / logout); window zoom/close; light theme + wallpaper** |
+| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; five icons verified with real clicks and go through the ontology (ontology overview / open window / query machine / query actions / logout); window zoom/close; light theme + wallpaper**; **agent asks the interface through the ontology (`presentation.list_surfaces` returns layout too) — no screenshots required** |
 
 **Not done yet (honest list)**:
 

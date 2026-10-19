@@ -267,11 +267,15 @@ class Presentation:
             return had, ("已撤下 %s（理由：%s）" % (sid, reason) if had
                          else "本来就没有 %s（理由：%s）" % (sid, reason))
         if act == "presentation.list_surfaces":
+            # ★★ 2026-10-19：连【布局】一起给 —— Agent 问一次界面就知道「屏上有什么、怎么摆的」
             with self.lock:
                 rows = [{"surface": k, "bytes": len(json.dumps(v)),
                          "name": v.get("name"), "role": v.get("role")}
                         for k, v in self.shown.items()]
-            return True, {"count": len(rows), "surfaces": rows}
+                layout = self.layout
+                actives = dict(self.actives)
+            return True, {"count": len(rows), "surfaces": rows,
+                          "layout": layout, "actives": actives}
         if act == "presentation.get_surface":
             sid = params.get("surface") or ""
             with self.lock:
