@@ -7,6 +7,13 @@ if [ -f /root/.dsh/env.dsh ]; then set -a; . /root/.dsh/env.dsh; set +a; fi
 exec 9>/run/aios-goal.lock
 flock -n 9 || { echo "another round running"; exit 0; }
 
+# ★ 兜底（2026-10-19 18:0x）：锁只能拦“新脚本”起的轮；再用 pgrep 看真正的 dsh 进程
+#   ★ 必须只匹配 node…dsh --profile（否则任何“提到这串字”的 shell 都会被误判，导致定时轮被 skip）
+if pgrep -f '[n]ode .*dsh --profile' >/dev/null 2>&1; then
+  echo "$(date -Is) [skip] 已有 dsh 进程在跑（node … dsh --profile）⇒ 本轮不启动" >&2
+  exit 0
+fi
+
 WORK=${AIOS_DSH_WORK:-/root/aios-work}
 GOALDIR=/root/aios-goals
 OUTDIR=/root/aios-goal-reports
