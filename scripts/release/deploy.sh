@@ -84,6 +84,11 @@ fi
 # ★★ 修 SELinux 那个坑：cp -a 会把源文件的上下文带过来（admin_home_t）⇒
 #    systemd 读不了单元、进程也读不了 /usr/lib/aios 的数据。
 #    必须 chmod 644 ＋ restorecon（现取：不加就报 "Failed to open …: Permission denied"）。
+# ★★ 2026-10-20：服务要写的目录先建好 —— ProtectSystem=strict 下，ReadWritePaths 只挂「已存在」的路径；
+#   ★ 缺目录 ⇒ 写盘是 Read-only file system（现取：/var/lib/aios/scenes 踩过）。
+mkdir -p /var/lib/aios/cursors /var/lib/aios/scenes
+chmod 755 /var/lib/aios/cursors /var/lib/aios/scenes
+restorecon -R /var/lib/aios/cursors /var/lib/aios/scenes 2>/dev/null || true
 chmod 644 /etc/systemd/system/aios-*.service 2>/dev/null || true
 restorecon -R /etc/systemd/system/aios-*.service 2>/dev/null || true
 restorecon -R "$PREFIX/src" "$PREFIX"/*.json "$PREFIX"/command-map*.jsonl 2>/dev/null || true
