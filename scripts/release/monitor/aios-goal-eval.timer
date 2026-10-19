@@ -1,0 +1,11 @@
+[Unit]
+Description=worldcore 长程闭环评估定时器（每 15 分钟）
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+RandomizedDelaySec=30
+Unit=aios-goal-eval.service
+
+[Install]
+WantedBy=timers.target

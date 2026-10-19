@@ -1,0 +1,11 @@
+[Unit]
+Description=worldcore 长程闭环评估（P6：每轮报告/提交扫成 rounds.jsonl）
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /root/aios/scripts/release/dsh/goal/round_eval.py
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
