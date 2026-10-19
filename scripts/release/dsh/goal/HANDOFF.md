@@ -30,6 +30,7 @@
 ```sh
 python3 /root/aios/scripts/release/status.py        # ★ 一屏看全（快照/进度/轮次摘要/游标/场景/世界文件/guard/单元）
 python3 /root/aios/scripts/release/status.py --json # 机读
+python3 /root/aios/scripts/release/dsh/goal/final_report.py --out /root/aios-goal-reports/FINAL.md  # ★ 06:00 终报
 ```
 
 ```sh
@@ -85,6 +86,7 @@ systemctl stop aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer
 
 ```sh
 python3 /root/aios/scripts/release/status.py     # ★ 一屏状态（含非 active 单元）
+python3 /root/aios/scripts/release/dsh/goal/final_report.py --out /root/aios-goal-reports/FINAL.md  # ★ 终报
 cat /root/aios-goals/DONE                        # 到点停链的标记
 systemctl is-active aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer   # 应 inactive
 tail -10 /root/aios-goals/progress.md            # 最后几轮
