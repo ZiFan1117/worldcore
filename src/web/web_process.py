@@ -151,6 +151,44 @@ class WebApp:
             time.sleep(0.05)
         return r
 
+    def query(self, kind, params=None, ticket="", timeout=10.0):
+        """★ 查世界（world/query，回话在 world/query/result）。"""
+        rid = "webq-" + uuid.uuid4().hex[:10]
+        msg = {"id": rid, "kind": kind}
+        if params:
+            msg.update(params)
+        if ticket:
+            msg["ticket"] = ticket
+        box, ev = {}, threading.Event()
+
+        def _on(smp):
+            try:
+                d = json.loads(smp.payload.to_string())
+            except Exception:
+                return
+            if d.get("id") == rid:
+                box.update(d)
+                ev.set()
+
+        sub = self.s.declare_subscriber("world/query/result", _on)
+        try:
+            self.s.put("world/query", json.dumps(msg, ensure_ascii=False))
+            if not ev.wait(timeout):
+                return {"ok": False, "why": "查询超时"}
+            return box
+        finally:
+            try:
+                sub.undeclare()
+            except Exception:
+                pass
+
+    def catchup(self, since, limit=100):
+        """★ 浏览器重连带 Last-Event-ID ⇒ 补它错过的世界事件（P8）。"""
+        if not since or not self.ticket:
+            return []
+        r = self.query("events", {"since": since, "limit": limit}, ticket=self.ticket)
+        return (r.get("data") or {}).get("events") or []
+
     # ── 浏览器命令 ──
     def handle_cmd(self, d):
         if not isinstance(d, dict):
@@ -244,6 +282,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path.startswith("/events"):
             q = app.add_client()
+            # ★ P8：EventSource 重连会带 Last-Event-ID ⇒ 先补它错过的事件（不重复：since 严格大于）
+            last_id = self.headers.get("Last-Event-ID") or ""
+            if last_id:
+                try:
+                    for e in app.catchup(last_id):
+                        q.put({"type": "event", "event": e})
+                except Exception:
+                    pass
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream; charset=utf-8")
             self.send_header("Cache-Control", "no-cache")
@@ -254,8 +300,12 @@ class Handler(BaseHTTPRequestHandler):
                 while True:
                     try:
                         obj = q.get(timeout=20)
-                        data = "data: " + json.dumps(obj, ensure_ascii=False) + "\n\n"
-                        self.wfile.write(data.encode("utf-8"))
+                        lines = []
+                        ev = obj.get("event") if isinstance(obj, dict) else None
+                        if isinstance(ev, dict) and ev.get("at"):
+                            lines.append("id: " + str(ev["at"]))   # ★ 断线重连用
+                        lines.append("data: " + json.dumps(obj, ensure_ascii=False))
+                        self.wfile.write(("\n".join(lines) + "\n\n").encode("utf-8"))
                         self.wfile.flush()
                     except queue.Empty:
                         self.wfile.write(b": ping\n\n")
