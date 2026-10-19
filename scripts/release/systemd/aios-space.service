@@ -17,7 +17,7 @@ PrivateTmp=yes
 #   （其余仍 ProtectSystem=strict 只读）。★ 现取教训：不给它写权限时游标写失败是
 #   `Read-only file system`，被 except 静默吞掉——现在写失败会打日志、且单元显式放开。
 ProtectSystem=strict
-ReadWritePaths=-/var/lib/aios/cursors
+ReadWritePaths=-/var/lib/aios/cursors -/var/lib/aios/scenes
 NoNewPrivileges=yes
 
 [Install]

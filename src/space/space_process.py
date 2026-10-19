@@ -28,6 +28,7 @@ import zenoh
 from desktop_frame import desktop_frame
 from activity import ActivityMixin   # ★ 活动窗口（P8 事件流；C27 拆文件）
 from lifecycle import LifecycleMixin   # ★ 生命周期（退出；C27 拆文件）
+from scenes import save_scene   # ★ P3 场景文件化（C27 拆文件）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
@@ -239,6 +240,7 @@ class Space(ActivityMixin, LifecycleMixin):
         extra += [{"surface": k, "rect": v["rect"]} for k, v in self.own.items()]
         f = desktop_frame(self.surface_id, USER, self.n_members, extra)
         n = len(f["messages"][1]["updateComponents"]["components"])
+        save_scene(self.surface_id, f)
         self.s.put(T_NOTICE, json.dumps({
             "kind": "a2ui.frame",
             "by": "world://space/" + USER,
