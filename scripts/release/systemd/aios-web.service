@@ -1,0 +1,17 @@
+[Unit]
+Description=worldcore 语音浏览器桥（HTTP/SSE；另一扇「呈现」）
+After=network-online.target aios-ontology.service aios-bus.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/web
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_WEB_PORT=8765
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/web/web_process.py
+Restart=always
+RestartSec=5
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

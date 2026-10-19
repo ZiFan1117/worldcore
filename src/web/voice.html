@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!-- ★ worldcore 语音浏览器（极简 A2UI 渲染 + Web Speech）—— 不依赖 Flutter；同一个 A2UI 消息。 -->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>worldcore · 语音浏览器</title>
+<style>
+  :root { --fg:#1f2a44; --muted:#6b7a90; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+         color:var(--fg); background: linear-gradient(135deg,#EAF3FF,#F6EDFF); min-height:100vh; }
+  header { display:flex; gap:12px; align-items:center; padding:10px 16px; background:#fff; }
+  .badge { background:#2F6FEB; color:#fff; font-weight:700; padding:4px 10px; border-radius:8px; }
+  #status { color:var(--muted); font-size:12px; }
+  main { display:flex; gap:14px; padding:14px; flex-wrap:wrap; }
+  .panel { background:rgba(255,255,255,.85); border:1px solid #d8e2f5; border-radius:14px;
+           padding:12px; box-shadow:0 6px 20px rgba(47,111,235,.08); }
+  #left { flex:0 0 320px; }
+  #right { flex:1 1 520px; min-height:420px; }
+  #frames { min-height:360px; }
+  .card { border:1px solid #cfd9ea; border-radius:12px; padding:10px; margin:8px 0; background:#fff; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .col { display:flex; flex-direction:column; gap:6px; }
+  button { padding:6px 12px; border-radius:10px; border:1px solid #cdd8ea; background:#fff; cursor:pointer; }
+  button:hover { background:#eef4ff; }
+  input { padding:6px 10px; border:1px solid #cdd8ea; border-radius:10px; width:100%; }
+  #log { height:150px; overflow:auto; font:12px/1.55 ui-monospace, monospace; color:#33415c;
+         background:#f7faff; border-radius:10px; padding:8px; }
+  .muted { color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="badge">worldcore</span>
+  <b>语音浏览器</b>
+  <span id="status">未连接…</span>
+  <span class="muted">A2UI 帧由世界给；这里只渲染</span>
+</header>
+<main>
+  <section id="left" class="panel">
+    <div class="col">
+      <label class="muted">登录（先登录再点/说）</label>
+      <input id="user" value="zhang" placeholder="user">
+      <input id="pass" value="0" placeholder="password" type="password">
+      <div class="row">
+        <button onclick="login()">登录</button>
+        <button id="mic" onclick="toggleMic()">🎤 说话</button>
+        <label class="muted"><input type="checkbox" id="speak" checked> 朗读界面</label>
+      </div>
+      <hr style="width:100%;border:none;border-top:1px solid #dbe4f4">
+      <div class="muted">说「本体 / 智能体 / 这台机器 / 能做什么 / 退出」，或点下面的按钮：</div>
+      <div class="row" id="quick"></div>
+    </div>
+    <hr style="width:100%;border:none;border-top:1px solid #dbe4f4">
+    <div class="muted">事件（SSE 推送）</div>
+    <div id="log"></div>
+  </section>
+  <section id="right" class="panel">
+    <div class="muted">世界的画布（A2UI 帧）</div>
+    <div id="frames"><div class="muted">（还没有画布——先登录）</div></div>
+  </section>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const surfaces = {};      // surfaceId -> 组件数组
+let lastSurface = "";
+let es = null;
+
+const QUICK = [["本体","ic_ontology"],["智能体","ic_agent"],["这台机器","ic_computer"],
+               ["能做什么","ic_actions"],["退出","ic_logout"]];
+for (const [label, icon] of QUICK) {
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.onclick = () => sendIcon(icon);
+  $("#quick").appendChild(b);
+}
+
+function setStatus(t) { $("#status").textContent = t; }
+
+function connect() {
+  es = new EventSource("/events");
+  es.addEventListener("message", (ev) => {
+    let d; try { d = JSON.parse(ev.data); } catch { return; }
+    if (d.type === "frame") renderFrame(d.frame);
+    else if (d.type === "event") addLog("event: " + JSON.stringify(d.event).slice(0, 160));
+    else if (d.type === "logout") { surfacesClear(); addLog("已退出"); }
+  });
+  es.onopen = () => setStatus("已连接（SSE）");
+  es.onerror = () => setStatus("连接断开，重试中…");
+}
+
+function surfacesClear() { for (const k in surfaces) delete surfaces[k]; $("#frames").innerHTML = ""; }
+
+function addLog(line) {
+  const el = document.createElement("div");
+  el.textContent = line;
+  $("#log").appendChild(el);
+  $("#log").scrollTop = 1e9;
+}
+
+function post(body) {
+  return fetch("/cmd", {method:"POST", headers:{"Content-Type":"application/json"},
+                        body: JSON.stringify(body)}).then(r => r.json());
+}
+
+function login() {
+  post({op:"login", user:$("#user").value, secret:$("#pass").value})
+    .then(r => { addLog("login: " + JSON.stringify(r)); if (!r.ok) setStatus("登录失败：" + (r.why||"")); });
+}
+
+function sendIcon(icon) {
+  const action = {event:{name:"space.icon_clicked", context:{icon}}};
+  post({op:"ui", surface:lastSurface, action, component:icon + "_b"})
+    .then(r => addLog("ui " + icon + ": " + JSON.stringify(r)));
+}
+
+/* ── 极简 A2UI 渲染（Text/Column/Row/Card/List/Divider/Button/Icon）── */
+function renderFrame(frame) {
+  if (!frame || !Array.isArray(frame.messages)) return;
+  for (const m of frame.messages) {
+    if (m.createSurface) { surfaces[m.createSurface.surfaceId] = []; lastSurface = m.createSurface.surfaceId; }
+    if (m.updateComponents) {
+      const sid = m.updateComponents.surfaceId;
+      surfaces[sid] = m.updateComponents.components || [];
+      lastSurface = sid;
+      const box = document.createElement("div");
+      box.className = "panel";
+      box.style.background = "rgba(255,255,255,.92)";
+      box.dataset.surface = sid;
+      const map = new Map(surfaces[sid].map(c => [c.id, c]));
+      const used = new Set();
+      for (const c of surfaces[sid]) {
+        (c.children || []).forEach(ch => used.add(ch));
+        if (c.child) used.add(c.child);
+      }
+      const roots = surfaces[sid].filter(c => !used.has(c.id));
+      for (const r of roots) box.appendChild(renderComp(r, map, sid));
+      const old = document.querySelector(`#frames [data-surface="${CSS.escape(sid)}"]`);
+      if (old) old.replaceWith(box); else $("#frames").appendChild(box);
+      if ($("#speak").checked) speakFrame(map, sid);
+    }
+  }
+}
+
+function renderComp(c, map, sid) {
+  if (!c) return document.createTextNode("");
+  const kids = (ids) => (ids || []).map(id => renderComp(map.get(id), map, sid));
+  switch (c.component) {
+    case "Text":   return textEl(c.text || "");
+    case "Column": { const d = document.createElement("div"); d.className = "col"; kids(c.children).forEach(n => d.appendChild(n)); return d; }
+    case "Row":    { const d = document.createElement("div"); d.className = "row"; kids(c.children).forEach(n => d.appendChild(n)); return d; }
+    case "Card":   { const d = document.createElement("div"); d.className = "card"; const k = map.get(c.child); if (k) d.appendChild(renderComp(k, map, sid)); return d; }
+    case "List":   { const d = document.createElement("div"); d.className = "col"; kids(c.children).forEach(n => d.appendChild(n)); return d; }
+    case "Divider": { const d = document.createElement("hr"); d.style.cssText = "width:100%;border:none;border-top:1px solid #e2e9f6"; return d; }
+    case "Button": {
+      const d = document.createElement("button");
+      const k = map.get(c.child);
+      if (k && k.component === "Text") d.textContent = (k.text || "").replace(/\*\*/g, "");
+      else d.textContent = "按钮";
+      d.onclick = () => post({op:"ui", surface:sid, action: c.action || {}, component: c.id})
+        .then(r => addLog("按钮 " + c.id + ": " + JSON.stringify(r)));
+      return d;
+    }
+    case "Icon":   return textEl(({home:"🏠",settings:"⚙️",menu:"☰",close:"✕"}[(c.name||"")] || "❓"));
+    default:       return textEl("[" + (c.component || "?") + "]");
+  }
+}
+
+function textEl(text) {
+  const s = document.createElement("span");
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  for (const p of parts) {
+    if (p.startsWith("**") && p.endsWith("**")) {
+      const b = document.createElement("b"); b.textContent = p.slice(2, -2); s.appendChild(b);
+    } else if (p) s.appendChild(document.createTextNode(p));
+  }
+  return s;
+}
+
+function speakFrame(map, sid) {
+  const texts = [...map.values()].filter(c => c.component === "Text" && c.text)
+    .map(c => String(c.text).replace(/\*\*/g, "")).slice(0, 4);
+  if (texts.length) speak(texts.join("；"));
+}
+
+function speak(t) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(String(t).slice(0, 200));
+  u.lang = "zh-CN";
+  window.speechSynthesis.speak(u);
+}
+
+let rec = null, micOn = false;
+function toggleMic() {
+  if (micOn) { micOn = false; if (rec) rec.stop(); $("#mic").textContent = "🎤 说话"; return; }
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!R) { addLog("浏览器不支持语音识别（用 Chrome/Edge）"); return; }
+  rec = new R(); rec.lang = "zh-CN"; rec.interimResults = false;
+  rec.onresult = (ev) => {
+    const t = ev.results[0][0].transcript.trim();
+    addLog("听到：" + t);
+    const hit = QUICK.find(([label]) => t.includes(label.replace("这台机器", "机器")) || t.includes(label));
+    if (hit) sendIcon(hit[1]); else speak("没听懂：" + t);
+  };
+  rec.onend = () => { if (micOn) rec.start(); };
+  micOn = true; $("#mic").textContent = "🛑 停止"; rec.start();
+}
+
+connect();
+post({op:"ping"}).then(r => setStatus("桥在线" + (r.user ? "，用户 " + r.user : "")));
+</script>
+</body>
+</html>
