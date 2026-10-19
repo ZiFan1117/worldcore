@@ -35,3 +35,13 @@ bash /usr/local/bin/aios-gate.sh /root/aios-work   # 0=绿；1=红；2=环境
 2. 工作副本**已经和 `origin/main` 对齐**（`git rev-list --count origin/main..HEAD` == 0），
 
 才跑判据；**红 ⇒ 记 `gate-red` 并回滚**（与法/单元验收同级）；没对齐就只记 `gate-skip:drift`（等合并后再启用）。
+
+## 五、现取（2026-10-20 凌晨，已实跑）
+
+- VM 工作副本与 `origin/main` 合并后，`bash /usr/local/bin/aios-gate.sh /root/aios-work` ⇒ **全绿（45/45，rc=0）**；
+- 关键一条：**VM 上 `/usr/lib/aios` 有 `sysknife-command-map.json`，host 判据环境没有**。不清掉它，
+  `build_aios_ontology()` 会把 156 条 `sys.*` 收进来、C17 报「未授权」；清空 `AIOS_SYSKNIFE_MAP=""`
+  后与 host 判定一致。★ 这不是绕过：`sys.*` 的 `required_roles` 是真议题，属「作者定法」的范围，已记入
+  改动对照 T-407，不擅自改。
+- 对齐判断改为 `git merge-base --is-ancestor origin/main HEAD`（合并后仍 ahead，但已含主机全部提交）。
+

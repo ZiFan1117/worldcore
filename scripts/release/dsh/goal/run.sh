@@ -69,7 +69,7 @@ for u in aios-bus aios-ontology aios-space aios-presentation aios-presentation-r
 done
 # ④b 判据护栏（★ 判据不推；仅当本机有 scripts/test 且工作副本已对齐 origin/main 才跑）
 if [ -f "$WORK/scripts/test/check.py" ]; then
-  if [ "$(git -C "$WORK" rev-list --count origin/main..HEAD 2>/dev/null || echo 1)" = "0" ]; then
+  if git -C "$WORK" merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
     if [ -f /usr/local/bin/aios-gate.sh ]; then
       bash /usr/local/bin/aios-gate.sh "$WORK" >> "$OUTDIR/$STAMP.log" 2>&1 || bad="$bad gate-red"
     else
