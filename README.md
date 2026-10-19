@@ -82,7 +82,7 @@
 | ★ 本体 | ★ **11 类 / 5 关系 / 19 动作 / 9 函数** | ★ `build_aios_ontology()` |
 | ★ 命令映射 | ★ **156 条** | ★ 只读 40 条自动放行；变更 116 条默认拒（要人确认） |
 | ★ 进程 | ★ **7 个在跑**（★ 6 个我们的 ＋ 1 个总线） | ★ `systemctl is-active` |
-| ★ 代码 | ★ **3,292 行**（★ 六个进程 ＋ 对象模型） | ★ 见 §四 |
+| ★ 代码 | ★ **3,886 行**（★ 六个进程 ＋ 对象模型） | ★ 见 §四 |
 | ★ 判据 | ★ **28 条** | ★ `scripts/test/check.py` |
 
 ## ★★★ 现取：验过什么（不是"应该能行"）
@@ -118,28 +118,28 @@
 
 ```
 src/
-  ontology/              ★★ 本体 —— 928 行 / 3 件
+  ontology/              ★★ 本体 —— 1,076 行 / 3 件
     ontology_definition.py     ★ 世界的法律：11 类 ＋ 5 关系 ＋ 19 动作 ＋ 许可条文
     ontology_process.py        ★ 本体进程：认 · 盖章 · 转 · 记（＋ 闸①②③）
     identity.py                ★ 认证：认人 / 发票 / 查票 / 销票
     data/a2ui-catalog-basic.json   ★ A2UI 元件白名单
 
-  computer/              ★ 计算机（执行器）—— 236 行
+  computer/              ★ 计算机（执行器）—— 284 行
     computer_process.py        ★ 读映射表 ⇒ 调命令 ⇒ 回话
 
-  presentation/          ★★ 呈现 —— 678 行 / 3 件
+  presentation/          ★★ 呈现 —— 799 行 / 3 件
     presentation_process.py    ★ 合成器 ＋ 4 动作 ＋ 本机 TCP 桥（7450）
     login_frame.py             ★ 登录画布
     render_main.dart           ★ 渲染半（Flutter ＋ genui）
 
-  space/                 ★ 个人空间 —— 222 行 / 2 件
+  space/                 ★ 个人空间 —— 269 行 / 2 件
     space_process.py           ★ 凭票进 ＋ 出画布 ＋ 给布局
     desktop_frame.py           ★ 桌面画布（18 组件 ＋ layout）
 
-  agent/                 ★ 智能体 —— 185 行
+  agent/                 ★ 智能体 —— 219 行
     agent_llm.py               ★ 模型在环：问世界 ⇒ 决定 ⇒ 出帧
 
-  foundry_ontology/      ★ 对象模型 —— 1,043 行 / 14 件
+  foundry_ontology/      ★ 对象模型 —— 1,239 行 / 14 件
     core/                      ★ 类型定义（ObjectType / ActionType / LinkType / Interface）
     engine/                    ★ 运行时（ObjectStore / QueryEngine / AuditLog / ActionExecutor）
 
