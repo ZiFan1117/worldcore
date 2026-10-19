@@ -1,0 +1,13 @@
+﻿[Unit]
+Description=worldcore 世界快照（P4：账＋注册表＋对象库＋法源）
+After=network-online.target aios-ontology.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /root/aios/scripts/release/world_snapshot.py save
+ExecStartPost=-/usr/bin/python3 /root/aios/scripts/release/world_snapshot.py prune --keep 24
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

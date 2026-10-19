@@ -8,6 +8,7 @@
   python3 world_snapshot.py save [--out DIR]       # 打包：账＋注册表＋对象库＋法源＋meta
   python3 world_snapshot.py list [--dir DIR]       # 列表（每份的 law hash / 账行数）
   python3 world_snapshot.py verify --snap DIR      # 验：文件齐、meta 齐、law hash 对得上
+  python3 world_snapshot.py prune [--keep 24]       # 只留最近 N 份（定时快照用）
   python3 world_snapshot.py restore --snap DIR --yes [--restart]
       # 回滚：先备份现文件为 *.pre-restore-<ts>，再覆盖；--restart 才重启本体/空间（默认不重启）
 
@@ -98,6 +99,24 @@ def cmd_list(args):
     return 0
 
 
+def cmd_prune(args):
+    """★ 保留最近 N 份快照（时间戳目录名排序），其余删掉。"""
+    d = args.dir or DEFAULT_DIR
+    if not os.path.isdir(d):
+        print("没有快照目录：%s" % d)
+        return 0
+    snaps = [n for n in sorted(os.listdir(d))
+             if os.path.isdir(os.path.join(d, n)) and
+             os.path.isfile(os.path.join(d, n, META))]
+    keep = max(1, int(args.keep))
+    drop = snaps[:-keep] if len(snaps) > keep else []
+    for n in drop:
+        shutil.rmtree(os.path.join(d, n), ignore_errors=True)
+        print("pruned=%s" % n)
+    print("kept=%d  pruned=%d" % (min(len(snaps), keep), len(drop)))
+    return 0
+
+
 def cmd_verify(args):
     bad = []
     p = os.path.join(args.snap, META)
@@ -160,6 +179,10 @@ def main(argv=None):
     v = sub.add_parser("verify")
     v.add_argument("--snap", required=True)
     v.set_defaults(func=cmd_verify)
+    pr = sub.add_parser("prune")
+    pr.add_argument("--keep", type=int, default=24)
+    pr.add_argument("--dir")
+    pr.set_defaults(func=cmd_prune)
     r = sub.add_parser("restore")
     r.add_argument("--snap", required=True)
     r.add_argument("--yes", action="store_true")

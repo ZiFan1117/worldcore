@@ -1,0 +1,11 @@
+﻿[Unit]
+Description=worldcore 世界快照定时器（每小时，保留最近 24 份）
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=120
+Unit=aios-world-snapshot.service
+
+[Install]
+WantedBy=timers.target
