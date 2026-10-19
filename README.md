@@ -171,7 +171,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 语音浏览器断线补漏 | SSE 事件带 `id:`；EventSource 重连带 `Last-Event-ID` ⇒ 桥用 events `since` 补齐错过的事件（P8 在浏览器上落地） |
 | 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
-| 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
+| 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；`src/guard/guardctl.py` 是命令行客户端；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
 | 长程闭环评估（P6） | `scripts/release/dsh/goal/round_eval.py`：把每轮报告/提交扫成 `rounds.jsonl`（证据/回滚/提交/缺报告都能数）；systemd 每 15 分钟 |
 | 世界分叉/时间线（P4） | `world_snapshot.py fork --snap DIR --name X` 拷出一个平行世界（`fork.json` 记 parent，不改原件）；`timeline` 列快照＋分叉 |
@@ -393,7 +393,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Voice browser catch-up | SSE events carry `id:`; on reconnect EventSource sends `Last-Event-ID` ⇒ the bridge backfills missed events via events `since` (P8 in the browser) |
 | Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview (kiosk/screenshots) |
 | Permission enforcement (guard-exec) | `src/guard/guard_exec.py`: applies **Landlock** (an LSM usable from userspace) to confine a child process's file access; `--dry-run` shows the plan, `--apply` enforces; out-of-policy writes are rejected by the kernel |
-| Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
+| Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); `src/guard/guardctl.py` is the CLI client; enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
 | World as files (P3) | `scripts/release/worldfs.py`: read-only export of the ledger into `events/<date>/<hour>.jsonl` + `INDEX.md` (greppable, queryable); public fields only — never params/tickets/body; systemd every 15 min |
 | Long-horizon loop eval (P6) | `scripts/release/dsh/goal/round_eval.py`: turns each round's report/commit into `rounds.jsonl` (evidence / rollback / commit / missing reports are countable); systemd every 15 min |
 | World fork/timeline (P4) | `world_snapshot.py fork --snap DIR --name X` copies a snapshot into a parallel world (`fork.json` records the parent; original untouched); `timeline` lists snapshots + forks |
