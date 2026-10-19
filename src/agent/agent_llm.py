@@ -14,6 +14,7 @@
 ★ 它不执行任何命令（★ 计算机执行）、不判许可（★ 本体判）、不自己发帧（★ 经 world/notice）。
 """
 
+import datetime
 import json
 import os
 import sys
@@ -81,6 +82,9 @@ def ask_llm(system, user, max_tokens=900):
         return None, "%s: %s" % (type(e).__name__, str(e)[:200])
 
 
+HB = os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
+
+
 class Agent:
     def __init__(self, session):
         self.s = session
@@ -88,6 +92,29 @@ class Agent:
         self.query_results = {}
         self.launched = False      # ★ 窗口是否已打开（点图标经本体批准后才置 True）
         self.events = []           # ★（P8）世界推来的事件（最近 30 条）
+        self.hb_path = HB          # ★（P7）进程可观测：心跳文件
+        self.started_at = time.time()
+        self._write_heartbeat()
+
+    def _write_heartbeat(self, extra=None):
+        """★（P7）把「agent 进程还活着/在做什么」写到一个可读文件（给人/浏览器看）。"""
+        try:
+            os.makedirs(os.path.dirname(self.hb_path) or ".", exist_ok=True)
+            hb = {
+                "pid": os.getpid(),
+                "name": NAME,
+                "started_at": datetime.datetime.fromtimestamp(self.started_at).astimezone()
+                .isoformat(timespec="seconds"),
+                "last_at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "events": len(self.events),
+                "launched": self.launched,
+            }
+            if extra:
+                hb.update(extra)
+            with open(self.hb_path, "w", encoding="utf-8") as f:
+                json.dump(hb, f, ensure_ascii=False)
+        except Exception as e:
+            log("⚠ 心跳写失败：%s" % e)
 
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
@@ -167,6 +194,7 @@ class Agent:
         self.events.append(ev)
         self.events = self.events[-30:]
         self._write_cursor(ev.get("at"))
+        self._write_heartbeat()
         return True
 
     def _remember_event(self, sample):
@@ -336,12 +364,14 @@ def main():
     session.declare_subscriber(T_EXEC, on_exec)
     session.declare_subscriber(T_EVENT, a._remember_event)   # ★（P8）实时事件
     a.register()
+    a._write_heartbeat({"phase": "started"})
     rnd = 0
     while True:
         if not a.launched:                 # ★ 没被点开之前不画（窗口由点击打开）
             time.sleep(1.0)
             continue
         rnd += 1
+        a._write_heartbeat({"round": rnd})
         log("———— 第 %d 轮 ————" % rnd)
         world = a.query(kind="world")
         acts = a.query(kind="actions")

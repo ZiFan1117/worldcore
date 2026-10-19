@@ -39,6 +39,20 @@ def log(*a):
     print("[web]", *a, flush=True)
 
 
+def agent_heartbeat(path=None):
+    """★（P7）读 agent 心跳（默认 /run/aios/agent-heartbeat.json），返回 (ok, hb, age秒)。"""
+    p = path or os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
+    try:
+        with open(p, encoding="utf-8") as f:
+            hb = json.load(f)
+        import datetime as _dt
+        last = _dt.datetime.fromisoformat(hb.get("last_at") or "")
+        age = (_dt.datetime.now().astimezone() - last).total_seconds()
+        return True, hb, age
+    except Exception:
+        return False, None, None
+
+
 class WebApp:
     """★ 唯一的桥逻辑（好测）：HTTP 层只调用它。"""
 
@@ -222,6 +236,11 @@ class Handler(BaseHTTPRequestHandler):
                     "</script>" % blob)
             html = html.replace("</body>", tail + "</body>")
             self._send(200, html, "text/html; charset=utf-8")
+            return
+        if path.startswith("/agent"):
+            ok, hb, age = agent_heartbeat()
+            self._send(200, {"ok": ok, "heartbeat": hb,
+                             "age_seconds": (round(age) if age is not None else None)})
             return
         if path.startswith("/events"):
             q = app.add_client()

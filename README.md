@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 53 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 54 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -165,6 +165,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
 | 人确认/委托（提案） | 「四格」委托：范围/期限/次数/可撤，是本体的对象而非提示词；Agent 不能自签、不能替人点确认；**法改动待作者签**（`提案-人确认与委托四格-待裁-2026-10-20.md`） |
 | 记忆系统（提案） | 记忆＝**世界里的对象**（记忆/关系/动作/账），不是向量库当真相；写经本体、读按 owner/空间；**法改动待作者签**（`ninedim/…/提案-记忆系统-按本体理念-待裁-2026-10-20.md`） |
+| Agent 进程可观测（P7） | agent 每轮/每事件写 `/run/aios/agent-heartbeat.json`（pid/name/last_at/events/round）；浏览器桥 `/agent` 读心跳并显示「几秒前」；判据 C54 |
 | A2UI 跟版（P5） | `scripts/release/a2ui_conformance.py`：源码/动态帧用到的组件必须在 basic catalog 内，且 **Web 渲染器都有 case**（判据 C53） |
 | 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
@@ -365,11 +366,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**53 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**54 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (53/53, rc=0)
+python scripts/test/check.py              → all green (54/54, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -384,6 +385,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
 | Human confirmation / delegation (proposal) | "Four-box" delegation: scope / expiry / max uses / revocable, a first-class world object rather than prompt text; agents can neither self-grant nor click confirm on behalf of humans; **law change awaits the author's signature** |
 | Memory system (proposal) | memory = **first-class world objects** (objects/relations/actions/ledger), not a vector DB as truth; written through the ontology, read scoped by owner/space; **law change awaits the author's signature** |
+| Agent process observability (P7) | the agent writes `/run/aios/agent-heartbeat.json` every round/event (pid/name/last_at/events/round); the web bridge `/agent` reads it and shows “seconds ago”; criterion C54 |
 | A2UI version conformance (P5) | `scripts/release/a2ui_conformance.py`: every component used in sources/generated frames must be in the basic catalog **and have a case in the Web renderer** (criterion C53) |
 | Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview (kiosk/screenshots) |
 | Permission enforcement (guard-exec) | `src/guard/guard_exec.py`: applies **Landlock** (an LSM usable from userspace) to confine a child process's file access; `--dry-run` shows the plan, `--apply` enforces; out-of-policy writes are rejected by the kernel |

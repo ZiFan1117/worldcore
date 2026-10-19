@@ -35,6 +35,7 @@
   <span class="badge">worldcore</span>
   <b>语音浏览器</b>
   <span id="status">未连接…</span>
+  <span id="agentstat" class="muted"></span>
   <span class="muted">A2UI 帧由世界给；这里只渲染</span>
 </header>
 <main>
@@ -231,6 +232,16 @@ function toggleMic() {
 
 connect();
 post({op:"ping"}).then(r => setStatus("桥在线" + (r.user ? "，用户 " + r.user : "")));
+function pollAgent() {
+  fetch("/agent").then(r => r.json()).then(d => {
+    const el = $("#agentstat");
+    if (!el) return;
+    el.textContent = d.ok ? ("Agent：活着（" + (d.age_seconds == null ? "?" : d.age_seconds) + " 秒前）")
+                          : "Agent：无心跳";
+  }).catch(() => {});
+}
+setInterval(pollAgent, 10000);
+pollAgent();
 </script>
 </body>
 </html>
