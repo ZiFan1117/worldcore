@@ -86,8 +86,9 @@ if [ "${MEM:-0}" -lt 200 ]; then mark "mem avail ${MEM}MB"; fi
 for t in aios-dsh-evolve.timer aios-dsh-optimize.timer aios-dsh-goal.timer; do
   if systemctl is-enabled --quiet "$t" 2>/dev/null; then
     svc=${t%.timer}.service
+    st=$(systemctl show -p ActiveState --value "$svc" 2>/dev/null || echo "")
     rc=$(systemctl show -p ExecMainStatus --value "$svc" 2>/dev/null || echo "")
-    if [ "${rc:-0}" != "0" ]; then
+    if [ "$st" = "failed" ] && [ "${rc:-0}" != "0" ]; then
       mark "timer $t 的上一轮失败 rc=$rc"
       say "停掉 $t（等人看）"
       systemctl stop "$t" >/dev/null 2>&1 || true

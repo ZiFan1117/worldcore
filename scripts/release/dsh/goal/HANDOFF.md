@@ -89,6 +89,13 @@ systemctl stop aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer
 - 若你读到这页时 session 已停：按上面「二、怎么查」与「六、06:00 核对清单」操作即可，不需要我在线；
 - 最新主机状态（本页更新时）：commit `512a52a`、判据 **58 条**、VM 工作副本已同步源码与判据、`gate_rc=0` 全绿。
 
+## 五之三、2026-10-20 22:00 的 gate-red 事件（已恢复，留教训）
+
+- **现象**：22:00 轮 gate 红（C47–C58）→ goal-run 按设计回滚、停三条 DSH timer、写 `ALERT`。
+- **真因**：主机格把新 src/判据以**未提交改动**同步进 `/root/aios-work`；轮开始时工作树被回滚到 HEAD ⇒ 新 src 丢失、判据却还在 ⇒ 判据领先源码。
+- **恢复**：判据回退到 C1–C46（与 worktree 匹配）⇒ `gate_rc=0`；`ALERT` 归档；三条 timer 重启。
+- **教训**：升级判据前**先把源码 commit 进工作副本**；不要以未提交状态同步。看门狗也已改为「只在单元真的 failed 时才停 timer」（避免恢复后又被旧 `ExecMainStatus` 连坐）。
+
 ## 六、06:00 核对清单
 
 ```sh
