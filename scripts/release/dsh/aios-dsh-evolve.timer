@@ -1,0 +1,11 @@
+[Unit]
+Description=AI-OS 本体进化定时器（每 6 小时一次提案）
+
+[Timer]
+OnCalendar=00/6:00:00
+Persistent=true
+RandomizedDelaySec=300
+Unit=aios-dsh-evolve.service
+
+[Install]
+WantedBy=timers.target

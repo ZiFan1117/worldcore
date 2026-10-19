@@ -1,0 +1,17 @@
+[Unit]
+Description=AI-OS 本体进化（DSH · 只提案不落法）
+After=network-online.target aios-ontology.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/aios-work
+EnvironmentFile=-/root/.dsh/env.dsh
+Environment=AIOS_DSH_WORK=/root/aios-work
+Environment=AIOS_DSH_PROPOSALS=/root/aios-proposals
+ExecStart=/root/aios-dsh-evolve.sh
+TimeoutStartSec=1200
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

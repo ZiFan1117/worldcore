@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 42 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 43 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -163,6 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
+| DSH（VM） | 已装 **0.2.1-rc.2**（npm `latest` 同版）；headless 经本体问出 22 个注册动作；evolve 能改 `world.json`＋`export-law --check`＋还原；**每 6 小时一轮进化提案**（只提案、不落法、不推） |
 | 账的读闸 | **秘密不落账**（票/密码脱敏）＋**匿名查历史拒**＋**人只看自己空间、Agent 只看自己＋当前空间**（跨空间授权未做） |
 | 界面/桌面状态动作 | 提供者**注册时就预留** `presentation.state`／`space.state`；问一次回全（surfaces/layout/screen/actives；user/state/guests/own）；Agent 用它看屏 |
 | 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋五个图标真实点击都经本体（本体/开窗/查机器/查动作/退出）＋窗口缩放/关闭＋亮色主题与壁纸**；**Agent 经本体问界面（presentation.list_surfaces 连布局一起返回）——不靠截图** |
@@ -177,6 +178,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | **真·按需起进程**（窗口已能由点击打开，进程仍常驻） | 进程生命周期要改部署（agent 不再开机自启）＋关窗是否停进程要定；先做「窗口起来」 |
 | 窗口拖拽/自由缩放；多窗口同时打开 | 缩放＝最大化/还原；两个窗口同时开着还没专门验 |
 | **状态实时推送**（现在读状态是"拉取"：问一次答一次） | 事件驱动＋双向推送（`world.event`）还没做；界面靠帧更新重画已有地基 |
+| DSH 的 GUI 入口 | 作者吩咐先不做界面；现在只有 headless／evolve 两条命令行 |
 | MCP 工具面 / 函数运行时 | 手册已从本体派生；MCP server 与只读函数执行器未做 |
 | 对象级版本链 | 今天只有事件史（账）；个体更新/撤下的写路径未齐 |
 | **跨空间授权**（读别人空间的账/看别人屏） | 读闸已按「自己／自己空间」过滤；跨空间要额外授权（谁授/范围/时限/可撤）还没定 |
@@ -350,11 +352,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**42 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**43 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (42/42, rc=0)
+python scripts/test/check.py              → all green (43/43, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -367,6 +369,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
+| DSH (VM) | installed **0.2.1-rc.2** (same as npm `latest`); headless asks the ontology and gets 22 registered actions; evolve can edit `world.json` + `export-law --check` + revert; **an evolution proposal every 6 hours** (proposal only, never signs, never pushes) |
 | Ledger read gate | **no secrets in the ledger** (tickets/passwords redacted) + **anonymous history refused** + **humans see only their space, agents see themselves + the current space** (cross-space grants not done yet) |
 | UI/desktop state actions | providers reserve `presentation.state` / `space.state` **at registration time**; one call returns everything (surfaces/layout/screen/actives; user/state/guests/own); the agent uses it to see the screen |
 | UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; five icons verified with real clicks and go through the ontology (ontology overview / open window / query machine / query actions / logout); window zoom/close; light theme + wallpaper**; **agent asks the interface through the ontology (`presentation.list_surfaces` returns layout too) — no screenshots required** |
@@ -381,6 +384,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | **On-demand process start** (windows open on click; processes are still resident) | process lifecycle needs deployment changes (agent no longer auto-starts) and a decision on whether closing stops the process |
 | Window dragging / free resize; several windows open at once | zoom = maximize/restore; simultaneously-open windows not specifically verified yet |
 | **Real-time state push** (state reads are pull-based today) | event-driven two-way push (`world.event`) is not done; frame-update repaint foundation already exists |
+| DSH GUI entry | the author asked to skip the GUI for now; only the headless / evolve CLIs exist |
 | MCP tool surface / function runtime | the manual is generated from the ontology; the MCP server and a read-only function executor do not exist yet |
 | Object-level version chains | only the event history (ledger) exists; update/retract write paths are not complete |
 | **Cross-space grants** (read another space's ledger/screen) | the read gate already filters by “self / own space”; the extra cross-space grant (who, scope, TTL, revocable) is not designed yet |
