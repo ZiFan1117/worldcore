@@ -50,6 +50,8 @@ def build_manual(ontology=None):
             "kind": md.get("kind"),
             "reversible": md.get("reversible"),
             "on_failure": md.get("on_failure"),
+            "preconditions": md.get("preconditions") or [],
+            "effects": md.get("effects") or [],
             "params": [{
                 "name": p.name,
                 "required": bool(getattr(p, "required", False)),
@@ -59,8 +61,14 @@ def build_manual(ontology=None):
             } for p in (getattr(at, "parameters", None) or [])],
             "scope": list(g.get("scope") or []),
         })
+    interfaces = [{
+        "id": i.interface_id,
+        "label": getattr(i, "display_name", "") or i.interface_id,
+        "required": [p.name for p in (getattr(i, "required_properties", None) or [])],
+    } for i in (getattr(o, "interfaces", None) or {}).values()]
     return {
         "world": (o.metadata or {}).get("world", 1),
+        "interfaces": interfaces,
         "actions": actions,
         "reject_codes": dict(REJECT_CODES),
         "topics": dict(TOPICS),
@@ -78,17 +86,26 @@ def to_markdown(manual):
         ps = "；".join(("%s%s" % (p["name"], "" if p["required"] else "（选填）")) for p in a["params"]) or "（无）"
         lines.append("| `%s` | %s | %s | %s |" % (a["name"], ps, "、".join(a["scope"]) or "（无人）",
                                                 a["on_failure"] or "?"))
-    lines += ["", "## 二、拒绝码（闭集）", ""]
+    if manual.get("interfaces"):
+        lines += ["", "## 二、接口（能力合同：谁符合谁就能被当成它用）", ""]
+        for i in manual["interfaces"]:
+            lines.append("- `%s`：%s（必需：%s）" % (i["id"], i["label"], "、".join(i["required"]) or "（无）"))
+    lines += ["", "## 三、拒绝码（闭集）", ""]
     for code, cat in sorted(manual["reject_codes"].items()):
         lines.append("- `%s` —— %s" % (code, cat))
-    lines += ["", "## 三、怎么调用（话题）", ""]
+    lines += ["", "## 四、怎么调用（话题）", ""]
     for k, v in manual["topics"].items():
         lines.append("- **%s**：`%s`" % (k, v))
-    lines += ["", "## 四、参数明细", ""]
+    lines += ["", "## 五、参数／条件／效果明细", ""]
     for a in manual["actions"]:
         if not a["params"]:
             continue
         lines.append("### `%s`" % a["name"])
+        if a.get("preconditions"):
+            lines.append("- 前置条件：" + "；".join(
+                p.get("statement") or p.get("kind") for p in a["preconditions"]))
+        if a.get("effects"):
+            lines.append("- 效果：" + "；".join(e.get("kind") for e in a["effects"]))
         for p in a["params"]:
             opt = ("（取值：%s）" % p["options"]) if p.get("options") else ""
             lines.append("- `%s`：%s%s%s" % (p["name"], p["type"], "" if p["required"] else "（选填）", opt))

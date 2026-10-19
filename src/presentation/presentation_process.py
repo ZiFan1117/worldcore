@@ -229,6 +229,16 @@ class Presentation:
         log("④ 执行 %s ⇒ ok=%s（%s）" % (act, ok, str(body)[:60].replace(chr(10), " ")))
 
     def dispatch(self, act, params):
+        if act == "object.retire":      # ★ 多态动作：路由到 presentation 的那一支
+            subject = params.get("subject") or ""
+            me = "presentation/" + SCREEN
+            if subject != me:
+                return False, "不是我的对象（我只管 %s）：%s" % (me, subject)
+            self.s.put("world/appear", json.dumps({
+                "class": "presentation", "name": SCREEN, "host": HOST,
+                "state": "locked", "compositor_kind": "flutter",
+                "reporter": "world://presentation/" + SCREEN}, ensure_ascii=False))
+            return True, {"effect": "retired", "class": "presentation", "subject": me}
         if act == "presentation.show_surface":
             sid = params.get("surface") or ""
             frame = params.get("frame") or {}

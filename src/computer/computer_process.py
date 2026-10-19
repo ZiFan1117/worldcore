@@ -223,9 +223,29 @@ def handle_exec(msg, rows, session):
                 "code": "PERMIT_DENIED",
                 "error": "没有本体的许可（凭据校验不过）：%s" % why}
     log("收到 %s（id=%s，凭证过）" % (action, rid))
+    if action == "object.retire":          # ★ 多态动作：路由到 computer 的那一支
+        return _retire_self(session, msg)
     ok2, body = run_action(rows, action, params)
     return {"id": rid, "action": action, "ok": ok2,
             "body": body if ok2 else None, "error": None if ok2 else body}
+
+
+def _retire_self(session, msg):
+    """★ 多态动作 object.retire 的【计算机执行者】：只退休自己（computer/<名>）。
+
+    ★ 效果：把自己的 state 置 retired，并【重新报到】——★ 状态的所有权在提供者，本体只记账。
+    """
+    rid, params = msg.get("id") or "", msg.get("params") or {}
+    subject = params.get("subject") or ""
+    me = "computer/%s" % COMPUTER_NAME
+    if subject != me:
+        return {"id": rid, "action": "object.retire", "ok": False, "body": None,
+                "error": "不是我的对象（我只管 %s）：%s" % (me, subject)}
+    ME["state"] = "retired"
+    session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
+    log("★ object.retire ⇒ %s 置 retired（多态动作，路由到计算机）" % me)
+    return {"id": rid, "action": "object.retire", "ok": True,
+            "body": {"effect": "retired", "class": "computer", "subject": me}}
 
 
 def probe_availability(rows):

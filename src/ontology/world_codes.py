@@ -30,35 +30,12 @@ REJECT_CODES = {
     "TICKET_SCOPE_DENIED": "permission",   # 票里没有这个范围
     "PERMISSION_DENIED": "permission",     # 许可条文不放行
     "PERMIT_DENIED": "permission",         # 执行器验不过本体凭证
+    "PRECONDITION_FAILED": "business",     # 前置条件不成立（借自订单样板）
+    "INTERFACE_NOT_IMPLEMENTED": "business",  # 这个类不实现该接口（不能当它用）
+    "PROVIDER_NOT_DECLARED": "system",     # 这个类没有声明执行者（路由不了）
 }
 
 
 def reject_category(code):
     """★ 码 → 类别。**不在闭集 ⇒ 返回 None**（调用方按 system 记并留痕；判据 C29 会抓）。"""
     return REJECT_CODES.get(code)
-
-
-# ── 状态所有权：每类的事实只许它的【提供者】报 ──
-#   ★ 空表＝今天没有提供者（谁都不许报，直到给它定一个）。
-AUTHORITY_REPORTERS = {
-    "human": ["world://space"],          # 人由登录进程报（登录在个人空间里）
-    "space": ["world://space"],
-    "presentation": ["world://presentation"],
-    "computer": ["world://computer"],
-    "agent": ["world://agent"],
-}
-
-
-def load_authority(o):
-    """★ 把「哪类的事实归谁报」写进每一类的 metadata（`_authority.reporters`）。
-
-    ★ 这是**声明面**；执行面在 `ontology_process.on_appear`（核验函数 `identity.authority_ok`）。
-    """
-    for tid, ot in o.object_types.items():
-        md = dict(getattr(ot, "metadata", None) or {})
-        md["_authority"] = {
-            "kind": "reported",
-            "reporters": list(AUTHORITY_REPORTERS.get(tid, [])),
-            "_note": "空表＝今天没有提供者；改这一格＝改法律（走评审）",
-        }
-        ot.metadata = md

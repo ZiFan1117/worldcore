@@ -115,6 +115,16 @@ class Space:
         log("④ 执行 %s ⇒ ok=%s（%s）" % (act, ok, str(body)[:60].replace(chr(10), " ")))
 
     def dispatch(self, act, params):
+        if act == "object.retire":      # ★ 多态动作：路由到 space 的那一支
+            subject = params.get("subject") or ""
+            me = "space/" + USER
+            if subject != me:
+                return False, "不是我的对象（我只管 %s）：%s" % (me, subject)
+            self.state = "closed"
+            self.s.put("world/appear", json.dumps({
+                "class": "space", "name": USER, "owner": USER, "state": "closed",
+                "reporter": "world://space/" + USER}, ensure_ascii=False))
+            return True, {"effect": "retired", "class": "space", "subject": me}
         if act == "space.login":
             # ★★★ 凭【票】进 —— ★ 空间【不碰密码】（★ 密码归本体；见 src/ontology/identity.py）。
             #    ★ 作者令（逐字）：「这个密码啥的是不是在本体空间中更合适呢？……
