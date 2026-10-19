@@ -118,7 +118,7 @@ world/ask
 - 登录：呈现出登录画布 → 认证走本体 → 拿票 → 凭票进个人空间 → 桌面画布；
 - 画布：每个提供者出自己的一张（A2UI v1.0），个人空间按 `layout.layers`（层 z＋矩形 rect）摆放；
 - 呈现按票过滤：谁的票看谁的画布（甲登录看不到乙的）；
-- 桌面：**图标网格**（智能体／这台机器／能做什么／退出）；点图标 → 经本体（许可/凭证/账）→ 提供者出窗口；
+- 桌面：**图标网格**（智能体／这台机器／能做什么／退出）——四个都接通、都用真实鼠标点击验过：智能体＝经本体开 agent 窗口；这台机器＝经本体查 `sys.GetHostState` 出窗口；能做什么＝`world/query kind=actions` 出窗口；退出＝销票（经本体）→ 回登录画布；
 - 窗口：统一窗口壳（标题栏＋右上角「缩放／关闭」）；关闭＝经本体 `presentation.retract_surface`（带理由）撤画布；
 - 多窗口：每个应用一张 surface，由个人空间按 `layout.layers` 摆位（地基已有，第二个应用待接）。
 
@@ -163,7 +163,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 审计与拒绝码 | 拒绝码闭集（业务/身份/权限/输入/系统）；成功与被拒两侧都留痕；查历史过本体 |
 | 定义与动作语义 | 法在 `world.json`（坏法装载即失败）；参数先校验；前置条件转发前真跑；效果进账 |
 | 结构与多态 | 4 个接口；`object.retire` 按对象类型路由到不同执行者；状态所有权（冒充代报拒） |
-| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋点 Agent 经本体开窗＋窗口缩放/关闭** |
+| 界面 | 不合 A2UI 目录整帧拒；撤画布必须写理由；多画布由空间摆位；按票过滤；**桌面图标网格＋四个图标真实点击都经本体（开窗/查机器/查动作/退出）＋窗口缩放/关闭** |
 
 **还没做（如实）**：
 
@@ -173,7 +173,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 总线 ACL（谁能发/收哪个话题） | 总线只听本机，但登录本机的人可发任意话题；需给进程身份后再配规则 |
 | 事务 / 回滚 / 补偿 | 效果目前是声明＋记账；外部副作用不可逆，回滚要逐个动作裁 |
 | **真·按需起进程**（窗口已能由点击打开，进程仍常驻） | 进程生命周期要改部署（agent 不再开机自启）＋关窗是否停进程要定；先做「窗口起来」 |
-| 窗口拖拽/自由缩放、第二个应用窗口 | 缩放＝最大化/还原；多应用入口还没接 |
+| 窗口拖拽/自由缩放；多窗口同时打开 | 缩放＝最大化/还原；两个窗口同时开着还没专门验 |
 | 桌面「世界成员数」 | 显示 0（还没接查询）；不影响图标/窗口链路 |
 | MCP 工具面 / 函数运行时 | 手册已从本体派生；MCP server 与只读函数执行器未做 |
 | 对象级版本链 | 今天只有事件史（账）；个体更新/撤下的写路径未齐 |
@@ -319,7 +319,7 @@ world/ask
 - Login: presentation draws the login canvas → authentication goes through the ontology → ticket → personal space → desktop canvas;
 - Surfaces: each provider draws its own (A2UI v1.0); the personal space places them via `layout.layers` (z-order + rect);
 - Presentation filters by ticket: you only see the surfaces your ticket allows;
-- Desktop: **icon grid** (agent / this machine / capabilities / logout); click → ontology (auth/permit/ledger) → provider opens its window;
+- Desktop: **icon grid** (agent / this machine / capabilities / logout) — all four are wired and verified with **real mouse clicks**: agent → window through the ontology; this machine → `sys.GetHostState` through the ontology; capabilities → `world/query kind=actions`; logout → revoke ticket (through the ontology) → back to the login canvas;
 - Windows: one shared window shell (title bar + zoom/close at the top right); close = `presentation.retract_surface` through the ontology (with a reason);
 - Multi-window: each app is one surface, placed by the personal space via `layout.layers` (foundation in place; second app pending).
 
@@ -364,7 +364,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Audit & refusal codes | closed refusal-code set (business / identity / permission / input / system); successes **and** refusals recorded; history query goes through the ontology |
 | Definition & action semantics | the law lives in `world.json` (invalid law fails at load); parameters validated before forwarding; preconditions run before forwarding; effects recorded |
 | Structure & polymorphism | 4 interfaces; `object.retire` routes by object type to different executors; state ownership (spoofed reports refused) |
-| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid, agent window opens through the ontology, zoom/close through the ontology** |
+| UI | frames violating the A2UI catalog are rejected as a whole; retraction requires a reason; multiple surfaces placed by the space; ticket-based filtering; **desktop icon grid; all four icons verified with real clicks and go through the ontology (open window / query machine / query actions / logout); window zoom/close through the ontology** |
 
 **Not done yet (honest list)**:
 
@@ -374,7 +374,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Bus ACL (who may publish/subscribe to which topic) | the bus listens on localhost, but anyone logged into the machine can publish anywhere; needs per-process identity first |
 | Transactions / rollback / compensation | effects are declared and recorded today; external side effects are irreversible, rollback must be decided per action |
 | **On-demand process start** (windows open on click; processes are still resident) | process lifecycle needs deployment changes (agent no longer auto-starts) and a decision on whether closing stops the process |
-| Window dragging / free resize; a second app window | zoom = maximize/restore; only the agent app has an entry so far |
+| Window dragging / free resize; several windows open at once | zoom = maximize/restore; simultaneously-open windows not specifically verified yet |
 | Desktop “world members” count | shows 0 (query not wired); does not affect icons/windows |
 | MCP tool surface / function runtime | the manual is generated from the ontology; the MCP server and a read-only function executor do not exist yet |
 | Object-level version chains | only the event history (ledger) exists; update/retract write paths are not complete |

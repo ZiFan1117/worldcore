@@ -27,6 +27,11 @@ import zenoh
 
 from desktop_frame import desktop_frame
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
+from window_frame import wrap_window  # noqa: E402
+
+
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
 from permit import verify, consume_via_ontology  # noqa: E402
@@ -37,6 +42,22 @@ T_ASK = "world/ask"
 T_REGISTER = "world/register"
 T_EXEC = "world/exec"
 T_RESULT = "world/exec/result"
+T_QUERY = "world/query"
+T_ASK_RESULT = "world/ask/result"
+T_QUERY_RESULT = "world/query/result"
+
+
+def act_context(action):
+    """★ 取界面动作的上下文：两种形态都认 —— 渲染器实际发的是 {name, context}（平铺）；
+    我们旧格式是 {event: {name, context}}。★ 这是「点击没反应」的根因：只认了后者。"""
+    if not isinstance(action, dict):
+        return {}
+    ev = action.get("event")
+    if isinstance(ev, dict) and isinstance(ev.get("context"), dict):
+        return ev["context"]
+    if isinstance(action.get("context"), dict):
+        return action["context"]
+    return {}
 
 # ★★ 测试账号（作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
 
@@ -71,6 +92,8 @@ class Space:
         self.guests = {}
         self.ticket = ""          # ★ 登录拿到的票（点图标/关窗口时以「人」的身份向本体发请求）
         self.zoomed = {}          # ★ 窗口缩放状态：surface -> True(最大化)/False(还原)
+        self.own = {}             # ★ 空间自己出的窗口：surface -> {"frame", "rect"}
+        self.pending = {}         # ★ 已发请求：rid -> {"kind"}（回话到了再画窗口）
 
     def _ask(self, action, params, tag=""):
         """★ 个人空间以【人】的身份向本体发请求：点击/关窗口都必须过本体（许可/凭证/记账）。"""
@@ -81,6 +104,7 @@ class Space:
             msg["ticket"] = self.ticket
         self.s.put(T_ASK, json.dumps(msg, ensure_ascii=False))
         log("③ 向本体发 %s（id=%s）" % (action, rid))
+        return rid
 
     def announce(self):
         self.s.put("world/appear", json.dumps(ME, ensure_ascii=False))
@@ -181,8 +205,20 @@ class Space:
             return True, getattr(self, "layout", None) or {"layers": []}
         return False, "不认识的动作 %s" % act
 
+    def _own_window_frame(self, sid, title, lines):
+        """★ 空间自己的一扇窗（这台机器/能做什么）：统一窗口壳，内容＝几行字。"""
+        comps = [{"id": "root", "component": "Column",
+                  "children": ["o_%d" % i for i in range(len(lines))]}]
+        for i, line in enumerate(lines):
+            comps.append({"id": "o_%d" % i, "component": "Text", "text": line})
+        return {"version": "v1.0", "name": title, "messages": [
+            {"version": "v1.0", "createSurface": {"surfaceId": sid}},
+            {"version": "v1.0", "updateComponents": {
+                "surfaceId": sid, "components": wrap_window(title, comps, sid)}}]}
+
     def draw(self):
         extra = [{"surface": k, "rect": v} for k, v in self.guests.items()]
+        extra += [{"surface": k, "rect": v["rect"]} for k, v in self.own.items()]
         f = desktop_frame(self.surface_id, USER, self.n_members, extra)
         n = len(f["messages"][1]["updateComponents"]["components"])
         self.s.put(T_NOTICE, json.dumps({
@@ -191,8 +227,12 @@ class Space:
             "about": "桌面",
             "frame": f,
         }, ensure_ascii=False))
-        log("② 出桌面画布 %s（%d 组件，layout %d 层）"
-            % (self.surface_id, n, len(f["layout"]["layers"])))
+        for sid, w in self.own.items():
+            self.s.put(T_NOTICE, json.dumps({
+                "kind": "a2ui.frame", "by": "world://space/" + USER,
+                "about": "空间窗口", "frame": w["frame"]}, ensure_ascii=False))
+        log("② 出桌面画布 %s（%d 组件，layout %d 层，自有窗口 %d）"
+            % (self.surface_id, n, len(f["layout"]["layers"]), len(self.own)))
 
     def on_act(self, sample):
         try:
@@ -225,18 +265,29 @@ class Space:
                 "reporter": "world://space/" + USER,
             }, ensure_ascii=False))
             self.draw()
-        # ── ★ 2026-10-19：桌面图标与窗口按钮 ──
-        _evx = _a.get("event") if isinstance(_a, dict) else None
-        ctx = (_evx or {}).get("context") or {}
+        # ── ★ 2026-10-19：桌面图标与窗口按钮（★ 上下文取渲染器实际发的平铺形态）──
+        ctx = act_context(_a)
         if name == "space.icon_clicked":
             icon = ctx.get("icon") or d.get("component") or ""
+            if icon.endswith("_b"):
+                icon = icon[:-2]
             log("③ 点了图标：%s" % icon)
             if icon == "ic_agent":
                 self._ask("agent.launch", {}, "launch")
+            elif icon == "ic_computer":
+                rid = self._ask("sys.GetHostState", {}, "computer")
+                self.pending[rid] = {"kind": "computer"}
+            elif icon == "ic_actions":
+                rid = "sp-q-%d" % int(time.time() * 1000)
+                self.pending[rid] = {"kind": "actions"}
+                self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "actions"}, ensure_ascii=False))
+            elif icon == "ic_logout":
+                self.logout()
         elif name == "space.window_close":
             sid = ctx.get("surface") or ""
             log("③ 关窗口：%s" % sid)
             if sid:
+                self.own.pop(sid, None)
                 self.guests.pop(sid, None)
                 if sid.startswith("agent/"):
                     self._ask("agent.close", {"surface": sid}, "ac")
@@ -245,11 +296,72 @@ class Space:
                 self.draw()
         elif name == "space.window_zoom":
             sid = ctx.get("surface") or ""
-            if sid in self.guests:
+            if sid in self.own:
+                r = self.own[sid]["rect"]
+                self.own[sid]["rect"] = ([0, 0, 1220, 720] if r != [0, 0, 1220, 720]
+                                         else [640, 40, 620, 300])
+                self.draw()
+            elif sid in self.guests:
                 self.zoomed[sid] = not self.zoomed.get(sid)
                 self.guests[sid] = ([0, 0, 1220, 720] if self.zoomed[sid]
                                     else [640, 40, 620, 500])
                 self.draw()
+
+    def logout(self):
+        """★ 退出：销票（经本体）⇒ 空间 inactive ⇒ 请呈现回登录画布（经本体转）。"""
+        if self.ticket:
+            self._ask("identity.revoke", {"ticket": self.ticket}, "revoke")
+        self.ticket = ""
+        self.state = "inactive"
+        self.guests.clear()
+        self.own.clear()
+        self.s.put("world/appear", json.dumps({
+            "class": "space", "name": USER, "owner": USER, "state": "inactive",
+            "reporter": "world://space/" + USER}, ensure_ascii=False))
+        self.s.put(T_NOTICE, json.dumps({
+            "kind": "space.logout", "by": "world://space/" + USER,
+            "about": "退出登录"}, ensure_ascii=False))
+        log("③ 退出：票已销、空间 inactive、请呈现回登录画布")
+
+    def on_ask_result(self, sample):
+        """★ 空间发的请求有回话了（这台机器）⇒ 画一扇自己的窗口。"""
+        try:
+            d = json.loads(sample.payload.to_string())
+        except Exception:
+            return
+        p = self.pending.pop(d.get("id") or "", None)
+        if not p or not d.get("ok"):
+            return
+        body = d.get("body")
+        if p["kind"] == "computer":
+            text = json.dumps(body, ensure_ascii=False)[:900] if isinstance(body, (dict, list)) \
+                else str(body)[:900]
+            sid = "space/tools-" + USER
+            self.own[sid] = {"frame": self._own_window_frame(
+                sid, "这台机器（经本体）", ["**sys.GetHostState 的结果**", text]),
+                "rect": [640, 40, 620, 300]}
+            log("② 这台机器窗口 ⇒ 出（经本体拿到的结果）")
+            self.draw()
+
+    def on_query_result(self, sample):
+        """★ 查世界的回话（能做什么）⇒ 画一扇自己的窗口。"""
+        try:
+            d = json.loads(sample.payload.to_string())
+        except Exception:
+            return
+        p = self.pending.pop(d.get("id") or "", None)
+        if not p or not d.get("ok"):
+            return
+        data = d.get("data") or {}
+        avail = data.get("available") or data.get("actions") or []
+        sid = "space/actions-" + USER
+        lines = ["**这个世界里在册的动作**（world/query kind=actions）",
+                 "可用 %d 个：" % len(avail),
+                 "、".join(str(x) for x in avail[:12])]
+        self.own[sid] = {"frame": self._own_window_frame(sid, "能做什么", lines),
+                         "rect": [640, 40, 620, 300]}
+        log("② 能做什么窗口 ⇒ 出（%d 个动作）" % len(avail))
+        self.draw()
 
     def on_envelope(self, sample):
         """★★ 别的提供者给的画布（经本体转来）⇒ ★ 摆放归个人空间：记下并重出桌面（带上它的层）。
@@ -318,7 +430,9 @@ def main():
     s.declare_subscriber(T_NOTICE, sp.on_frame)
     s.declare_subscriber(T_EXEC, sp.on_exec)
     s.declare_subscriber("world/ui/frame", sp.on_envelope)   # ★ 别人给的画布 ⇒ 我摆
-    log("④ 订 %s ＋ %s ＋ %s ＋ world/ui/frame" % (T_ACT, T_NOTICE, T_EXEC))
+    s.declare_subscriber(T_ASK_RESULT, sp.on_ask_result)     # ★ 空间的请求回话（这台机器）
+    s.declare_subscriber(T_QUERY_RESULT, sp.on_query_result) # ★ 查世界的回话（能做什么）
+    log("④ 订 %s ＋ %s ＋ %s ＋ world/ui/frame ＋ 回话" % (T_ACT, T_NOTICE, T_EXEC))
     log("★ 个人空间起来了 —— 等登录 ＋ 收人的动作（★ 桌面画布登录后才出）")
     try:
         while True:

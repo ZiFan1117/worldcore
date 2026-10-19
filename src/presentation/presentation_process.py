@@ -288,6 +288,18 @@ class Presentation:
             env = json.loads(smp.payload.to_string())
         except Exception:
             return
+        if env.get("kind") == "space.logout":
+            # ★ 退出：清票、撤掉这个人的桌面/窗口、回登录画布（空间经本体转来的请求）
+            with self.lock:
+                self.ticket_scope = []
+                self.shown = {k: v for k, v in self.shown.items()
+                              if (v.get("role") or "") != "desktop"
+                              and not k.startswith("agent/")
+                              and not k.startswith("space/")}
+                self.layout = None
+            log("② 收到 space.logout ⇒ 清票、撤桌面、回登录画布")
+            self.show_login()
+            return
         if env.get("kind") != "a2ui.frame":
             return
         # ★ 票 ⇒ 我在替谁看（★ 没登录时为空 ⇒ 只收【公开】的）
