@@ -82,6 +82,13 @@ systemctl stop aios-dsh-goal.timer aios-dsh-optimize.timer aios-dsh-evolve.timer
 5. **安全债**：VM 里 DSH 仍 `danger-full-access`；bus 无 ACL；旧账有明文票（无效但仍需清理）；
 6. **判据不推**（本地副本）；VM `/root/aios-work` 的 agent 本地提交不 push（by design）。
 
+## 五之二、如果 session 轮次先于 06:00 用完（2026-10-20 说明）
+
+- 本 session goal 的自动续轮**可能在 00:00 CEST（06:00 SH）之前就用完**（不是目标链停了）；
+- **VM 上的目标链独立运行**，`aios-goal-stop.timer` 仍会在 00:00:00 CEST 停三条 DSH 定时器并写 `DONE`；
+- 若你读到这页时 session 已停：按上面「二、怎么查」与「六、06:00 核对清单」操作即可，不需要我在线；
+- 最新主机状态（本页更新时）：commit `512a52a`、判据 **58 条**、VM 工作副本已同步源码与判据、`gate_rc=0` 全绿。
+
 ## 六、06:00 核对清单
 
 ```sh
