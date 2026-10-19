@@ -366,8 +366,13 @@ def main():
     a.register()
     a._write_heartbeat({"phase": "started"})
     rnd = 0
+    last_idle_hb = 0.0
     while True:
         if not a.launched:                 # ★ 没被点开之前不画（窗口由点击打开）
+            now = time.time()
+            if now - last_idle_hb >= 30.0:  # ★（P7）空闲也定时写心跳，别让 /agent 显旧
+                a._write_heartbeat({"phase": "idle"})
+                last_idle_hb = now
             time.sleep(1.0)
             continue
         rnd += 1
