@@ -75,6 +75,17 @@
 - soak 已扩到 **14 单元**（含 vault）并重起；样本里 14/14 全 `active`；账行数持续增长；computer 最近上报照常；
 - 样本与结束读数见 §五半.2（收口时补）。
 
+### 五半.2 最终验证（2026-10-21 01:07+08:00，VM 现取）
+
+| 项 | 现取 |
+|---|---|
+| 单元 | **14/14 active**（含 aios-vault；`vm_final_verify` 脚本 UNITS 是旧 13 个表，vault 单独 `systemctl is-active` 已确认 active） |
+| 账 | 13525 行；appear 1860 行；类计数：computer 239、space 273、clock 107、recovery 99、snapshot 495、network 80、link 160、fs 5、file 15、vault 13、secret 24（二期五进程都有个体） |
+| 法 | `export-law --check` 一致（23 类 / 202 动作 / 9 函数） |
+| computer 管道 | 18:55:28 最近上报：uptime=143480、load1=0.0、mem_available=13968（变化才报，空闲不刷） |
+| DSH | 第 14 轮 `file.list /var/lib/aios` ok=True；心跳持续（launched=true） |
+| 证据 | `scripts/release/evidence/t511-vm-final-verify-2.json`（本地） |
+
 ## 六、没做到的（如实）
 
 1. 五个新进程都是**只读 v1**：fs 不写文件、recovery 不 save/restore、network 不配网、clock 不改钟、vault 不取秘密值（`vault.get` 未做）；
