@@ -7,6 +7,7 @@ ExecStart=/usr/bin/python3 /usr/lib/aios/src/agent/agent_llm.py
 Restart=always
 RestartSec=8
 Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUNBUFFERED=1
 Environment=AIOS_BUS=tcp/127.0.0.1:7447
 Environment=AIOS_AGENT_NAME=dsh
 Environment=AIOS_AGENT_ROUND=45
