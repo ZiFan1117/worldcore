@@ -403,9 +403,10 @@ def metrics_loop(session, every=10):
                     timespec="seconds")
                 ME["reporter"] = "world://computer/" + COMPUTER_NAME
                 session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
+                _why = ("首次" if last_sig is None
+                        else ("变化" if metrics_changed(last_sig, sig) else "心跳"))
                 log("★ 上报本体（%s）：uptime=%ss load1=%s mem=%s/%sMB"
-                    % ("变化" if last_sig is not None and metrics_changed(last_sig, sig)
-                       else "心跳", ME.get("uptime_seconds"), ME.get("load1"),
+                    % (_why, ME.get("uptime_seconds"), ME.get("load1"),
                        ME.get("mem_available_mb"), ME.get("mem_total_mb")))
                 last_sig, last_at = sig, now
         except Exception as e:                              # noqa: BLE001
