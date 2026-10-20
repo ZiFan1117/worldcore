@@ -1,0 +1,23 @@
+[Unit]
+Description=worldcore 保险库 —— 只读秘密元数据库存（学 AI-OS L4 Vault）
+Documentation=https://ai-os.net/docs/vault
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/vault
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_VAULT_INDEX=/var/lib/aios/vault/index.json
+Environment=AIOS_VAULT_NAME=vault0
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/vault/vault_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只读元数据：不读秘密值、不写文件 ⇒ strict 合适
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

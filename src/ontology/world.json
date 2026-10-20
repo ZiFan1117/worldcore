@@ -2029,6 +2029,151 @@
           "description": ""
         }
       ]
+    },
+    {
+      "id": "secret",
+      "label": "秘密条目（元数据）",
+      "description": "一个秘密的【元数据】（id/提供方/拥有者/轮换时间/状态）；★ 值从不进世界。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://vault"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:secret20261021_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": "秘密 id（如 deepseek-api-key）"
+        },
+        {
+          "name": "provider",
+          "label": "provider",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "owner",
+          "label": "owner",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "rotated_at",
+          "label": "rotated_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "description",
+          "label": "description",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "vault",
+      "label": "保险库进程",
+      "description": "保险库（借鉴 AI-OS L4 Policy/Identity/Vault 三分家）：只读秘密库存元数据；值从不落世界。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://vault"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:vault20261021_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "secrets",
+          "label": "secrets",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "active",
+          "label": "active",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "checked_at",
+          "label": "checked_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
     }
   ],
   "links": [
@@ -4253,6 +4398,80 @@
         "scope": [
           "world://user",
           "world://agent/dsh"
+        ],
+        "why": "只读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "vault.list",
+      "label": "vault.list",
+      "description": "列秘密库存【元数据】（id/提供方/拥有者/轮换时间/状态；★ 值从不返回）",
+      "required_roles": [
+        "vault"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "limit",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "秘密库存只给人看"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "vault.state",
+      "label": "vault.state",
+      "description": "读保险库进程状态（条目数/active 数）",
+      "required_roles": [
+        "vault"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
         ],
         "why": "只读状态"
       },

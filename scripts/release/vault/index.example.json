@@ -1,0 +1,20 @@
+{
+  "secrets": [
+    {
+      "id": "llm-api-key",
+      "provider": "deepseek",
+      "owner": "world://user/zhang",
+      "rotated_at": "2026-10-20T20:00:00+08:00",
+      "state": "active",
+      "description": "模型 API key（值不在本文件；实际值由运维注入 /etc/aios/llm.env）"
+    },
+    {
+      "id": "permit-key",
+      "provider": "aios",
+      "owner": "world://user/zhang",
+      "rotated_at": "2026-10-18T12:00:00+08:00",
+      "state": "active",
+      "description": "一次性凭证签名 key（值不在本文件）"
+    }
+  ]
+}
