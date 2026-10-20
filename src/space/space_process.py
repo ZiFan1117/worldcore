@@ -282,6 +282,9 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
         if name == "space.ontology_tab":
             self.on_tab_click(str(ctx.get("tab") or ""))
             return
+        if name == "space.ontology_page":
+            self.on_page_click(str(ctx.get("tab") or ""), ctx.get("delta") or 0)
+            return
         if name == "confirm.decide":
             # ★ 桌面弹窗上点「拒绝/允许一次/允许并委托」⇒ 以人的身份回本体 confirm.resolve（带票）
             cname = str(ctx.get("confirmation") or "")

@@ -11,6 +11,9 @@ from window_frame import wrap_window
 
 TABS = (("overview", "概览"), ("classes", "类"), ("interfaces", "接口"),
         ("links", "关系"), ("actions", "动作"), ("ledger", "账"), ("events", "事件"))
+# ★ 一页放多少行（窗口没有滚动条，用分页保证「所有信息都能看到」）
+PAGE_LINES = {"overview": 12, "classes": 10, "interfaces": 12, "links": 12,
+              "actions": 12, "ledger": 12, "events": 12}
 
 
 class OntologyMixin:
@@ -73,9 +76,12 @@ class OntologyMixin:
         c = ov.get("counts") or {}
         lines = []
         tab = getattr(self, "ontology_tab", "overview")
+        def short_at(x):
+            s = str(x or "")
+            return s.split("T")[-1][:8] if "T" in s else s[-8:]
+
         if tab == "overview":
             lines += [
-                "**🌍 世界全貌**（world/query kind=overview）",
                 "类 %s ／ 接口 %s ／ 关系 %s ／ 在册动作 %s ／ 注册动作 %s ／ 函数 %s ／ 个体 %s"
                 % (c.get("classes"), c.get("interfaces"), c.get("links"),
                    c.get("world_actions"), c.get("registry_actions"),
@@ -87,7 +93,7 @@ class OntologyMixin:
                          % (led.get("rows"), led.get("bad_lines"),
                             "、".join("%s×%s" % (k, v) for k, v in codes.items()) or "（无）"))
             for r in (led.get("last") or [])[-8:]:
-                lines.append("· %s  %s  %s  %s" % (str(r.get("at"))[-14:], r.get("kind_of"),
+                lines.append("· %s  %s  %s  %s" % (short_at(r.get("at")), r.get("kind_of"),
                                                     r.get("action") or r.get("kind") or "",
                                                     r.get("actor") or ""))
         elif tab == "classes":
@@ -132,7 +138,7 @@ class OntologyMixin:
                       "看账的身份：%s；空间：%s" % (h.get("viewer"), h.get("space"))]
             for r in (h.get("rows") or [])[-20:]:
                 lines.append("· %s  %s  %s  %s  %s"
-                             % (str(r.get("at"))[-14:], r.get("kind_of"),
+                             % (short_at(r.get("at")), r.get("kind_of"),
                                 r.get("action") or "", r.get("actor") or "",
                                 r.get("code") or ""))
         elif tab == "events":
@@ -141,11 +147,21 @@ class OntologyMixin:
                       % (e.get("count"), e.get("total"))]
             for ev in (e.get("events") or [])[-24:]:
                 lines.append("· %s  %s  %s  %s"
-                             % (str(ev.get("at"))[-14:], ev.get("kind_of"),
+                             % (short_at(ev.get("at")), ev.get("kind_of"),
                                 ev.get("action") or "", ev.get("actor") or ""))
         if not lines:
             lines = ["（数据加载中…）"]
         return lines
+
+    def _page_of(self, tab):
+        return int(getattr(self, "ontology_pages", {}).get(tab, 0))
+
+    def on_page_click(self, tab, delta):
+        self.ontology_tab = tab
+        pages = getattr(self, "ontology_pages", {}) or {}
+        pages[tab] = max(0, self._page_of(tab) + int(delta or 0))
+        self.ontology_pages = pages
+        self._draw_ontology_window()
 
     def _draw_ontology_window(self):
         d = getattr(self, "ontology", {}) or {}
@@ -164,17 +180,39 @@ class OntologyMixin:
         ]
         self._ont_comps = comps
         self._tab_row(comps)
-        body_ids = self._lines("ont_ln", self._content())
+        tab = getattr(self, "ontology_tab", "overview")
+        lines = self._content()
+        page_size = PAGE_LINES.get(tab, 14)
+        total_pages = max(1, (len(lines) + page_size - 1) // page_size)
+        page = min(self._page_of(tab), total_pages - 1)
+        pages = getattr(self, "ontology_pages", {}) or {}
+        pages[tab] = page
+        self.ontology_pages = pages
+        body_ids = self._lines("ont_ln", lines[page * page_size:(page + 1) * page_size])
         comps.append({"id": "ont_body", "component": "Card",
                       "child": "ont_body_col"})
         comps.append({"id": "ont_body_col", "component": "Column", "children": body_ids})
+        if total_pages > 1:
+            comps.append({"id": "ont_page_text", "component": "Text",
+                          "text": "第 %d/%d 页" % (page + 1, total_pages)})
+            comps.append({"id": "ont_prev_t", "component": "Text", "text": "◀ 上一页"})
+            comps.append({"id": "ont_prev_b", "component": "Button", "child": "ont_prev_t",
+                          "action": {"event": {"name": "space.ontology_page",
+                                               "context": {"tab": tab, "delta": -1}}}})
+            comps.append({"id": "ont_next_t", "component": "Text", "text": "下一页 ▶"})
+            comps.append({"id": "ont_next_b", "component": "Button", "child": "ont_next_t",
+                          "action": {"event": {"name": "space.ontology_page",
+                                               "context": {"tab": tab, "delta": 1}}}})
+            comps.append({"id": "ont_pager", "component": "Row",
+                          "children": ["ont_prev_b", "ont_page_text", "ont_next_b"]})
+            comps[0]["children"].append("ont_pager")
         self._ont_comps = None
         frame = {"version": "v0.9", "name": "本体 · 世界全貌", "messages": [
             {"version": "v0.9", "createSurface": {"surfaceId": sid}},
             {"version": "v0.9", "updateComponents": {
                 "surfaceId": sid,
                 "components": wrap_window("本体 · 世界全貌", comps, sid)}}]}
-        self.own[sid] = {"frame": frame, "rect": [140, 26, 980, 650]}
+        self.own[sid] = {"frame": frame, "rect": [120, 84, 1040, 640]}
         self.draw()
 
     def on_tab_click(self, tab):
