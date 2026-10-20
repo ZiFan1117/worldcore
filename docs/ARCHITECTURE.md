@@ -157,7 +157,32 @@ flowchart TB
 
 > 定时器：看门狗（3 分钟）、世界快照（每小时）、worldfs（15 分钟）等（不属于 9 个常驻进程）。
 
-## 八、设计口径（三句话）
+## 八、三条「改本体」的路：Action / Function / Pipeline
+
+> 先回答一个常见混淆：**数据管道不是 action，也不是 function**；它是第三条路——**状态同步**。
+
+| 路径 | 入口（现取） | 写不写世界 | 权限/凭证 | 账 | 例子 |
+|---|---|---|---|---|---|
+| **Action（动作）** | `world/ask` → [`gate/ask_path.py`](../src/ontology/gate/ask_path.py) 八道闸 → `world/exec` + permit | 写（经执行器/效果） | 许可条文＋凭证（一号一用）＋人确认/委托 | `ask` / `result` / `reject` | `space.login`、`sys.GetMemoryInfo`、`agent.launch` |
+| **Function（函数）** | [`world.json`](../src/ontology/world.json) 的 `functions`（9 个）；引擎 `OntologyFunction.execute()` | **不写**（只读计算） | 不涉及许可/凭证 | 不进写账（调用方可另行记） | 纯计算/派生 |
+| **Pipeline（数据管道）** | [`computer/pipeline/metrics.py`](../src/computer/pipeline/metrics.py)（采集/变化判定/上报）→ `world/appear` → [`ontology/ingest/appear.py`](../src/ontology/ingest/appear.py)（接收/校验/建更新/落账/推事件） | 写（**对象状态 upsert**：不存在就建、已存在就 update） | **不是 action 闸**：靠对象类型的 `authority.reporters`（状态所有权）＋字段校验；**不签 permit** | `kind_of=appear`（更新带 `before`） | computer 每 10s 上报 uptime/load/mem；presentation/space/agent 报到 |
+
+### 8.1 开源代码里「管道」在哪？
+
+- 本仓唯一的开源借件是 `src/foundry_ontology/`（MIT）：它只有 **Ontology / ObjectType / ActionType / ActionExecutor / OntologyFunction / ObjectStore / QueryEngine / AuditLog**，
+  **没有 Pipeline 组件**（全仓 grep 无数据管道实现；`.gitlab-ci` 里的 pipeline 是 CI，不是数据管道）。
+  - 它的写入口只有两个：`ObjectStore.create/update`（直接写 ABox，无权限语义）与 `ActionExecutor.execute`（动作：校验→effects→audit）；
+  - `OntologyFunction` 只读：`execute()` 返回结果，不落对象。
+- **Palantir Foundry 的 Pipeline 本身不是开源的**：它是数据集成/转换产品，写的是 **datasets**（表/文件）；对象类型通过 datasource 映射/同步从 dataset 物化。
+  所以「管道改本体」在 Foundry 里是 **数据级写入（dataset → object sync）**，不是 action 调用，也不是 function（函数只做只读计算）。
+- 我们 worldcore 的对应：**提供者 push `world/appear` → 本体 `ingest/` 接收并 upsert**。这是「管道」这一概念在本仓的落点；它是**状态所有权**约束下的写入，不走动作八道闸，也不发 permit。
+
+### 8.2 一句话
+
+> **Action＝受人控的写；Function＝只读算；Pipeline＝持续同步事实（provider → ingest → 对象状态）。**
+> 外部进程只能「报事实」（appear）；**写本体的笔仍只有本体**（ingest 或 action 效果），没有第三条直接写 ObjectStore 的路。
+
+## 九、设计口径（三句话）
 
 1. **定义与实现分家**：法 `world.json` 是唯一权威，代码只装载它；改法=改声明件。
 2. **本体只做三件事**：认（闸）、判（许可/凭证）、记（账）；**不执行、不渲染、不碰机器**。
