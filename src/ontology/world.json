@@ -1420,6 +1420,141 @@
           "description": ""
         }
       ]
+    },
+    {
+      "id": "file",
+      "label": "文件",
+      "description": "世界里的一个文件/目录（提供者 fs 上报；只读语义文件服务 v1）。",
+      "primary_key": "path",
+      "interfaces": [
+        "Identifiable"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://fs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:file20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "path",
+          "label": "path",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": "绝对路径（个体主键）"
+        },
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "文件名"
+        },
+        {
+          "name": "size",
+          "label": "size",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "字节数（目录为 0）"
+        },
+        {
+          "name": "mtime",
+          "label": "mtime",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "修改时间 ISO"
+        },
+        {
+          "name": "sha256",
+          "label": "sha256",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "内容哈希（仅普通文件）"
+        },
+        {
+          "name": "kind",
+          "label": "kind",
+          "type": "STRING",
+          "required": false,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "root",
+          "label": "root",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "命中的白名单根"
+        }
+      ]
+    },
+    {
+      "id": "fs",
+      "label": "文件进程",
+      "description": "语义文件进程（只读）：报文件对象、答 file.* 查询。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://fs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:fs20261020_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "roots",
+          "label": "roots",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "白名单根（冒号分隔，只读）"
+        }
+      ]
     }
   ],
   "links": [
@@ -3187,6 +3322,247 @@
           "world://user"
         ],
         "why": "人点自己的桌面图标打开语义浏览器"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "file.stat",
+      "label": "file.stat",
+      "description": "读一个文件/目录的元数据（只读；白名单根内）",
+      "required_roles": [
+        "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读文件元数据；路径限白名单根，符号链接逃逸会拒"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "file.list",
+      "label": "file.list",
+      "description": "列一个目录（只读；白名单根内）",
+      "required_roles": [
+        "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "limit",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读目录列表"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "file.hash",
+      "label": "file.hash",
+      "description": "算一个普通文件的 sha256（只读）",
+      "required_roles": [
+        "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读哈希"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "file.read_text",
+      "label": "file.read_text",
+      "description": "读一段文本（只读；截断/拒秘密文件）",
+      "required_roles": [
+        "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "max_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读文本；秘密文件（env/key/pem…）拒；默认只读 32KB"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "fs.state",
+      "label": "fs.state",
+      "description": "读文件进程状态（白名单根）",
+      "required_roles": [
+        "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读状态"
       },
       "metadata": {}
     }

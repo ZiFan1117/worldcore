@@ -1,0 +1,24 @@
+[Unit]
+Description=worldcore 文件进程 —— 语义文件只读服务（src/fs）
+Documentation=https://ai-os.net/docs/fs
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/fs
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_FS_ROOTS=/var/lib/aios:/root/aios:/etc/aios
+Environment=AIOS_FS_NAME=fs0
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/fs/fs_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只读服务：不写文件 ⇒ ProtectSystem=strict 是合适的（整个 / 只读；白名单根只读）。
+#   写路径二期（版本/指针/证据）再谈放开，并配 permit。
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
