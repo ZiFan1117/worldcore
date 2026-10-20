@@ -246,10 +246,24 @@ def _open_url(params):
     if not prog:
         return False, "本机没有 firefox/xdg-open"
     try:
-        subprocess.Popen([prog, "--new-window", url] if prog == "firefox" else [prog, url],
-                         env=env, stdout=subprocess.DEVNULL,
+        if prog == "firefox":
+            # ★ 专用 profile ＋ no-remote：不和别的 Firefox 实例抢锁（截图里那次是「已在运行但无响应」）
+            prof = "/tmp/worldcore-browser"
+            reason = "打开语义浏览器前清掉旧 profile 锁（旧实例已不在；不是删世界状态）"
+            os.makedirs(prof, exist_ok=True)
+            for f in ("lock", ".parentlock"):
+                try:
+                    os.unlink(os.path.join(prof, f))
+                    log("★ app.open_url：清 %s（reason=%s）" % (f, reason))
+                except OSError:
+                    pass
+            cmd = [prog, "--no-remote", "--new-instance", "--profile", prof,
+                   "--new-window", url]
+        else:
+            cmd = [prog, url]
+        subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL, start_new_session=True)
-        log("★ app.open_url ⇒ %s %s" % (prog, url))
+        log("★ app.open_url ⇒ %s %s" % (" ".join(cmd), ""))
         return True, "已打开：%s" % url
     except Exception as e:                                  # noqa: BLE001
         return False, "起不来：%s" % e
