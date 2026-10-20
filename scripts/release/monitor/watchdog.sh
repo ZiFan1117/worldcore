@@ -8,7 +8,7 @@
 # 输出：/var/log/aios-watchdog.log（人看）＋ /var/log/aios-watchdog.jsonl（一行一读数）
 set -uo pipefail
 
-UNITS="aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs"
+UNITS="aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock"
 LOG=/var/log/aios-watchdog.log
 JSONL=/var/log/aios-watchdog.jsonl
 BACKUP_DIR=/var/backups/aios

@@ -246,6 +246,7 @@ SYS_PLAN = (
     "★ 只读动作（Get*／List*）随时可做；变更类会被人确认拦下。\n"
     "★ screen 是【此刻屏上有什么】（surfaces／layout，来自呈现与空间，经本体）；可据此决定帮人做什么。\n"
     "★ 文件相关：用 file.stat／file.list／file.read_text（只读）问世界，不要自己绕开世界读盘。\n"
+    "★ 要时间用 clock.now（世界时间，带时区/单调秒/开机 id）。\n"
     "★ 别每轮都挑同一个：换着查不同的面。\n"
     "★ 严格输出 JSON：{\"action\": \"动作名\", \"params\": {…}, \"why\": \"一句话\"}\n"
     "★ 实在没有可用动作时，输出 {\"action\": \"\"}。"
@@ -390,7 +391,8 @@ def main():
         avail = list(acts_data.get("available") or [])
         # ★ 2026-10-20（二期）：文件进程的只读动作也进清单 —— DSH 要「文件先问世界」
         _reg = acts_data.get("registry") or []
-        for _a in ("file.stat", "file.list", "file.hash", "file.read_text", "fs.state"):
+        for _a in ("file.stat", "file.list", "file.hash", "file.read_text", "fs.state",
+                   "clock.now"):
             if _a in _reg and _a not in avail:
                 avail.append(_a)
         world_data = world.get("data") or {}

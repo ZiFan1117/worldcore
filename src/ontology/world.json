@@ -1555,6 +1555,92 @@
           "description": "白名单根（冒号分隔，只读）"
         }
       ]
+    },
+    {
+      "id": "clock",
+      "label": "时间面",
+      "description": "世界的时间面（借鉴 AI-OS S28）：报当前时刻/时区/单调计数/开机 id；只读，不改系统钟。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://clock"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:clock20261020_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "now",
+          "label": "now",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "当前本地时间 ISO（带偏移）"
+        },
+        {
+          "name": "timezone",
+          "label": "timezone",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "时区名（如 Asia/Shanghai）"
+        },
+        {
+          "name": "utc_offset",
+          "label": "utc_offset",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "UTC 偏移（如 +08:00）"
+        },
+        {
+          "name": "boot_id",
+          "label": "boot_id",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "本次开机 id（/proc/sys/kernel/random/boot_id）"
+        },
+        {
+          "name": "monotonic_seconds",
+          "label": "monotonic_seconds",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "单调秒（只增不减，重启归零）"
+        }
+      ]
     }
   ],
   "links": [
@@ -3537,6 +3623,76 @@
       "description": "读文件进程状态（白名单根）",
       "required_roles": [
         "fs"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "clock.now",
+      "label": "clock.now",
+      "description": "读世界当前时间（含时区/偏移/单调秒/开机 id；只读）",
+      "required_roles": [
+        "clock"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "时间面只读：给账/agent 一个世界时间的口径"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "clock.state",
+      "label": "clock.state",
+      "description": "读时间面进程状态（时区/开机 id/单调秒）",
+      "required_roles": [
+        "clock"
       ],
       "applies_to": null,
       "kind": "invoke",

@@ -36,7 +36,7 @@
 
 ## 三、现在的系统结构
 
-### 3.1 运行时拓扑（10 个 systemd 单元，1 条总线）
+### 3.1 运行时拓扑（11 个 systemd 单元，1 条总线）
 
 > ★ **架构图**：[`docs/architecture.png`](docs/architecture.png)／[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)；**代码导航**（我想改 X 看哪里）：[`docs/CODE-MAP.md`](docs/CODE-MAP.md)。
 
@@ -148,7 +148,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 69 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 70 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -381,11 +381,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**69 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**70 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (69/69, rc=0)
+python scripts/test/check.py              → all green (70/70, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 

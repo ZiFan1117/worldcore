@@ -69,7 +69,7 @@ fi
 restorecon /usr/lib/aios/permit.key 2>/dev/null || true
 
 echo "=== 3 systemd 单元 ==="
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock; do
   s="$REPO/scripts/release/systemd/$u.service"
   if [ -f "$s" ]; then
     [ -f "$UNITDIR/$u.service" ] && cp -a "$UNITDIR/$u.service" "/etc/systemd/system/$u.service.bak-$TS"
@@ -108,12 +108,12 @@ if [ $RESTART -eq 0 ]; then echo "=== 5 不重启（--no-restart）==="; exit 0;
 echo "=== 5 重启 ==="
 systemctl stop aios-carrier 2>/dev/null || true
 systemctl disable aios-carrier 2>/dev/null || true
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock; do
   systemctl restart "$u" 2>/dev/null || systemctl start "$u" 2>/dev/null || true
   sleep 1
 done
 sleep 4
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock; do
   printf '  %-24s %s\n' "$u" "$(systemctl is-active "$u")"
 done
 

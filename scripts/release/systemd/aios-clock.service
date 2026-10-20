@@ -1,0 +1,22 @@
+[Unit]
+Description=worldcore 时间面 —— 只读世界时间（时区/偏移/单调秒/开机 id；学 AI-OS S28）
+Documentation=https://ai-os.net/docs/clock
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/clock
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_CLOCK_NAME=clock0
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/clock/clock_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只读时间面：不写系统钟、不写文件 ⇒ strict 合适
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
