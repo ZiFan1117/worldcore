@@ -10,7 +10,7 @@ import os
 
 DEFAULT_INDEX = "/var/lib/aios/vault/index.json"
 NAME = os.environ.get("AIOS_VAULT_NAME") or "vault0"
-ALLOWED_FIELDS = ("provider", "owner", "rotated_at", "state", "description")
+ALLOWED_FIELDS = ("provider", "owner", "rotated_at", "state")  # ★ description 不外传（可能含路径）
 STATES = ("active", "rotated", "revoked")
 
 

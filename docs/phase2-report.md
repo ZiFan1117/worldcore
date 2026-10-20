@@ -17,19 +17,20 @@
 
 | 项 | 基线（二期前） | 二期后（现取） |
 |---|---|---|
-| 常驻单元 | 9 | **13**（+fs、+clock、+recovery、+network） |
-| 法 | 14 类 / 189 动作 | **21 类 / 200 动作**（世界 44＋sys 156）/ 9 函数 / 4 接口 / 5 关系 |
-| 判据 | 71（本目标开始时） | **73**（+C72 network、+C73 agent 回话） |
-| VM | 9 单元 active | **13 单元全 active**；法一致；只读进程全部验过 |
+| 常驻单元 | 9 | **14**（+fs、+clock、+recovery、+network、+vault） |
+| 法 | 14 类 / 189 动作 | **23 类 / 202 动作**（世界 46＋sys 156）/ 9 函数 / 4 接口 / 5 关系 |
+| 判据 | 71（本目标开始时） | **75**（+C72 network、+C73 agent 回话、+C74 动作记忆、+C75 vault） |
+| VM | 9 单元 active | **14 单元全 active**；法一致；只读进程全部验过 |
 | DSH | 能问世界/做动作（但看不到/挑不中新进程） | 心跳可观测、清单含新动作、**真实轮次挑中并做成** `clock.now`、`file.list` |
 
-## 三、落地的四个底层进程（全部只读 v1）
+## 三、落地的五个底层进程（全部只读 v1）
 
 | 进程 | 借鉴 AI-OS | 法（类/动作） | 安全边界 | 判据 | VM 现取 |
 |---|---|---|---|---|---|
 | **fs 文件** | L2 AIOS-FS（文件=带版本语义对象；v1 只做只读） | `file`/`fs`；`file.stat/list/hash/read_text`、`fs.state` | 白名单根 `/var/lib/aios:/root/aios:/etc/aios`；realpath 防符号链接逃逸；秘密/隐藏文件拒读；32KB 截断；**不写文件** | C69 | 11 项 PASS：list/stat/hash/read_text 截断/越界拒/秘密拒/registry 4 个/file 个体 3 个/账 |
 | **clock 时间面** | S28 Constitutional Time Plane（单调/不可回拨/可审计） | `clock`；`clock.now/state` | 只读；**没有 clock.set**；返回时区/偏移/单调秒/boot_id | C70 | 8 项 PASS：now/offset/单调 137322→137323/boot_id/state/clock.set 拒/个体/账 |
 | **recovery 恢复边界** | L1 Recovery boundary（可独立 inspect） | `snapshot`/`recovery`；`recovery.list/state` | 只读；**无 restore**；无外进程；读快照 `meta.json` | C71 | 7 项 PASS：快照 5 份/分叉 1 个/rows=11603/state 24 快照/restore 拒/snapshot 个体 5/账 |
+| **vault 保险库** | L4 Policy/Identity/Vault（三分家；值从不进世界） | `vault`/`secret`；`vault.list/state` | 只读元数据；**许可只给人**；不读秘密值文件；无 `vault.get` | C75 | 8 项 PASS：条目 2、active=2、不含值/路径、secret 个体 2、vault.get 拒、账 |
 | **network 网络面** | L8 Network/Hardware/Devices（接口是对象） | `link`/`network`；`network.list/state` | 只读；**没有 set_ip**；无 subprocess/ip 命令；读 `/sys/class/net`＋`/proc/net/dev` | C72 | 8 项 PASS：enp0s3/lo、kind/计数器、state 2 口/up 1、set_ip 拒、link 个体 2、账 |
 
 共同形状：`world/appear` 报到 → `world/register` 注册动作 → 订 `world/exec`（route=进程名）→ 验 permit＋核销 → 执行 → 回 `world/exec/result`；读到的对象（file/snapshot/link）再报成个体（`ingest` 接收、upsert、落账、推事件）。

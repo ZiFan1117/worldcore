@@ -1,6 +1,6 @@
 # worldcore 架构图（总览）
 
-> 现取：2026-10-20（二期收口）。类 21 ／ 接口 4 ／ 关系 5 ／ 在册动作 200（sys 156 ＋ 世界 44）／ 函数 9 ／ 判据 73 条 ／ 常驻单元 13 个。
+> 现取：2026-10-20（二期收口）。类 23 ／ 接口 4 ／ 关系 5 ／ 在册动作 202（sys 156 ＋ 世界 46）／ 函数 9 ／ 判据 75 条 ／ 常驻单元 14 个。
 > 图里所有进程都是独立 systemd 单元；所有消息走 zenoh 总线话题 `world/*`。
 
 ## 一、四层总览
@@ -8,7 +8,7 @@
 ```mermaid
 flowchart TB
   subgraph L1[① 定义面 · 法]
-    LAW["world.json<br/>21 类 / 4 接口 / 5 关系<br/>世界动作 44 ＋ sys 156 / 函数 9"]
+    LAW["world.json<br/>23 类 / 4 接口 / 5 关系<br/>世界动作 46 ＋ sys 156 / 函数 9"]
     LOADER["law_loader.py<br/>解析 → 校验 → 建本体"]
     EXPORT["export-law.py --check<br/>声明件 ≡ 运行中的法（C35）"]
     LAW --> LOADER
@@ -30,7 +30,7 @@ flowchart TB
 
   BUS[("zenoh 总线<br/>world/appear · register · ask · exec ·<br/>exec/result · ask/result · query · event · notice · ui/*")]
 
-  subgraph L3[③ 提供者进程（一进程一夹 · 13 个单元；含 fs/clock/recovery/network）]
+  subgraph L3[③ 提供者进程（一进程一夹 · 14 个单元；含 fs/clock/recovery/network/vault）]
     COMP["computer<br/>执行 156 条命令 / app.open_url<br/>实时指标采集上报（数据管道）"]
     PRES["presentation ＋ presentation-render<br/>合成画布 / Flutter 渲染（A2UI）"]
     SPACE["space<br/>桌面 / 窗口 / 场景 / 确认弹窗 / 本体窗口"]
@@ -166,6 +166,9 @@ flowchart TB
 - **recovery（恢复边界）** `src/recovery/`：`recovery.list`/`recovery.state`（只读；列快照/分叉、读每份 meta 的 at/账行数/法 hash/字节数；把最近快照报成 `snapshot` 个体）；
   借鉴 AI-OS L1 Recovery boundary；**不写快照、不恢复、不起外进程**；部署 `aios-recovery.service`。
 
+- **vault（保险库）** `src/vault/`：`vault.list`/`vault.state`（只读秘密【元数据】；值从不进世界、从不返回）；
+  借鉴 AI-OS L4 Vault；许可**只给人**（agent 不列库存）；**不打开任何秘密值文件**；部署 `aios-vault.service`（14 单元之一）。
+
 - **network（网络面）** `src/network/`：`network.list`/`network.state`（只读；读 `/sys/class/net`＋`/proc/net/dev`，接口报成 `link` 个体）；
   借鉴 AI-OS L8；**不配网、不改路由、不起外进程**；部署 `aios-network.service`（13 单元之一）。
 
@@ -214,4 +217,4 @@ flowchart TB
 
 ---
 
-*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（73 条，每条自带会红的反例）。*
+*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（75 条，每条自带会红的反例）。*
