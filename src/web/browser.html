@@ -76,10 +76,25 @@
   </section>
   <section id="right" class="panel">
     <div class="row" style="justify-content:space-between">
-      <span class="muted">世界的画布（A2UI 帧）· <span id="frameinfo">帧=0</span></span>
-      <button onclick="pullFrames()">刷新桌面</button>
+      <span class="muted">语义浏览 · <span id="browseaddr">world://overview</span></span>
+      <span class="muted">不是桌面镜像；按地址看世界</span>
     </div>
-    <div id="frames"><div class="muted">（还没有画布——先登录/点「刷新桌面」）</div></div>
+    <div class="row" style="margin-top:8px">
+      <input id="addr" value="world://overview" style="flex:1 1 260px">
+      <button onclick="browse()">打开</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button onclick="gotoAddr('world://overview')">概览</button>
+      <button onclick="gotoAddr('world://actions')">动作</button>
+      <button onclick="gotoAddr('world://events')">事件</button>
+      <button onclick="gotoAddr('world://history')">账</button>
+    </div>
+    <div id="browse"><div class="muted">（先登录，再点「打开」）</div></div>
+    <details style="margin-top:12px">
+      <summary class="muted">A2UI 帧（调试/可选，默认不加载）</summary>
+      <div class="row"><button onclick="pullFrames()">加载 A2UI 帧</button><span class="muted" id="frameinfo">帧=0</span></div>
+      <div id="frames"><div class="muted">（未加载）</div></div>
+    </details>
   </section>
 </main>
 <script>
@@ -104,7 +119,7 @@ function connect() {
   es = new EventSource("/events");
   es.addEventListener("message", (ev) => {
     let d; try { d = JSON.parse(ev.data); } catch { return; }
-    if (d.type === "frame") { try { renderFrame(d.frame); } catch (e) { addLog("frame ERR: " + e); } }
+    if (d.type === "frame") { addLog("frame 到达（要在「A2UI 帧」调试区手动加载）"); }
     else if (d.type === "confirm") {
       showConfirm(d.confirmation || {});
     }
@@ -120,7 +135,6 @@ function connect() {
   });
   es.onopen = () => {
     setStatus("已连接（SSE）");
-    setTimeout(pullFrames, 200);   // 重载场景：灯亮前可能已有帧，补拿一次
     // ★ 免交互演示/截图：?user=zhang&secret=0 连上就自动登录（也可给 kiosk 用）
     if (autoUser && !autoTried) {
       autoTried = true;
@@ -178,10 +192,54 @@ function login() {
       addLog("login: " + JSON.stringify(r));
       if (!r.ok) { setStatus("登录失败：" + (r.why||"")); return; }
       setStatus("已登录：" + ($("#user").value||""));
-      pullFrames();
-      setTimeout(pullFrames, 300);
-      setTimeout(pullFrames, 1200);
+      browse();
     });
+}
+
+function gotoAddr(a) {
+  $("#addr").value = a;
+  browse();
+}
+
+function browse() {
+  const target = $("#addr").value || "world://overview";
+  $("#browseaddr").textContent = target;
+  post({op:"browse", target:target}).then(r => {
+    if (!r.ok) { $("#browse").innerHTML = "<div class='muted'>" + (r.why || "打不开") + "</div>"; return; }
+    const d = r.data || {};
+    let out = "";
+    if (r.kind === "overview") {
+      const c = d.counts || {}, rows = d.ledger || {};
+      out += "<div class='card'><b>世界概览</b><div class='col'>" +
+        "<span>类 " + c.classes + " ／ 接口 " + c.interfaces + " ／ 关系 " + c.links +
+        " ／ 在册动作 " + c.world_actions + " ／ 注册动作 " + c.registry_actions + "</span>" +
+        "<span>个体 " + c.individuals + " 个；账 " + rows.rows + " 行</span>" +
+        "<span>拒绝码：" + (Object.keys(rows.reject_codes || {}).map(k => k + "×" + rows.reject_codes[k]).join("、") || "（无）") + "</span>" +
+        "</div></div>";
+      const last = rows.last || [];
+      if (last.length) {
+        out += "<div class='card'><b>最近</b><div class='col'>" +
+          last.slice(-8).map(x => "<span>" + (x.at || "") + "  " + (x.kind_of || "") + "  " + (x.action || x.kind || "") + "</span>").join("") +
+          "</div></div>";
+      }
+    } else if (r.kind === "actions") {
+      const avail = d.available || d.actions || [];
+      out += "<div class='card'><b>在册动作（" + avail.length + "）</b><div class='row'>" +
+        avail.slice(0, 80).map(a => "<button onclick=\"gotoAddr('world://overview')\">" + String(a) + "</button>").join("") +
+        "</div></div>";
+    } else if (r.kind === "events") {
+      const evs = d.events || [];
+      out += "<div class='card'><b>最近事件（" + evs.length + "）</b><div class='col'>" +
+        evs.slice(-20).map(e => "<span class='muted'>" + (e.at || "") + "  " + (e.kind_of || "") + "  " + (e.action || "") + "  " + (e.actor || "") + "</span>").join("") +
+        "</div></div>";
+    } else if (r.kind === "history") {
+      const rows2 = d.rows || d.entries || [];
+      out += "<div class='card'><b>账（" + rows2.length + "）</b><div class='col'>" +
+        rows2.slice(-20).map(x => "<span class='muted'>" + (x.at || "") + "  " + (x.kind_of || "") + "  " + (x.action || "") + "</span>").join("") +
+        "</div></div>";
+    }
+    $("#browse").innerHTML = out || "<div class='muted'>（没有数据）</div>";
+  }).catch(e => { $("#browse").innerHTML = "<div class='muted'>取数失败：" + e + "</div>"; });
 }
 
 function pullFrames() {

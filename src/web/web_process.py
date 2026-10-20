@@ -222,6 +222,18 @@ class WebApp:
         if op == "ping":
             return {"ok": True, "what": "worldcore-web", "user": self.user,
                     "has_ticket": bool(self.ticket), "ui": UI_VERSION}
+        if op == "browse":
+            # ★ 语义浏览：按 world:// 地址查世界（不是桌面镜像）
+            target = str(d.get("target") or "world://overview").strip()
+            kind = target[len("world://"):] if target.startswith("world://") else target
+            kind = kind or "overview"
+            if kind not in ("overview", "actions", "events", "history"):
+                return {"ok": False, "why": "不认识的地址：%s（可用 world://overview|actions|events|history）" % target}
+            params = {"limit": 20} if kind in ("events", "history") else None
+            r = self.query(kind, params, ticket=self.ticket)
+            return {"ok": bool(r.get("ok")), "target": target, "kind": kind,
+                    "data": r.get("data") if r.get("ok") else None,
+                    "why": r.get("why"), "ui": UI_VERSION}
         if op == "frames":
             # 补救：页面重载/错过推送时，补拿桥最近缓存的帧
             with self.lock:
