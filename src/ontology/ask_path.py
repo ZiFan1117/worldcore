@@ -16,6 +16,7 @@ from world_codes import redact_params
 
 T_ASK_RESULT = "world/ask/result"
 T_EXEC = "world/exec"
+T_NOTICE = "world/notice"
 
 
 def handle(smp, w, session, log=print):
