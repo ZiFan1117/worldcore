@@ -19,7 +19,10 @@ EnvironmentFile=-/etc/aios/llm.env
 ProtectSystem=strict
 # ★ ReadWritePaths 前加 `-`：★ 目录不存在时 systemd 会 setup 失败（★ 总线踩过 226/NAMESPACE）——
 #   ★ 加了 - ⇒ 不存在就跳过，等总线／本体把目录建出来（★ 作者裁：进程之间互不等待）。
-ReadWritePaths=-/var/lib/aios -/run/aios
+# ★ 2026-10-21 修：只靠 ReadWritePaths=-/run/aios 有竞态（目录不在时被跳过 ⇒ 心跳 EROFS）。
+#   用 ExecStartPre 先把目录建出来，再【不带 -】地把 /run/aios 挂成可写。
+ExecStartPre=/usr/bin/install -d -m 0755 /run/aios
+ReadWritePaths=-/var/lib/aios /run/aios
 PrivateTmp=yes
 NoNewPrivileges=yes
 
