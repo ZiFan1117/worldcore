@@ -17,7 +17,7 @@
 | 截止停链 `aios-goal-stop.timer` | **2026-10-20 00:00:00 CEST** 强停三条 DSH timer | — |
 | **guard（权限决定）** | 独立进程 `aios-guard`；Unix socket `/run/aios/guard.sock`；与本体 `can_execute` 同口径 | `src/guard/guard_process.py` |
 | **guard-exec（权限执行）** | Landlock 给子进程限文件访问；`--dry-run`/`--apply` | `src/guard/guard_exec.py`，策略 `scripts/release/guard-exec-policy.json` |
-| **语音浏览器** | 独立进程 `aios-web`：`GET /` 页面、`/events` SSE、`/cmd`、`/render` 静态预览、`/agent` 心跳；支持 `?user=&secret=` 自动登录与 `Last-Event-ID` 断线补漏 | `src/web/`，端口 8765 |
+| **语义浏览器** | 独立进程 `aios-web`：`GET /` 页面、`/events` SSE、`/cmd`、`/render` 静态预览、`/agent` 心跳；支持 `?user=&secret=` 自动登录与 `Last-Event-ID` 断线补漏 | `src/web/`，端口 8765 |
 | 游标/补推 | 空间/agent 回放带 `since`；`/var/lib/aios/cursors/*.json` | — |
 | 场景文件 | 每次出画布落 `/var/lib/aios/scenes/<surface>.json` | — |
 | agent 心跳 | `/run/aios/agent-heartbeat.json`（pid/last_at/events/round） | — |

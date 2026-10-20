@@ -6,7 +6,7 @@
 ★ 判据式用法：`python3 a2ui_conformance.py --check` ⇒ rc 1 表示有「法外组件」或「浏览器画不出」。
 
 限度（★ 如实）：basic catalog 的组件名是我们对 v1.0 的**可控子集**；Flutter 走 genui 包（视为支持 basic），
-  Web 支持集从 `src/web/voice.html` 的 `case "X"` 现取。
+  Web 支持集从 `src/web/browser.html` 的 `case "X"` 现取。
 """
 import argparse
 import json
@@ -27,7 +27,7 @@ BASIC = {
 
 def web_supported():
     """★ 从 voice.html 的 switch case 现取浏览器真正支持的组件名。"""
-    p = os.path.join(ROOT, "src", "web", "voice.html")
+    p = os.path.join(ROOT, "src", "web", "browser.html")
     try:
         html = open(p, encoding="utf-8").read()
     except OSError:
@@ -71,7 +71,7 @@ def judge(used, web=None):
     for c in unknown:
         bad.append("法外组件（basic catalog 没有）：%s" % c)
     for c in unsupported:
-        bad.append("浏览器画不出：%s（voice.html 没这个 case）" % c)
+        bad.append("浏览器画不出：%s（browser.html 没这个 case）" % c)
     return bad
 
 

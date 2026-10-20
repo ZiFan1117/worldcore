@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- ★ worldcore 语音浏览器（极简 A2UI 渲染 + Web Speech）—— 不依赖 Flutter；同一个 A2UI 消息。 -->
+<!-- ★ worldcore 语义浏览器（A2UI 渲染 + 人确认弹窗 + Web Speech 语音 IOC）—— 不依赖 Flutter；同一个 A2UI 消息。 -->
 <html lang="zh">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>worldcore · 语音浏览器</title>
+<title>worldcore · 语义浏览器</title>
 <style>
   :root { --fg:#1f2a44; --muted:#6b7a90; }
   * { box-sizing: border-box; }
@@ -33,11 +33,26 @@
 <body>
 <header>
   <span class="badge">worldcore</span>
-  <b>语音浏览器</b>
+  <b>语义浏览器</b>
   <span id="status">未连接…</span>
   <span id="agentstat" class="muted"></span>
   <span class="muted">A2UI 帧由世界给；这里只渲染</span>
 </header>
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(20,30,50,.35);z-index:99;align-items:center;justify-content:center">
+  <div class="panel" style="max-width:560px;background:#fff">
+    <div class="col">
+      <b>确认请求：要不要允许？</b>
+      <div id="cf-body" class="muted"></div>
+      <label class="muted">理由（必填）</label>
+      <input id="cf-reason" value="在语义浏览器上确认">
+      <div class="row" style="justify-content:flex-end">
+        <button onclick="resolveConfirm('deny')">拒绝</button>
+        <button onclick="resolveConfirm('allow_once')">允许一次</button>
+        <button onclick="resolveConfirm('allow_delegation')">允许并委托</button>
+      </div>
+    </div>
+  </div>
+</div>
 <main>
   <section id="left" class="panel">
     <div class="col">
@@ -85,6 +100,9 @@ function connect() {
   es.addEventListener("message", (ev) => {
     let d; try { d = JSON.parse(ev.data); } catch { return; }
     if (d.type === "frame") renderFrame(d.frame);
+    else if (d.type === "confirm") {
+      showConfirm(d.confirmation || {});
+    }
     else if (d.type === "event") {
       const e = d.event || {};
       const key = (e.at || "") + "|" + (e.action || "") + "|" + (e.actor || "");
@@ -117,6 +135,28 @@ function addLog(line) {
   $("#log").scrollTop = 1e9;
 }
 
+let pendingConfirm = null;
+function showConfirm(c) {
+  pendingConfirm = c;
+  const el = $("#confirm-modal");
+  el.style.display = "flex";
+  $("#cf-body").textContent = "动作：" + (c.action || "?") + "；请求者：" + (c.for_actor || "?") +
+    "；摘要：" + (c.summary || "（无）") + "；请求：" + (c.name || "?");
+  $("#log").scrollTop = 1e9;
+  addLog("confirm: " + JSON.stringify(c));
+  speak("有一个确认请求，需要你签：" + (c.action || ""));
+}
+function resolveConfirm(decision) {
+  if (!pendingConfirm) return;
+  post({op: "confirm_resolve", name: pendingConfirm.name, decision: decision,
+        reason: $("#cf-reason").value || "在语义浏览器上确认"})
+    .then(r => {
+      addLog("confirm " + decision + ": " + JSON.stringify(r));
+      $("#confirm-modal").style.display = "none";
+      pendingConfirm = null;
+      if (!r.ok) setStatus("签失败：" + (r.why || ""));
+    });
+}
 function post(body) {
   return fetch("/cmd", {method:"POST", headers:{"Content-Type":"application/json"},
                         body: JSON.stringify(body)}).then(r => r.json());

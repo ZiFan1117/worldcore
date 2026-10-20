@@ -99,6 +99,11 @@ def handle(smp, w, session, log=print):
         if ok:
             w.stamp("act", kind_of="result", rid=msg.get("id"), action=name, ok=True,
                     body=body)
+            if name == "confirm.request" and isinstance(body, dict):
+                # ★ 推给呈现/语义浏览器：把确认请求画成弹窗（人点/说后回 confirm.resolve）
+                session.put(T_NOTICE, json.dumps(
+                    {"kind": "confirm.request", "by": "world://ontology",
+                     "confirmation": body.get("confirmation")}, ensure_ascii=False))
         else:
             w.reject((body or {}).get("code") or "PRECONDITION_FAILED", action=name,
                      actor=actor, why=(body or {}).get("why"))

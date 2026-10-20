@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 59 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 60 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -168,11 +168,12 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 场景文件化（P3） | 空间每次出画布都落成 `/var/lib/aios/scenes/<surface>.json`（surface/at/frame，A2UI 帧原样）；人能读、能 diff、能备份；浏览器 `/scenes`、`/scene?surface=…` 可查看；判据 C55 |
 | Agent 进程可观测（P7） | agent 每轮/每事件写 `/run/aios/agent-heartbeat.json`（pid/name/last_at/events/round）；浏览器桥 `/agent` 读心跳并显示「几秒前」；判据 C54 |
 | A2UI 跟版（P5） | `scripts/release/a2ui_conformance.py`：源码/动态帧用到的组件必须在 basic catalog 内，且 **Web 渲染器都有 case**（判据 C53） |
-| 语音浏览器断线补漏 | SSE 事件带 `id:`；EventSource 重连带 `Last-Event-ID` ⇒ 桥用 events `since` 补齐错过的事件（P8 在浏览器上落地） |
+| 语义浏览器断线补漏 | SSE 事件带 `id:`；EventSource 重连带 `Last-Event-ID` ⇒ 桥用 events `since` 补齐错过的事件（P8 在浏览器上落地） |
 | 终报生成（06:00） | `scripts/release/dsh/goal/final_report.py`：DONE/三条 timer 现取＋一屏状态＋最近轮报告＋已知缺口，一条命令写终报；判据 C58 |
 | 一屏状态（交接用） | `scripts/release/status.py`：一条命令看快照/进度/轮次摘要/游标/场景/世界文件/guard/单元（`--json` 机读）；判据 C57 |
-| 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
+| 语义浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；**有确认弹窗（允许一次/允许并委托/拒绝，签回本体）**；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
+| 人确认弹窗（语义浏览器） | 本体发 `confirm.request` → 推送 `world/notice` → 语义浏览器弹窗（允许一次/允许并委托/拒绝）→ 人点 ⇒ 带票 `world/ask confirm.resolve`；判据 C60 |
 | 确认/委托/审计（治理） | 法里有 `delegation`/`confirmation`/`policy` 三类＋8 动作；`governance.py` 本地执行：人能签、agent 不能签/自签；`audit.record` 带 HMAC 才回账（写 `kind_of=security`）；判据 C59 |
 | 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；`src/guard/guardctl.py` 是命令行客户端；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
@@ -371,11 +372,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**59 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**60 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (59/59, rc=0)
+python scripts/test/check.py              → all green (60/60, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -393,10 +394,10 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | Scenes as files (P3) | every canvas draw is saved as `/var/lib/aios/scenes/<surface>.json` (surface/at/frame, the A2UI frame verbatim); human-readable, diff-able, backup-able; viewable via the browser `/scenes` and `/scene?surface=…`; criterion C55 |
 | Agent process observability (P7) | the agent writes `/run/aios/agent-heartbeat.json` every round/event (pid/name/last_at/events/round); the web bridge `/agent` reads it and shows “seconds ago”; criterion C54 |
 | A2UI version conformance (P5) | `scripts/release/a2ui_conformance.py`: every component used in sources/generated frames must be in the basic catalog **and have a case in the Web renderer** (criterion C53) |
-| Voice browser catch-up | SSE events carry `id:`; on reconnect EventSource sends `Last-Event-ID` ⇒ the bridge backfills missed events via events `since` (P8 in the browser) |
+| Semantic browser catch-up | SSE events carry `id:`; on reconnect EventSource sends `Last-Event-ID` ⇒ the bridge backfills missed events via events `since` (P8 in the browser) |
 | Final report (06:00) | `scripts/release/dsh/goal/final_report.py`: DONE / three DSH timers live state + one-screen status + recent reports + known gaps, one command writes the final report; criterion C58 |
 | One-screen status (handoff) | `scripts/release/status.py`: snapshots/progress/rounds/cursors/scenes/world-files/guard/units in one command (`--json` for machines); criterion C57 |
-| Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview (kiosk/screenshots) |
+| Semantic browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; **confirmation modal (allow once / allow + delegate / deny, signed back through the ontology)**; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview |
 | Permission enforcement (guard-exec) | `src/guard/guard_exec.py`: applies **Landlock** (an LSM usable from userspace) to confine a child process's file access; `--dry-run` shows the plan, `--apply` enforces; out-of-policy writes are rejected by the kernel |
 | Confirmation / delegation / audit (governance) | law has `delegation`/`confirmation`/`policy` classes + 8 actions; `governance.py` executes locally: only humans sign, agents cannot sign or self-grant; `audit.record` requires HMAC before it is written back as a `kind_of=security` row; criterion C59 |
 | Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); `src/guard/guardctl.py` is the CLI client; enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |

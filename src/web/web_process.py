@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""★ worldcore 浏览器桥（`src/web/`，一进程一夹）—— 让**浏览器**也能看/说/点这个世界（语音浏览器的服务端）。
+"""★ worldcore 语义浏览器桥（`src/web/`，一进程一夹）—— 让**浏览器**也能看/说/点这个世界（语义浏览器的服务端）。
 
 ★ 作者（逐字整理）：「我们可以做一个浏览器，语音浏览器」。
 
@@ -32,7 +32,7 @@ T_NOTICE = "world/notice"
 T_EVENT = "world/event"
 T_ACT = "world/ui/act"
 
-HTML = os.path.join(HERE, "voice.html")
+HTML = os.path.join(HERE, "browser.html")
 
 
 def log(*a):
@@ -118,6 +118,10 @@ class WebApp:
                 self.recent_frames.append(d.get("frame"))
                 self.recent_frames = self.recent_frames[-20:]
             self.feed({"type": "frame", "frame": d.get("frame"), "by": d.get("by")})
+        elif d.get("kind") == "confirm.request":
+            # ★ 语义浏览器：人确认弹窗的数据（点/说「签」都回到本体 confirm.resolve）
+            self.feed({"type": "confirm", "confirmation": d.get("confirmation"),
+                       "by": d.get("by")})
         elif d.get("kind") == "space.logout":
             self.ticket = ""
             self.feed({"type": "logout"})
@@ -242,6 +246,19 @@ class WebApp:
             if not self.ticket:
                 return {"ok": False, "why": "先登录"}
             r = self.call(d.get("action") or "", d.get("params") or {}, ticket=self.ticket)
+            return {"ok": bool(r.get("ok")), "result": r}
+        if op == "confirm_resolve":
+            # ★ 人点了弹窗：这条也要经本体（带票）——浏览器不自己发许可
+            if not self.ticket:
+                return {"ok": False, "why": "先登录"}
+            params = {"name": d.get("name") or "",
+                      "decision": d.get("decision") or "allow_once",
+                      "reason": d.get("reason") or "语义浏览器确认"}
+            if d.get("expires"):
+                params["expires"] = d["expires"]
+            if d.get("max_uses"):
+                params["max_uses"] = int(d["max_uses"])
+            r = self.call("confirm.resolve", params, ticket=self.ticket)
             return {"ok": bool(r.get("ok")), "result": r}
         return {"ok": False, "why": "不认识的 op：%s" % op}
 
@@ -398,7 +415,7 @@ def main():
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     srv.app = app
     srv.daemon_threads = True
-    log("★ 语音浏览器桥起来了：http://0.0.0.0:%d/（SSE /events，命令 POST /cmd）" % PORT)
+    log("★ 语义浏览器桥起来了：http://0.0.0.0:%d/（SSE /events，命令 POST /cmd）" % PORT)
     srv.serve_forever()
 
 
