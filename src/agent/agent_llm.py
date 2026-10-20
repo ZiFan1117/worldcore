@@ -50,6 +50,7 @@ T_QUERY_RESULT = "world/query/result"
 T_NOTICE = "world/notice"
 T_EVENT = "world/event"
 T_EXEC = "world/exec"
+T_EXEC_RESULT = "world/exec/result"   # ★ ask 的回话要回本体，本体再回请求方
 T_REGISTER = "world/register"
 
 
@@ -358,6 +359,10 @@ def main():
             ok, why = permit.consume_via_ontology(session, d.get("permit"), aid, params)
         if not ok:
             log("★ 窗口动作 %s 没凭证/凭证不能用：%s" % (aid, why))
+            session.put(T_EXEC_RESULT, json.dumps({
+                "id": d.get("id"), "action": aid, "ok": False, "body": None,
+                "by": "agent/" + NAME, "code": "PERMIT_DENIED",
+                "error": "没有本体的许可（凭据校验不过）：%s" % why}, ensure_ascii=False))
             return
         if aid == "agent.launch":
             a.launched = True
@@ -366,6 +371,10 @@ def main():
         else:
             a.launched = False
             log("★ 收到 agent.close ⇒ 停画（画布由呈现撤回，理由随账）")
+        session.put(T_EXEC_RESULT, json.dumps({
+            "id": d.get("id"), "action": aid, "ok": True,
+            "body": {"launched": a.launched}, "by": "agent/" + NAME},
+            ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)
     session.declare_subscriber(T_EVENT, a._remember_event)   # ★（P8）实时事件
