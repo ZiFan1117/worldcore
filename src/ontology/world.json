@@ -1812,6 +1812,223 @@
           "description": "最新快照名"
         }
       ]
+    },
+    {
+      "id": "link",
+      "label": "网络接口",
+      "description": "世界里的一个网络接口（名称/类型/状态/MAC/计数器；只读，由 network 进程上报）。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://network"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:link20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "kind",
+          "label": "kind",
+          "type": "STRING",
+          "required": false,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": false,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "mac",
+          "label": "mac",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "mtu",
+          "label": "mtu",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "rx_bytes",
+          "label": "rx_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "tx_bytes",
+          "label": "tx_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "rx_packets",
+          "label": "rx_packets",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "tx_packets",
+          "label": "tx_packets",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "rx_errors",
+          "label": "rx_errors",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "tx_errors",
+          "label": "tx_errors",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "ifindex",
+          "label": "ifindex",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "接口索引"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "label": "网络面进程",
+      "description": "网络面（借鉴 AI-OS L8）：只读报接口与计数器；v1 不配网、不改路由。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://network"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:network20261020_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "interfaces",
+          "label": "interfaces",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "up",
+          "label": "up",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "rx_bytes",
+          "label": "rx_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "tx_bytes",
+          "label": "tx_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "collected_at",
+          "label": "collected_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
     }
   ],
   "links": [
@@ -3942,6 +4159,76 @@
       "description": "读恢复边界进程状态（快照根/数量/最新）",
       "required_roles": [
         "recovery"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "network.list",
+      "label": "network.list",
+      "description": "列网络接口与计数器（只读）",
+      "required_roles": [
+        "network"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "网络面只读：接口是世界的对象"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "network.state",
+      "label": "network.state",
+      "description": "读网络面进程状态（接口数/up 数/总字节）",
+      "required_roles": [
+        "network"
       ],
       "applies_to": null,
       "kind": "invoke",

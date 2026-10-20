@@ -1,0 +1,24 @@
+[Unit]
+Description=worldcore 网络面 —— 只读网络接口与计数器（学 AI-OS L8 Network/Hardware/Devices）
+Documentation=https://ai-os.net/docs/network
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/network
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_NET_SYS=/sys/class/net
+Environment=AIOS_NET_DEV=/proc/net/dev
+Environment=AIOS_NETWORK_NAME=network0
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/network/network_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只读网络面：不配网、不改路由、不写文件 ⇒ strict 合适
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
