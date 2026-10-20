@@ -7,6 +7,10 @@
   ⇒ 把**全部信息**画成一扇带页签（概览/类/接口/关系/动作/账/事件）的桌面窗口。
 ★ 它不是什么：不裁决、不记账；查询走本体（world/query），窗口只是呈现。
 """
+import json
+import threading
+import time
+
 from window_frame import wrap_window
 
 TABS = (("overview", "概览"), ("computers", "机器"), ("classes", "类"),
@@ -30,6 +34,7 @@ class OntologyMixin:
         self._ont_query("actions", "actions")
         self._ont_query("history", "history", {"limit": 20})
         self._ont_query("events", "events", {"limit": 30})
+        self._start_ont_autorefresh()
         log = getattr(self, "log", None)
         if log:
             log("③ 本体窗口：并行查 overview/types/actions/history/events")
@@ -45,7 +50,7 @@ class OntologyMixin:
         self.s.put("world/query", __import__("json").dumps(msg, ensure_ascii=False))
 
     def on_ontology_result(self, tag, data):
-        self.ontology[tag] = data if isinstance(data, dict) else {}
+        self.ontology[tag] = data if isinstance(data, (dict, list)) else {}
         self._draw_ontology_window()
 
     def _tab_row(self, comps):
@@ -231,6 +236,25 @@ class OntologyMixin:
                 "components": wrap_window("本体 · 世界全貌", comps, sid)}}]}
         self.own[sid] = {"frame": frame, "rect": [120, 84, 1040, 640]}
         self.draw()
+
+    def _start_ont_autorefresh(self):
+        """★ 窗口开着就每 5 秒重查 computer/overview ⇒ 界面上的底层数据是「活」的。"""
+        if getattr(self, "_ont_timer", None) is not None:
+            return
+        def tick():
+            try:
+                if "space/ontology-" + self.user in self.own and \
+                        getattr(self, "ontology_tab", "") in ("computers", "overview"):
+                    self._ont_query("type", "computers", {"type": "computer"})
+                    self._ont_query("overview", "overview")
+            except Exception as e:                          # noqa: BLE001
+                log("本体窗口自动刷新失败：%s" % e)
+            self._ont_timer = threading.Timer(5.0, tick)
+            self._ont_timer.daemon = True
+            self._ont_timer.start()
+        self._ont_timer = threading.Timer(5.0, tick)
+        self._ont_timer.daemon = True
+        self._ont_timer.start()
 
     def on_activity_event(self, ev):
         """★ 数据管道实时性：computer 每 10 秒上报 ⇒ 本体推 appear 事件 ⇒ 窗口自动刷新。"""
