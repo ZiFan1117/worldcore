@@ -57,6 +57,7 @@
 | 执行系统命令 / 跑 sys.* | `src/computer/computer_process.py` | `run_action()` / `handle_exec()`；命令表在 `scripts/release/computer/command-map-sysknife.jsonl` |
 | 打开 URL / 起浏览器 | `src/computer/computer_process.py` | `_open_url()`（出向只许这里，C19） |
 | 语义文件（只读：stat/list/hash/read_text） | `src/fs/fs_process.py` ＋ `fs_ops.py` | `file.*` / `fs.state`；白名单根、防符号链接逃逸、秘密/隐藏拒读 |
+| 时间面（世界时间，只读） | `src/clock/clock_process.py` ＋ `clock_ops.py` | `clock.now` / `clock.state`；时区/偏移/单调秒/开机 id；无 clock.set |
 | 本体接收管道（appear→更新个体） | `src/ontology/ingest/appear.py` | `ingest_appear()`（ontology_process 只做入口委派） |
 | computer 实时指标 | `src/computer/pipeline/metrics.py`（独立子夹） | `collect_metrics / metrics_changed / should_report / metrics_loop`；`computer_process.py` 只负责导入并起线程 |
 | 桌面画布 / 图标 | `src/space/desktop_frame.py` | `desktop_frame()`、`ICONS` |
