@@ -141,7 +141,9 @@ class World:
         _ev_ok = fields.get("kind_of") in ("ask", "reject", "result", "appear", "register") \
             or (fields.get("kind_of") == "notice" and fields.get("notice_kind") == "ui.act"
                 and fields.get("ui_action"))
-        if self.publish and family == "act" and _ev_ok:
+        # ★ 2026-10-20 实测发现：appear/register 的 family 是 "change"，原来只放 "act"
+        #   ⇒ 数据管道的 appear 从不推事件，界面只能靠轮询（事件钩子等于死的）。这里放行 change。
+        if self.publish and family in ("act", "change") and _ev_ok:
             ev = {"kind": "world.event", "at": at,
                   "kind_of": fields.get("kind_of"),
                   "action": fields.get("action") or fields.get("ui_action"),

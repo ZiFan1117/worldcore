@@ -148,7 +148,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 67 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 68 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -177,6 +177,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
 | 人确认弹窗（语义浏览器） | 本体发 `confirm.request` → 推送 `world/notice` → 语义浏览器弹窗（允许一次/允许并委托/拒绝）→ 人点 ⇒ 带票 `world/ask confirm.resolve`；判据 C60 |
 | 确认/委托/审计（治理） | 法里有 `delegation`/`confirmation`/`policy` 三类＋8 动作；`governance.py` 本地执行：人能签、agent 不能签/自签；`audit.record` 带 HMAC 才回账（写 `kind_of=security`）；判据 C59 |
+| **数据管道详细测试** | C68：采集判定阈值/通道接线/接收端建更新/反例（缺必填、多塞、取值域、未知类、权威线、坏 JSON）/压力 100 次/事件/可见性；另有 `scripts/release/pipeline_live_test.py` 在 VM 真总线跑 |
 | **值变了才上报** | computer 采集每 10 秒一次，但**只有值真的变了才 `world/appear`**（负载 >0.1／可用内存 ≥64MB／其余属性不等；uptime 不参与判定）；300 秒心跳兜底证明还活着；判据 C66 |
 | **computer 实时数据管道** | computer 每 **10 秒**采集底层事实（uptime/load/mem/cpu/os）并 `world/appear` 上报本体 ⇒ 本体更新个体＋落账＋推事件；本体窗口「机器」页自动刷新；判据 C65 |
 | **语义浏览（不是桌面镜像）** | 浏览器右侧是「语义浏览」：地址栏 `world://overview|actions|events|history` ＋ 世界数据（概览/动作/事件/账）；A2UI 帧不再自动渲染成桌面（调试区手动加载）；判据 C64 |
@@ -380,11 +381,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**67 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**68 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (67/67, rc=0)
+python scripts/test/check.py              → all green (68/68, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
