@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""13 单元 + 世界收口 soak（只读采样；每 5 分钟一行 JSONL）。
+"""14 单元 + 世界收口 soak（只读采样；每 5 分钟一行 JSONL）。
 
 用法（VM）：
   nohup python3 /root/aios/scripts/release/soak_13units.py --minutes 90 \
@@ -18,7 +18,7 @@ LEDGER = "/var/lib/aios/ontology/ledger.jsonl"
 OUT = "/root/soak-13units.jsonl"
 UNITS = ["aios-bus", "aios-ontology", "aios-guard", "aios-web", "aios-computer",
          "aios-presentation", "aios-presentation-render", "aios-space", "aios-agent",
-         "aios-fs", "aios-clock", "aios-recovery", "aios-network"]
+         "aios-fs", "aios-clock", "aios-recovery", "aios-network", "aios-vault"]
 
 
 def sh(cmd):
