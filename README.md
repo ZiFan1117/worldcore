@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 58 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 59 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -173,6 +173,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 一屏状态（交接用） | `scripts/release/status.py`：一条命令看快照/进度/轮次摘要/游标/场景/世界文件/guard/单元（`--json` 机读）；判据 C57 |
 | 语音浏览器 | `src/web/` 进程：HTTP 页面＋SSE 推 A2UI 帧＋POST 命令（登录/点按钮）；页面用 **Web Speech** 听/说，不依赖 Flutter，不绕过本体；支持 `?user=..&secret=..` 自动登录与 `/render` 服务端静态预览（截图/kiosk） |
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
+| 确认/委托/审计（治理） | 法里有 `delegation`/`confirmation`/`policy` 三类＋8 动作；`governance.py` 本地执行：人能签、agent 不能签/自签；`audit.record` 带 HMAC 才回账（写 `kind_of=security`）；判据 C59 |
 | 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；`src/guard/guardctl.py` 是命令行客户端；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
 | 长程闭环评估（P6） | `scripts/release/dsh/goal/round_eval.py`：把每轮报告/提交扫成 `rounds.jsonl`（证据/回滚/提交/缺报告都能数）；systemd 每 15 分钟 |
@@ -370,11 +371,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**58 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**59 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (58/58, rc=0)
+python scripts/test/check.py              → all green (59/59, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 
@@ -397,6 +398,7 @@ python scripts/test/check.py --self-test  → all green (red examples turn red, 
 | One-screen status (handoff) | `scripts/release/status.py`: snapshots/progress/rounds/cursors/scenes/world-files/guard/units in one command (`--json` for machines); criterion C57 |
 | Voice browser | `src/web/` process: HTTP page + SSE pushing A2UI frames + POST commands (login/clicks); the page uses **Web Speech** to listen/speak, no Flutter, never bypasses the ontology; supports `?user=..&secret=..` auto-login and a server-side `/render` static preview (kiosk/screenshots) |
 | Permission enforcement (guard-exec) | `src/guard/guard_exec.py`: applies **Landlock** (an LSM usable from userspace) to confine a child process's file access; `--dry-run` shows the plan, `--apply` enforces; out-of-policy writes are rejected by the kernel |
+| Confirmation / delegation / audit (governance) | law has `delegation`/`confirmation`/`policy` classes + 8 actions; `governance.py` executes locally: only humans sign, agents cannot sign or self-grant; `audit.record` requires HMAC before it is written back as a `kind_of=security` row; criterion C59 |
 | Permission process (guard) | a **separate process**: Unix socket `/run/aios/guard.sock` answers “may this actor do this action?” (same rule as ontology `can_execute`); `src/guard/guardctl.py` is the CLI client; enforcement (Landlock/AppArmor/eBPF) is left to guard-exec |
 | World as files (P3) | `scripts/release/worldfs.py`: read-only export of the ledger into `events/<date>/<hour>.jsonl` + `INDEX.md` (greppable, queryable); public fields only — never params/tickets/body; systemd every 15 min |
 | Long-horizon loop eval (P6) | `scripts/release/dsh/goal/round_eval.py`: turns each round's report/commit into `rounds.jsonl` (evidence / rollback / commit / missing reports are countable); systemd every 15 min |

@@ -9,6 +9,7 @@
 import json
 
 import action_contract
+import governance
 import identity
 import permit
 from world_codes import redact_params
@@ -55,7 +56,10 @@ def handle(smp, w, session, log=print):
     #    ★★★ 例外：★ 认证动作本该没有身份（★ 人要登录时还没身份；
     #       ★ 不放行就成了「要登录先得有身份」的死结）。
     _noid_exempt = name == "identity.authenticate"
-    if not actor and not _noid_exempt:
+    # ★ 审计报告：执行者/guard 报内核事实——它没有「报到个体」也不该有票，靠 HMAC 绑定身份；
+    #   许可闸仍照走（scope 只含 world://guard/kernel），所以不是谁都能报。
+    _audit_exempt = name.startswith("audit.")
+    if not actor and not (_noid_exempt or _audit_exempt):
         why_noid = "没有身份（★ 请求要带 actor，或带票）"
         w.reject("NO_IDENTITY", action=name, why=why_noid)
         session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why_noid,
@@ -63,7 +67,7 @@ def handle(smp, w, session, log=print):
         return
     # ★★ 闸②.5：★ 每报一个都要能核验 —— 人 ⇒ 必须有票；其他 ⇒ 必须报过到、成为过个体。
     #    ★ 作者令（逐字整理）：「一个进程可报多个个体，但每报一个都要能核验」。
-    if not _noid_exempt:
+    if not (_noid_exempt or _audit_exempt):
         _a_ok, _a_why, _a_code = identity.actor_ok(actor, bool(ticket), w.appeared)
         if not _a_ok:
             w.reject(_a_code, action=name, actor=actor, why=_a_why)
@@ -88,6 +92,19 @@ def handle(smp, w, session, log=print):
             session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _c_why,
                                                   "code": _c_code}, ensure_ascii=False))
             return
+
+    # ★★★ 本地执行：治理类（确认/委托/策略/审计）—— 本体自己办（不外转）
+    if name.startswith(("confirm.", "delegate.", "policy.", "audit.")):
+        ok, body = governance.dispatch(name, msg.get("params") or {}, actor, w, log=log)
+        if ok:
+            w.stamp("act", kind_of="result", rid=msg.get("id"), action=name, ok=True,
+                    body=body)
+        else:
+            w.reject((body or {}).get("code") or "PRECONDITION_FAILED", action=name,
+                     actor=actor, why=(body or {}).get("why"))
+        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": ok, "body": body},
+                                             ensure_ascii=False))
+        return
 
     # ★★★ 本地执行：认证类 —— 「认」本来就是本体的事（★ 不外转）
     #    ★ 学 PAM／OIDC：★ 认过 ⇒ 发票；★ 别人【只看票，不碰密码】。

@@ -1043,6 +1043,311 @@
           "description": "enum"
         }
       ]
+    },
+    {
+      "id": "delegation",
+      "label": "委托",
+      "description": "人给 Agent 的一张限次/限期/可撤的通行证（四格：范围/期限/次数/可撤）。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Owned",
+        "Retirable"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://human"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:del20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "owner",
+          "label": "owner",
+          "type": "OBJECT_REFERENCE",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "授权人（human）"
+        },
+        {
+          "name": "to",
+          "label": "to",
+          "type": "OBJECT_REFERENCE",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "被授权 agent"
+        },
+        {
+          "name": "action",
+          "label": "action",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "① 范围：允许的单个动作 id"
+        },
+        {
+          "name": "expires",
+          "label": "expires",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "② 期限：ISO 时间"
+        },
+        {
+          "name": "max_uses",
+          "label": "max_uses",
+          "type": "INTEGER",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "③ 次数"
+        },
+        {
+          "name": "used",
+          "label": "used",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "已用次数（账驱动）"
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": [
+            "active",
+            "revoked",
+            "expired"
+          ],
+          "description": "④ 可撤/状态"
+        }
+      ]
+    },
+    {
+      "id": "confirmation",
+      "label": "确认请求",
+      "description": "一条待人来签的确认请求（本体发；人签后状态改变，账留证）。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Retirable"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://human"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:conf20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "for_actor",
+          "label": "for_actor",
+          "type": "OBJECT_REFERENCE",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "谁在请求"
+        },
+        {
+          "name": "action",
+          "label": "action",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "要做的动作 id"
+        },
+        {
+          "name": "summary",
+          "label": "summary",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "给人看的一句话"
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": [
+            "pending",
+            "allowed",
+            "denied",
+            "expired"
+          ],
+          "description": ""
+        },
+        {
+          "name": "at",
+          "label": "at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "发出时间"
+        },
+        {
+          "name": "resolved_by",
+          "label": "resolved_by",
+          "type": "OBJECT_REFERENCE",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "签的人"
+        },
+        {
+          "name": "reason",
+          "label": "reason",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "签/拒理由"
+        }
+      ]
+    },
+    {
+      "id": "policy",
+      "label": "策略",
+      "description": "一条可编译到内核的策略（由人签的委托/确认派生；guard 读它编译，内核执行）。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Owned",
+        "Retirable"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://human"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:pol20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "owner",
+          "label": "owner",
+          "type": "OBJECT_REFERENCE",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "批准人"
+        },
+        {
+          "name": "subject",
+          "label": "subject",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "被约束主体"
+        },
+        {
+          "name": "engine",
+          "label": "engine",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": [
+            "landlock",
+            "apparmor",
+            "ebpf-lsm",
+            "selinux"
+          ],
+          "description": ""
+        },
+        {
+          "name": "rules",
+          "label": "rules",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": "read_only/read_write/deny 等（JSON 字符串）"
+        },
+        {
+          "name": "expires",
+          "label": "expires",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": [
+            "active",
+            "revoked",
+            "expired"
+          ],
+          "description": ""
+        },
+        {
+          "name": "applied_at",
+          "label": "applied_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
     }
   ],
   "links": [
@@ -2179,6 +2484,591 @@
           "world://presence"
         ],
         "why": "读界面/桌面状态（只读；★ 提供者在注册时就预留这个动作）"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "delegate.grant",
+      "label": "delegate.grant",
+      "description": "签一张委托（只有人能签；Agent 不能自签）",
+      "required_roles": [
+        "human"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "to"
+        },
+        {
+          "kind": "param_present",
+          "name": "action"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "to",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": "被授权 agent"
+        },
+        {
+          "name": "action",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": "允许的单个动作 id"
+        },
+        {
+          "name": "expires",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "max_uses",
+          "type": "INTEGER",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://human"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "签字只有人；Agent 不在此列"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "delegate.revoke",
+      "label": "delegate.revoke",
+      "description": "撤一张委托（必留理由）",
+      "required_roles": [
+        "human"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger",
+          "what": "reason"
+        },
+        {
+          "kind": "state_change",
+          "of": "delegation",
+          "to": "revoked"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "name"
+        },
+        {
+          "kind": "param_present",
+          "name": "reason"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "reason",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://human"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": ""
+      },
+      "metadata": {}
+    },
+    {
+      "id": "delegate.list",
+      "label": "delegate.list",
+      "description": "看有效委托（只读）",
+      "required_roles": [
+        "human",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "to",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": ""
+      },
+      "metadata": {}
+    },
+    {
+      "id": "confirm.request",
+      "label": "confirm.request",
+      "description": "请人确认一个动作（本体发；界面弹 Modal）",
+      "required_roles": [
+        "human",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "action"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "action",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "summary",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "params",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "expires",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh",
+          "world://presence/omarchy"
+        ],
+        "why": "Agent 可发起请求，但不能自己签"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "confirm.resolve",
+      "label": "confirm.resolve",
+      "description": "人签/拒一个确认请求（只有 human；带票；必留理由）",
+      "required_roles": [
+        "human"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger",
+          "what": "reason"
+        },
+        {
+          "kind": "state_change",
+          "of": "confirmation",
+          "to": "resolved"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "name"
+        },
+        {
+          "kind": "param_present",
+          "name": "decision"
+        },
+        {
+          "kind": "param_present",
+          "name": "reason"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "decision",
+          "type": "STRING",
+          "required": true,
+          "options": [
+            "allow_once",
+            "allow_delegation",
+            "deny"
+          ],
+          "description": ""
+        },
+        {
+          "name": "reason",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "expires",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "max_uses",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://human"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "签字只有人；Agent 不在此列"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "policy.apply",
+      "label": "policy.apply",
+      "description": "把一条策略交给 guard 编译/加载到内核（人批；变更落账）",
+      "required_roles": [
+        "human"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        },
+        {
+          "kind": "state_change",
+          "of": "policy",
+          "to": "active"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "subject"
+        },
+        {
+          "kind": "param_present",
+          "name": "engine"
+        },
+        {
+          "kind": "param_present",
+          "name": "rules"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "subject",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "engine",
+          "type": "STRING",
+          "required": true,
+          "options": [
+            "landlock",
+            "apparmor",
+            "ebpf-lsm",
+            "selinux"
+          ],
+          "description": ""
+        },
+        {
+          "name": "rules",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "expires",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "reason",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://human"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "改内核策略必须人批"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "policy.revoke",
+      "label": "policy.revoke",
+      "description": "撤一条内核策略（guard 立即收紧；必留理由）",
+      "required_roles": [
+        "human"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger",
+          "what": "reason"
+        },
+        {
+          "kind": "state_change",
+          "of": "policy",
+          "to": "revoked"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "name"
+        },
+        {
+          "kind": "param_present",
+          "name": "reason"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "reason",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://human"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": ""
+      },
+      "metadata": {}
+    },
+    {
+      "id": "audit.record",
+      "label": "audit.record",
+      "description": "guard/执行者把内核事实报回本体（本体记账；HMAC 绑定）",
+      "required_roles": [
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "engine"
+        },
+        {
+          "kind": "param_present",
+          "name": "sig"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "engine",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "subject",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "op",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "result",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "policy",
+          "type": "STRING",
+          "required": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "sig",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://guard"
+        ],
+        "scope": [
+          "world://guard/kernel"
+        ],
+        "why": "只有 guard 能报告内核事实；HMAC 防伪造"
       },
       "metadata": {}
     }
