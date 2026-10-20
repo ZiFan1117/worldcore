@@ -1,6 +1,6 @@
 # worldcore 架构图（总览）
 
-> 现取：2026-10-20。类 14 ／ 接口 4 ／ 关系 5 ／ 在册动作 189（sys 156 ＋ 世界 33）／ 函数 9 ／ 判据 66 条 ／ 常驻单元 9 个。
+> 现取：2026-10-20（二期收口）。类 21 ／ 接口 4 ／ 关系 5 ／ 在册动作 200（sys 156 ＋ 世界 44）／ 函数 9 ／ 判据 73 条 ／ 常驻单元 13 个。
 > 图里所有进程都是独立 systemd 单元；所有消息走 zenoh 总线话题 `world/*`。
 
 ## 一、四层总览
@@ -8,7 +8,7 @@
 ```mermaid
 flowchart TB
   subgraph L1[① 定义面 · 法]
-    LAW["world.json<br/>14 类 / 4 接口 / 5 关系<br/>世界动作 33 ＋ sys 156 / 函数 9"]
+    LAW["world.json<br/>21 类 / 4 接口 / 5 关系<br/>世界动作 44 ＋ sys 156 / 函数 9"]
     LOADER["law_loader.py<br/>解析 → 校验 → 建本体"]
     EXPORT["export-law.py --check<br/>声明件 ≡ 运行中的法（C35）"]
     LAW --> LOADER
@@ -30,7 +30,7 @@ flowchart TB
 
   BUS[("zenoh 总线<br/>world/appear · register · ask · exec ·<br/>exec/result · ask/result · query · event · notice · ui/*")]
 
-  subgraph L3[③ 提供者进程（一进程一夹 · 9 个单元）]
+  subgraph L3[③ 提供者进程（一进程一夹 · 13 个单元；含 fs/clock/recovery/network）]
     COMP["computer<br/>执行 156 条命令 / app.open_url<br/>实时指标采集上报（数据管道）"]
     PRES["presentation ＋ presentation-render<br/>合成画布 / Flutter 渲染（A2UI）"]
     SPACE["space<br/>桌面 / 窗口 / 场景 / 确认弹窗 / 本体窗口"]
@@ -214,4 +214,4 @@ flowchart TB
 
 ---
 
-*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（66 条，每条自带会红的反例）。*
+*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（73 条，每条自带会红的反例）。*

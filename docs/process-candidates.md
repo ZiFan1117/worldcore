@@ -3,7 +3,7 @@
 > 现取：2026-10-20 深夜。截止：**2026-10-21 02:00 Asia/Shanghai**（到点停）。
 > 目的：给 worldcore 补**底层缺的进程**，只借 AI-OS 的**形状/职责**（不搬 Rust 代码，AI-OS 的 `crates/` 已从本仓删除，设计在 `001…003` 规格里）。
 
-## 一、现状：我们已有的 9 个进程（含总线）
+## 一、现状：我们已有的 13 个进程（含总线）
 
 | # | 进程 | 目录 | 对应 AI-OS 层 |
 |---|---|---|---|
@@ -16,6 +16,10 @@
 | 7 | guard | `src/guard/`（PDP＋Landlock） | L4 策略执行点 |
 | 8 | web | `src/web/`（语义浏览器） | L7/L10 入口 |
 | 9 | （渲染器） | `aios-presentation-render` | L7 渲染实现 |
+| 10 | fs 文件（二期） | `src/fs/`（`file.*` 只读） | L2 |
+| 11 | clock 时间面（二期） | `src/clock/`（`clock.now/state`） | S28 |
+| 12 | recovery 恢复边界（二期） | `src/recovery/`（`recovery.list/state`） | L1 |
+| 13 | network 网络面（二期） | `src/network/`（`network.list/state`） | L8 |
 
 **缺口（对着 AI-OS 层看）**：
 
