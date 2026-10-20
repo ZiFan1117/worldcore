@@ -38,8 +38,15 @@ def log(*a):
 
 
 def me():
+    """★ 只带法里声明的格（多塞会被 APPEAR_FIELDS_INVALID 拒；state() 里的 at 不进来）。"""
     ok, st = recovery_ops.state()
-    d = st if ok else {"name": REC_NAME, "state": "running", "root": recovery_ops.root()}
+    st = st if ok else {}
+    d = {"name": st.get("name") or REC_NAME,
+         "state": st.get("state") or "running",
+         "root": st.get("root") or recovery_ops.root()}
+    for k in ("snapshots", "forks", "latest"):
+        if st.get(k) is not None:
+            d[k] = st[k]
     d["class"] = "recovery"
     d["reporter"] = "world://recovery/" + REC_NAME
     return d
@@ -83,6 +90,9 @@ def main():
     session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
     log("② 成为个体：recovery/%s（root=%s）" % (REC_NAME, recovery_ops.root()))
     register_actions(session)
+    # ★ 身份闸要求报告者先被本体收下；appear 与 snapshot 同一发布者但可能被并行处理，
+    #   这里等一拍再报快照（并在下面 60s 周期里重报，最终一致）。
+    time.sleep(1.0)
     report_snapshots(session)
     log("③ 已报快照个体（最近 5 份）")
 
@@ -114,7 +124,7 @@ def main():
     session.declare_subscriber(T_EXEC, on_exec)
     log("④ 订上 %s（route=recovery）" % T_EXEC)
     while True:
-        time.sleep(300)
+        time.sleep(60)
         session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
         report_snapshots(session)
         log("⑤ 刷新：%s" % me().get("latest"))

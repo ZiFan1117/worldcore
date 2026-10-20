@@ -161,7 +161,10 @@ flowchart TB
 
 - `src/fs/`：语义文件只读服务（`file.stat/list/hash/read_text`＋`fs.state`）；报到/注册/订 ask/验 permit/回账；读到的文件报成 `file` 个体。
 - v1 **只读**：白名单根（`/var/lib/aios:/root/aios:/etc/aios`）、realpath 防符号链接逃逸、秘密/隐藏文件拒读、32KB 截断；写路径二期（借 AI-OS L2 的版本/指针/证据）。
-- 部署：`aios-fs.service`（11 个单元之一），看门狗 UNITS 含 `aios-fs`。
+- 部署：`aios-fs.service`（12 个单元之一），看门狗 UNITS 含 `aios-fs`。
+
+- **recovery（恢复边界）** `src/recovery/`：`recovery.list`/`recovery.state`（只读；列快照/分叉、读每份 meta 的 at/账行数/法 hash/字节数；把最近快照报成 `snapshot` 个体）；
+  借鉴 AI-OS L1 Recovery boundary；**不写快照、不恢复、不起外进程**；部署 `aios-recovery.service`。
 
 - **clock（时间面）** `src/clock/`：`clock.now`/`clock.state`（只读；带时区/偏移/单调秒/开机 id）；
   借鉴 AI-OS S28 时间面（单调、不可回拨、可审计）；**没有 clock.set**（不改系统钟）；
