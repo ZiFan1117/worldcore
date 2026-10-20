@@ -40,47 +40,47 @@
 | 边 | 做了什么 | 现取 |
 |---|---|---|
 | 身份 | agent 以 `agent/dsh` 报到（`world://agent/dsh`） | 账里 appear 持续 |
-| 心跳/可观测 | `/run/aios/agent-heartbeat.json`；unit 加 `PYTHONUNBUFFERED=1`（之前日志缓冲，误以为卡死） | `{"launched": true, "events": 30}` |
+| 心跳/可观测 | `/run/aios/agent-heartbeat.json`；unit 加 `PYTHONUNBUFFERED=1`（之前日志缓冲，误以为卡死）；另修 `ReadWritePaths=-/run/aios` 竞态（加 `ExecStartPre` 先建目录） | `{"launched": true, "events": 30}`；VM 心跳文件持续更新，日志无 EROFS |
 | 查询/动作 | `available_actions` 并入 `file.*/clock.now/recovery.*/network.*`（registry）；提示词加「新只读能力优先」「路径白名单」 | 真实轮次：第 1 轮 `clock.now` ok，第 3 轮 `file.list /var/lib/aios` **ok=True** |
 | 事件/帧 | 订 `world/event` 回放；A2UI 帧走 `world/notice`（经本体） | 每轮发 9–23 个组件帧 |
 | 回话修复 | 测出 `agent.on_exec` 从不回 `world/exec/result` ⇒ ask 等 20s 超时；已修（成功/失败都回） | `agent.launch` 回 `{"ok": true, "body": {"launched": true}, "by": "agent/dsh"}` |
+| 动作记忆 | agent 记 `recent_actions`（最近 30 个，给上下文 8 个），提示词「尽量换一个没做过的」 | 连续三轮换三动作：`clock.now` → `file.list` → `recovery.list` 全 ok=True |
 
 证据（本地，`scripts/release/evidence/` 按 `.gitignore` 设计不推）：
-`t492-dsh-rounds.txt`、`t497-dsh-file-success.txt`、`t489-clock-live-test.txt`、`t491-recovery-live-test.txt`、`t495-network-live-test.txt`、`t487-fs-live-test.txt`。
+`t492-dsh-rounds.txt`、`t497-dsh-file-success.txt`、`t501-dsh-memory.txt`、`t489-clock-live-test.txt`、`t491-recovery-live-test.txt`、`t495-network-live-test.txt`、`t505-vault-live-test.txt`、`t487-fs-live-test.txt`、`t502-fs-security.txt`。
 
 ## 五、判据与门禁
 
-- `python scripts/test/check.py`：**73/73 全绿**（每条带 `--self-test` 会红反例；C69–C73 为二期新增）；
+- `python scripts/test/check.py`：**75/75 全绿**（每条带 `--self-test` 会红反例；C69–C75 为二期新增）；
 - 法对账：`export-law.py --check` = 声明件 ≡ 运行中的法；
-- 部署：`deploy.sh` 管理 14 单元与看门狗 `/root/aios-watchdog.sh`（UNITS 已含五个二期进程）；
+- 部署：`deploy.sh` 管理 14 单元与看门狗 `/root/aios-watchdog.sh`（UNITS 已含五个二期进程：fs/clock/recovery/network/vault）；
 - 架构图：`docs/architecture.png`（v4，14 单元）＋ `docs/ARCHITECTURE.md`＋`docs/CODE-MAP.md`。
 
 ## 五半、收口验证（T-503，VM 现取）
 
 | 项 | 现取 |
 |---|---|
-| 单元 | **13/13 active**（bus/ontology/guard/web/computer/presentation/presentation-render/space/agent/fs/clock/recovery/network） |
+| 单元 | **14/14 active**（bus/ontology/guard/web/computer/presentation/presentation-render/space/agent/fs/clock/recovery/network/vault） |
 | 法 | `export-law --check` = 声明件 ≡ 运行中的法：一致 |
-| 新进程个体 | 账里 `fs`/`clock`/`recovery`/`network` 个体的 appear 行都在；`file`/`snapshot`/`link` 个体由对应进程上报 |
+| 新进程个体 | 账里 `fs`/`clock`/`recovery`/`network`/`vault` 个体的 appear 行都在；`file`/`snapshot`/`link`/`secret` 个体由对应进程上报 |
 | computer 管道 | 最近 `computer/leap16` appear：uptime=139897、load1=0.01、mem_available=14009（变化才报） |
 | 新进程周期 | clock 每 60s 报时（单调 139883→140003）、recovery 每 60s 刷新（latest=20261020-170057）、network 每 60s 报 2 接口（up=1） |
 | DSH 轮次 | 第 4 轮 `file.stat /var/lib/aios` ok=True；第 5 轮 `file.read_text /etc/aios` ok=False（目录不可读，预期） |
 | fs 安全边界（Linux 真符号链接） | 符号链接逃逸拒、`../` 遍历拒、隐藏/秘密文件拒、白名单目录可列（5/5 PASS） |
-| soak | `soak_13units.py` 以 transient unit `wcore-soak.service` 跑 95 分钟，每 5 分钟一行 `/root/soak-13units.jsonl` |
+| soak | `soak_13units.py` 以 transient unit `wcore-soak.service` 跑 68 分钟（14 单元），每 5 分钟一行 `/root/soak-13units.jsonl` |
 
 ### 五半.1 soak 进行中（2026-10-21 00:18 现取）
 
 - `wcore-soak.service` 在跑；已有 4 个样本（每 5 分钟一行，`/root/soak-13units.jsonl`）；
 - soak 已扩到 **14 单元**（含 vault）并重起；样本里 14/14 全 `active`；账行数持续增长；computer 最近上报照常；
-- 注：soak 的 `UNITS` 硬编码于 vault 加入前（13 个），vault 单元由收口验证单独确认（14/14 active）。
+- 样本与结束读数见 §五半.2（收口时补）。
 
 ## 六、没做到的（如实）
 
-1. 四个新进程都是**只读 v1**：fs 不写文件、recovery 不 save/restore、network 不配网、clock 不改钟；
-2. `vault`（L4 秘密）**没做**——安全成本高，宁可空着也不做半吊子；
-3. **appear 通道仍可伪造**：上报者身份只靠 `reporter` 字符串、总线无 ACL（此前测试已证）；需要提供者签名/ACL；
-4. DSH 模型**不总按「没挑过」轮换**（会连续挑 clock.now）；`network.*`/`recovery.*` 没被模型真实挑中；
-5. 证据文件按 `.gitignore` **本地留、不推**；报告里的读数来自本地运行。
+1. 五个新进程都是**只读 v1**：fs 不写文件、recovery 不 save/restore、network 不配网、clock 不改钟、vault 不取秘密值（`vault.get` 未做）；
+2. **appear 通道仍可伪造**：上报者身份只靠 `reporter` 字符串、总线无 ACL（此前测试已证）；需要提供者签名/ACL；
+3. DSH 模型**不总按「没挑过」轮换**（动作记忆提高多样性，但不保证）；`network.*` 还没被模型真实挑中；
+4. 证据文件按 `.gitignore` **本地留、不推**；报告里的读数来自本地运行。
 
 ## 七、怎么复跑
 
@@ -94,16 +94,18 @@ python3 /root/aios/scripts/release/fs_live_test.py
 python3 /root/aios/scripts/release/clock_live_test.py
 python3 /root/aios/scripts/release/recovery_live_test.py
 python3 /root/aios/scripts/release/network_live_test.py
+python3 /root/aios/scripts/release/vault_live_test.py
+python3 /root/aios/scripts/release/fs_security_test.py
 ```
 
 ## 八、下一期建议（按优先级）
 
 1. **appear 签名/ACL**（安全，最高优先；当前可伪造）；
-2. **vault**（L4：秘密进世界，账里只留引用）；
+2. **vault.get**（取秘密值）：必须人确认＋guard/permit，账里只留引用；
 3. **recovery.save/restore/fork 做成动作**（人确认＋写路径）；
 4. **fs 写路径**（内容寻址/版本/指针，借 L2）；
-5. DSH 动作轮换/结果回看（把「挑过的动作」记进上下文）。
+5. DSH 结果回看/动作轮换（recent_actions 已有，继续做结果记忆）。
 
 ## 九、提交（repo 侧）
 
-`T-485` 候选清单 → `T-486/487` fs → `T-488/489` clock → `T-490/491` recovery → `T-492/493` DSH 轮次 → `T-494/495` network → `T-496` 架构图 v3 → `T-497` DSH file.list 成功 → `T-498` agent 回话修复/C73 → 本报告（`T-499`）。
+`T-485` 候选清单 → `T-486/487` fs → `T-488/489` clock → `T-490/491` recovery → `T-492/493` DSH 轮次 → `T-494/495` network → `T-496` 架构图 v3 → `T-497` DSH file.list 成功 → `T-498/499` agent 回话修复/C73 → `T-500/501` DSH 动作记忆/C74 → `T-502` fs 安全实测+soak → `T-503` 收口验证 → `T-504/505` vault/C75+架构图 v4 → `T-506/507/508` soak/文档对齐 → `T-509` 心跳竞态修复 → 终报（`T-510`）。
