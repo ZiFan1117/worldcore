@@ -1104,6 +1104,15 @@
           "primary": false,
           "options": null,
           "description": "发行版名（/etc/os-release PRETTY_NAME）"
+        },
+        {
+          "name": "metrics_at",
+          "label": "metrics_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "最后一次上报时刻（值变了才更新）"
         }
       ]
     },

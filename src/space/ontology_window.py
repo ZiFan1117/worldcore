@@ -116,6 +116,8 @@ class OntologyMixin:
                                 p.get("cpu_count")))
                 lines.append("    state=%s ／ hostname=%s ／ owner=%s"
                              % (p.get("state"), p.get("hostname"), p.get("owner")))
+                if p.get("metrics_at"):
+                    lines.append("    最后上报：%s（值变了才更新＋心跳）" % p.get("metrics_at"))
             if not rows:
                 lines.append("（还没有 machine 个体；等 computer 报一次）")
         elif tab == "classes":

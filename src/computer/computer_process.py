@@ -21,6 +21,7 @@ import shutil
 import socket
 import subprocess
 import threading
+import datetime
 import sys
 import time
 
@@ -347,19 +348,70 @@ def collect_metrics():
     return m
 
 
+# ★ 变化上报口径：uptime 是单调量、不参与「值变没变」的判定；
+#   负载变化 > 0.1、可用内存变化 ≥ 64MB、其余属性变了才算「真有变化」。
+SIG_KEYS = ("state", "hostname", "cpu_count", "os_name",
+            "load1", "load5", "mem_total_mb", "mem_available_mb")
+
+
+def metrics_sig(m):
+    return {"state": m.get("state"), "hostname": m.get("hostname"),
+            "cpu_count": m.get("cpu_count"), "os_name": m.get("os_name"),
+            "load1": round(float(m.get("load1") or 0.0), 2),
+            "load5": round(float(m.get("load5") or 0.0), 2),
+            "mem_total_mb": m.get("mem_total_mb"),
+            "mem_available_mb": m.get("mem_available_mb")}
+
+
+def metrics_changed(prev, cur):
+    """★ 值变了吗？（阈值防抖：负载 0.1／内存 64MB）"""
+    if prev is None:
+        return True
+    for k in SIG_KEYS:
+        a, b = prev.get(k), cur.get(k)
+        if k in ("load1", "load5"):
+            if abs(float(b or 0) - float(a or 0)) > 0.1:
+                return True
+        elif k == "mem_available_mb":
+            if abs(int(b or 0) - int(a or 0)) >= 64:
+                return True
+        elif a != b:
+            return True
+    return False
+
+
+def should_report(prev, cur, since_last, heartbeat=300.0):
+    """★ 只有【值变了】或【心跳到点】才上报（心跳用来证明还活着）。"""
+    if prev is None:
+        return True
+    if metrics_changed(prev, cur):
+        return True
+    return float(since_last) >= float(heartbeat)
+
+
 def metrics_loop(session, every=10):
-    """★ 数据管道的【上报端】：每 10 秒把底层事实报给本体（world/appear ⇒ 本体更新个体＋落账＋推事件）。"""
+    """★ 数据管道的【上报端】：值变了才上报；300 秒心跳兜底。"""
+    last_sig, last_at = None, 0.0
     while True:
         try:
             ME.update(collect_metrics())
-            ME["reporter"] = "world://computer/" + COMPUTER_NAME
-            session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
-            log("★ 上报本体：uptime=%ss load1=%s mem=%s/%sMB"
-                % (ME.get("uptime_seconds"), ME.get("load1"),
-                   ME.get("mem_available_mb"), ME.get("mem_total_mb")))
+            sig = metrics_sig(ME)
+            now = time.time()
+            since = now - last_at
+            if should_report(last_sig, sig, since):
+                ME["metrics_at"] = datetime.datetime.now().astimezone().isoformat(
+                    timespec="seconds")
+                ME["reporter"] = "world://computer/" + COMPUTER_NAME
+                session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
+                log("★ 上报本体（%s）：uptime=%ss load1=%s mem=%s/%sMB"
+                    % ("变化" if last_sig is not None and metrics_changed(last_sig, sig)
+                       else "心跳", ME.get("uptime_seconds"), ME.get("load1"),
+                       ME.get("mem_available_mb"), ME.get("mem_total_mb")))
+                last_sig, last_at = sig, now
         except Exception as e:                              # noqa: BLE001
             log("★ 上报本体失败：%s" % e)
         time.sleep(every)
+
 
 
 def main():
