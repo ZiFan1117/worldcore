@@ -41,6 +41,10 @@ T_RESULT = "world/exec/result"   # ★★★ 2026-10-17 裁：**所有交互都�
 MAP_PATH = os.environ.get("AIOS_COMPUTER_MAP", "/usr/lib/aios/command-map.jsonl")
 ZENOH_ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 COMPUTER_NAME = os.environ.get("AIOS_COMPUTER_NAME") or socket.gethostname()
+# ★ 实时数据管道（独立子夹：src/computer/pipeline/）
+from pipeline.metrics import (collect_metrics, metrics_changed,  # noqa: E402
+                              should_report, metrics_loop)
+
 ME = {"class": "computer", "name": COMPUTER_NAME, "hostname": COMPUTER_NAME,
       "state": "in-service", "reporter": "world://computer/" + COMPUTER_NAME}
 
@@ -311,110 +315,6 @@ def probe_availability(rows):
             missing[name] = "本发行版没有 %s" % prog
     return ok, missing
 
-def collect_metrics():
-    """★ 底层事实（数据管道的采集端）：uptime/load/mem/cpu/os；读不到就留空。"""
-    m = {}
-    try:
-        with open("/proc/uptime", encoding="utf-8") as f:
-            m["uptime_seconds"] = int(float(f.read().split()[0]))
-    except Exception as e:                                  # noqa: BLE001
-        log("采集 uptime 失败：%s" % e)
-    try:
-        with open("/proc/loadavg", encoding="utf-8") as f:
-            p = f.read().split()
-            m["load1"] = float(p[0])
-            m["load5"] = float(p[1])
-    except Exception as e:                                  # noqa: BLE001
-        log("采集 loadavg 失败：%s" % e)
-    try:
-        info = {}
-        with open("/proc/meminfo", encoding="utf-8") as f:
-            for line in f:
-                k, _, rest = line.partition(":")
-                info[k] = int(rest.strip().split()[0])   # kB
-        m["mem_total_mb"] = int(info["MemTotal"] / 1024)
-        m["mem_available_mb"] = int(info.get("MemAvailable", 0) / 1024)
-    except Exception as e:                                  # noqa: BLE001
-        log("采集 meminfo 失败：%s" % e)
-    m["cpu_count"] = os.cpu_count() or 0
-    try:
-        with open("/etc/os-release", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("PRETTY_NAME="):
-                    m["os_name"] = line.split("=", 1)[1].strip().strip('"')
-                    break
-    except Exception as e:                                  # noqa: BLE001
-        log("采集 os-release 失败：%s" % e)
-    return m
-
-
-# ★ 变化上报口径：uptime 是单调量、不参与「值变没变」的判定；
-#   负载变化 > 0.1、可用内存变化 ≥ 64MB、其余属性变了才算「真有变化」。
-SIG_KEYS = ("state", "hostname", "cpu_count", "os_name",
-            "load1", "load5", "mem_total_mb", "mem_available_mb")
-
-
-def metrics_sig(m):
-    return {"state": m.get("state"), "hostname": m.get("hostname"),
-            "cpu_count": m.get("cpu_count"), "os_name": m.get("os_name"),
-            "load1": round(float(m.get("load1") or 0.0), 2),
-            "load5": round(float(m.get("load5") or 0.0), 2),
-            "mem_total_mb": m.get("mem_total_mb"),
-            "mem_available_mb": m.get("mem_available_mb")}
-
-
-def metrics_changed(prev, cur):
-    """★ 值变了吗？（阈值防抖：负载 0.1／内存 64MB）"""
-    if prev is None:
-        return True
-    for k in SIG_KEYS:
-        a, b = prev.get(k), cur.get(k)
-        if k in ("load1", "load5"):
-            if abs(float(b or 0) - float(a or 0)) > 0.1:
-                return True
-        elif k == "mem_available_mb":
-            if abs(int(b or 0) - int(a or 0)) >= 64:
-                return True
-        elif a != b:
-            return True
-    return False
-
-
-def should_report(prev, cur, since_last, heartbeat=300.0):
-    """★ 只有【值变了】或【心跳到点】才上报（心跳用来证明还活着）。"""
-    if prev is None:
-        return True
-    if metrics_changed(prev, cur):
-        return True
-    return float(since_last) >= float(heartbeat)
-
-
-def metrics_loop(session, every=10):
-    """★ 数据管道的【上报端】：值变了才上报；300 秒心跳兜底。"""
-    last_sig, last_at = None, 0.0
-    while True:
-        try:
-            ME.update(collect_metrics())
-            sig = metrics_sig(ME)
-            now = time.time()
-            since = now - last_at
-            if should_report(last_sig, sig, since):
-                ME["metrics_at"] = datetime.datetime.now().astimezone().isoformat(
-                    timespec="seconds")
-                ME["reporter"] = "world://computer/" + COMPUTER_NAME
-                session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
-                _why = ("首次" if last_sig is None
-                        else ("变化" if metrics_changed(last_sig, sig) else "心跳"))
-                log("★ 上报本体（%s）：uptime=%ss load1=%s mem=%s/%sMB"
-                    % (_why, ME.get("uptime_seconds"), ME.get("load1"),
-                       ME.get("mem_available_mb"), ME.get("mem_total_mb")))
-                last_sig, last_at = sig, now
-        except Exception as e:                              # noqa: BLE001
-            log("★ 上报本体失败：%s" % e)
-        time.sleep(every)
-
-
-
 def main():
     rows = load_map(MAP_PATH)
     ok, missing = probe_availability(rows)
@@ -464,7 +364,9 @@ def main():
 
     session.declare_subscriber(T_EXEC, on_exec)
     # ★ 数据管道：底层事实每 10 秒上报本体（采集 → 映射 → 上报）
-    threading.Thread(target=metrics_loop, args=(session,), daemon=True).start()
+    threading.Thread(target=metrics_loop,
+                     args=(session, ME, T_APPEAR, COMPUTER_NAME),
+                     kwargs={"log": log}, daemon=True).start()
     log("⑤ 订上了 %s（★ 一次声明、长期持有）" % T_EXEC)
     log("★ 计算机起来了 —— 报机器 ＋ 执行 ＋ 回话（★ 不裁决、不记账、不持身份）")
 

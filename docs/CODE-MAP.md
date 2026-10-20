@@ -48,7 +48,7 @@
 |---|---|---|
 | 执行系统命令 / 跑 sys.* | `src/computer/computer_process.py` | `run_action()` / `handle_exec()`；命令表在 `scripts/release/computer/command-map-sysknife.jsonl` |
 | 打开 URL / 起浏览器 | `src/computer/computer_process.py` | `_open_url()`（出向只许这里，C19） |
-| computer 实时指标 | `src/computer/computer_process.py` | `collect_metrics / metrics_changed / should_report / metrics_loop` |
+| computer 实时指标 | `src/computer/pipeline/metrics.py`（独立子夹） | `collect_metrics / metrics_changed / should_report / metrics_loop`；`computer_process.py` 只负责导入并起线程 |
 | 桌面画布 / 图标 | `src/space/desktop_frame.py` | `desktop_frame()`、`ICONS` |
 | 桌面窗口 / 点击处理 | `src/space/space_process.py` | `on_act() / dispatch() / draw()` |
 | 本体窗口（页签/分页/实时） | `src/space/ontology_window.py` | `open_ontology / _content / _draw_ontology_window / _start_ont_autorefresh` |
