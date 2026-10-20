@@ -133,3 +133,18 @@ python3 /root/aios/scripts/release/fs_security_test.py
 ## 九、提交（repo 侧）
 
 `T-485` 候选清单 → `T-486/487` fs → `T-488/489` clock → `T-490/491` recovery → `T-492/493` DSH 轮次 → `T-494/495` network → `T-496` 架构图 v3 → `T-497` DSH file.list 成功 → `T-498/499` agent 回话修复/C73 → `T-500/501` DSH 动作记忆/C74 → `T-502` fs 安全实测+soak → `T-503` 收口验证 → `T-504/505` vault/C75+架构图 v4 → `T-506/507/508` soak/文档对齐 → `T-509` 心跳竞态修复 → 终报（`T-510`）。
+
+---
+
+## 十、收口（2026-10-21 01:47 +08:00，VM 现取）
+
+| 项 | 现取 |
+|---|---|
+| soak | `wcore-soak.service` **inactive**（到期自动停）；样本 **14 行**；最后样本 19:27:53 CEST |
+| 单元 | **14/14 active**（bus/ontology/guard/web/computer/presentation/presentation-render/space/agent/fs/clock/recovery/network/vault） |
+| 法 | `export-law --check` = 声明件 ≡ 运行中的法：**一致** |
+| 判据 | `python scripts/test/check.py` → **rc=0，75/75 全绿**（工作树干净） |
+| DSH 心跳 | last_at 19:46:37 CEST（=01:46 +08:00），持续写 |
+| 结论 | 二期目标完成：5 个底层进程落地并 VM 验通；DSH 融入（身份/心跳/查询/动作/帧/动作记忆/回话修复）；判据、法、部署、文档、架构图、报告齐 |
+
+**停止条件**：到 2026-10-21 02:00 Asia/Shanghai，不再新增进程/功能；本报告为终报。
