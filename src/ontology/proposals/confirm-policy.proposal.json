@@ -1,0 +1,131 @@
+{
+  "proposal": "confirm-policy-v0",
+  "note": "人确认与动态策略（待作者签）：confirm.request（请求人确认）/confirm.resolve（人签；只有 human）/policy.apply+revoke（改内核策略也要经本体、人批、落账）。guard 只编译/执行，不接收「人已经同意」这种口头信号；人签必须回本体。",
+  "object_types": [
+    {
+      "id": "confirmation",
+      "label": "确认请求",
+      "description": "一条待人来签的确认请求（由本体发出；人签后状态改变，账留证）。",
+      "primary_key": "name",
+      "interfaces": ["Identifiable", "Retirable"],
+      "provider": "world",
+      "authority": {"kind": "reported", "reporters": ["world://human"]},
+      "metadata": {"wc_id": "wc:conf20261020_01", "instance_mode": "many"},
+      "properties": [
+        {"name": "name", "label": "name", "type": "STRING", "required": true, "primary": true, "options": null, "description": ""},
+        {"name": "for_actor", "label": "for_actor", "type": "OBJECT_REFERENCE", "required": true, "primary": false, "options": null, "description": "谁在请求（agent/进程）"},
+        {"name": "action", "label": "action", "type": "STRING", "required": true, "primary": false, "options": null, "description": "要做的动作 id"},
+        {"name": "summary", "label": "summary", "type": "STRING", "required": false, "primary": false, "options": null, "description": "给人看的一句话"},
+        {"name": "status", "label": "status", "type": "STRING", "required": true, "primary": false, "options": ["pending", "allowed", "denied", "expired"], "description": ""},
+        {"name": "at", "label": "at", "type": "STRING", "required": false, "primary": false, "options": null, "description": "发出时间"},
+        {"name": "resolved_by", "label": "resolved_by", "type": "OBJECT_REFERENCE", "required": false, "primary": false, "options": null, "description": "签的人"},
+        {"name": "reason", "label": "reason", "type": "STRING", "required": false, "primary": false, "options": null, "description": "签/拒的理由"}
+      ]
+    },
+    {
+      "id": "policy",
+      "label": "策略",
+      "description": "一条可编译到内核的策略（由人签的委托/确认派生；guard 读它编译，内核执行）。",
+      "primary_key": "name",
+      "interfaces": ["Identifiable", "Owned", "Retirable"],
+      "provider": "world",
+      "authority": {"kind": "reported", "reporters": ["world://human"]},
+      "metadata": {"wc_id": "wc:pol20261020_01", "instance_mode": "many"},
+      "properties": [
+        {"name": "name", "label": "name", "type": "STRING", "required": true, "primary": true, "options": null, "description": ""},
+        {"name": "subject", "label": "subject", "type": "STRING", "required": true, "primary": false, "options": null, "description": "被约束的主体（agent/进程）"},
+        {"name": "engine", "label": "engine", "type": "STRING", "required": true, "primary": false, "options": ["landlock", "apparmor", "ebpf-lsm"], "description": ""},
+        {"name": "rules", "label": "rules", "type": "STRING", "required": true, "primary": false, "options": null, "description": "规则（read_only/read_write/deny 路径等，JSON 字符串）"},
+        {"name": "expires", "label": "expires", "type": "STRING", "required": true, "primary": false, "options": null, "description": "到期即失效"},
+        {"name": "status", "label": "status", "type": "STRING", "required": true, "primary": false, "options": ["active", "revoked", "expired"], "description": ""},
+        {"name": "applied_at", "label": "applied_at", "type": "STRING", "required": false, "primary": false, "options": null, "description": "guard 编译/加载时间"}
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "confirm.request",
+      "label": "confirm.request",
+      "description": "请人确认一个动作（本体发；界面弹 A2UI Modal）",
+      "required_roles": ["human", "agent"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger"}],
+      "preconditions": [{"kind": "param_present", "name": "action"}],
+      "parameters": [
+        {"name": "action", "type": "STRING", "required": true, "options": null, "description": "要做的动作 id"},
+        {"name": "summary", "type": "STRING", "required": false, "options": null, "description": "给人看的一句话"},
+        {"name": "params", "type": "STRING", "required": false, "options": null, "description": "动作参数（脱敏后）"},
+        {"name": "expires", "type": "STRING", "required": false, "options": null, "description": "请求过期时间"}
+      ],
+      "grant": {"who": ["world://user", "world://agent/dsh"], "scope": ["world://user", "world://agent/dsh", "world://presence/omarchy"], "why": "Agent 可发起请求，但不能自己签"},
+      "metadata": {"not_roles": ["不记账", "不核身份", "不设过期"]}
+    },
+    {
+      "id": "confirm.resolve",
+      "label": "confirm.resolve",
+      "description": "人签/拒一个确认请求（★ 只有人能签；带票；必留理由）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger", "what": "reason"}, {"kind": "state_change", "of": "confirmation", "to": "resolved"}],
+      "preconditions": [{"kind": "param_present", "name": "name"}, {"kind": "param_present", "name": "decision"}, {"kind": "param_present", "name": "reason"}],
+      "parameters": [
+        {"name": "name", "type": "STRING", "required": true, "options": null, "description": "确认请求 id"},
+        {"name": "decision", "type": "STRING", "required": true, "options": ["allow_once", "allow_delegation", "deny"], "description": ""},
+        {"name": "reason", "type": "STRING", "required": true, "options": null, "description": "为什么签/拒"},
+        {"name": "expires", "type": "STRING", "required": false, "options": null, "description": "委托到何时（allow_delegation 时）"},
+        {"name": "max_uses", "type": "INTEGER", "required": false, "options": null, "description": "委托次数（默认 1）"}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": "签字只有人；Agent 不在此列"},
+      "metadata": {"not_roles": ["不记账", "不核票", "不留理由"]}
+    },
+    {
+      "id": "policy.apply",
+      "label": "policy.apply",
+      "description": "把一条策略交给 guard 编译/加载到内核（★ 人签或有效委托才能做；变更落账）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger"}, {"kind": "state_change", "of": "policy", "to": "active"}],
+      "preconditions": [{"kind": "param_present", "name": "subject"}, {"kind": "param_present", "name": "engine"}, {"kind": "param_present", "name": "rules"}],
+      "parameters": [
+        {"name": "subject", "type": "STRING", "required": true, "options": null, "description": "被约束主体"},
+        {"name": "engine", "type": "STRING", "required": true, "options": ["landlock", "apparmor", "ebpf-lsm"], "description": ""},
+        {"name": "rules", "type": "STRING", "required": true, "options": null, "description": "read_only/read_write/deny 等"},
+        {"name": "expires", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "reason", "type": "STRING", "required": true, "options": null, "description": ""}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": "改内核策略必须人批"},
+      "metadata": {"not_roles": ["不记账", "不核身份", "不留理由"]}
+    },
+    {
+      "id": "policy.revoke",
+      "label": "policy.revoke",
+      "description": "撤一条内核策略（guard 立即重编译/收紧；必留理由）",
+      "required_roles": ["human"],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": false,
+      "on_failure": "reject",
+      "effects": [{"kind": "forward"}, {"kind": "ledger", "what": "reason"}, {"kind": "state_change", "of": "policy", "to": "revoked"}],
+      "preconditions": [{"kind": "param_present", "name": "name"}, {"kind": "param_present", "name": "reason"}],
+      "parameters": [
+        {"name": "name", "type": "STRING", "required": true, "options": null, "description": ""},
+        {"name": "reason", "type": "STRING", "required": true, "options": null, "description": ""}
+      ],
+      "grant": {"who": ["world://human"], "scope": ["world://user"], "why": ""},
+      "metadata": {"not_roles": ["不记账", "不留理由"]}
+    }
+  ]
+}
