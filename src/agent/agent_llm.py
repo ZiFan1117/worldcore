@@ -92,6 +92,7 @@ class Agent:
         self.ask_results = {}
         self.query_results = {}
         self.launched = False      # ★ 窗口是否已打开（点图标经本体批准后才置 True）
+        self.recent_actions = []   # ★ 最近挑过的动作（给模型看，促使换着来）
         self.events = []           # ★（P8）世界推来的事件（最近 30 条）
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
@@ -252,6 +253,7 @@ SYS_PLAN = (
     "★ 硬规则：每轮先从这些只读动作里挑一个【没挑过】的：file.list、file.stat、file.read_text、clock.now、recovery.list；\n"
     "  只有它们都不可用/都挑过了，才回头挑 sys.*。\n"
     "  （file.* 的 path 必须在白名单根里：/var/lib/aios、/root/aios、/etc/aios；别用 /。）\n"
+    "★ 上下文里的 recent_actions 是你最近做过的；尽量换一个没做过的（优先 file.*／clock.now／recovery.*／network.*）。\n"
     "★ 别每轮都挑同一个：换着查不同的面。\n"
     "★ 严格输出 JSON：{\"action\": \"动作名\", \"params\": {…}, \"why\": \"一句话\"}\n"
     "★ 实在没有可用动作时，输出 {\"action\": \"\"}。"
@@ -420,6 +422,7 @@ def main():
             "unsupported_count": len(acts_data.get("unsupported") or []),
             "screen": screen,          # ★ 屏上有什么（呈现/空间经本体答的）
             "activity": a.recent_events(8),   # ★（P8）世界最近发生的事（实时推来的）
+            "recent_actions": a.recent_actions[-8:],  # ★ 最近做过的（别总重复）
         }
         ctx = json.dumps(ctx_obj, ensure_ascii=False)
         plan, err = ask_llm(SYS_PLAN, ctx)
@@ -433,6 +436,9 @@ def main():
         if action:
             result = a.act(action, plan.get("params") or {})
             log("③ 做了 %s ⇒ ok=%s" % (action, result.get("ok")))
+            a.recent_actions.append({"action": action,
+                                     "ok": bool((result or {}).get("ok"))})
+            a.recent_actions = a.recent_actions[-30:]
         payload = json.dumps({"world": world.get("data"),
                               "did": action, "params": plan.get("params"),
                               "ok": (result or {}).get("ok"),
