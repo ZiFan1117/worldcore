@@ -33,6 +33,8 @@ from scenes import save_scene   # ★ P3 场景文件化（C27 拆文件）
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
 from window_frame import wrap_window  # noqa: E402
+from confirm_window import ConfirmMixin  # noqa: E402
+from space_util import act_context, surface_of  # noqa: E402
 
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
@@ -50,18 +52,6 @@ T_QUERY = "world/query"
 T_ASK_RESULT = "world/ask/result"
 T_QUERY_RESULT = "world/query/result"
 
-
-def act_context(action):
-    """★ 取界面动作的上下文：两种形态都认 —— 渲染器实际发的是 {name, context}（平铺）；
-    我们旧格式是 {event: {name, context}}。★ 这是「点击没反应」的根因：只认了后者。"""
-    if not isinstance(action, dict):
-        return {}
-    ev = action.get("event")
-    if isinstance(ev, dict) and isinstance(ev.get("context"), dict):
-        return ev["context"]
-    if isinstance(action.get("context"), dict):
-        return action["context"]
-    return {}
 
 # ★★ 测试账号（作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
 
@@ -88,7 +78,7 @@ def log(*a):
     print("[个人空间]", *a, flush=True)
 
 
-class Space(ActivityMixin, LifecycleMixin):
+class Space(ActivityMixin, LifecycleMixin, ConfirmMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
@@ -287,6 +277,20 @@ class Space(ActivityMixin, LifecycleMixin):
             self.draw()
         # ── ★ 2026-10-19：桌面图标与窗口按钮（★ 上下文取渲染器实际发的平铺形态）──
         ctx = act_context(_a)
+        if name == "confirm.decide":
+            # ★ 桌面弹窗上点「拒绝/允许一次/允许并委托」⇒ 以人的身份回本体 confirm.resolve（带票）
+            cname = str(ctx.get("confirmation") or "")
+            decision = str(ctx.get("decision") or "deny")
+            sid = "space/confirm-" + USER
+            self.own.pop(sid, None)
+            self.pending_confirmation = None
+            rid = self._ask("confirm.resolve",
+                            {"name": cname, "decision": decision, "reason": "桌面弹窗确认"},
+                            "cf")
+            self.pending[rid] = {"kind": "confirm"}
+            log("③ 桌面确认：%s => %s（经本体带票）" % (cname, decision))
+            self.draw()
+            return
         if name == "space.icon_clicked":
             icon = ctx.get("icon") or d.get("component") or ""
             if icon.endswith("_b"):
@@ -343,9 +347,15 @@ class Space(ActivityMixin, LifecycleMixin):
         except Exception:
             return
         p = self.pending.pop(d.get("id") or "", None)
-        if not p or not d.get("ok"):
+        if not p:
+            return
+        if not d.get("ok"):
+            log("④ 回话失败：%s（%s）" % (p.get("kind"), d.get("why") or d.get("code")))
             return
         body = d.get("body")
+        if p["kind"] == "confirm":
+            log("④ 确认已回本体：%s" % str(body)[:120])
+            return
         if p["kind"] == "computer":
             text = json.dumps(body, ensure_ascii=False)[:900] if isinstance(body, (dict, list)) \
                 else str(body)[:900]
@@ -423,7 +433,7 @@ class Space(ActivityMixin, LifecycleMixin):
         if to and to != "space:" + USER:
             return                      # ★ 写给别人的空间，不看
         frame = env.get("frame")
-        sid = _surface_of(frame) if isinstance(frame, dict) else None
+        sid = surface_of(frame) if isinstance(frame, dict) else None
         if not sid or sid == self.surface_id:
             return
         if sid not in self.guests and (MAX_GUESTS <= 0 or len(self.guests) < MAX_GUESTS):
@@ -438,18 +448,13 @@ class Space(ActivityMixin, LifecycleMixin):
             d = json.loads(sample.payload.to_bytes())
         except Exception:
             return
+        if d.get("kind") == "confirm.request":
+            # ★ 桌面上也要弹：guard 的确认请求 ⇒ 出一扇「guard 确认」窗口（点按钮回到本体）
+            self.show_confirm(d.get("confirmation") or {})
+            return
         if d.get("kind") != "a2ui.frame":
             return
         log("② 收到画布（by=%s）" % d.get("by"))
-
-
-def _surface_of(frame):
-    """★ 从一帧 A2UI 里取 surfaceId（同呈现的取法）。"""
-    for m in (frame.get("messages") or []):
-        cs = m.get("createSurface") or m.get("updateComponents") or {}
-        if cs.get("surfaceId"):
-            return cs["surfaceId"]
-    return None
 
 
 def main():
