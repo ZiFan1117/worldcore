@@ -54,6 +54,19 @@
 - 部署：`deploy.sh` 管理 13 单元与看门狗 `/root/aios-watchdog.sh`（UNITS 已含四新进程）；
 - 架构图：`docs/architecture.png`（v3，13 单元）＋ `docs/ARCHITECTURE.md`＋`docs/CODE-MAP.md`。
 
+## 五半、收口验证（T-503，VM 现取）
+
+| 项 | 现取 |
+|---|---|
+| 单元 | **13/13 active**（bus/ontology/guard/web/computer/presentation/presentation-render/space/agent/fs/clock/recovery/network） |
+| 法 | `export-law --check` = 声明件 ≡ 运行中的法：一致 |
+| 新进程个体 | 账里 `fs`/`clock`/`recovery`/`network` 个体的 appear 行都在；`file`/`snapshot`/`link` 个体由对应进程上报 |
+| computer 管道 | 最近 `computer/leap16` appear：uptime=139897、load1=0.01、mem_available=14009（变化才报） |
+| 新进程周期 | clock 每 60s 报时（单调 139883→140003）、recovery 每 60s 刷新（latest=20261020-170057）、network 每 60s 报 2 接口（up=1） |
+| DSH 轮次 | 第 4 轮 `file.stat /var/lib/aios` ok=True；第 5 轮 `file.read_text /etc/aios` ok=False（目录不可读，预期） |
+| fs 安全边界（Linux 真符号链接） | 符号链接逃逸拒、`../` 遍历拒、隐藏/秘密文件拒、白名单目录可列（5/5 PASS） |
+| soak | `soak_13units.py` 以 transient unit `wcore-soak.service` 跑 95 分钟，每 5 分钟一行 `/root/soak-13units.jsonl` |
+
 ## 六、没做到的（如实）
 
 1. 四个新进程都是**只读 v1**：fs 不写文件、recovery 不 save/restore、network 不配网、clock 不改钟；
