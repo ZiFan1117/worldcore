@@ -68,6 +68,12 @@
 | fs 安全边界（Linux 真符号链接） | 符号链接逃逸拒、`../` 遍历拒、隐藏/秘密文件拒、白名单目录可列（5/5 PASS） |
 | soak | `soak_13units.py` 以 transient unit `wcore-soak.service` 跑 95 分钟，每 5 分钟一行 `/root/soak-13units.jsonl` |
 
+### 五半.1 soak 进行中（2026-10-21 00:18 现取）
+
+- `wcore-soak.service` 在跑；已有 4 个样本（每 5 分钟一行，`/root/soak-13units.jsonl`）；
+- 每个样本的 13 单元（vault 加入前的 13 个）全 `active`；账行数 13048；computer 最近上报照常；
+- 注：soak 的 `UNITS` 硬编码于 vault 加入前（13 个），vault 单元由收口验证单独确认（14/14 active）。
+
 ## 六、没做到的（如实）
 
 1. 四个新进程都是**只读 v1**：fs 不写文件、recovery 不 save/restore、network 不配网、clock 不改钟；
