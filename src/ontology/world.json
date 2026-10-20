@@ -1641,6 +1641,177 @@
           "description": "单调秒（只增不减，重启归零）"
         }
       ]
+    },
+    {
+      "id": "snapshot",
+      "label": "世界快照",
+      "description": "一份世界快照（账/注册表/对象库/法），恢复边界（L1）的只读对象。",
+      "primary_key": "path",
+      "interfaces": [
+        "Identifiable"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://recovery"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:snapshot20261020_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "path",
+          "label": "path",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": "快照目录绝对路径"
+        },
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "at",
+          "label": "at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "快照时间 ISO"
+        },
+        {
+          "name": "ledger_rows",
+          "label": "ledger_rows",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "账行数（meta 现取）"
+        },
+        {
+          "name": "law_sha256",
+          "label": "law_sha256",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "法的 sha256（meta 现取）"
+        },
+        {
+          "name": "bytes",
+          "label": "bytes",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "快照内文件总字节"
+        },
+        {
+          "name": "files_count",
+          "label": "files_count",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "快照内文件数"
+        },
+        {
+          "name": "kind",
+          "label": "kind",
+          "type": "STRING",
+          "required": false,
+          "primary": true,
+          "options": null,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "recovery",
+      "label": "恢复边界进程",
+      "description": "恢复边界（借鉴 AI-OS L1）：只读列出/核对世界快照与分叉；v1 不写、不恢复。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://recovery"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:recovery20261020_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "root",
+          "label": "root",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "快照根目录"
+        },
+        {
+          "name": "snapshots",
+          "label": "snapshots",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "快照数"
+        },
+        {
+          "name": "forks",
+          "label": "forks",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "分叉数"
+        },
+        {
+          "name": "latest",
+          "label": "latest",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "最新快照名"
+        }
+      ]
     }
   ],
   "links": [
@@ -3693,6 +3864,84 @@
       "description": "读时间面进程状态（时区/开机 id/单调秒）",
       "required_roles": [
         "clock"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "只读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "recovery.list",
+      "label": "recovery.list",
+      "description": "列世界快照/分叉（只读；meta 现取）",
+      "required_roles": [
+        "recovery"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "limit",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "恢复边界只读：看有哪些快照"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "recovery.state",
+      "label": "recovery.state",
+      "description": "读恢复边界进程状态（快照根/数量/最新）",
+      "required_roles": [
+        "recovery"
       ],
       "applies_to": null,
       "kind": "invoke",

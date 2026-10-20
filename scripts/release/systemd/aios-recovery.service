@@ -1,0 +1,23 @@
+[Unit]
+Description=worldcore 恢复边界 —— 世界快照的只读视察（学 AI-OS L1 Recovery boundary）
+Documentation=https://ai-os.net/docs/recovery
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/recovery
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_SNAPSHOT_DIR=/var/backups/aios/world-snapshots
+Environment=AIOS_RECOVERY_NAME=recovery0
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/recovery/recovery_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只读视察：不写快照、不恢复 ⇒ strict 合适
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
