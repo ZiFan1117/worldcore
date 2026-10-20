@@ -13,11 +13,12 @@
   header { display:flex; gap:12px; align-items:center; padding:10px 16px; background:#fff; }
   .badge { background:#2F6FEB; color:#fff; font-weight:700; padding:4px 10px; border-radius:8px; }
   #status { color:var(--muted); font-size:12px; }
-  main { display:flex; gap:14px; padding:14px; flex-wrap:wrap; }
+  /* ★ 两栏网格：画布在右、始终可见（原来是 flex-wrap，窄屏时画布被挤到折叠区下面） */
+  main { display:grid; grid-template-columns: 340px minmax(0,1fr); gap:14px; padding:14px; align-items:start; }
   .panel { background:rgba(255,255,255,.85); border:1px solid #d8e2f5; border-radius:14px;
            padding:12px; box-shadow:0 6px 20px rgba(47,111,235,.08); }
-  #left { flex:0 0 320px; }
-  #right { flex:1 1 520px; min-height:420px; }
+  #left { min-width:0; }
+  #right { min-width:0; min-height:420px; }
   #frames { min-height:360px; }
   .card { border:1px solid #cfd9ea; border-radius:12px; padding:10px; margin:8px 0; background:#fff; }
   .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
@@ -99,7 +100,7 @@ function connect() {
   es = new EventSource("/events");
   es.addEventListener("message", (ev) => {
     let d; try { d = JSON.parse(ev.data); } catch { return; }
-    if (d.type === "frame") renderFrame(d.frame);
+    if (d.type === "frame") { try { renderFrame(d.frame); } catch (e) { addLog("frame ERR: " + e); } }
     else if (d.type === "confirm") {
       showConfirm(d.confirmation || {});
     }
@@ -199,6 +200,8 @@ function renderFrame(frame) {
       for (const r of roots) box.appendChild(renderComp(r, map, sid));
       const old = document.querySelector(`#frames [data-surface="${CSS.escape(sid)}"]`);
       if (old) old.replaceWith(box); else $("#frames").appendChild(box);
+      const ph = document.querySelector("#frames > .muted");
+      if (ph && ph.textContent.indexOf("还没有画布") >= 0) ph.remove();  // ★ 有帧了就别再显示「先登录」
       if ($("#speak").checked) speakFrame(map, sid);
     }
   }
