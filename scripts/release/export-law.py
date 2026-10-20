@@ -22,8 +22,8 @@ for _p in (os.path.join(ROOT, "src", "ontology"), os.path.join(ROOT, "src")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from ontology_definition import build_aios_ontology  # noqa: E402
-from law_dump import dump_law  # noqa: E402
+from law.ontology_definition import build_aios_ontology  # noqa: E402
+from law.law_dump import dump_law  # noqa: E402
 
 
 def main(argv):

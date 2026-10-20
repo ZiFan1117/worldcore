@@ -59,7 +59,20 @@ flowchart TB
   FLUTTER -. "人点击（world/ui/act）" .-> PRES
 ```
 
-## 二、数据面（东西存在哪）
+## 二、代码分夹（本体）
+
+```
+src/ontology/
+├─ ontology_process.py      入口：消息循环 / 个体 / 账 / 事件
+├─ world.json               法（唯一权威；保持根）
+├─ law/                     law_loader / law_dump / ontology_definition / sysknife_actions / grants
+├─ gate/                    ask_path / action_contract / identity / permit / world_codes
+├─ query/                   world_query
+├─ govern/                  governance（确认/委托/策略/审计）
+└─ proposals/               法草案（智能体只出草案，人能签）
+```
+
+## 三、数据面（东西存在哪）
 
 | 面 | 路径 | 谁的权威 |
 |---|---|---|
@@ -72,7 +85,7 @@ flowchart TB
 | 世界文件 | `/var/lib/aios/world/`（worldfs 导出） | 账→文件树的只读镜像 |
 | 快照 | `/var/backups/aios/world-snapshots/`（含 forks） | 定时快照进程 |
 
-## 三、一条 `world/ask` 怎么走（八道闸）
+## 四、一条 `world/ask` 怎么走（八道闸）
 
 ```mermaid
 sequenceDiagram
@@ -99,7 +112,7 @@ sequenceDiagram
   W-->>BUS: world/event（公开字段）→ 界面/agent 实时
 ```
 
-## 四、实时数据管道（computer → 本体 → 界面）
+## 五、实时数据管道（computer → 本体 → 界面）
 
 ```mermaid
 flowchart LR
@@ -112,7 +125,7 @@ flowchart LR
   SYS --> COL --> CHG --> APP --> ONTO --> UI
 ```
 
-## 五、权限 / 人确认 / guard
+## 六、权限 / 人确认 / guard
 
 ```mermaid
 flowchart TB
@@ -127,7 +140,7 @@ flowchart TB
   I["guard_exec（Landlock）<br/>执行前限文件访问"] -.-> A2
 ```
 
-## 六、运行面（systemd 单元与数据流）
+## 七、运行面（systemd 单元与数据流）
 
 | 单元 | 作用 |
 |---|---|
@@ -143,7 +156,7 @@ flowchart TB
 
 > 定时器：看门狗（3 分钟）、世界快照（每小时）、worldfs（15 分钟）等（不属于 9 个常驻进程）。
 
-## 七、设计口径（三句话）
+## 八、设计口径（三句话）
 
 1. **定义与实现分家**：法 `world.json` 是唯一权威，代码只装载它；改法=改声明件。
 2. **本体只做三件事**：认（闸）、判（许可/凭证）、记（账）；**不执行、不渲染、不碰机器**。

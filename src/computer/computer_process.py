@@ -30,7 +30,7 @@ import zenoh
 # ★★ 本体发的审批凭据（permit.py 住在 src/ontology/）—— 执行器收指令前【必须验】它。
 import sys as _sys
 _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
-from permit import verify, consume_via_ontology  # noqa: E402
+from gate.permit import verify, consume_via_ontology  # noqa: E402
 
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"

@@ -23,7 +23,7 @@ for _p in (os.path.join(ROOT, "src", "ontology"), os.path.join(ROOT, "src")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from ontology_definition import build_aios_ontology  # noqa: E402
+from law.ontology_definition import build_aios_ontology  # noqa: E402
 
 NS = "http://ai-os.net/ns/world#"
 XSD = {"STRING": "xsd:string", "INTEGER": "xsd:integer", "FLOAT": "xsd:double",

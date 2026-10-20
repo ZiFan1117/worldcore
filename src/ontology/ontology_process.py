@@ -29,19 +29,19 @@ import json
 import os
 import sys
 import time
-import identity
-import permit
-import world_query
-import ask_path
-import action_contract
-from world_codes import reject_category
+from gate import identity
+from gate import permit
+from query import world_query
+from gate import ask_path
+from gate import action_contract
+from gate.world_codes import reject_category
 
 import zenoh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)                      # 本原子目录（ontology_definition）
 sys.path.insert(0, os.path.dirname(HERE))     # src/ 根（foundry_ontology 目录）
-from ontology_definition import build_aios_ontology  # noqa: E402
+from law.ontology_definition import build_aios_ontology  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」

@@ -23,8 +23,8 @@ for _p in (os.path.join(ROOT, "src", "ontology"), os.path.join(ROOT, "src")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from ontology_definition import build_aios_ontology  # noqa: E402
-from world_codes import REJECT_CODES  # noqa: E402
+from law.ontology_definition import build_aios_ontology  # noqa: E402
+from gate.world_codes import REJECT_CODES  # noqa: E402
 
 TOPICS = {
     "ask": "world/ask（请求入口；只有本体订）",

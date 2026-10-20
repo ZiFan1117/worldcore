@@ -10,11 +10,11 @@ import json
 
 import datetime
 
-import action_contract
-import governance
-import identity
-import permit
-from world_codes import CONFIRM_ACTIONS, redact_params
+from gate import action_contract
+from govern import governance
+from gate import identity
+from gate import permit
+from gate.world_codes import CONFIRM_ACTIONS, redact_params
 
 T_ASK_RESULT = "world/ask/result"
 T_EXEC = "world/exec"

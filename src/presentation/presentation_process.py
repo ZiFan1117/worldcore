@@ -35,7 +35,7 @@ from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  #
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
-from permit import verify, consume_via_ontology  # noqa: E402
+from gate.permit import verify, consume_via_ontology  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"

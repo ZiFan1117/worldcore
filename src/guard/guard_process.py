@@ -47,7 +47,7 @@ class Guard:
             for _p in (os.path.join(ROOT, "src", "ontology"), os.path.join(ROOT, "src")):
                 if _p not in sys.path:
                     sys.path.insert(0, _p)
-            from ontology_definition import build_aios_ontology  # noqa: E402
+            from law.ontology_definition import build_aios_ontology  # noqa: E402
             o = build_aios_ontology()
             self.actions = dict(o.action_types)
             self.grants = (((o.metadata or {}).get("permissions") or {})
@@ -64,7 +64,7 @@ class Guard:
 
     def describe(self):
         try:
-            import world_codes
+            from gate import world_codes
             n_confirm = len(world_codes.CONFIRM_ACTIONS)
         except Exception:
             n_confirm = 0
@@ -83,7 +83,7 @@ class Guard:
         # ★ guard 弹窗：变更类动作由 agent 请求 ⇒ 不是静默放行/拒绝，而是「需人确认」
         if ac in ("agent", "presence"):
             try:
-                import world_codes
+                from gate import world_codes
                 if world_codes.needs_confirm(action):
                     return {"ok": False, "decision": "confirm",
                             "why": "变更类动作需要人确认（guard 弹窗）",

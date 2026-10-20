@@ -30,7 +30,7 @@ for _p in (os.path.join(_SRC, "ontology"), os.path.join(_SRC, "presentation")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
+from gate import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
 from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")

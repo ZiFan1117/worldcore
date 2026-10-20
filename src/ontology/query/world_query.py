@@ -14,7 +14,7 @@ import json
 import os
 import time
 
-import identity
+from gate import identity
 
 
 def read_ledger(path):

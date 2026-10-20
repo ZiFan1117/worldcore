@@ -16,16 +16,17 @@
 import os
 import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-for _p in (HERE, ROOT):
+HERE = os.path.dirname(os.path.abspath(__file__))          # .../ontology/law
+ONTO = os.path.dirname(HERE)                               # .../ontology
+SRC = os.path.dirname(ONTO)                                # .../src（foundry_ontology 在这）
+for _p in (SRC, ONTO, HERE):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from law_loader import load_law                      # noqa: E402
-from sysknife_actions import load_sysknife_actions    # noqa: E402
-from action_contract import load_action_contracts    # noqa: E402
-from grants import normalize_grants                  # noqa: E402
+from law.law_loader import load_law                      # noqa: E402
+from law.sysknife_actions import load_sysknife_actions    # noqa: E402
+from gate.action_contract import load_action_contracts    # noqa: E402
+from law.grants import normalize_grants                  # noqa: E402
 
 
 def build_aios_ontology():

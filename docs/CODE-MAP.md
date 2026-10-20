@@ -8,7 +8,13 @@
 ```
 13-aios-worldcore/
 ├─ src/
-│  ├─ ontology/                 ★ 本体（13 个文件，见下表）
+│  ├─ ontology/                 ★ 本体（入口在根；功能分 4 个子夹）
+│  │  ├─ ontology_process.py    入口：消息循环 / 个体 / 账 / 事件
+│  │  ├─ world.json             法（唯一权威）
+│  │  ├─ law/                   法：law_loader / law_dump / ontology_definition / sysknife_actions / grants
+│  │  ├─ gate/                  闸：ask_path / action_contract / identity / permit / world_codes
+│  │  ├─ query/                 查询：world_query
+│  │  └─ govern/                治理：governance（确认/委托/策略/审计）
 │  ├─ computer/                 ★ 执行器：156 条系统命令 + 文件机制 + app.open_url + 实时指标上报
 │  ├─ presentation/             ★ 呈现：合成画布 + A2UI 帧校验 + Flutter 渲染器源码
 │  ├─ space/                    ★ 个人空间：桌面/窗口/场景/确认弹窗/本体窗口/事件回放
@@ -26,21 +32,21 @@
 └─ AGENTS.md / CLAUDE.md        给接手者的硬约束与指针
 ```
 
-## 二、本体文件（`src/ontology/`，先把这 7 个读了）
+## 二、本体文件（`src/ontology/` 下 4 个子夹，先把这 7 个读了）
 
 | 文件 | 行数 | 什么时候看它 |
 |---|---|---|
-| `ontology_process.py` | 372 | 消息循环、报到（appear）、注册（register）、落账、推事件、个体 ObjectStore —— **入口** |
-| `ask_path.py` | 223 | 八道闸、委托放行、guard 弹窗（`CONFIRM_REQUIRED`）、执行凭证签发 —— **改权限/闸** |
-| `world_query.py` | 258 | 所有查询（overview/types/type/one/actions/history/events） —— **改查询/界面数据** |
-| `governance.py` | 180 | 人确认 / 委托四格 / 策略 / 审计回账（本地执行，不外转） —— **改确认/委托/审计** |
-| `identity.py` / `permit.py` | 130 / 194 | 票（登录）／一次性执行凭证（HMAC、绑动作+参数） —— **改认证/凭证** |
-| `action_contract.py` | 113 | 参数校验、前置条件、`route_for()` 多态路由 —— **改动作契约/路由** |
-| `world_codes.py` | 66 | 拒绝码闭集、参数脱敏、变更类动作清单（guard 弹窗用） |
-| `sysknife_actions.py` | 53 | 把 `sysknife-command-map.json` 的 156 条命令装成 `sys.*` 动作 |
-| `law_loader.py` / `law_dump.py` | 234 / 124 | 法（`world.json`）的解析/校验/建本体 与 导出对账 |
-| `ontology_definition.py` | 39 | 只调 `load_law()`（定义不在代码里手写，C35） |
-| `grants.py` | 17 | 许可口径辅助 |
+| `ontology_process.py`（根） | 372 | 消息循环、报到（appear）、注册（register）、落账、推事件、个体 ObjectStore —— **入口** |
+| `gate/ask_path.py` | 223 | 八道闸、委托放行、guard 弹窗（`CONFIRM_REQUIRED`）、执行凭证签发 —— **改权限/闸** |
+| `query/world_query.py` | 258 | 所有查询（overview/types/type/one/actions/history/events） —— **改查询/界面数据** |
+| `govern/governance.py` | 180 | 人确认 / 委托四格 / 策略 / 审计回账（本地执行，不外转） —— **改确认/委托/审计** |
+| `gate/identity.py` / `gate/permit.py` | 130 / 194 | 票（登录）／一次性执行凭证（HMAC、绑动作+参数） —— **改认证/凭证** |
+| `gate/action_contract.py` | 113 | 参数校验、前置条件、`route_for()` 多态路由 —— **改动作契约/路由** |
+| `gate/world_codes.py` | 66 | 拒绝码闭集、参数脱敏、变更类动作清单（guard 弹窗用） |
+| `law/sysknife_actions.py` | 53 | 把 `sysknife-command-map.json` 的 156 条命令装成 `sys.*` 动作 |
+| `law/law_loader.py` / `law/law_dump.py` | 234 / 124 | 法（`world.json`）的解析/校验/建本体 与 导出对账 |
+| `law/ontology_definition.py` | 39 | 只调 `load_law()`（定义不在代码里手写，C35） |
+| `law/grants.py` | 17 | 许可口径辅助 |
 
 ## 三、提供者进程（改哪个功能进哪个目录）
 
@@ -57,7 +63,7 @@
 | 画布合成 / A2UI 校验 | `src/presentation/presentation_process.py`、`frame_schema.py` | `dispatch()`、`validate_frame()` |
 | 渲染器外观（颜色/字体） | `src/presentation/render_main.dart` | Flutter/genui 主题与 `_feed()` |
 | 语义浏览器 | `src/web/web_process.py` ＋ `browser.html` | HTTP 路由 / `/events` SSE / `/cmd`（login、ui、browse、frames、confirm_resolve） |
-| 人确认/委托/策略/审计 | `src/ontology/governance.py` ＋ `world.json` 的动作 | `dispatch()`、`confirm.* / delegate.* / policy.* / audit.record` |
+| 人确认/委托/策略/审计 | `src/ontology/govern/governance.py` ＋ `world.json` 的动作 | `dispatch()`、`confirm.* / delegate.* / policy.* / audit.record` |
 | 权限决定 / Landlock | `src/guard/guard_process.py`、`guard_exec.py`、`guardctl.py` | `Guard.check()`、Landlock 规则 |
 | 智能体接入 | `src/agent/agent_llm.py`、`world_cli.py` | 心跳、回放游标、world/query 桥 |
 
@@ -133,6 +139,6 @@ curl -s http://127.0.0.1:8765/cmd -d '{"op":"ping"}'
 1. `README.md`（世界是什么、怎么跑）
 2. `AGENTS.md`（硬约束 11 条＋禁区）
 3. `src/ontology/ontology_process.py`（本体消息循环）
-4. `src/ontology/ask_path.py`（八道闸：所有请求都从这里过）
+4. `src/ontology/gate/ask_path.py`（八道闸：所有请求都从这里过）
 5. `src/ontology/world.json`（法：类/动作/许可）
 6. `scripts/test/check.py`（判据清单：项目现在承诺什么）

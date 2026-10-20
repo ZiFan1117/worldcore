@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "src", "ontology"))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from ontology_definition import build_aios_ontology  # noqa: E402
+from law.ontology_definition import build_aios_ontology  # noqa: E402
 
 import dataclasses
 

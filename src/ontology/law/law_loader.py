@@ -19,9 +19,9 @@ from foundry_ontology.core import (
 )
 from foundry_ontology.core.data_types import PropertyType
 
-from action_contract import EFFECT_KINDS, ON_FAILURE, PRECONDITION_KINDS
+from gate.action_contract import EFFECT_KINDS, ON_FAILURE, PRECONDITION_KINDS
 
-DEFAULT_LAW = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world.json")
+DEFAULT_LAW = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "world.json")  # ★ 法在 ontology/ 根（分夹后）
 PROPERTY_TYPES = {name: getattr(PropertyType, name) for name in (
     "STRING", "INTEGER", "FLOAT", "BOOLEAN", "OBJECT_REFERENCE")}
 PROVIDER_KINDS = ("space", "presentation", "computer", "agent")
