@@ -38,6 +38,7 @@
   <span id="status">未连接…</span>
   <span id="agentstat" class="muted"></span>
   <span class="muted">A2UI 帧由世界给；这里只渲染</span>
+  <span class="muted" id="uiver">UI 2026-10-20c</span>
 </header>
 <div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(20,30,50,.35);z-index:99;align-items:center;justify-content:center">
   <div class="panel" style="max-width:560px;background:#fff">
@@ -74,8 +75,11 @@
     <div id="log"></div>
   </section>
   <section id="right" class="panel">
-    <div class="muted">世界的画布（A2UI 帧）</div>
-    <div id="frames"><div class="muted">（还没有画布——先登录）</div></div>
+    <div class="row" style="justify-content:space-between">
+      <span class="muted">世界的画布（A2UI 帧）· <span id="frameinfo">帧=0</span></span>
+      <button onclick="pullFrames()">刷新桌面</button>
+    </div>
+    <div id="frames"><div class="muted">（还没有画布——先登录/点「刷新桌面」）</div></div>
   </section>
 </main>
 <script>
@@ -116,6 +120,7 @@ function connect() {
   });
   es.onopen = () => {
     setStatus("已连接（SSE）");
+    setTimeout(pullFrames, 200);   // 重载场景：灯亮前可能已有帧，补拿一次
     // ★ 免交互演示/截图：?user=zhang&secret=0 连上就自动登录（也可给 kiosk 用）
     if (autoUser && !autoTried) {
       autoTried = true;
@@ -167,8 +172,32 @@ function post(body) {
 }
 
 function login() {
+  setStatus("登录中…");
   post({op:"login", user:$("#user").value, secret:$("#pass").value})
-    .then(r => { addLog("login: " + JSON.stringify(r)); if (!r.ok) setStatus("登录失败：" + (r.why||"")); });
+    .then(r => {
+      addLog("login: " + JSON.stringify(r));
+      if (!r.ok) { setStatus("登录失败：" + (r.why||"")); return; }
+      setStatus("已登录：" + ($("#user").value||""));
+      pullFrames();
+      setTimeout(pullFrames, 300);
+      setTimeout(pullFrames, 1200);
+    });
+}
+
+function pullFrames() {
+  post({op:"frames"}).then(r => {
+    const fs = (r && r.frames) || [];
+    setStatus("桥在线，UI " + (r.ui || "?") + "，取帧 " + fs.length);
+    if (!fs.length) { addLog("还没有帧（确认已登录；可点「刷新桌面」）"); return; }
+    for (const f of fs) renderFrame(f);
+    updateFrameInfo();
+  }).catch(e => addLog("取帧失败：" + e));
+}
+
+function updateFrameInfo() {
+  const n = document.querySelectorAll("#frames [data-surface]").length;
+  const el = $("#frameinfo");
+  if (el) el.textContent = "帧=" + n;
 }
 
 function sendIcon(icon) {
@@ -202,6 +231,7 @@ function renderFrame(frame) {
       if (old) old.replaceWith(box); else $("#frames").appendChild(box);
       const ph = document.querySelector("#frames > .muted");
       if (ph && ph.textContent.indexOf("还没有画布") >= 0) ph.remove();  // ★ 有帧了就别再显示「先登录」
+      updateFrameInfo();
       if ($("#speak").checked) speakFrame(map, sid);
     }
   }

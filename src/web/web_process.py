@@ -29,6 +29,7 @@ PORT = int(os.environ.get("AIOS_WEB_PORT", "8765"))
 T_ASK = "world/ask"
 T_ASK_RESULT = "world/ask/result"
 T_NOTICE = "world/notice"
+UI_VERSION = "2026-10-20c"   # 页面/接口版本（确认用户不是旧缓存）
 T_EVENT = "world/event"
 T_ACT = "world/ui/act"
 
@@ -220,7 +221,12 @@ class WebApp:
         op = d.get("op") or ""
         if op == "ping":
             return {"ok": True, "what": "worldcore-web", "user": self.user,
-                    "has_ticket": bool(self.ticket)}
+                    "has_ticket": bool(self.ticket), "ui": UI_VERSION}
+        if op == "frames":
+            # 补救：页面重载/错过推送时，补拿桥最近缓存的帧
+            with self.lock:
+                return {"ok": True, "ui": UI_VERSION,
+                        "frames": list(self.recent_frames[-6:])}
         if op == "login":
             user = d.get("user") or ""
             secret = d.get("secret") or ""
@@ -274,6 +280,8 @@ class Handler(BaseHTTPRequestHandler):
             body = body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", ctype)
+        self.send_header("Cache-Control", "no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -286,7 +294,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open(HTML, encoding="utf-8") as f:
                     self._send(200, f.read(), "text/html; charset=utf-8")
             except FileNotFoundError:
-                self._send(500, "voice.html 不在", "text/plain; charset=utf-8")
+                self._send(500, "browser.html 不在", "text/plain; charset=utf-8")
             return
         if path.startswith("/render"):
             # ★ 静态预览（截图/kiosk/无异步）：服务端先登录，把最近 A2UI 帧注入页面同步渲染
