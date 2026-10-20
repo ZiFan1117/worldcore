@@ -251,6 +251,14 @@ def handle(smp, w, session, log=print):
                 "ledger": {"rows": len(rows), "bad_lines": bad,
                            "reject_codes": dict(sorted(codes.items(), key=lambda kv: -kv[1])[:8]),
                            "last": rows[-8:]},
+                # ★ 2026-10-20：本体窗口要「全部信息」⇒ overview 带关系/函数/法的版本
+                "links": [{"id": lid,
+                           "source": getattr(lt, "source_type", None),
+                           "target": getattr(lt, "target_type", None),
+                           "cardinality": str(getattr(lt, "cardinality", ""))}
+                          for lid, lt in w.ontology.link_types.items()],
+                "functions": sorted(w.ontology.functions.keys()),
+                "law_version": getattr(w.ontology, "version", ""),
             }
         else:
             raise ValueError("不认识的 kind：%s" % kind)
