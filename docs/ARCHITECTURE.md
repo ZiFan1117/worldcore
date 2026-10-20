@@ -198,7 +198,15 @@ flowchart TB
 > **Action＝受人控的写；Function＝只读算；Pipeline＝持续同步事实（provider → ingest → 对象状态）。**
 > 外部进程只能「报事实」（appear）；**写本体的笔仍只有本体**（ingest 或 action 效果），没有第三条直接写 ObjectStore 的路。
 
-## 九、设计口径（三句话）
+## 九、DSH 怎么融入世界
+
+- **身份**：agent 进程以 `agent/dsh` 报到（`world://agent/dsh`），本体记 appeared；
+- **心跳/可观测**：`/run/aios/agent-heartbeat.json`（pid/phase/events/launched），unit 加 `PYTHONUNBUFFERED=1` 后 journal 能看到每轮；
+- **查询/动作**：DSH → `world_cli.py` → `world/query`/`world/ask`（八道闸+permit+账）；模型可挑 `sys.*` ＋二期只读动作 `file.*`/`clock.now`/`recovery.*`/`network.*`；
+- **事件/帧**：订 `world/event` 回放；A2UI 帧走 `world/notice`（经本体）；
+- **现取**（2026-10-20）：`agent.launch` 经本体确认开窗 → 每 45s 一轮：第 1 轮 `clock.now` ok、第 3 轮 `file.list /var/lib/aios` ok（证据 `scripts/release/evidence/t497-dsh-file-success.txt`，本地不推）。
+
+## 十、设计口径（三句话）
 
 1. **定义与实现分家**：法 `world.json` 是唯一权威，代码只装载它；改法=改声明件。
 2. **本体只做三件事**：认（闸）、判（许可/凭证）、记（账）；**不执行、不渲染、不碰机器**。
