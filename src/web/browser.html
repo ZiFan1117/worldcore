@@ -140,6 +140,9 @@ function showConfirm(c) {
   pendingConfirm = c;
   const el = $("#confirm-modal");
   el.style.display = "flex";
+  const titleEl = el.querySelector("b");
+  if (titleEl) titleEl.textContent = ((c.summary || "").indexOf("guard") === 0)
+    ? "guard 请求确认：要不要允许？" : "确认请求：要不要允许？";
   $("#cf-body").textContent = "动作：" + (c.action || "?") + "；请求者：" + (c.for_actor || "?") +
     "；摘要：" + (c.summary || "（无）") + "；请求：" + (c.name || "?");
   $("#log").scrollTop = 1e9;

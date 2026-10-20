@@ -63,7 +63,13 @@ class Guard:
             self.loaded = "law.json"
 
     def describe(self):
+        try:
+            import world_codes
+            n_confirm = len(world_codes.CONFIRM_ACTIONS)
+        except Exception:
+            n_confirm = 0
         return {"actions": len(self.actions), "grants": len(self.grants),
+                "confirm_actions": n_confirm,
                 "law": self.law_path, "loaded": getattr(self, "loaded", "?")}
 
     def check(self, actor, action):
@@ -74,6 +80,16 @@ class Guard:
         if action not in self.actions:
             return {"ok": False, "why": "动作不在法里：%s" % action,
                     "code": "UNKNOWN_ACTION"}
+        # ★ guard 弹窗：变更类动作由 agent 请求 ⇒ 不是静默放行/拒绝，而是「需人确认」
+        if ac in ("agent", "presence"):
+            try:
+                import world_codes
+                if world_codes.needs_confirm(action):
+                    return {"ok": False, "decision": "confirm",
+                            "why": "变更类动作需要人确认（guard 弹窗）",
+                            "code": "CONFIRM_REQUIRED"}
+            except Exception:
+                pass
         g = self.grants.get(action) or {}
         scope = g.get("scope") or []
         if not scope:

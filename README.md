@@ -146,7 +146,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 60 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 61 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -175,6 +175,7 @@ python scripts/test/check.py --self-test  → 全绿（反例会红、恢复会�
 | 权限执行（guard-exec） | `src/guard/guard_exec.py`：用 **Landlock**（内核 LSM，用户态可用的接口）给子进程限文件访问；`--dry-run` 看计划、`--apply` 真套；越界写被内核拒 |
 | 人确认弹窗（语义浏览器） | 本体发 `confirm.request` → 推送 `world/notice` → 语义浏览器弹窗（允许一次/允许并委托/拒绝）→ 人点 ⇒ 带票 `world/ask confirm.resolve`；判据 C60 |
 | 确认/委托/审计（治理） | 法里有 `delegation`/`confirmation`/`policy` 三类＋8 动作；`governance.py` 本地执行：人能签、agent 不能签/自签；`audit.record` 带 HMAC 才回账（写 `kind_of=security`）；判据 C59 |
+| **guard 弹窗** | 变更类动作（如 `sys.AptInstall`）由 agent 请求 ⇒ guard 判 `decision=confirm` ⇒ 本体回 `CONFIRM_REQUIRED` 并推 `confirm.request` ⇒ 语义浏览器弹窗；人签的委托（四格）放行并 `used+1`，用尽/过期再要确认；判据 C61 |
 | 权限进程（guard） | **单独进程**：Unix socket `/run/aios/guard.sock` 回「谁能不能做某动作」（与本体 can_execute 同口径）；`src/guard/guardctl.py` 是命令行客户端；执行（Landlock/AppArmor/eBPF）留给 guard-exec |
 | 世界＝文件（P3） | `scripts/release/worldfs.py`：账**只读**导出成 `events/<日期>/<小时>.jsonl`＋`INDEX.md`（人可 grep、脚本可查）；只导公开字段，params/票/body 绝不导出；systemd 每 15 分钟 |
 | 长程闭环评估（P6） | `scripts/release/dsh/goal/round_eval.py`：把每轮报告/提交扫成 `rounds.jsonl`（证据/回滚/提交/缺报告都能数）；systemd 每 15 分钟 |
@@ -372,11 +373,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**60 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**61 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (60/60, rc=0)
+python scripts/test/check.py              → all green (61/61, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 

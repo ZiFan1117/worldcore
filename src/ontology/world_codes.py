@@ -33,7 +33,24 @@ REJECT_CODES = {
     "PRECONDITION_FAILED": "business",     # 前置条件不成立（借自订单样板）
     "INTERFACE_NOT_IMPLEMENTED": "business",  # 这个类不实现该接口（不能当它用）
     "PROVIDER_NOT_DECLARED": "system",     # 这个类没有声明执行者（路由不了）
+    "CONFIRM_REQUIRED": "permission",      # guard 判「变更类动作需要人确认」→ 界面弹窗
 }
+
+
+# ── 变更类动作：agent 请求时 guard 判「需人确认」，界面弹窗；人签的委托是显式放行 ──
+CONFIRM_ACTIONS = (
+    "sys.AptInstall", "sys.AptRemove", "sys.AptPurge", "sys.AptUpgrade",
+    "sys.UpdateSystem", "sys.RebootSystem", "sys.RollbackDeployment",
+    "sys.SetHostname", "sys.SetTimezone", "sys.SetDnsServers",
+    "sys.UfwEnable", "sys.UfwDisable", "sys.UfwReset",
+    "sys.EnablePackageRepository", "sys.AddLayeredPackage", "sys.RebaseSystem",
+    "sys.StopService", "sys.RestartService", "sys.SetServiceEnabled", "sys.MaskService",
+    "sys.SignalProcess", "sys.LockUserAccount",
+)
+
+
+def needs_confirm(action):
+    return action in CONFIRM_ACTIONS
 
 
 def reject_category(code):

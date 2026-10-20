@@ -8,15 +8,50 @@
 """
 import json
 
+import datetime
+
 import action_contract
 import governance
 import identity
 import permit
-from world_codes import redact_params
+from world_codes import CONFIRM_ACTIONS, redact_params
 
 T_ASK_RESULT = "world/ask/result"
 T_EXEC = "world/exec"
 T_NOTICE = "world/notice"
+
+
+def _actor_class(actor):
+    a = str(actor or "")
+    if not a.startswith("world://"):
+        return ""
+    return a[len("world://"):].split("/", 1)[0]
+
+
+def _valid_delegation(w, actor, action):
+    """★ 有效委托（四格）：active + 动作匹配 + 未过期 + 次数没用完。"""
+    try:
+        now = datetime.datetime.now().astimezone()
+        for inst in w.store.search("delegation") or []:
+            p = inst.properties
+            if p.get("to") != actor or p.get("action") != action:
+                continue
+            if p.get("state") != "active":
+                continue
+            try:
+                exp = datetime.datetime.fromisoformat(str(p.get("expires")))
+            except Exception:
+                continue
+            if exp.tzinfo is None:
+                exp = exp.astimezone()
+            if exp <= now:
+                continue
+            if int(p.get("used") or 0) >= int(p.get("max_uses") or 0):
+                continue
+            return inst
+    except Exception:
+        return None
+    return None
 
 
 def handle(smp, w, session, log=print):
@@ -75,13 +110,48 @@ def handle(smp, w, session, log=print):
             session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": _a_why,
                                                   "code": _a_code}, ensure_ascii=False))
             return
-    # ★★ 闸③：许可（★ 认证动作不过闸 —— 它是入口；凭据校验在 identity 里）
-    allowed, why2 = (True, None) if _noid_exempt else w.can_execute(actor, name)
-    if not allowed:
-        w.reject("PERMISSION_DENIED", action=name, actor=actor, why=why2)
-        session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False, "why": why2,
-                                              "code": "PERMISSION_DENIED"}, ensure_ascii=False))
-        return
+    # ★★ 闸③：许可 ＋ guard 弹窗（变更类：agent 请求 ⇒ 需人确认；人签的委托 ⇒ 放行）
+    _ac = _actor_class(actor)
+    _dele = None
+    _confirmish = (name in CONFIRM_ACTIONS and _ac in ("agent", "presence")
+                   and not _noid_exempt)
+    if _confirmish:
+        _dele = _valid_delegation(w, actor, name)
+        if _dele is None:
+            # ★ guard 的意见：不是静默拒绝，而是请人确认 → 界面弹窗；人签后才走委托
+            _okc, _bodyc = governance.dispatch("confirm.request", {
+                "action": name,
+                "summary": "guard：%s 是变更类动作，需要你在场确认" % name,
+                "params": json.dumps(redact_params(msg.get("params") or {}),
+                                     ensure_ascii=False),
+            }, actor, w)
+            _conf = ((_bodyc or {}).get("confirmation") or {})
+            _cname = _conf.get("name") or ""
+            if _okc:
+                session.put(T_NOTICE, json.dumps(
+                    {"kind": "confirm.request", "by": "world://guard",
+                     "confirmation": _conf}, ensure_ascii=False))
+            _why = ("guard：变更类动作需要人在场确认（confirmation=%s）" % _cname)
+            w.reject("CONFIRM_REQUIRED", action=name, actor=actor, why=_why)
+            session.put(T_ASK_RESULT, json.dumps(
+                {"id": msg.get("id"), "ok": False, "why": _why,
+                 "code": "CONFIRM_REQUIRED", "confirmation": _cname},
+                ensure_ascii=False))
+            return
+        allowed = True
+        why2 = "委托放行（%s）" % _dele.instance_id
+        w.store.update(_dele.instance_id,
+                       {"used": int(_dele.properties.get("used") or 0) + 1},
+                       updated_by=actor)
+    else:
+        allowed, why2 = (True, None) if _noid_exempt else w.can_execute(actor, name)
+        if not allowed:
+            w.reject("PERMISSION_DENIED", action=name, actor=actor, why=why2)
+            session.put(T_ASK_RESULT, json.dumps({"id": msg.get("id"), "ok": False,
+                                                  "why": why2,
+                                                  "code": "PERMISSION_DENIED"},
+                                                 ensure_ascii=False))
+            return
     # ★★ 闸④：前置条件（借自订单样板）—— 可判的真跑；声明式的进账/手册，不假装判过
     _at = w.ontology.action_types.get(name)
     _declared = []
@@ -156,6 +226,7 @@ def handle(smp, w, session, log=print):
     seq = w.stamp("act", kind_of="ask", action=name, actor=actor,
                   rid=msg.get("id"), params=redact_params(msg.get("params")),
                   route=_route.get("kind"), permit=(pm or {}).get("id"),
+                  delegation=(_dele.instance_id if _dele is not None else None),
                   effects=_effects,
                   declared_checks=[p.get("statement") for p in _declared if p.get("statement")],
                   subject_class=_route.get("subject_class"))

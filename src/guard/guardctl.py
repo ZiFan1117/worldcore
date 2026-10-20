@@ -47,6 +47,8 @@ def main(argv=None):
     except Exception as e:
         print("连不上 guard（%s）：%s" % (SOCK, e), file=sys.stderr)
         return 2
+    if out.get("decision") == "confirm":
+        out["meaning"] = "需人确认（界面弹窗；人签后走委托）"
     print(json.dumps(out, ensure_ascii=False))
     return 0 if out.get("ok") else 3
 
