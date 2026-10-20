@@ -3071,6 +3071,52 @@
         "why": "只有 guard 能报告内核事实；HMAC 防伪造"
       },
       "metadata": {}
+    },
+    {
+      "id": "app.open_url",
+      "label": "app.open_url",
+      "description": "打开一个 URL（点桌面「语义浏览器」图标；带票、落账；执行归计算机）",
+      "required_roles": [
+        "computer"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "url"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "url",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": "要打开的地址"
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "人点自己的桌面图标打开语义浏览器"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

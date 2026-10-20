@@ -8,6 +8,7 @@ ICONS = [
     {"id": "ic_computer", "label": "这台机器", "emoji": "🖥️"},
     {"id": "ic_actions", "label": "能做什么", "emoji": "📋"},
     {"id": "ic_activity", "label": "活动", "emoji": "📡"},
+    {"id": "ic_browser", "label": "语义浏览器", "emoji": "🌐"},
     {"id": "ic_logout", "label": "退出", "emoji": "🚪"},
 ]
 

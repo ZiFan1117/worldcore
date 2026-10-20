@@ -225,9 +225,34 @@ def handle_exec(msg, rows, session):
     log("收到 %s（id=%s，凭证过）" % (action, rid))
     if action == "object.retire":          # ★ 多态动作：路由到 computer 的那一支
         return _retire_self(session, msg)
+    if action == "app.open_url":           # ★ 桌面「语义浏览器」图标：执行归计算机
+        ok2, body = _open_url(params)
+        return {"id": rid, "action": action, "ok": ok2,
+                "body": body if ok2 else None, "error": None if ok2 else body}
     ok2, body = run_action(rows, action, params)
     return {"id": rid, "action": action, "ok": ok2,
             "body": body if ok2 else None, "error": None if ok2 else body}
+
+
+def _open_url(params):
+    """★ 打开一个 URL（桌面「语义浏览器」图标）：起浏览器窗口；**出向只许这里**（C19）。"""
+    url = str((params or {}).get("url") or "")
+    if not url.startswith(("http://", "https://")):
+        return False, "url 不合法（只许 http/https）：%r" % url
+    env = dict(os.environ)
+    env.setdefault("DISPLAY", ":0")
+    env.setdefault("XAUTHORITY", "/run/lightdm/root/:0")
+    prog = "firefox" if shutil.which("firefox") else ("xdg-open" if shutil.which("xdg-open") else "")
+    if not prog:
+        return False, "本机没有 firefox/xdg-open"
+    try:
+        subprocess.Popen([prog, "--new-window", url] if prog == "firefox" else [prog, url],
+                         env=env, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+        log("★ app.open_url ⇒ %s %s" % (prog, url))
+        return True, "已打开：%s" % url
+    except Exception as e:                                  # noqa: BLE001
+        return False, "起不来：%s" % e
 
 
 def _retire_self(session, msg):

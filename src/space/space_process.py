@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
 from window_frame import wrap_window  # noqa: E402
 from confirm_window import ConfirmMixin  # noqa: E402
 from space_util import act_context, surface_of  # noqa: E402
+from browser_url import DEFAULT_BROWSER_URL as BROWSER_URL  # noqa: E402
 
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
@@ -312,6 +313,10 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin):
                 self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "actions"}, ensure_ascii=False))
             elif icon == "ic_activity":
                 self.toggle_activity()
+            elif icon == "ic_browser":
+                # ★ 桌面图标「语义浏览器」⇒ 经本体发 sys.OpenBrowser（带票）；
+                #   ★ 出向（起程序）只许计算机做，空间不碰 subprocess（C19）。
+                self._ask("app.open_url", {"url": BROWSER_URL}, "browser")
             elif icon == "ic_logout":
                 self.logout()
         elif name == "space.window_close":
