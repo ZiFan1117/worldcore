@@ -36,7 +36,9 @@
 
 ## 三、现在的系统结构
 
-### 3.1 运行时拓扑（7 个 systemd 单元，1 条总线）
+### 3.1 运行时拓扑（9 个 systemd 单元，1 条总线）
+
+> ★ **架构图**：[`docs/architecture.png`](docs/architecture.png)／[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)；**代码导航**（我想改 X 看哪里）：[`docs/CODE-MAP.md`](docs/CODE-MAP.md)。
 
 ```
         人（登录界面）／ 智能体 ／ 应用
