@@ -75,6 +75,19 @@
 - soak 已扩到 **14 单元**（含 vault）并重起；样本里 14/14 全 `active`；账行数持续增长；computer 最近上报照常；
 - 样本与结束读数见 §五半.2（收口时补）。
 
+### 五半.2b soak 结果（13 个样本 / 60 分钟，2026-10-21 00:22–01:22 +08:00）
+
+| 项 | 现取 |
+|---|---|
+| 样本 | 13 行（每 5 分钟一行，`/root/soak-13units.jsonl`） |
+| 单元 | **13 个样本全部 14/14 active**（含 aios-vault） |
+| 账增长 | 13146 → **13809 行**（60 分钟 +663 行） |
+| 新进程都有个体 | 最后样本里 fs 5、file 15、clock 133、recovery 125、snapshot 625、network 106、link 212、vault 18、secret 34 |
+| computer | 最后上报 19:22:29（VM）＝ 01:22 +08:00，uptime/load 在变 |
+| 错误 | 13 个样本里 **0 个**出现 Error/Traceback/Exception/Failed |
+| agent 心跳 | last_at 19:22:42，phase idle（窗口未开时也写心跳） |
+| 证据 | `scripts/release/evidence/t512-soak-13samples.jsonl`、`t512-soak-summary.json`（本地） |
+
 ### 五半.2 最终验证（2026-10-21 01:07+08:00，VM 现取）
 
 | 项 | 现取 |
