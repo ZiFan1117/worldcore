@@ -68,6 +68,7 @@ src/ontology/
 ├─ law/                     law_loader / law_dump / ontology_definition / sysknife_actions / grants
 ├─ gate/                    ask_path / action_contract / identity / permit / world_codes
 ├─ query/                   world_query
+├─ ingest/                 数据管道（接收 world/appear → 校验 → 建/更新个体 → 落账）
 ├─ govern/                  governance（确认/委托/策略/审计）
 └─ proposals/               法草案（智能体只出草案，人能签）
 ```

@@ -14,6 +14,7 @@
 │  │  ├─ law/                   法：law_loader / law_dump / ontology_definition / sysknife_actions / grants
 │  │  ├─ gate/                  闸：ask_path / action_contract / identity / permit / world_codes
 │  │  ├─ query/                 查询：world_query
+│  │  ├─ ingest/                数据管道（本体接收侧）：appear.py（收 appear → 建/更新个体 → 落账）
 │  │  └─ govern/                治理：governance（确认/委托/策略/审计）
 │  ├─ computer/                 ★ 执行器：156 条系统命令 + 文件机制 + app.open_url + 实时指标上报
 │  ├─ presentation/             ★ 呈现：合成画布 + A2UI 帧校验 + Flutter 渲染器源码
@@ -38,7 +39,8 @@
 |---|---|---|
 | `ontology_process.py`（根） | 372 | 消息循环、报到（appear）、注册（register）、落账、推事件、个体 ObjectStore —— **入口** |
 | `gate/ask_path.py` | 223 | 八道闸、委托放行、guard 弹窗（`CONFIRM_REQUIRED`）、执行凭证签发 —— **改权限/闸** |
-| `query/world_query.py` | 258 | 所有查询（overview/types/type/one/actions/history/events） —— **改查询/界面数据** |
+| `query/world_query.py` | 258 |
+| `ingest/appear.py` | ~120 | **本体内部数据管道**：收 world/appear → 校验 → 个体不存在就建/已存在就更新（带 before 落账） | 所有查询（overview/types/type/one/actions/history/events） —— **改查询/界面数据** |
 | `govern/governance.py` | 180 | 人确认 / 委托四格 / 策略 / 审计回账（本地执行，不外转） —— **改确认/委托/审计** |
 | `gate/identity.py` / `gate/permit.py` | 130 / 194 | 票（登录）／一次性执行凭证（HMAC、绑动作+参数） —— **改认证/凭证** |
 | `gate/action_contract.py` | 113 | 参数校验、前置条件、`route_for()` 多态路由 —— **改动作契约/路由** |
@@ -54,6 +56,7 @@
 |---|---|---|
 | 执行系统命令 / 跑 sys.* | `src/computer/computer_process.py` | `run_action()` / `handle_exec()`；命令表在 `scripts/release/computer/command-map-sysknife.jsonl` |
 | 打开 URL / 起浏览器 | `src/computer/computer_process.py` | `_open_url()`（出向只许这里，C19） |
+| 本体接收管道（appear→更新个体） | `src/ontology/ingest/appear.py` | `ingest_appear()`（ontology_process 只做入口委派） |
 | computer 实时指标 | `src/computer/pipeline/metrics.py`（独立子夹） | `collect_metrics / metrics_changed / should_report / metrics_loop`；`computer_process.py` 只负责导入并起线程 |
 | 桌面画布 / 图标 | `src/space/desktop_frame.py` | `desktop_frame()`、`ICONS` |
 | 桌面窗口 / 点击处理 | `src/space/space_process.py` | `on_act() / dispatch() / draw()` |

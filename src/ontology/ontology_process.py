@@ -42,6 +42,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)                      # 本原子目录（ontology_definition）
 sys.path.insert(0, os.path.dirname(HERE))     # src/ 根（foundry_ontology 目录）
 from law.ontology_definition import build_aios_ontology  # noqa: E402
+from ingest.appear import ingest_appear  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
@@ -184,85 +185,8 @@ class World:
 
     # ── ①b ★★ 进程注册（★ 作者要的那一种：进程起来 ⇒ 报「我是谁」）──
     def on_appear(self, smp):
-        """★ 一个进程起来 ⇒ 照【类的字段】校验 ⇒ 成为个体 ⇒ 记账。
-
-        ★ 作者令（逐字）：「**我们这个进程很明确是要就是读取其他进程的**」
-        ★ 与「动作注册」的区别：★ 这条报的是【我这个人是谁】，★ 不是【我能干什么】。
-        """
-        try:
-            msg = json.loads(smp.payload.to_string())
-        except Exception as e:
-            self.reject("BAD_MESSAGE", action="appear", why="不是 JSON（%s）" % e)
-            return
-        cls = msg.get("class") or ""
-        # ★ 认：类在册吗？
-        ot = self.ontology.object_types.get(cls)
-        if ot is None:
-            why = "类不在册（世界没有「%s」这一类）" % cls
-            self.reject("APPEAR_CLASS_UNKNOWN", action="appear:" + cls, why=why, **{"class": cls})
-            return
-        # ★ 照类的字段校验：必填齐不齐、有没有多塞
-        # ★★★ 先摘出【能力上报】—— 那不是 service 类的格（★ 塞进去会被「多塞了」拒）
-        caps_avail = msg.get("actions_available")
-        caps_unsup = msg.get("actions_unsupported")
-        reporter = msg.get("reporter") or ""      # ★ 谁报的（权威线用；不参与字段校验）
-        fields = {}
-        for k, v in msg.items():
-            if k in ("class", "actions_available", "actions_unsupported", "reporter"):
-                continue
-            fields[k] = v
-        # ★ 兼容：上报方用 local_id，本体字段叫 name
-        if "local_id" in fields and "name" not in fields:
-            fields["name"] = fields.pop("local_id")
-        declared = set(ot.properties.keys())
-        extra = [k for k in fields if k not in declared]
-        missing = [k for k, pr in ot.properties.items() if pr.required and k not in fields]
-        # ★★ 取值域校验（本体声明了 options 的格，值必须在里面）
-        bad_value = []
-        for k, pr in ot.properties.items():
-            if k in fields and pr.options and fields[k] not in pr.options:
-                bad_value.append('%s=%r 不在 %s 里' % (k, fields[k], pr.options))
-        if extra or missing or bad_value:
-            why = []
-            if extra:
-                why.append("多塞了 %s（本体没声明的格）" % extra)
-            if missing:
-                why.append("缺必填 %s" % missing)
-            if bad_value:
-                why.append("取值域不对：" + "；".join(bad_value))
-            why_s = "；".join(why)
-            self.reject("APPEAR_FIELDS_INVALID", action="appear:" + cls, why=why_s,
-                        **{"class": cls, "body": msg})
-            return
-        # ★★ 权威线（借自订单样板：有效性先于权威）：这个类的事实只许它的【提供者】报
-        _ok, _why, _code = identity.authority_ok(cls, reporter, self.appeared, self.reporters)
-        if not _ok:
-            self.reject(_code, action="appear:" + cls, actor=reporter, why=_why, **{"class": cls})
-            return
-        # ★★ 建个体（★ 用 P 的 ObjectStore.create —— 它会【按类型再校一遍】）
-        try:
-            inst = self.store.create(cls, dict(fields), created_by="world")
-        except Exception as e:
-            why = "建个体失败：%s" % e
-            self.reject("APPEAR_CREATE_FAILED", action="appear:" + cls, why=why,
-                        **{"class": cls, "body": msg})
-            return
-        # ★★ 计算机报到时带了「我能做什么」⇒ 记下来（★ 给模型看，★ 也给查世界答）
-        if caps_avail or caps_unsup:
-            self.computer_caps = {"available": caps_avail or [],
-                                 "unsupported": caps_unsup or [],
-                                 "by": "%s/%s" % (cls, fields.get("name", "?")),
-                                 "at": None}
-            log("★ 计算机报了能力：可用 %d ／ 不支持 %d" % (
-                len(self.computer_caps["available"]), len(self.computer_caps["unsupported"])))
-        # ★ 记下「报过到」：之后它自称这个身份，本体要能核得上（闸②.5）
-        self.appeared["%s/%s" % (cls, fields.get("name", "?"))] = True
-        # ★ 盖章 ＋ 落账（个体出现 ＝ 世界状态变化 ⇒ family=change）
-        seq = self.stamp("change", kind_of="appear", actor=reporter,
-                         **{"class": cls, "subject": "%s/%s" % (cls, fields.get("name", inst.instance_id)),
-                            "after": fields})
-        log("★ 进程注册 %s/%s ⇒ 成为个体（%s，store 里 id=%s）"
-            % (cls, fields.get("name", "?"), seq, inst.instance_id))
+        """★ 本体内部数据管道的入口（接收/校验/建更新在 ingest/appear.py）。"""
+        return ingest_appear(self, smp, log=log)
 
     # ── ★★ 执行面 ①：谁能做这个动作（T-342 真做）──
     def can_execute(self, actor, capability):
