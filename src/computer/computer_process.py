@@ -20,6 +20,7 @@ import re
 import shutil
 import socket
 import subprocess
+import threading
 import sys
 import time
 
@@ -309,6 +310,58 @@ def probe_availability(rows):
             missing[name] = "本发行版没有 %s" % prog
     return ok, missing
 
+def collect_metrics():
+    """★ 底层事实（数据管道的采集端）：uptime/load/mem/cpu/os；读不到就留空。"""
+    m = {}
+    try:
+        with open("/proc/uptime", encoding="utf-8") as f:
+            m["uptime_seconds"] = int(float(f.read().split()[0]))
+    except Exception as e:                                  # noqa: BLE001
+        log("采集 uptime 失败：%s" % e)
+    try:
+        with open("/proc/loadavg", encoding="utf-8") as f:
+            p = f.read().split()
+            m["load1"] = float(p[0])
+            m["load5"] = float(p[1])
+    except Exception as e:                                  # noqa: BLE001
+        log("采集 loadavg 失败：%s" % e)
+    try:
+        info = {}
+        with open("/proc/meminfo", encoding="utf-8") as f:
+            for line in f:
+                k, _, rest = line.partition(":")
+                info[k] = int(rest.strip().split()[0])   # kB
+        m["mem_total_mb"] = int(info["MemTotal"] / 1024)
+        m["mem_available_mb"] = int(info.get("MemAvailable", 0) / 1024)
+    except Exception as e:                                  # noqa: BLE001
+        log("采集 meminfo 失败：%s" % e)
+    m["cpu_count"] = os.cpu_count() or 0
+    try:
+        with open("/etc/os-release", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("PRETTY_NAME="):
+                    m["os_name"] = line.split("=", 1)[1].strip().strip('"')
+                    break
+    except Exception as e:                                  # noqa: BLE001
+        log("采集 os-release 失败：%s" % e)
+    return m
+
+
+def metrics_loop(session, every=10):
+    """★ 数据管道的【上报端】：每 10 秒把底层事实报给本体（world/appear ⇒ 本体更新个体＋落账＋推事件）。"""
+    while True:
+        try:
+            ME.update(collect_metrics())
+            ME["reporter"] = "world://computer/" + COMPUTER_NAME
+            session.put(T_APPEAR, json.dumps(ME, ensure_ascii=False))
+            log("★ 上报本体：uptime=%ss load1=%s mem=%s/%sMB"
+                % (ME.get("uptime_seconds"), ME.get("load1"),
+                   ME.get("mem_available_mb"), ME.get("mem_total_mb")))
+        except Exception as e:                              # noqa: BLE001
+            log("★ 上报本体失败：%s" % e)
+        time.sleep(every)
+
+
 def main():
     rows = load_map(MAP_PATH)
     ok, missing = probe_availability(rows)
@@ -357,6 +410,8 @@ def main():
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)
+    # ★ 数据管道：底层事实每 10 秒上报本体（采集 → 映射 → 上报）
+    threading.Thread(target=metrics_loop, args=(session,), daemon=True).start()
     log("⑤ 订上了 %s（★ 一次声明、长期持有）" % T_EXEC)
     log("★ 计算机起来了 —— 报机器 ＋ 执行 ＋ 回话（★ 不裁决、不记账、不持身份）")
 

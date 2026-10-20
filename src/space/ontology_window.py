@@ -9,11 +9,12 @@
 """
 from window_frame import wrap_window
 
-TABS = (("overview", "概览"), ("classes", "类"), ("interfaces", "接口"),
-        ("links", "关系"), ("actions", "动作"), ("ledger", "账"), ("events", "事件"))
+TABS = (("overview", "概览"), ("computers", "机器"), ("classes", "类"),
+        ("interfaces", "接口"), ("links", "关系"), ("actions", "动作"),
+        ("ledger", "账"), ("events", "事件"))
 # ★ 一页放多少行（窗口没有滚动条，用分页保证「所有信息都能看到」）
-PAGE_LINES = {"overview": 12, "classes": 10, "interfaces": 12, "links": 12,
-              "actions": 12, "ledger": 12, "events": 12}
+PAGE_LINES = {"overview": 12, "computers": 12, "classes": 10, "interfaces": 12,
+              "links": 12, "actions": 12, "ledger": 12, "events": 12}
 
 
 class OntologyMixin:
@@ -24,6 +25,7 @@ class OntologyMixin:
         self.ontology = {}
         self.ontology_tab = "overview"
         self._ont_query("overview", "overview")
+        self._ont_query("type", "computers", {"type": "computer"})
         self._ont_query("types", "types")
         self._ont_query("actions", "actions")
         self._ont_query("history", "history", {"limit": 20})
@@ -38,7 +40,7 @@ class OntologyMixin:
         msg = {"id": rid, "kind": kind}
         if extra:
             msg.update(extra)
-        if self.ticket and kind in ("history", "events"):
+        if self.ticket and kind in ("history", "events", "type", "one", "link"):
             msg["ticket"] = self.ticket
         self.s.put("world/query", __import__("json").dumps(msg, ensure_ascii=False))
 
@@ -96,6 +98,21 @@ class OntologyMixin:
                 lines.append("· %s  %s  %s  %s" % (short_at(r.get("at")), r.get("kind_of"),
                                                     r.get("action") or r.get("kind") or "",
                                                     r.get("actor") or ""))
+        elif tab == "computers":
+            rows = d.get("computers") or []
+            lines.append("**这台机器（底层事实，每 10 秒上报一次）**")
+            for r in rows[:6]:
+                p = r.get("properties") or {}
+                lines.append("**%s**  %s" % (p.get("name") or r.get("id"),
+                                             p.get("os_name") or ""))
+                lines.append("    uptime %s 秒 ／ load1 %s ／ load5 %s ／ 内存 %s/%s MB ／ CPU %s"
+                             % (p.get("uptime_seconds"), p.get("load1"), p.get("load5"),
+                                p.get("mem_available_mb"), p.get("mem_total_mb"),
+                                p.get("cpu_count")))
+                lines.append("    state=%s ／ hostname=%s ／ owner=%s"
+                             % (p.get("state"), p.get("hostname"), p.get("owner")))
+            if not rows:
+                lines.append("（还没有 machine 个体；等 computer 报一次）")
         elif tab == "classes":
             types = d.get("types") or {}
             for tid, info in (ov.get("classes") or {}).items():
@@ -214,6 +231,18 @@ class OntologyMixin:
                 "components": wrap_window("本体 · 世界全貌", comps, sid)}}]}
         self.own[sid] = {"frame": frame, "rect": [120, 84, 1040, 640]}
         self.draw()
+
+    def on_activity_event(self, ev):
+        """★ 数据管道实时性：computer 每 10 秒上报 ⇒ 本体推 appear 事件 ⇒ 窗口自动刷新。"""
+        if not isinstance(ev, dict) or ev.get("kind_of") != "appear":
+            return
+        if not str(ev.get("subject") or "").startswith("computer/"):
+            return
+        if "space/ontology-" + self.user not in self.own:
+            return
+        if getattr(self, "ontology_tab", "") in ("computers", "overview"):
+            self._ont_query("type", "computers", {"type": "computer"})
+            self._ont_query("overview", "overview")
 
     def on_tab_click(self, tab):
         if tab in dict(TABS):

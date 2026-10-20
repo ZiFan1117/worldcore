@@ -50,6 +50,12 @@ class ActivityMixin:
         if sp and sp != "space:" + self.user:
             return
         self._remember(e)
+        hook = getattr(self, "on_activity_event", None)   # ★ 钩子：本体窗口可据此实时刷新
+        if hook:
+            try:
+                hook(e)
+            except Exception as ex:                            # noqa: BLE001
+                log("事件钩子失败：%s" % ex)
         if self.activity_open:
             self._draw_activity()
 

@@ -1041,6 +1041,69 @@
             "retired"
           ],
           "description": "enum"
+        },
+        {
+          "name": "uptime_seconds",
+          "label": "uptime_seconds",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "开机时长（秒），每 10 秒随报到更新"
+        },
+        {
+          "name": "load1",
+          "label": "load1",
+          "type": "FLOAT",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "1 分钟负载"
+        },
+        {
+          "name": "load5",
+          "label": "load5",
+          "type": "FLOAT",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "5 分钟负载"
+        },
+        {
+          "name": "mem_total_mb",
+          "label": "mem_total_mb",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "内存总量 MB"
+        },
+        {
+          "name": "mem_available_mb",
+          "label": "mem_available_mb",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "可用内存 MB"
+        },
+        {
+          "name": "cpu_count",
+          "label": "cpu_count",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "CPU 数"
+        },
+        {
+          "name": "os_name",
+          "label": "os_name",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "发行版名（/etc/os-release PRETTY_NAME）"
         }
       ]
     },
