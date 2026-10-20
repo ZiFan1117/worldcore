@@ -245,6 +245,7 @@ SYS_PLAN = (
     "★ available_actions 是【完整且已核实】的清单（本机真能跑的）；清单外的不要挑。\n"
     "★ 只读动作（Get*／List*）随时可做；变更类会被人确认拦下。\n"
     "★ screen 是【此刻屏上有什么】（surfaces／layout，来自呈现与空间，经本体）；可据此决定帮人做什么。\n"
+    "★ 文件相关：用 file.stat／file.list／file.read_text（只读）问世界，不要自己绕开世界读盘。\n"
     "★ 别每轮都挑同一个：换着查不同的面。\n"
     "★ 严格输出 JSON：{\"action\": \"动作名\", \"params\": {…}, \"why\": \"一句话\"}\n"
     "★ 实在没有可用动作时，输出 {\"action\": \"\"}。"
@@ -386,7 +387,12 @@ def main():
                str((screen.get("surfaces") or {}))[:120]))
         acts_data = acts.get("data") or {}
         # ★★★ 只把【本机可用】的动作给模型（★ 不截断！截断了它会以为清单不全而拒绝动手）
-        avail = acts_data.get("available") or []
+        avail = list(acts_data.get("available") or [])
+        # ★ 2026-10-20（二期）：文件进程的只读动作也进清单 —— DSH 要「文件先问世界」
+        _reg = acts_data.get("registry") or []
+        for _a in ("file.stat", "file.list", "file.hash", "file.read_text", "fs.state"):
+            if _a in _reg and _a not in avail:
+                avail.append(_a)
         world_data = world.get("data") or {}
         ctx_obj = {
             "world": {

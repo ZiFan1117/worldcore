@@ -157,6 +157,12 @@ flowchart TB
 
 > 定时器：看门狗（3 分钟）、世界快照（每小时）、worldfs（15 分钟）等（不属于 9 个常驻进程）。
 
+## 七半、文件进程（aios-fs，二期）
+
+- `src/fs/`：语义文件只读服务（`file.stat/list/hash/read_text`＋`fs.state`）；报到/注册/订 ask/验 permit/回账；读到的文件报成 `file` 个体。
+- v1 **只读**：白名单根（`/var/lib/aios:/root/aios:/etc/aios`）、realpath 防符号链接逃逸、秘密/隐藏文件拒读、32KB 截断；写路径二期（借 AI-OS L2 的版本/指针/证据）。
+- 部署：`aios-fs.service`（10 个单元之一），看门狗 UNITS 含 `aios-fs`。
+
 ## 八、三条「改本体」的路：Action / Function / Pipeline
 
 > 先回答一个常见混淆：**数据管道不是 action，也不是 function**；它是第三条路——**状态同步**。

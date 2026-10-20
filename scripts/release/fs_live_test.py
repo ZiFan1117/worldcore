@@ -6,6 +6,7 @@
   python3 /root/aios/scripts/release/fs_live_test.py
 """
 import json
+import os
 import time
 
 import zenoh
@@ -68,7 +69,7 @@ class Bus:
 
 def main():
     bus = Bus()
-    out, checks = {"checks": []}, out_checks = None
+    out = {"checks": []}
     out_checks = out["checks"]
 
     def check(name, ok, detail=""):
@@ -87,21 +88,22 @@ def main():
         names = {e.get("name") for e in ((r.get("body") or {}).get("entries") or [])}
         check("列表含 ontology 目录", "ontology" in names, sorted(names)[:8])
 
-        st = bus.ask("fs-stat", "file.stat",
-                     {"path": "/var/lib/aios/ontology/ledger.jsonl"},
+        static_file = "/root/aios/scripts/release/systemd/aios-fs.service"
+        st = bus.ask("fs-stat", "file.stat", {"path": static_file},
                      ticket=tk, actor="world://user/zhang")
         body = st.get("body") or {}
-        check("file.stat 账本", bool(st.get("ok")) and int(body.get("size") or 0) > 0,
-              "size=%r kind=%r" % (body.get("size"), body.get("kind")))
+        check("file.stat 静态文件", bool(st.get("ok")) and int(body.get("size") or 0) > 0,
+              "size=%r kind=%r err=%r" % (body.get("size"), body.get("kind"),
+                                          st.get("error") or st.get("code")))
         check("file.stat 带 sha256", len(str(body.get("sha256") or "")) == 64,
               str(body.get("sha256"))[:16] + "…")
 
-        h = bus.ask("fs-hash", "file.hash",
-                    {"path": "/var/lib/aios/ontology/ledger.jsonl"},
+        h = bus.ask("fs-hash", "file.hash", {"path": static_file},
                     ticket=tk, actor="world://user/zhang")
-        check("file.hash 一致", h.get("ok") and
-              (h.get("body") or {}).get("sha256") == body.get("sha256"),
-              "同一文件两次哈希一致")
+        hb = h.get("body") or {}
+        check("file.hash 一致", h.get("ok") and hb.get("sha256") == body.get("sha256"),
+              "stat=%r hash=%r err=%r" % (str(body.get("sha256"))[:12],
+                                         str(hb.get("sha256"))[:12], h.get("error") or h.get("code")))
 
         tx = bus.ask("fs-read", "file.read_text",
                      {"path": "/var/lib/aios/ontology/registry.jsonl", "max_bytes": 200},
@@ -116,22 +118,34 @@ def main():
         check("越界路径被拒（/etc/passwd）", bad.get("ok") is False,
               str(bad.get("error") or bad.get("code"))[:120])
 
-        secret = bus.ask("fs-secret", "file.read_text",
-                         {"path": "/root/aios/.git/config"},
-                         ticket=tk, actor="world://user/zhang")
-        check("隐藏/秘密文件拒读（.git/config）", secret.get("ok") is False,
+        secret_path = "/var/lib/aios/.fs-secret-crit"
+        with open(secret_path, "w", encoding="utf-8") as f:
+            f.write("TOKEN=abc")
+        try:
+            secret = bus.ask("fs-secret", "file.read_text", {"path": secret_path},
+                             ticket=tk, actor="world://user/zhang")
+        finally:
+            try:
+                os.remove(secret_path)
+            except OSError:
+                pass
+        check("隐藏/秘密文件拒读（.fs-secret-crit）",
+              secret.get("ok") is False and "秘密" in str(secret.get("error") or ""),
               str(secret.get("error") or secret.get("code"))[:120])
 
         acts = bus.query("fs-actions", "actions")
-        ad = acts.get("data") or {}
-        ids = {a.get("id") if isinstance(a, dict) else a for a in
-               (ad.get("actions") if isinstance(ad, dict) else ad or [])}
-        check("注册表有 file.*（world/query actions）",
-              {"file.stat", "file.list", "file.hash", "file.read_text"} <= ids,
-              "file 动作数=%d" % len([i for i in ids if str(i).startswith("file.")]))
+        raw = acts.get("data") or {}
+        reg = set(raw.get("registry") or [])
+        ont = set(raw.get("ontology") or [])
+        need = {"file.stat", "file.list", "file.hash", "file.read_text"}
+        check("注册表有 file.*（world/query actions）", need <= reg and need <= ont,
+              "registry file.*=%d ontology file.*=%d"
+              % (len([i for i in reg if str(i).startswith("file.")]),
+                 len([i for i in ont if str(i).startswith("file.")])))
 
         ty = bus.query("fs-type", "type", ticket=tk, type="file")
-        rows = ty.get("data") or []
+        rawt = ty.get("data")
+        rows = (rawt.get("individuals") if isinstance(rawt, dict) else rawt) or []
         check("world/query kind=type 能查到 file 个体",
               any((r.get("properties") or {}).get("path") ==
                   "/var/lib/aios/ontology/ledger.jsonl" for r in rows),

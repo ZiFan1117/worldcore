@@ -121,3 +121,9 @@ echo "=== 6 日志尾 ==="
 journalctl -u aios-computer --no-pager -n 4 2>&1 | tail -4
 journalctl -u aios-ontology --no-pager -n 4 2>&1 | tail -4
 echo "=== ★ 部署完成 ==="
+
+# ★ 看门狗脚本同步：root 手动装的那份（/root/aios-watchdog.sh）也随部署更新，防「仓库改了、机器没改」
+if [ -f "$ROOT/scripts/release/monitor/watchdog.sh" ]; then
+    install -m 0755 "$ROOT/scripts/release/monitor/watchdog.sh" /root/aios-watchdog.sh 2>/dev/null || true
+    echo "  ★ 看门狗脚本已同步：/root/aios-watchdog.sh"
+fi
