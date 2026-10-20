@@ -52,8 +52,8 @@
 
 - `python scripts/test/check.py`：**73/73 全绿**（每条带 `--self-test` 会红反例；C69–C73 为二期新增）；
 - 法对账：`export-law.py --check` = 声明件 ≡ 运行中的法；
-- 部署：`deploy.sh` 管理 13 单元与看门狗 `/root/aios-watchdog.sh`（UNITS 已含四新进程）；
-- 架构图：`docs/architecture.png`（v3，13 单元）＋ `docs/ARCHITECTURE.md`＋`docs/CODE-MAP.md`。
+- 部署：`deploy.sh` 管理 14 单元与看门狗 `/root/aios-watchdog.sh`（UNITS 已含五个二期进程）；
+- 架构图：`docs/architecture.png`（v4，14 单元）＋ `docs/ARCHITECTURE.md`＋`docs/CODE-MAP.md`。
 
 ## 五半、收口验证（T-503，VM 现取）
 
@@ -71,7 +71,7 @@
 ### 五半.1 soak 进行中（2026-10-21 00:18 现取）
 
 - `wcore-soak.service` 在跑；已有 4 个样本（每 5 分钟一行，`/root/soak-13units.jsonl`）；
-- 每个样本的 13 单元（vault 加入前的 13 个）全 `active`；账行数 13048；computer 最近上报照常；
+- soak 已扩到 **14 单元**（含 vault）并重起；样本里 14/14 全 `active`；账行数持续增长；computer 最近上报照常；
 - 注：soak 的 `UNITS` 硬编码于 vault 加入前（13 个），vault 单元由收口验证单独确认（14/14 active）。
 
 ## 六、没做到的（如实）
@@ -89,7 +89,7 @@
 python scripts/test/check.py
 # 法对账
 python scripts/release/export-law.py --check
-# VM（在 13 单元部署后）
+# VM（在 14 单元部署后）
 python3 /root/aios/scripts/release/fs_live_test.py
 python3 /root/aios/scripts/release/clock_live_test.py
 python3 /root/aios/scripts/release/recovery_live_test.py
