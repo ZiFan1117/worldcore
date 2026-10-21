@@ -48,6 +48,7 @@ button{cursor:pointer;background:none;border:0}
 .navitem:hover{background:rgba(0,0,0,.04)}
 .navitem .ic{width:15px;text-align:center;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center}
 .ic svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.svgi{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
 .grp{padding:18px 16px 4px;display:flex;align-items:center;gap:7px;color:var(--muted);
   font-size:11px;letter-spacing:.04em}
 .grp .ops{margin-left:auto;display:flex;gap:10px;color:var(--muted);align-items:center}
@@ -213,7 +214,7 @@ button{cursor:pointer;background:none;border:0}
       </svg>
       <span class="name">deepseek</span><span class="badge">HARNESS</span>
     </div>
-    <button class="newchat" id="newChat"><span style="font-size:15px">＋</span> 新会话</button>
+    <button class="newchat" id="newChat"><svg class="svgi" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg> 新会话</button>
     <div class="nav">
       <button class="navitem"><span class="ic"><svg viewBox="0 0 16 16"><path d="M4 3h3v3H4zM9 3h3v3H9zM4 8h3v5H4zM9 8h3v5H9z"/></svg></span> 插件</button>
       <button class="navitem"><span class="ic"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.4"/><path d="M8 4.6V8l2.2 1.4"/></svg></span> 自动化任务</button>
@@ -233,9 +234,9 @@ button{cursor:pointer;background:none;border:0}
     <div class="head">
       <div class="title" id="headTitle">与 DSH 的对话</div>
       <div class="chips">
-        <span class="chip"><span class="ci">◈</span> 智能体团队</span>
-        <span class="chip"><span class="ci">◐</span> 标准模式</span>
-        <span class="chip"><span class="ci">◎</span> <b id="agentCount">1</b> 个智能体 <span class="chev">⌄</span></span>
+        <span class="chip"><svg class="svgi" viewBox="0 0 16 16"><circle cx="5.5" cy="6" r="2.1"/><circle cx="10.5" cy="6" r="2.1"/><path d="M2 13c.5-2.2 2-3.3 3.5-3.3S8.5 10.8 9 13M8.5 13c.4-2 1.6-3.3 2.9-3.3 1.2 0 2.2 1 2.6 3.3"/></svg> 智能体团队</span>
+        <span class="chip"><svg class="svgi" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> 标准模式</span>
+        <span class="chip"><svg class="svgi" viewBox="0 0 16 16"><circle cx="8" cy="5" r="2.4"/><path d="M3 14c.5-3 2.4-4.6 5-4.6S12.5 11 13 14"/></svg> <b id="agentCount">1</b> 个智能体 <span class="chev">⌄</span></span>
         <span class="chip"><span class="ci">●</span> <b id="agentChip">待启动</b> <span class="chev">⌄</span></span>
       </div>
     </div>
@@ -251,7 +252,7 @@ button{cursor:pointer;background:none;border:0}
         <textarea id="input" rows="2" placeholder="给 DSH 发消息，或让它去做一件事…"></textarea>
         <div class="comptools">
           <div class="pluswrap">
-            <button class="cbtn plusbtn" id="btnPlus" title="更多">＋</button>
+            <button class="cbtn plusbtn" id="btnPlus" title="更多"><svg class="svgi" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg></button>
             <div class="plusmenu hidden" id="plusMenu">
               <button class="cmenuitem" id="btnLaunch">▶ 启动 Agent</button>
               <button class="cmenuitem" id="btnGuideMode">◇ 引导模式</button>
@@ -263,7 +264,7 @@ button{cursor:pointer;background:none;border:0}
           </div>
           <span class="cspacer"></span>
           <span class="model"><span>◈</span> <b>deepseek-chat</b> <span>⌄</span></span>
-          <button class="send" id="send" title="发送">↑</button>
+          <button class="send" id="send" title="发送"><svg class="svgi" viewBox="0 0 16 16" style="width:14px;height:14px"><path d="M8 13V3M4 7l4-4 4 4"/></svg></button>
         </div>
       </div>
       <div class="hint"><span>Enter 发送，Shift+Enter 换行；动作与回话都经本体。</span><span id="hintState">就绪</span></div>
