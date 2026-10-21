@@ -56,6 +56,17 @@ VM 现取：`aios-worldfs` **active**；15 单元全 active；存储根 384K；b
 4. 人类直接 `world/ask worldfs.write` 视为“本人在场”，不会再弹一次确认；agent 请求才会走 `CONFIRM_ACTIONS` 的弹窗/委托路径；
 5. 账里 `worldfs.write` 的 `text` 参数未脱敏（P1 文本；后续按 privacy class 处理）。
 
+## 四半、最终 VM 读数（2026-10-21 19:50 +08:00）
+
+| 项 | 现取 |
+|---|---|
+| 单元 | **15/15 active**（15 个单元含 aios-worldfs） |
+| worldfs 存储 | objects=4、versions=5、paths=3、txns=7、blobs=2（去重后） |
+| 世界个体 | 账里 worldfs 2、wpath 12、wfile 5、wversion 10（进程/路径/对象/版本都成了世界个体） |
+| worldfs 动作结果 | 16 行（read/state/write/list/remove 都 ok=True；删后 read ok=False 符合预期） |
+| **agent 写拒绝（运行时）** | `world_cli` 以 agent 身份 ask `worldfs.write` ⇒ `CONFIRM_REQUIRED`（confirmation=cf-…）；**路径未创建**（0 行） |
+| 人类写 | 走 `world/ask`＋permit＋账；本人直接请求视为在场（不再弹一次确认）；agent 请求才走弹窗/委托 |
+
 ## 五、怎么复跑
 
 ```bash
