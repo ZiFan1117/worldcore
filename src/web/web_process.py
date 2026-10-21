@@ -313,6 +313,17 @@ class Handler(BaseHTTPRequestHandler):
             except FileNotFoundError:
                 self._send(500, "dsh.html 不在", "text/plain; charset=utf-8")
             return
+        if path.startswith("/fonts/"):
+            name = os.path.basename(path)
+            if name in ("montserrat-regular.woff2", "montserrat-medium.woff2"):
+                try:
+                    with open(os.path.join(HERE, "fonts", name), "rb") as f:
+                        self._send(200, f.read(), "font/woff2")
+                except FileNotFoundError:
+                    self._send(404, "font not found", "text/plain; charset=utf-8")
+                return
+            self._send(404, "font not found", "text/plain; charset=utf-8")
+            return
         if path in ("/", "/index.html", "/voice.html"):
             try:
                 with open(HTML, encoding="utf-8") as f:
