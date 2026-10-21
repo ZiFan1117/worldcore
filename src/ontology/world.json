@@ -5636,6 +5636,88 @@
         "why": "读 worldfs 状态"
       },
       "metadata": {}
+    },
+    {
+      "id": "agent.state",
+      "label": "读智能体状态",
+      "description": "★ 控制台只读：状态/轮次/心跳/最近动作/当前引导（经本体问 agent）。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://presence",
+          "world://agent"
+        ],
+        "why": "DSH 控制台读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "agent.guide",
+      "label": "引导智能体",
+      "description": "★ 控制台把人的引导经本体转给 agent；agent 下一轮按引导行动，结果仍经本体回界面。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "instruction",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://presence",
+          "world://agent"
+        ],
+        "why": "DSH 控制台引导"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

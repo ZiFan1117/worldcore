@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
 from window_frame import wrap_window  # noqa: E402
 from confirm_window import ConfirmMixin  # noqa: E402
 from ontology_window import OntologyMixin  # noqa: E402
+from agent_console_mixin import AgentConsoleMixin  # noqa: E402
 from space_util import act_context, surface_of  # noqa: E402
 from browser_url import DEFAULT_BROWSER_URL as BROWSER_URL  # noqa: E402
 
@@ -81,7 +82,7 @@ def log(*a):
     print("[个人空间]", *a, flush=True)
 
 
-class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
+class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
@@ -96,6 +97,7 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
         self.pending = {}         # ★ 已发请求：rid -> {"kind"}（回话到了再画窗口）
         self.events = []          # ★（P8）世界推来的事件（实时）
         self.activity_open = False  # ★ 活动窗口开着吗
+        self.agent_status = {}   # DSH control console last state
 
     def _ask(self, action, params, tag=""):
         """★ 个人空间以【人】的身份向本体发请求：点击/关窗口都必须过本体（许可/凭证/记账）。"""
@@ -258,6 +260,8 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
         else:
             name = _a.get("name") or ""
         log("③ 人的动作：%s（comp=%s）" % (name, d.get("component")))
+        if self.handle_agent_ctl(name, d, _a):
+            return
         if name == "space.login":
             # ★ 有人要登录 —— 是谁？★ 我这里是那个人的空间 ⇒ 报 human 并把空间置 active
             # ★★ 2026-10-19 修：原来这里写的 `act.get("params")` —— `act` 在这个函数里【不存在】
@@ -309,6 +313,7 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
                 # ★ 本体窗口：并行查全部信息（overview/types/actions/history/events），带页签
                 self.open_ontology()
             elif icon == "ic_agent":
+                self.open_agent_console()
                 self._ask("agent.launch", {}, "launch")
             elif icon == "ic_computer":
                 rid = self._ask("sys.GetHostState", {}, "computer")
@@ -364,6 +369,12 @@ class Space(ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
             log("④ 回话失败：%s（%s）" % (p.get("kind"), d.get("why") or d.get("code")))
             return
         body = d.get("body")
+        if str(p.get("kind") or "").startswith("agent"):
+            if isinstance(body, dict):
+                self.agent_status.update(body)
+            self.agent_status["last_result"] = True
+            self.refresh_agent_console()
+            return
         if p["kind"] == "confirm":
             log("④ 确认已回本体：%s" % str(body)[:120])
             return

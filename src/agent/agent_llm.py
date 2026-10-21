@@ -25,6 +25,8 @@ import uuid
 import zenoh
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 _SRC = os.path.dirname(_HERE)
 for _p in (os.path.join(_SRC, "ontology"), os.path.join(_SRC, "presentation")):
     if _p not in sys.path:
@@ -33,6 +35,7 @@ for _p in (os.path.join(_SRC, "ontology"), os.path.join(_SRC, "presentation")):
 from provider_auth import open_signed_session  # noqa: E402
 from gate import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
 from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
+from agent_status import status as _status, guide_ack_frame as _guide_ack_frame  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NAME = os.environ.get("AIOS_AGENT_NAME", "dsh")
@@ -54,10 +57,8 @@ T_EXEC = "world/exec"
 T_EXEC_RESULT = "world/exec/result"   # ★ ask 的回话要回本体，本体再回请求方
 T_REGISTER = "world/register"
 
-
 def log(*a):
     print("[agent/llm]", *a, flush=True)
-
 
 def ask_llm(system, user, max_tokens=900):
     """★ 调模型。★ 只认 JSON 回来。"""
@@ -83,9 +84,7 @@ def ask_llm(system, user, max_tokens=900):
     except Exception as e:
         return None, "%s: %s" % (type(e).__name__, str(e)[:200])
 
-
 HB = os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
-
 
 class Agent:
     def __init__(self, session):
@@ -95,6 +94,7 @@ class Agent:
         self.launched = False      # ★ 窗口是否已打开（点图标经本体批准后才置 True）
         self.recent_actions = []   # ★ 最近挑过的动作（给模型看，促使换着来）
         self.events = []           # ★（P8）世界推来的事件（最近 30 条）
+        self.guide = ""          # ★ 人通过控制台给的引导（经本体到 agent）
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
         self._write_heartbeat()
@@ -216,19 +216,25 @@ class Agent:
             "kind": "a2ui.frame", "by": "world://agent/" + NAME,
             "about": about, "frame": frame}, ensure_ascii=False))
 
+    def status(self):
+        return _status(self, NAME, DID)
+
+    def guide_ack_frame(self):
+        return _guide_ack_frame(self, build_frame)
+
     def register(self):
         """★ 谁启动谁注册：窗口动作由 agent 提供 ⇒ 本体把 agent.launch/close 转给我。"""
-        for aid in ("agent.launch", "agent.close"):
+        for aid in ("agent.launch", "agent.close", "agent.state", "agent.guide"):
             self.s.put(T_REGISTER, json.dumps({
                 "action": aid,
                 "function": aid.split(".", 1)[-1],
                 "registered_by": "agent/" + NAME,
                 "registered_by_kind": "agent",
                 "required_roles": ["agent"],
-                "kind": "invoke",
+                "kind": ("read" if aid == "agent.state" else "invoke"),
                 "why": "应用窗口：谁启动谁注册",
             }, ensure_ascii=False))
-        log("① 注册应用动作：agent.launch／agent.close（route=agent）")
+        log("① 注册应用动作：launch／close／state／guide（route=agent）")
 
     def build_launch_frame(self):
         """★ 启动时先出一张【静态窗口】（不用等模型）：标题栏＋一行说明。"""
@@ -238,7 +244,6 @@ class Agent:
             {"id": "a_line", "component": "Text",
              "text": "我是 agent/" + NAME + "：每 45 秒看一次世界，结果画在这扇窗里。点右上角 × 关闭。"},
         ])
-
 
 SYS_PLAN = (
     "你是 worldcore 世界里的【机器之眼】—— 一台 openSUSE 机器上的 agent。\n"
@@ -278,7 +283,6 @@ SYS_DRAW = (
     "★ 严格输出 JSON：{\"components\": [...]}"
 )
 
-
 def _frame_problems(frame):
     """★ 发之前自己按 A2UI 目录核一遍（与呈现同一份 frame_schema）——不合就不发。
 
@@ -291,7 +295,6 @@ def _frame_problems(frame):
         return frame_schema.validate_frame(frame)
     except Exception as e:
         return ["核不了帧（%s: %s）" % (type(e).__name__, str(e)[:120])]
-
 
 def build_frame(comps):
     """★ 把内容组件包成一帧：surface ＝ agent/<名字>；★ 统一套【窗口壳】（标题栏＋缩放/关闭）。"""
@@ -307,7 +310,6 @@ def build_frame(comps):
                 {"version": "v1.0", "updateComponents": {
                     "surfaceId": surface, "components": comps}},
             ]}
-
 
 
 def main():
@@ -354,7 +356,7 @@ def main():
         if d.get("route") and d.get("route") != "agent":
             return
         aid = d.get("action") or ""
-        if aid not in ("agent.launch", "agent.close"):
+        if aid not in ("agent.launch", "agent.close", "agent.state", "agent.guide"):
             return
         params = d.get("params") or {}
         ok, why = permit.verify(d.get("permit"), aid, params)
@@ -371,12 +373,29 @@ def main():
             a.launched = True
             a.notice(a.build_launch_frame(), "智能体窗口（启动）")
             log("★ 收到 agent.launch（凭证过）⇒ 出窗口")
-        else:
+            result = {"launched": True}
+        elif aid == "agent.close":
             a.launched = False
+            result = {"launched": False}
             log("★ 收到 agent.close ⇒ 停画（画布由呈现撤回，理由随账）")
+        elif aid == "agent.state":
+            result = a.status()
+        else:
+            ins = str(params.get("instruction") or "").strip()
+            if not ins:
+                session.put(T_EXEC_RESULT, json.dumps({
+                    "id": d.get("id"), "action": aid, "ok": False, "body": None,
+                    "by": "agent/" + NAME, "code": "INVALID_ARGS",
+                    "error": "agent.guide 要 instruction"}, ensure_ascii=False))
+                return
+            a.guide = ins
+            a._write_heartbeat({"phase": "guided", "guide": ins[:120]})
+            a.notice(a.guide_ack_frame(), "引导（经本体回界面）")
+            log("★ 收到 agent.guide ⇒ 下一轮按引导：%s" % ins[:80])
+            result = a.status()
         session.put(T_EXEC_RESULT, json.dumps({
             "id": d.get("id"), "action": aid, "ok": True,
-            "body": {"launched": a.launched}, "by": "agent/" + NAME},
+            "body": result, "by": "agent/" + NAME},
             ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)
@@ -424,6 +443,7 @@ def main():
             "screen": screen,          # ★ 屏上有什么（呈现/空间经本体答的）
             "activity": a.recent_events(8),   # ★（P8）世界最近发生的事（实时推来的）
             "recent_actions": a.recent_actions[-8:],  # ★ 最近做过的（别总重复）
+            "guide": a.guide or None,
         }
         ctx = json.dumps(ctx_obj, ensure_ascii=False)
         plan, err = ask_llm(SYS_PLAN, ctx)
