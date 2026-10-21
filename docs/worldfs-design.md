@@ -4,6 +4,8 @@
 > 本文是 **P1 的设计件**：自有命名空间 + 内容寻址 blob + 不可变版本 + 路径指针 + 人确认写 + 回滚。
 > FUSE/POSIX 挂载、分块/GC/配额放 P2/P3（见 §12）。
 > 借鉴 AI-OS `002…/L2_AIOS_FS/` 的**形状**（对象/版本/chunk/指针/事务），不搬代码、不做 RDF/OWL。
+> **2026-10-21 作者令**：「这个文件系统不记账，账都在本体里面」——worldfs 只做内容载体，
+> 本地不建账本/审计表；actor/intent/时间/许可/结果只在本体 `world/ask`、`world/exec/result` 与 ledger 里。
 
 ## 1. 定位与边界
 
@@ -52,8 +54,6 @@
 CREATE TABLE objects (
   obj_id TEXT PRIMARY KEY,          -- wobj_<uuidhex>
   kind TEXT NOT NULL,               -- file | dir
-  created_at TEXT NOT NULL,
-  created_by TEXT NOT NULL,
   state TEXT NOT NULL,              -- active | retired
   current_seq INTEGER NOT NULL DEFAULT 0
 );
@@ -65,9 +65,6 @@ CREATE TABLE versions (
   seq INTEGER NOT NULL,
   blob_sha256 TEXT NOT NULL,        -- 文件内容；dir 为空串
   size INTEGER NOT NULL,
-  created_at TEXT NOT NULL,
-  created_by TEXT NOT NULL,
-  intent TEXT,
   UNIQUE(obj_id, seq)
 );
 
@@ -76,23 +73,10 @@ CREATE TABLE paths (
   path TEXT PRIMARY KEY,            -- /worldfs/...
   obj_id TEXT NOT NULL,
   seq INTEGER NOT NULL,
-  kind TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  updated_by TEXT NOT NULL
+  kind TEXT NOT NULL
 );
 
--- 事务（崩溃恢复/审计辅助；世界账仍是权威）
-CREATE TABLE txns (
-  txn_id TEXT PRIMARY KEY,          -- wtxn_<uuidhex>
-  at TEXT NOT NULL,
-  actor TEXT NOT NULL,
-  action TEXT NOT NULL,
-  path TEXT,
-  obj_id TEXT,
-  seq INTEGER,
-  before_seq INTEGER,
-  intent TEXT
-);
+-- ★ 没有 txns：本地不记账；一次写的 actor/intent/结果只在本体账里。
 ```
 
 ## 5. 法（world.json）
@@ -102,9 +86,9 @@ CREATE TABLE txns (
 | 类 | 关键属性 | 报告者 |
 |---|---|---|
 | `worldfs`（进程个体） | name/state/root/objects/paths | `world://worldfs` |
-| `wfile`（逻辑对象） | obj_id（主键）/name/kind(file,dir)/state/current_seq/blob_sha256/size/updated_at | `world://worldfs` |
-| `wversion`（不可变版本） | ver_id（主键）/obj_id/seq/blob_sha256/size/created_at/created_by/intent | `world://worldfs` |
-| `wpath`（路径视图） | path（主键）/obj_id/seq/kind/updated_at | `world://worldfs` |
+| `wfile`（逻辑对象） | obj_id（主键）/name/kind(file,dir)/state/current_seq/blob_sha256/size | `world://worldfs` |
+| `wversion`（不可变版本） | ver_id（主键）/obj_id/seq/blob_sha256/size | `world://worldfs` |
+| `wpath`（路径视图） | path（主键）/obj_id/seq/kind | `world://worldfs` |
 
 ### 5.2 动作
 

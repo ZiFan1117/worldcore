@@ -74,7 +74,7 @@ def _put(session, payload):
 
 
 def _report_path(session, st):
-    """★ 把路径/对象报成世界个体（wpath/wfile）。"""
+    """★ 把内容/版本/路径报成本体个体；本地不存 actor/intent/时间（账在本体）。"""
     if not isinstance(st, dict) or not st.get("path"):
         return
     path = st["path"]
@@ -83,17 +83,13 @@ def _report_path(session, st):
         seq = st.get("current_seq")
     if seq is None:
         seq = st.get("removed_seq")
-    wpath = {"class": "wpath", "path": path, "obj_id": st.get("obj_id"),
-             "seq": seq, "kind": st.get("kind"),
-             "updated_at": st.get("updated_at") or st.get("created_at")}
-    _put(session, wpath)
+    _put(session, {"class": "wpath", "path": path, "obj_id": st.get("obj_id"),
+                   "seq": seq, "kind": st.get("kind")})
     name = path.rsplit("/", 1)[-1] or "worldfs"
-    wfile = {"class": "wfile", "obj_id": st.get("obj_id"), "name": name,
-             "kind": st.get("kind"), "state": st.get("obj_state") or "active",
-             "current_seq": seq, "blob_sha256": st.get("blob_sha256"),
-             "size": int(st.get("size") or 0),
-             "updated_at": st.get("updated_at") or st.get("created_at")}
-    _put(session, wfile)
+    _put(session, {"class": "wfile", "obj_id": st.get("obj_id"), "name": name,
+                   "kind": st.get("kind"), "state": st.get("obj_state") or "active",
+                   "current_seq": seq, "blob_sha256": st.get("blob_sha256"),
+                   "size": int(st.get("size") or 0)})
 
 
 def _report_version(session, ver):
@@ -101,15 +97,13 @@ def _report_version(session, ver):
         return
     _put(session, {"class": "wversion", "ver_id": ver["ver_id"],
                    "obj_id": ver.get("obj_id"), "seq": ver.get("seq"),
+                   "name": "%s@%s" % (ver.get("obj_id"), ver.get("seq")),
                    "blob_sha256": ver.get("blob_sha256"),
-                   "size": int(ver.get("size") or 0),
-                   "created_at": ver.get("created_at"),
-                   "created_by": ver.get("created_by"),
-                   "intent": ver.get("intent")})
+                   "size": int(ver.get("size") or 0)})
 
 
 def _after_success(session, action, body):
-    """★ 读/写成功后，把相关对象报成个体（供查询/事件）。"""
+    """★ 读/写成功后，把内容/版本/路径报成个体（供查询/事件）；不落本地账。"""
     if not isinstance(body, dict):
         return
     if action in ("worldfs.write", "worldfs.mkdir", "worldfs.restore",
@@ -117,17 +111,16 @@ def _after_success(session, action, body):
         _report_path(session, body)
         if action in ("worldfs.write", "worldfs.restore"):
             _report_version(session, {"ver_id": body.get("ver_id"), "obj_id": body.get("obj_id"),
-                                      "seq": body.get("seq"), "blob_sha256": body.get("blob_sha256"),
-                                      "size": body.get("size"), "created_at": None,
-                                      "created_by": None, "intent": None})
+                                      "seq": body.get("seq"),
+                                      "blob_sha256": body.get("blob_sha256"),
+                                      "size": body.get("size")})
         return
     if action in ("worldfs.stat", "worldfs.read"):
         _report_path(session, body)
         _report_version(session, {"ver_id": body.get("ver_id"), "obj_id": body.get("obj_id"),
-                                  "seq": body.get("seq"), "blob_sha256": body.get("blob_sha256"),
-                                  "size": body.get("size"), "created_at": body.get("created_at"),
-                                  "created_by": body.get("created_by"),
-                                  "intent": body.get("intent")})
+                                  "seq": body.get("seq"),
+                                  "blob_sha256": body.get("blob_sha256"),
+                                  "size": body.get("size")})
     elif action == "worldfs.list":
         for e in (body.get("entries") or [])[:20]:
             _report_path(session, e)

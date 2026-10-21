@@ -40,14 +40,8 @@ def map_path(fuse_path):
 
 
 def _mtime(st):
-    try:
-        s = str(st.get("updated_at") or st.get("created_at") or "")
-        if s:
-            from datetime import datetime
-            return datetime.fromisoformat(s).timestamp()
-    except Exception:                                              # noqa: BLE001
-        pass
-    return time.time()
+    """★ 本地不记账：没有 created/updated 时间可投影；用稳定值 0（不随时间跳）。"""
+    return 0.0
 
 
 def fill_stat(st, statp):

@@ -80,6 +80,7 @@ def main():
     bus = Bus()
     out = {"checks": []}
     base = "/worldfs/notes"
+    fname = "hello-live-%d.txt" % int(time.time())
 
     def check(name, ok, detail=""):
         out["checks"].append({"name": name, "ok": bool(ok), "detail": str(detail)[:220]})
@@ -99,10 +100,11 @@ def main():
 
         mk = bus.ask("wfs-mkdir", "worldfs.mkdir",
                      {"path": base, "intent": "live test: 建 notes 目录"}, ticket=tk, actor=actor)
-        check("worldfs.mkdir", bool(mk.get("ok")), str(mk.get("error") or mk.get("body"))[:120])
+        _mker = str(mk.get("error") or mk.get("body") or "")
+        check("worldfs.mkdir", bool(mk.get("ok")) or "已存在" in _mker, _mker[:120])
 
         w1 = bus.ask("wfs-write1", "worldfs.write",
-                     {"path": base + "/hello.txt", "text": "hello world",
+                     {"path": base + "/" + fname, "text": "hello world",
                       "intent": "live test: 写第一版"}, ticket=tk, actor=actor)
         b1 = w1.get("body") or {}
         check("worldfs.write 第一版", bool(w1.get("ok")) and b1.get("seq") == 1,
@@ -112,17 +114,17 @@ def main():
         obj_id = b1.get("obj_id")
 
         r1 = bus.ask("wfs-read1", "worldfs.read",
-                     {"path": base + "/hello.txt"}, ticket=tk, actor=actor)
+                     {"path": base + "/" + fname}, ticket=tk, actor=actor)
         check("worldfs.read 内容", bool(r1.get("ok")) and (r1.get("body") or {}).get("text") == "hello world",
               "text=%r" % ((r1.get("body") or {}).get("text"),))
 
         st1 = bus.ask("wfs-stat1", "worldfs.stat",
-                      {"path": base + "/hello.txt"}, ticket=tk, actor=actor)
+                      {"path": base + "/" + fname}, ticket=tk, actor=actor)
         check("stat 对象身份稳定（读前）", (st1.get("body") or {}).get("obj_id") == obj_id,
               "obj=%r" % ((st1.get("body") or {}).get("obj_id"),))
 
         w2 = bus.ask("wfs-write2", "worldfs.write",
-                     {"path": base + "/hello.txt", "text": "hello world v2",
+                     {"path": base + "/" + fname, "text": "hello world v2",
                       "intent": "live test: 覆盖第二版"}, ticket=tk, actor=actor)
         b2 = w2.get("body") or {}
         check("覆盖产生 seq+1 且对象身份不变",
@@ -130,15 +132,15 @@ def main():
               "seq=%r obj=%r" % (b2.get("seq"), b2.get("obj_id")))
 
         vs = bus.ask("wfs-vers", "worldfs.versions",
-                     {"path": base + "/hello.txt"}, ticket=tk, actor=actor)
+                     {"path": base + "/" + fname}, ticket=tk, actor=actor)
         seqs = [v.get("seq") for v in ((vs.get("body") or {}).get("versions") or [])]
         check("版本历史 [1,2]", seqs == [1, 2], "seqs=%r" % (seqs,))
 
         rs = bus.ask("wfs-restore", "worldfs.restore",
-                     {"path": base + "/hello.txt", "seq": 1,
+                     {"path": base + "/" + fname, "seq": 1,
                       "intent": "live test: 回滚到第一版"}, ticket=tk, actor=actor)
         r2 = bus.ask("wfs-read2", "worldfs.read",
-                     {"path": base + "/hello.txt"}, ticket=tk, actor=actor)
+                     {"path": base + "/" + fname}, ticket=tk, actor=actor)
         check("回滚到旧版本且内容恢复",
               bool(rs.get("ok")) and (r2.get("body") or {}).get("text") == "hello world",
               "seq=%r text=%r" % ((rs.get("body") or {}).get("seq"),
@@ -160,7 +162,7 @@ def main():
         ls = bus.ask("wfs-list", "worldfs.list",
                      {"path": base}, ticket=tk, actor=actor)
         names = [e.get("name") for e in ((ls.get("body") or {}).get("entries") or [])]
-        check("list 含 hello/dup", {"hello.txt", "dup.txt"} <= set(names), sorted(names))
+        check("list 含 hello/dup", {fname, "dup.txt"} <= set(names), sorted(names))
 
         rm = bus.ask("wfs-rm", "worldfs.remove",
                      {"path": base + "/dup.txt", "intent": "live test: 删 dup"}, ticket=tk, actor=actor)
@@ -178,7 +180,7 @@ def main():
         subprocess.run(["systemctl", "restart", "aios-worldfs"], check=False)
         time.sleep(4)
         r4 = bus.ask("wfs-read4", "worldfs.read",
-                     {"path": base + "/hello.txt"}, ticket=tk, actor=actor)
+                     {"path": base + "/" + fname}, ticket=tk, actor=actor)
         check("重启后数据仍在", bool(r4.get("ok")) and (r4.get("body") or {}).get("text") == "hello world",
               "text=%r" % ((r4.get("body") or {}).get("text"),))
 

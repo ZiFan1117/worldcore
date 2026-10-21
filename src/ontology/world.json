@@ -2323,15 +2323,6 @@
           "primary": false,
           "options": null,
           "description": ""
-        },
-        {
-          "name": "updated_at",
-          "label": "updated_at",
-          "type": "STRING",
-          "required": false,
-          "primary": false,
-          "options": null,
-          "description": ""
         }
       ]
     },
@@ -2399,40 +2390,13 @@
           "description": ""
         },
         {
-          "name": "created_at",
-          "label": "created_at",
-          "type": "STRING",
-          "required": false,
-          "primary": false,
-          "options": null,
-          "description": ""
-        },
-        {
-          "name": "created_by",
-          "label": "created_by",
-          "type": "STRING",
-          "required": false,
-          "primary": false,
-          "options": null,
-          "description": ""
-        },
-        {
-          "name": "intent",
-          "label": "intent",
-          "type": "STRING",
-          "required": false,
-          "primary": false,
-          "options": null,
-          "description": ""
-        },
-        {
           "name": "name",
           "label": "name",
           "type": "STRING",
           "required": false,
           "primary": false,
           "options": null,
-          "description": "版本标签（可读名，如 obj@seq）"
+          "description": "版本标签（obj@seq；技术标签，不是账）"
         }
       ]
     },
@@ -2487,15 +2451,6 @@
           "type": "STRING",
           "required": false,
           "primary": true,
-          "options": null,
-          "description": ""
-        },
-        {
-          "name": "updated_at",
-          "label": "updated_at",
-          "type": "STRING",
-          "required": false,
-          "primary": false,
           "options": null,
           "description": ""
         }
