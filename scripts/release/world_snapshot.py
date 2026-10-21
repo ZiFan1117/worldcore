@@ -28,6 +28,8 @@ import shutil
 import subprocess
 import sys
 
+import worldfs_manifest  # noqa: E402  worldfs manifest 边车
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE)) if os.path.basename(HERE) == "release" else os.getcwd()
 LAW = os.environ.get("AIOS_LAW_JSON", os.path.join(ROOT, "src", "ontology", "world.json"))
@@ -36,6 +38,26 @@ REGISTRY = os.environ.get("AIOS_REGISTRY", "/var/lib/aios/ontology/registry.json
 STORE = os.environ.get("AIOS_STORE_DB", "/var/lib/aios/ontology/objects.db")
 DEFAULT_DIR = os.environ.get("AIOS_SNAPSHOT_DIR", "/var/backups/aios/world-snapshots")
 META = "meta.json"
+PAUSE_UNITS = ("aios-worldfs-fuse", "aios-worldfs", "aios-ontology")
+
+
+def _pause_units():
+    """★ 快照/恢复前停 worldfs+ontology，保证账和文件系统同一刀切。"""
+    if not shutil.which("systemctl"):
+        return []
+    done = []
+    for u in PAUSE_UNITS:
+        r = subprocess.run(["systemctl", "stop", u], capture_output=True, text=True)
+        if r.returncode == 0:
+            done.append(u)
+    return done
+
+
+def _resume_units(units):
+    if not shutil.which("systemctl"):
+        return
+    for u in units or PAUSE_UNITS:
+        subprocess.run(["systemctl", "start", u], capture_output=True, text=True)
 
 
 def _sha(path):
@@ -64,25 +86,39 @@ def cmd_save(args):
     if os.path.exists(out):
         print("拒：目标已存在 %s" % out)
         return 1
-    os.makedirs(out, exist_ok=False)
-    files = {"ledger.jsonl": LEDGER, "registry.jsonl": REGISTRY, "objects.db": STORE,
-             "world.json": LAW}
-    meta = {"at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
-            "host": os.uname().nodename if hasattr(os, "uname") else "?",
-            "law": {"path": LAW, "sha256": _sha(LAW) if os.path.exists(LAW) else None},
-            "ledger_rows": _rows(LEDGER) if os.path.exists(LEDGER) else 0,
-            "files": {}}
-    for name, src in files.items():
-        if not os.path.exists(src):
-            print("拒：缺文件 %s（%s）" % (name, src))
-            return 1
-        shutil.copy2(src, os.path.join(out, name))
-        meta["files"][name] = {"sha256": _sha(src), "bytes": os.path.getsize(src)}
-    with open(os.path.join(out, META), "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
-    print("snapshot=%s" % out)
-    print("law_sha256=%s ledger_rows=%d" % (meta["law"]["sha256"], meta["ledger_rows"]))
-    return 0
+    paused = _pause_units()
+    try:
+        os.makedirs(out, exist_ok=False)
+        wfs = None
+        if os.path.isfile(worldfs_manifest.DB):
+            try:
+                wfs = worldfs_manifest.capture(out)
+            except Exception as e:                              # noqa: BLE001
+                print("拒：worldfs manifest 打包失败：%s" % e)
+                return 1
+        files = {"ledger.jsonl": LEDGER, "registry.jsonl": REGISTRY,
+                 "objects.db": STORE, "world.json": LAW}
+        meta = {"at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+                "host": os.uname().nodename if hasattr(os, "uname") else "?",
+                "law": {"path": LAW, "sha256": _sha(LAW) if os.path.exists(LAW) else None},
+                "ledger_rows": _rows(LEDGER) if os.path.exists(LEDGER) else 0,
+                "worldfs": wfs,
+                "files": {}}
+        for name, src in files.items():
+            if not os.path.exists(src):
+                print("拒：缺文件 %s（%s）" % (name, src))
+                return 1
+            shutil.copy2(src, os.path.join(out, name))
+            meta["files"][name] = {"sha256": _sha(src), "bytes": os.path.getsize(src)}
+        with open(os.path.join(out, META), "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+        print("snapshot=%s" % out)
+        print("law_sha256=%s ledger_rows=%d worldfs_epoch=%s worldfs_root=%s"
+              % (meta["law"]["sha256"], meta["ledger_rows"],
+                 (wfs or {}).get("epoch"), str((wfs or {}).get("root_sha"))[:12]))
+        return 0
+    finally:
+        _resume_units(paused)
 
 
 def cmd_list(args):
@@ -201,38 +237,64 @@ def cmd_verify(args):
         if _sha(fp) != rec.get("sha256"):
             bad.append("sha 不对 %s" % name)
     if os.path.exists(LAW) and m.get("law", {}).get("sha256") != _sha(LAW):
-        bad.append("快照的法和当前法不一致（这是“旧快照”，恢复前要想清楚）")
+        bad.append("快照的法与当前法不一致（旧快照；恢复前要想清楚）")
+    info = {}
+    if (os.path.isfile(os.path.join(args.snap, worldfs_manifest.MANIFEST))
+            or os.path.isfile(worldfs_manifest.DB)):
+        ok, wbad, info = worldfs_manifest.verify(args.snap)
+        bad += wbad
     if bad:
         for b in bad:
             print("[红] " + b)
         return 1
-    print("verify=ok  files=%d  law=%s" % (len(m.get("files") or {}),
-                                           (m.get("law") or {}).get("sha256", "")[:12]))
+    print("verify=ok  files=%d  law=%s  worldfs_epoch=%s worldfs_root=%s"
+          % (len(m.get("files") or {}), (m.get("law") or {}).get("sha256", "")[:12],
+             info.get("epoch"), str(info.get("root_sha"))[:12]))
     return 0
 
 
 def cmd_restore(args):
     if not args.yes:
-        print("拒：restore 必须带 --yes（会覆盖当前账/注册表/对象库）")
+        print("拒：restore 必须带 --yes（会覆盖当前账/注册表/对象库/worldfs）")
         return 1
-    ts = _stamp()
-    pairs = {"ledger.jsonl": LEDGER, "registry.jsonl": REGISTRY, "objects.db": STORE}
-    for name, dst in pairs.items():
-        src = os.path.join(args.snap, name)
-        if not os.path.isfile(src):
-            print("拒：快照缺 %s" % name)
+    has_wfs = os.path.isfile(os.path.join(args.snap, worldfs_manifest.MANIFEST))
+    info = {}
+    if has_wfs or os.path.isfile(worldfs_manifest.DB):
+        ok, wbad, info = worldfs_manifest.verify(args.snap)
+        if not ok:
+            print("拒：worldfs 快照不可用（不能还原成两套事实）：")
+            for b in wbad:
+                print("  - " + b)
             return 1
-        if os.path.exists(dst):
-            shutil.copy2(dst, dst + ".pre-restore-" + ts)
-        shutil.copy2(src, dst)
-    print("restored=%s（旧文件已备份为 *.pre-restore-%s）" % (args.snap, ts))
-    if args.restart:
-        for u in ("aios-ontology", "aios-space", "aios-agent", "aios-presentation"):
-            subprocess.run(["systemctl", "restart", u], check=False)
-        print("restarted: aios-ontology/space/agent/presentation")
-    else:
-        print("提示：要生效请重启 aios-ontology 等单元（或加 --restart）")
-    return 0
+    ts = _stamp()
+    paused = _pause_units()
+    try:
+        pairs = {"ledger.jsonl": LEDGER, "registry.jsonl": REGISTRY, "objects.db": STORE}
+        for name, dst in pairs.items():
+            src = os.path.join(args.snap, name)
+            if not os.path.isfile(src):
+                print("拒：快照缺 %s" % name)
+                return 1
+            if os.path.exists(dst):
+                shutil.copy2(dst, dst + ".pre-restore-" + ts)
+            shutil.copy2(src, dst)
+        if has_wfs:
+            wok, wwhy = worldfs_manifest.restore(args.snap)
+            if not wok:
+                print("拒：worldfs 恢复失败：%s" % wwhy)
+                return 1
+            print("restored=%s（旧文件已备份为 *.pre-restore-%s）" % (args.snap, ts))
+            print(wwhy)
+        else:
+            print("restored=%s（旧文件已备份为 *.pre-restore-%s；旧快照不带 worldfs，按 ontology-only 恢复）"
+                  % (args.snap, ts))
+        return 0
+    finally:
+        _resume_units(paused)
+        if args.restart and shutil.which("systemctl"):
+            for u in ("aios-space", "aios-agent", "aios-presentation"):
+                subprocess.run(["systemctl", "restart", u], check=False)
+            print("restarted: aios-space/agent/presentation")
 
 
 def main(argv=None):
