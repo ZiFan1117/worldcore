@@ -96,6 +96,7 @@ class Agent:
         self.steps = []          # ★ Agent 工作台：观察/计划/动作/渲染步骤
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
+        self.round = 0           # ★ 最近一轮（status 用，不被心跳覆盖）
         self._write_heartbeat()
     def _write_heartbeat(self, extra=None):
         """★（P7）把「agent 进程还活着/在做什么」写到一个可读文件（给人/浏览器看）。"""
@@ -144,7 +145,6 @@ class Agent:
         return {"ok": False, "why": "动作超时"}
     def screen_state(self):
         """★ 问界面「现在屏上有什么」——★ 经本体问呈现与空间（不用截图）。
-
         ★ 作者口径：「如果 A 想知道界面上有哪些东西，可以直接请求这个界面、界面返回现在的状态给他」。
         ★ 返回 {"surfaces": …, "layout": …}；被拒就把原因带回来（不假装知道）。
         """
@@ -157,11 +157,9 @@ class Agent:
         b = r.get("body") or {}
         return {"surfaces": {"count": b.get("count"), "surfaces": b.get("surfaces")},
                 "layout": b.get("layout"), "screen": b.get("screen")}
-
     def _cursor_path(self):
         d = os.environ.get("AIOS_CURSOR_DIR", "/var/lib/aios/cursors")
         return os.path.join(d, "agent-dsh.json")
-
     def _read_cursor(self):
         try:
             with open(self._cursor_path(), encoding="utf-8") as f:
@@ -406,6 +404,7 @@ def main():
             time.sleep(1.0)
             continue
         rnd += 1
+        a.round = rnd
         a._write_heartbeat({"round": rnd})
         log("———— 第 %d 轮 ————" % rnd)
         world = a.query(kind="world")

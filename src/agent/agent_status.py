@@ -12,7 +12,8 @@ def status(agent, name, did):
         pass
     last = agent.recent_actions[-1] if agent.recent_actions else None
     return {"name": name, "did": did, "state": "running" if agent.launched else "idle",
-            "launched": bool(agent.launched), "round": hb.get("round"),
+            "launched": bool(agent.launched),
+            "round": getattr(agent, "round", None) or hb.get("round"),
             "phase": hb.get("phase"), "at": hb.get("at"),
             "heartbeat": hb, "last_action": last, "guide": agent.guide,
             "recent_actions": agent.recent_actions[-8:]}

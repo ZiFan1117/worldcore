@@ -360,6 +360,8 @@ def main():
         if route not in (None, "", "computer", "world"):
             return
         out = handle_exec(msg, rows, session)
+        # ★ provider_auth 给 world/exec/result 签名时要能推断 kind；计算机的回话必须带 by。
+        out.setdefault("by", "computer/" + COMPUTER_NAME)
         log("回话 %s ⇒ ok=%s（★ 先回本体 %s）" % (out.get("action"), out.get("ok"), T_RESULT))
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 

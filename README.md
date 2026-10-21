@@ -148,7 +148,7 @@ site/                    项目站点
 
 ## 四、验证与现状
 
-**判据 91 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
+**判据 92 条，全部会红**（每条自带反例自检）。按作者令，判据在**开发面**运行、不随仓发布；
 这里只报结论：
 
 ```
@@ -381,11 +381,11 @@ site/                    project site
 
 ## 4. Verification and status
 
-**91 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
+**92 criteria, each able to fail** (every criterion ships with a self-test that proves it turns red).
 Per the author's decision they run on the **development side** and are not shipped here; only the conclusion is reported:
 
 ```
-python scripts/test/check.py              → all green (91/91, rc=0)
+python scripts/test/check.py              → all green (92/92, rc=0)
 python scripts/test/check.py --self-test  → all green (red examples turn red, restored turn green)
 ```
 

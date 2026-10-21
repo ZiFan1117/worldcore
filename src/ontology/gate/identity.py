@@ -21,11 +21,47 @@
    · ★ **不管呈现**（呈现只出脸、交凭据、换脸）
 """
 
+import json
+import os
 import time
 import uuid
 
 # ★★ 票表 —— ★ 谁认过了、什么时候过期。★ 本体是【记】的那个，票记在这儿。
+# ★ 2026-10-21：票落盘，本体重启不再把已登录的桌面/页面一脚踢下线。
 _TICKETS = {}
+_TICKETS_PATH = os.environ.get("AIOS_TICKETS", "/var/lib/aios/ontology/tickets.json")
+
+
+def _load_tickets():
+    try:
+        with open(_TICKETS_PATH, encoding="utf-8") as f:
+            raw = json.load(f)
+        now = time.time()
+        for tk, t in (raw or {}).items():
+            if isinstance(t, dict) and (t.get("expires_at") or 0) > now:
+                _TICKETS[tk] = t
+    except Exception:
+        pass
+
+
+def _save_tickets():
+    try:
+        os.makedirs(os.path.dirname(_TICKETS_PATH) or ".", exist_ok=True)
+        tmp = _TICKETS_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(_TICKETS, f, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, _TICKETS_PATH)
+        try:
+            os.chmod(_TICKETS_PATH, 0o600)
+        except OSError:
+            pass
+    except Exception:
+        pass
+
+
+_load_tickets()
 
 # ★ 测试账号（★ 作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
 TEST_USER = "zhang"
@@ -49,6 +85,7 @@ def authenticate(params, log=print):
     _TICKETS[tk] = {"who": "world://user/" + user, "user": user,
                     "issued_at": now, "expires_at": now + TICKET_TTL,
                     "scope": ["space:" + user]}
+    _save_tickets()
     log("★ 认过 ⇒ 发票 %s（给 %s）" % (tk, user))
     return True, {"ticket": tk, "who": "world://user/" + user, "user": user,
                   "expires_at": _TICKETS[tk]["expires_at"], "scope": _TICKETS[tk]["scope"]}
@@ -62,6 +99,7 @@ def session(params, log=print):
         return False, {"why": "没有这张票"}
     if t["expires_at"] < time.time():
         _TICKETS.pop(tk, None)
+        _save_tickets()
         return False, {"why": "票过期了"}
     return True, {"who": t["who"], "user": t["user"],
                   "expires_at": t["expires_at"], "scope": t["scope"]}
@@ -70,6 +108,7 @@ def session(params, log=print):
 def revoke(params, log=print):
     """★ 销票（退出）。"""
     _TICKETS.pop(params.get("ticket") or "", None)
+    _save_tickets()
     return True, {"revoked": True}
 
 
@@ -139,6 +178,7 @@ def check(params):
         return None, "没有票／票不存在（★ 先 identity.authenticate）"
     if t["expires_at"] < time.time():
         _TICKETS.pop(tk, None)
+        _save_tickets()
         return None, "票过期了"
     return t, None
 

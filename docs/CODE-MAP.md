@@ -1,7 +1,7 @@
 # worldcore 代码导航（我想改 X，看哪里）
 
 > 现取：2026-10-20。配套总览图：`docs/ARCHITECTURE.md`。
-> 规矩：一进程一夹（`src/<进程>/`）；改完跑 `python scripts/test/check.py`（91 条判据，红不许绕）。
+> 规矩：一进程一夹（`src/<进程>/`）；改完跑 `python scripts/test/check.py`（92 条判据，红不许绕）。
 
 ## 一、目录地图（带注释）
 
