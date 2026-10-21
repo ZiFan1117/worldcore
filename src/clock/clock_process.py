@@ -68,6 +68,7 @@ def main():
     conf.insert_json5("connect/endpoints", json.dumps([ENDPOINT]))
     session = open_signed_session(conf)
     log("连上总线 %s" % ENDPOINT)
+    clock_ops.write_state()
     session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
     log("② 成为个体：clock/%s（now=%s boot=%s）"
         % (CLOCK_NAME, clock_ops.now().get("now"), clock_ops.boot_id()[:8]))
@@ -101,11 +102,15 @@ def main():
 
     session.declare_subscriber(T_EXEC, on_exec)
     log("③ 订上 %s（route=clock）" % T_EXEC)
+    tick = 0
     while True:
-        time.sleep(60)
-        session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
-        log("④ 报时：%s（单调 %ss）" % (clock_ops.now().get("now"),
-                                        clock_ops.now().get("monotonic_seconds")))
+        time.sleep(1)
+        tick += 1
+        clock_ops.write_state()          # ★ 每秒更新时钟权威快照（本体 ledger 读它）
+        if tick % 60 == 0:
+            session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
+            log("④ 报时：%s（单调 %ss）" % (clock_ops.now().get("now"),
+                                            clock_ops.now().get("monotonic_seconds")))
 
 
 if __name__ == "__main__":

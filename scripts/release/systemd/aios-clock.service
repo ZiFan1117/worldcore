@@ -15,6 +15,8 @@ LimitNOFILE=65536
 PrivateTmp=yes
 # ★ 只读时间面：不写系统钟、不写文件 ⇒ strict 合适
 ProtectSystem=strict
+ExecStartPre=/usr/bin/install -d -m 0755 /var/lib/aios/clock
+ReadWritePaths=/var/lib/aios
 ProtectHome=read-only
 NoNewPrivileges=yes
 

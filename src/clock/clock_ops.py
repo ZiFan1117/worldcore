@@ -5,6 +5,7 @@
   和 **boot_id**（区分本次开机）。★ 只读：不改系统钟、不回拨。
 """
 import datetime
+import json
 import os
 import time
 
@@ -60,3 +61,25 @@ def dispatch(action, params=None):
     if action == "clock.state":
         return True, state()
     return False, "不认识的动作：%s" % action
+
+
+def state_path():
+    return os.environ.get("AIOS_CLOCK_STATE") or "/var/lib/aios/clock/state.json"
+
+
+def write_state(path=None):
+    """★ 把时钟权威快照写给本体（ledger 时间统一用）；原子写，失败不抛。"""
+    path = path or state_path()
+    d = now()
+    d["written_at"] = d["now"]
+    tmp = path + ".tmp"
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+        return True
+    except OSError:
+        return False

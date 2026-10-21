@@ -45,6 +45,7 @@ from law.ontology_definition import build_aios_ontology  # noqa: E402
 from ingest.appear import ingest_appear  # noqa: E402
 from provider_auth import ProviderAuthError, auth_enabled, verify_message  # noqa: E402
 import bus_auth  # noqa: E402
+import world_clock  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
@@ -135,7 +136,7 @@ class World:
         ★ 返回那条账的【时间标签】（调用方用它回给请求方）。
         ★★ 为什么不再要 seq：★ 时间本身就带顺序；★ 而 seq 每次重启要恢复最大号（撞号 bug 刚修过）。
         """
-        at = datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat(timespec="microseconds")
+        at = world_clock.now()   # ★ 时间统一：clock 权威快照；读不到才回退系统时间
         row = {"at": at, "family": family, **fields}
         self.ledger.write(json.dumps(row, ensure_ascii=False) + "\n")
         self.ledger.flush()
