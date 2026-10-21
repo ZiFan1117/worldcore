@@ -31,6 +31,7 @@ import zenoh
 import sys as _sys
 _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
+from provider_auth import open_signed_session  # noqa: E402
 
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
@@ -333,7 +334,7 @@ def main():
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([ZENOH_ENDPOINT]))
-    session = zenoh.open(conf)
+    session = open_signed_session(conf)
     log("② 连上总线 %s" % ZENOH_ENDPOINT)
 
     # ★★ 上向 ①：成为个体（★ 照本体 `service` 类的字段）

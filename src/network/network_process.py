@@ -18,6 +18,7 @@ for _p in (os.path.join(ROOT, "src"), os.path.join(ROOT, "src", "ontology"), HER
 import zenoh  # noqa: E402
 import network_ops  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
+from provider_auth import open_signed_session  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NET_NAME = os.environ.get("AIOS_NETWORK_NAME") or "network0"
@@ -79,7 +80,7 @@ def main():
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([ENDPOINT]))
-    session = zenoh.open(conf)
+    session = open_signed_session(conf)
     log("连上总线 %s" % ENDPOINT)
     session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
     log("③ 成为个体：network/%s（sys=%s）" % (NET_NAME, network_ops.sys_dir()))

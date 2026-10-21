@@ -36,6 +36,7 @@ from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  #
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
+from provider_auth import open_signed_session  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -458,7 +459,7 @@ def main():
     c.insert_json5("mode", chr(34) + "client" + chr(34))
     c.insert_json5("scouting/multicast/enabled", "false")
     c.insert_json5("connect/endpoints", json.dumps([ENDPOINT]))
-    s = zenoh.open(c)
+    s = open_signed_session(c)
     log("   连上了")
 
     bridge = Bridge(LISTEN_HOST, LISTEN_PORT)

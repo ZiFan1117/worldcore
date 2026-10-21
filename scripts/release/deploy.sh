@@ -30,6 +30,22 @@ rm -rf "$PREFIX/src/legacy"
 find "$PREFIX/src" -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
 echo "  py: $(find "$PREFIX/src" -name '*.py' | wc -l) 个"
 
+echo "=== 1.5 provider 签名密钥（不写进法；root-only）==="
+KEYDIR="/usr/lib/aios/provider-keys"
+install -d -m 0700 "$KEYDIR"
+for k in agent clock computer fs network presentation recovery space vault worldfs; do
+  if [ ! -s "$KEYDIR/$k.key" ]; then
+    umask 077
+    python3 - "$KEYDIR/$k.key" <<'PY'
+import secrets
+import sys
+open(sys.argv[1], "w", encoding="utf-8").write(secrets.token_hex(32))
+PY
+    echo "  新 key：$k"
+  fi
+  chmod 600 "$KEYDIR/$k.key"
+done
+
 echo "=== 2 数据（映射表 ／ 本体法 ／ sysknife 件）==="
 mkdir -p "$PREFIX"
 for f in "$REPO"/scripts/release/computer/*; do

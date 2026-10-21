@@ -1,7 +1,7 @@
 # worldcore 代码导航（我想改 X，看哪里）
 
 > 现取：2026-10-20。配套总览图：`docs/ARCHITECTURE.md`。
-> 规矩：一进程一夹（`src/<进程>/`）；改完跑 `python scripts/test/check.py`（75 条判据，红不许绕）。
+> 规矩：一进程一夹（`src/<进程>/`）；改完跑 `python scripts/test/check.py`（81 条判据，红不许绕）。
 
 ## 一、目录地图（带注释）
 
@@ -25,7 +25,7 @@
 │  ├─ foundry_ontology/         上游借来的本体库（ObjectStore/Ontology 引擎，尽量不改）
 │  └─ legacy/                   旧料归档（不部署）
 ├─ scripts/
-│  ├─ test/                     ★ 判据（C1–C66 ＋ check.py ＋ 每条的 --self-test 反例）
+│  ├─ test/                     ★ 判据（C1–C79、C85、C86 ＋ check.py ＋ 每条的 --self-test 反例）
 │  └─ release/                  ★ 发布/运维工具（deploy/status/snapshot/worldfs/guardctl/systemd/monitor）
 ├─ docs/                        ★ 本目录（架构图 / 代码导航）
 ├─ ninedim/                     工程域档案（变更登记/索引；只装档案）
@@ -40,6 +40,7 @@
 | `ontology_process.py`（根） | 372 | 消息循环、报到（appear）、注册（register）、落账、推事件、个体 ObjectStore —— **入口** |
 | `gate/ask_path.py` | 223 | 八道闸、委托放行、guard 弹窗（`CONFIRM_REQUIRED`）、执行凭证签发 —— **改权限/闸** |
 | `query/world_query.py` | 258 |
+| `provider_auth/provider_auth.py` | ~215 | provider 消息签名（appear/register/result）：HMAC 信封/验签/防重放；**不是新进程**；key 在部署配置 |
 | `ingest/appear.py` | ~120 | **本体内部数据管道**：收 world/appear → 校验 → 个体不存在就建/已存在就更新（带 before 落账） | 所有查询（overview/types/type/one/actions/history/events） —— **改查询/界面数据** |
 | `govern/governance.py` | 180 | 人确认 / 委托四格 / 策略 / 审计回账（本地执行，不外转） —— **改确认/委托/审计** |
 | `gate/identity.py` / `gate/permit.py` | 130 / 194 | 票（登录）／一次性执行凭证（HMAC、绑动作+参数） —— **改认证/凭证** |

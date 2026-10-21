@@ -9,6 +9,7 @@
 import json
 
 from gate import identity
+from provider_auth import ProviderAuthError, auth_enabled, verify_message
 
 
 def ingest_appear(world, smp, log=print):
@@ -22,6 +23,13 @@ def ingest_appear(world, smp, log=print):
     except Exception as e:
         world.reject("BAD_MESSAGE", action="appear", why="不是 JSON（%s）" % e)
         return
+    if auth_enabled():
+        try:
+            verify_message("world/appear", msg)
+        except ProviderAuthError as e:
+            world.reject(e.code, action="appear", why=e.why)
+            return
+    msg.pop("_auth", None)
     cls = msg.get("class") or ""
     # ★ 认：类在册吗？
     ot = world.ontology.object_types.get(cls)

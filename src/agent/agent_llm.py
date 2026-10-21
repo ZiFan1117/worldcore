@@ -30,6 +30,7 @@ for _p in (os.path.join(_SRC, "ontology"), os.path.join(_SRC, "presentation")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+from provider_auth import open_signed_session  # noqa: E402
 from gate import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
 from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
 
@@ -314,7 +315,7 @@ def main():
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([ENDPOINT]))
-    session = zenoh.open(conf)
+    session = open_signed_session(conf)
     log("连上总线 %s" % ENDPOINT)
     if not LLM_KEY:
         log("★★ 没有 AIOS_LLM_KEY ⇒ 起不来（★ 设环境变量再试）")
