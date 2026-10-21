@@ -1,6 +1,6 @@
 # worldcore 架构图（总览）
 
-> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 212（sys 156 ＋ 世界 56）／ 函数 8 ／ 判据 83 条 ／ 常驻单元 16 个。
+> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 216（sys 156 ＋ 世界 60）／ 函数 8 ／ 判据 84 条 ／ 常驻单元 16 个。
 > 图里所有进程都是独立 systemd 单元；所有消息走 zenoh 总线话题 `world/*`。
 
 ## 一、四层总览
@@ -8,7 +8,7 @@
 ```mermaid
 flowchart TB
   subgraph L1[① 定义面 · 法]
-    LAW["world.json<br/>23 类 / 4 接口 / 5 关系<br/>世界动作 56 ＋ sys 156 / 函数 8"]
+    LAW["world.json<br/>23 类 / 4 接口 / 5 关系<br/>世界动作 60 ＋ sys 156 / 函数 8"]
     LOADER["law_loader.py<br/>解析 → 校验 → 建本体"]
     EXPORT["export-law.py --check<br/>声明件 ≡ 运行中的法（C35）"]
     LAW --> LOADER
@@ -223,4 +223,4 @@ flowchart TB
 
 ---
 
-*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（83 条，每条自带会红的反例）。*
+*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（84 条，每条自带会红的反例）。*

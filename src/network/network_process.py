@@ -30,6 +30,10 @@ T_RESULT = "world/exec/result"
 ACTIONS = [
     {"action": "network.list", "kind": "read", "why": "列网络接口与计数器（只读）"},
     {"action": "network.state", "kind": "read", "why": "读网络面状态（接口数/up/总字节）"},
+    {"action": "network.addresses", "kind": "read", "why": "只读地址（IPv4/IPv6）"},
+    {"action": "network.routes", "kind": "read", "why": "只读路由（IPv4/IPv6）"},
+    {"action": "network.dns", "kind": "read", "why": "只读 DNS 配置"},
+    {"action": "network.connections", "kind": "read", "why": "只读 TCP/UDP 连接表"},
 ]
 
 

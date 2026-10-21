@@ -5323,6 +5323,146 @@
         "why": "改名/移动必须人确认"
       },
       "metadata": {}
+    },
+    {
+      "id": "network.addresses",
+      "label": "network.addresses",
+      "description": "只读：IPv4/IPv6 地址（/proc/net/fib_trie、if_inet6）",
+      "required_roles": [
+        "network"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "网络面只读：地址/路由/DNS/连接只读"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "network.routes",
+      "label": "network.routes",
+      "description": "只读：IPv4/IPv6 路由表（/proc/net/route、ipv6_route）",
+      "required_roles": [
+        "network"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "网络面只读：地址/路由/DNS/连接只读"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "network.dns",
+      "label": "network.dns",
+      "description": "只读：DNS 配置（/etc/resolv.conf）",
+      "required_roles": [
+        "network"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "网络面只读：地址/路由/DNS/连接只读"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "network.connections",
+      "label": "network.connections",
+      "description": "只读：TCP/UDP 连接表（/proc/net/{tcp,udp}）",
+      "required_roles": [
+        "network"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "网络面只读：地址/路由/DNS/连接只读"
+      },
+      "metadata": {}
     }
   ],
   "functions": [
