@@ -76,11 +76,36 @@ router_pw = rd("/etc/aios/bus-router.secret")
 with open("/etc/aios/bus-credentials.txt", "w", encoding="utf-8") as f:
     for u in units + ["tests"]:
         f.write("%s:%s\n" % (u, client_pw))
+providers = [u for u in units if u in (
+    "aios-agent", "aios-clock", "aios-computer", "aios-fs", "aios-network",
+    "aios-presentation", "aios-recovery", "aios-space", "aios-vault",
+    "aios-worldfs")]
+nonproviders = [u for u in units if u not in providers] + ["tests"]
+PROTECTED = ["world/appear", "world/register", "world/exec/result"]
 conf = {
     "mode": "router",
     "transport": {"auth": {"usrpwd": {
         "user": "router", "password": router_pw,
         "dictionary_file": "/etc/aios/bus-credentials.txt"}}},
+    # ★ topic 级 ACL：只有 provider 能发这三类事实；其他已认证用户被总线拒。
+    "access_control": {
+        "enabled": True,
+        "default_permission": "allow",
+        "rules": [
+            {"id": "allow-provider-protected", "permission": "allow",
+             "flows": ["ingress"], "messages": ["put"], "key_exprs": PROTECTED},
+            {"id": "deny-nonprovider-protected", "permission": "deny",
+             "flows": ["ingress"], "messages": ["put"], "key_exprs": PROTECTED},
+        ],
+        "subjects": [
+            {"id": "providers", "usernames": providers},
+            {"id": "nonproviders", "usernames": nonproviders},
+        ],
+        "policies": [
+            {"rules": ["allow-provider-protected"], "subjects": ["providers"]},
+            {"rules": ["deny-nonprovider-protected"], "subjects": ["nonproviders"]},
+        ],
+    },
 }
 with open("/etc/aios/zenoh.json5", "w", encoding="utf-8") as f:
     json.dump(conf, f, ensure_ascii=False, indent=2)

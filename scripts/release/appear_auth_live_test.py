@@ -13,6 +13,7 @@ import time
 import zenoh
 sys.path.insert(0, "/usr/lib/aios/src/ontology")
 from bus_auth import open_bus  # noqa: E402
+os.environ.setdefault("AIOS_BUS_USER", "aios-clock")  # provider 用户过 topic ACL
 
 sys.path.insert(0, "/usr/lib/aios/src/ontology")
 from provider_auth import provider_auth as PA  # noqa: E402

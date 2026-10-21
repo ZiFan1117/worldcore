@@ -12,6 +12,7 @@ import time
 
 sys.path.insert(0, "/usr/lib/aios/src/ontology")
 import bus_auth  # noqa: E402
+from provider_auth import provider_auth as PA  # noqa: E402
 import zenoh  # noqa: E402
 
 ENDPOINT = "tcp/127.0.0.1:7447"
@@ -36,6 +37,33 @@ def _try(user=None, password=None, timeout=12):
         return True, "OPEN_OK"
     except Exception as e:                                      # noqa: BLE001
         return False, "%s: %s" % (type(e).__name__, str(e)[:120])
+
+
+def _put_as(user, password, topic, obj):
+    conf = _base_conf()
+    conf.insert_json5("transport/auth/usrpwd/user", json.dumps(user))
+    conf.insert_json5("transport/auth/usrpwd/password", json.dumps(password))
+    z = zenoh.open(conf)
+    pub = z.declare_publisher(topic)
+    time.sleep(0.3)
+    pub.put(json.dumps(obj, ensure_ascii=False))
+    time.sleep(1.2)
+    z.close()
+
+
+def _ledger():
+    rows = []
+    try:
+        with open("/var/lib/aios/ontology/ledger.jsonl", encoding="utf-8",
+                  errors="replace") as f:
+            for line in f:
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    pass
+    except OSError:
+        pass
+    return rows
 
 
 def main():
@@ -86,6 +114,29 @@ def main():
         time.sleep(1.0)
         check("合法客户端可收发", "acl-ok" in seen, "seen=%r" % seen)
         z.close()
+
+    # topic 级 ACL：非 provider 用户发 appear 被总线拒（不到本体账）
+    PA._SEEN.clear()
+    denied = PA.sign_message("world/appear", {
+        "class": "clock", "name": "acl-denied", "state": "running",
+        "reporter": "world://clock/acl-denied", "now": "2026-10-21T00:00:00+00:00",
+        "timezone": "UTC", "utc_offset": "+00:00", "boot_id": "x", "monotonic_seconds": 1})
+    _put_as("tests", secret, "world/appear", denied)
+    rows = _ledger()
+    check("非 provider（tests）发 appear 被总线拒",
+          not any("acl-denied" in str(r) for r in rows), "no ledger row")
+
+    # provider 用户 aios-clock 发签名 appear ⇒ 总线放行、本体收下
+    PA._SEEN.clear()
+    allowed = PA.sign_message("world/appear", {
+        "class": "clock", "name": "acl-allowed", "state": "running",
+        "reporter": "world://clock/acl-allowed", "now": "2026-10-21T00:00:00+00:00",
+        "timezone": "UTC", "utc_offset": "+00:00", "boot_id": "x", "monotonic_seconds": 1})
+    _put_as("aios-clock", secret, "world/appear", allowed)
+    rows = _ledger()
+    check("provider（aios-clock）发 appear 被收下",
+          any(r.get("kind_of") == "appear" and "clock/acl-allowed" in str(r.get("subject"))
+              for r in rows), "accepted")
 
     ok = all(c["ok"] for c in out["checks"])
     out["ok"] = ok
