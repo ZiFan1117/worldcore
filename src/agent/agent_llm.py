@@ -36,6 +36,8 @@ from provider_auth import open_signed_session  # noqa: E402
 from gate import permit  # noqa: E402  ★ agent 也是执行者：窗口动作要验本体凭证
 from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
 from agent_status import status as _status, guide_ack_frame as _guide_ack_frame  # noqa: E402
+from agent_status import launch_frame as _launch_frame  # noqa: E402
+from agent_chat import ask_chat as _ask_chat, chat_reply as _chat_reply  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NAME = os.environ.get("AIOS_AGENT_NAME", "dsh")
@@ -56,10 +58,8 @@ T_EVENT = "world/event"
 T_EXEC = "world/exec"
 T_EXEC_RESULT = "world/exec/result"   # ★ ask 的回话要回本体，本体再回请求方
 T_REGISTER = "world/register"
-
 def log(*a):
     print("[agent/llm]", *a, flush=True)
-
 def ask_llm(system, user, max_tokens=900):
     """★ 调模型。★ 只认 JSON 回来。"""
     if not LLM_KEY:
@@ -83,7 +83,6 @@ def ask_llm(system, user, max_tokens=900):
         return json.loads(txt), None
     except Exception as e:
         return None, "%s: %s" % (type(e).__name__, str(e)[:200])
-
 HB = os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
 
 class Agent:
@@ -95,6 +94,7 @@ class Agent:
         self.recent_actions = []   # ★ 最近挑过的动作（给模型看，促使换着来）
         self.events = []           # ★（P8）世界推来的事件（最近 30 条）
         self.guide = ""          # ★ 人通过控制台给的引导（经本体到 agent）
+        self.chat_log = []       # ★ web 对话记录（仅进程内存；不落账）
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
         self._write_heartbeat()
@@ -222,9 +222,15 @@ class Agent:
     def guide_ack_frame(self):
         return _guide_ack_frame(self, build_frame)
 
+    def _chat_ask(self, system, history):
+        return _ask_chat(system, history, LLM_URL, LLM_KEY, LLM_MODEL)
+
+    def chat_reply(self, message):
+        return _chat_reply(self, message, self._chat_ask)
+
     def register(self):
         """★ 谁启动谁注册：窗口动作由 agent 提供 ⇒ 本体把 agent.launch/close 转给我。"""
-        for aid in ("agent.launch", "agent.close", "agent.state", "agent.guide"):
+        for aid in ("agent.launch", "agent.close", "agent.state", "agent.guide", "agent.chat"):
             self.s.put(T_REGISTER, json.dumps({
                 "action": aid,
                 "function": aid.split(".", 1)[-1],
@@ -237,13 +243,7 @@ class Agent:
         log("① 注册应用动作：launch／close／state／guide（route=agent）")
 
     def build_launch_frame(self):
-        """★ 启动时先出一张【静态窗口】（不用等模型）：标题栏＋一行说明。"""
-        return build_frame([
-            {"id": "root", "component": "Column", "children": ["a_title", "a_line"]},
-            {"id": "a_title", "component": "Text", "text": "**智能体已启动**（经本体批准）"},
-            {"id": "a_line", "component": "Text",
-             "text": "我是 agent/" + NAME + "：每 45 秒看一次世界，结果画在这扇窗里。点右上角 × 关闭。"},
-        ])
+        return _launch_frame(build_frame)
 
 SYS_PLAN = (
     "你是 worldcore 世界里的【机器之眼】—— 一台 openSUSE 机器上的 agent。\n"
@@ -311,7 +311,6 @@ def build_frame(comps):
                     "surfaceId": surface, "components": comps}},
             ]}
 
-
 def main():
     conf = zenoh.Config()
     conf.insert_json5("mode", '"client"')
@@ -356,7 +355,7 @@ def main():
         if d.get("route") and d.get("route") != "agent":
             return
         aid = d.get("action") or ""
-        if aid not in ("agent.launch", "agent.close", "agent.state", "agent.guide"):
+        if aid not in ("agent.launch", "agent.close", "agent.state", "agent.guide", "agent.chat"):
             return
         params = d.get("params") or {}
         ok, why = permit.verify(d.get("permit"), aid, params)
@@ -380,6 +379,8 @@ def main():
             log("★ 收到 agent.close ⇒ 停画（画布由呈现撤回，理由随账）")
         elif aid == "agent.state":
             result = a.status()
+        elif aid == "agent.chat":
+            result = a.chat_reply(params.get("message") or "")
         else:
             ins = str(params.get("instruction") or "").strip()
             if not ins:
@@ -493,7 +494,6 @@ def main():
         a.notice(frame, "模型画的界面")
         log("④ 发帧（★ 经本体 world/notice）：%d 个组件" % len(comps))
         time.sleep(ROUND)
-
 
 if __name__ == "__main__":
     main()

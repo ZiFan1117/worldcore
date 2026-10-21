@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DSH · worldcore</title>
+<style>
+:root{
+  --bg:#f7f8fa; --panel:#fff; --sidebar:#f1f3f6; --text:#1f2328;
+  --muted:#6a737d; --line:#e3e6ea; --accent:#2f6fed; --accent-soft:#e8f0ff;
+  --user:#2f6fed; --agent:#eef1f5; --code:#f0f2f5; --danger:#c0392b; --ok:#1a7f37;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0f1115; --panel:#171a21; --sidebar:#11141a; --text:#e6e9ef;
+    --muted:#98a2b3; --line:#28303c; --accent:#7aa2ff; --accent-soft:#1c2a44;
+    --user:#3f6fd8; --agent:#1e242e; --code:#11151c; --ok:#3fb950;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:272px;flex:0 0 272px;background:var(--sidebar);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:14px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px;margin-bottom:12px}
+.logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2f6fed,#7aa2ff);
+  display:grid;place-items:center;color:#fff;font-size:14px}
+.brand small{color:var(--muted);font-weight:500;font-size:11px}
+.newchat{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:10px;padding:9px;text-align:left;margin-bottom:14px}
+.sect{font-size:11px;color:var(--muted);letter-spacing:.06em;margin:12px 0 6px;text-transform:uppercase}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 11px}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px}
+.kv span:first-child{color:var(--muted)}
+.kv b{font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.statusline{display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:#bbb}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(26,127,55,.12)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:9px;
+  padding:7px 8px;font-size:12px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.wide{grid-column:1/-1}
+.guides{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.guide{text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  border-radius:9px;padding:7px 9px;font-size:12px}
+.guide:hover{border-color:var(--accent);color:var(--accent)}
+.events{flex:1;overflow:auto;margin-top:6px;min-height:60px}
+.ev{font-size:11px;color:var(--muted);border-bottom:1px dashed var(--line);padding:5px 0;word-break:break-all}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{height:58px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;
+  align-items:center;justify-content:space-between;padding:0 20px}
+.top .title{font-weight:650;display:flex;gap:9px;align-items:center}
+.pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.chat{flex:1;overflow:auto;padding:22px 16px 8px}
+.thread{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.msg{display:flex;gap:10px;align-items:flex-start}
+.msg .av{width:28px;height:28px;flex:0 0 28px;border-radius:8px;display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:#fff;background:#6a737d}
+.msg.user .av{background:var(--user)}
+.msg.agent .av{background:linear-gradient(135deg,#2f6fed,#7aa2ff)}
+.bubble{background:var(--agent);border:1px solid var(--line);border-radius:12px;
+  padding:10px 13px;max-width:calc(100% - 40px);overflow-wrap:anywhere}
+.msg.user .bubble{background:var(--accent-soft);border-color:transparent}
+.bubble p{margin:0 0 8px}.bubble p:last-child{margin-bottom:0}
+.bubble pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:9px;
+  overflow:auto;font-size:12px;margin:8px 0}
+.bubble code{background:var(--code);border-radius:4px;padding:1px 4px;font-size:12px}
+.bubble pre code{padding:0;background:none}
+.bubble a{color:var(--accent)}
+.meta{font-size:11px;color:var(--muted);margin-top:4px}
+.composer{border-top:1px solid var(--line);background:var(--panel);padding:12px 16px 16px}
+.box{max-width:820px;margin:0 auto;border:1px solid var(--line);border-radius:14px;
+  padding:10px;background:var(--bg);display:flex;gap:8px;align-items:flex-end}
+.box textarea{flex:1;border:0;outline:0;background:transparent;color:var(--text);
+  resize:none;max-height:180px;min-height:24px;line-height:1.5}
+.send{width:36px;height:36px;border:0;border-radius:10px;background:var(--accent);color:#fff;
+  font-size:17px}
+.send:disabled{opacity:.45;cursor:default}
+.tip{max-width:820px;margin:6px auto 0;color:var(--muted);font-size:11px;
+  display:flex;justify-content:space-between;gap:8px}
+.err{color:var(--danger);font-size:12px}
+.loading{display:inline-flex;gap:4px;align-items:center;color:var(--muted);font-size:12px}
+.loading i{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:b 1s infinite}
+.loading i:nth-child(2){animation-delay:.15s}.loading i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
+.login{position:fixed;inset:0;background:rgba(15,17,21,.55);display:grid;place-items:center;z-index:9}
+.login .card{width:340px;padding:20px}
+.login h2{margin:0 0 6px;font-size:18px}
+.login p{margin:0 0 14px;color:var(--muted);font-size:12px}
+.login input{width:100%;margin:6px 0;padding:9px 10px;border:1px solid var(--line);
+  border-radius:9px;background:var(--bg);color:var(--text)}
+.hidden{display:none!important}
+@media(max-width:760px){.sidebar{display:none}.top{padding:0 12px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">D</div><div>DSH<small><br>worldcore · DeepSeek 式对话</small></div></div>
+    <button class="newchat" id="newChat">＋ 新对话</button>
+    <div class="sect">状态</div>
+    <div class="card">
+      <div class="statusline"><span class="dot" id="dot"></span><span id="stateText">未登录</span></div>
+      <div class="kv"><span>窗口</span><b id="kLaunched">—</b></div>
+      <div class="kv"><span>轮次</span><b id="kRound">—</b></div>
+      <div class="kv"><span>心跳</span><b id="kHb">—</b></div>
+      <div class="kv"><span>当前引导</span><b id="kGuide">—</b></div>
+      <div class="kv"><span>最近动作</span><b id="kLast">—</b></div>
+      <div class="btns">
+        <button class="btn" id="btnLaunch">启动</button>
+        <button class="btn" id="btnClose">关闭窗口</button>
+        <button class="btn wide" id="btnRefresh">刷新状态</button>
+      </div>
+    </div>
+    <div class="sect">引导 DSH</div>
+    <div class="guides">
+      <button class="guide" data-guide="先看世界状态、可用动作和最近事件，再决定下一步；不要重复最近动作。">先看世界</button>
+      <button class="guide" data-guide="用 file.* 只读动作看看 /var/lib/aios 与 /root/aios。">看文件</button>
+      <button class="guide" data-guide="用 network.addresses、network.routes、network.connections 看看本机网络。">看网络</button>
+    </div>
+    <div class="sect">世界事件</div>
+    <div class="events" id="events"><div class="ev">等待事件…</div></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div class="title"><span class="logo" style="width:24px;height:24px;border-radius:7px">D</span>
+        DSH <span class="pill" id="modelPill">deepseek-chat</span></div>
+      <div class="pill ok" id="connPill">本地世界</div>
+    </header>
+    <div class="chat" id="chat"><div class="thread" id="thread"></div></div>
+    <div class="composer">
+      <div class="box">
+        <textarea id="input" rows="1" placeholder="给 DSH 发消息…（Enter 发送，Shift+Enter 换行）"></textarea>
+        <button class="send" id="send" title="发送">↑</button>
+      </div>
+      <div class="tip"><span>所有对话与动作都经本体；DSH 不直连界面。</span><span id="tipState">就绪</span></div>
+    </div>
+  </main>
+</div>
+
+<div class="login hidden" id="login">
+  <div class="card">
+    <h2>进入 DSH</h2>
+    <p>用你的 worldcore 身份登录；票由本体发。</p>
+    <input id="user" value="zhang" placeholder="用户名"/>
+    <input id="pass" type="password" value="0" placeholder="密码"/>
+    <div class="err hidden" id="loginErr"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px">
+      <button class="btn primary" id="btnLogin">登录</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const els = {
+  thread: $("#thread"), chat: $("#chat"), input: $("#input"), send: $("#send"),
+  dot: $("#dot"), stateText: $("#stateText"), kLaunched: $("#kLaunched"),
+  kRound: $("#kRound"), kHb: $("#kHb"), kGuide: $("#kGuide"), kLast: $("#kLast"),
+  events: $("#events"), login: $("#login"), loginErr: $("#loginErr"),
+  user: $("#user"), pass: $("#pass"), tipState: $("#tipState"),
+};
+let messages = [];
+let busy = false;
+let status = {};
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function md(s){
+  let h = esc(s);
+  h = h.replace(/```([\s\S]*?)```/g, (_,c)=>`<pre><code>${c.replace(/^\n+|\n+$/g,"")}</code></pre>`);
+  h = h.replace(/`([^`]+)`/g,"<code>$1</code>");
+  h = h.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
+  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return h.split(/\n{2,}/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("");
+}
+function now(){return new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});}
+
+function render(){
+  els.thread.innerHTML = messages.map(m=>`
+    <div class="msg ${m.role}">
+      <div class="av">${m.role==="user"?"你":"D"}</div>
+      <div class="bubble">${m.role==="agent"?md(m.content):`<p>${esc(m.content).replace(/\n/g,"<br>")}</p>`}
+        <div class="meta">${m.role==="user"?"你":"DSH"} · ${esc(m.at||"")}</div>
+      </div>
+    </div>`).join("") + (busy ? `<div class="msg agent"><div class="av">D</div><div class="bubble"><span class="loading"><i></i><i></i><i></i> DSH 在经本体思考…</span></div></div>` : "");
+  els.chat.scrollTop = els.chat.scrollHeight;
+}
+
+function add(role, content){
+  messages.push({role, content, at: now()});
+  if(messages.length > 200) messages = messages.slice(-200);
+  localStorage.setItem("dsh_messages", JSON.stringify(messages));
+  render();
+}
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem("dsh_messages");
+    if(raw) messages = JSON.parse(raw) || [];
+  }catch(e){ messages = []; }
+  if(!messages.length){
+    messages = [{role:"agent", content:"你好，我是 **DSH**。这是你的 worldcore 智能体界面。\n\n你可以直接问我；我的动作、许可、回话都经本体。左侧能看状态、给我引导、启动或关闭窗口。", at: now()}];
+  }
+  render();
+}
+
+async function cmd(payload){
+  const r = await fetch("/cmd", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)});
+  return await r.json();
+}
+async function ask(action, params){
+  return await cmd({op:"ask", action, params: params||{}});
+}
+
+function setStatus(st){
+  status = st || {};
+  const launched = !!status.launched;
+  els.dot.classList.toggle("on", status.state === "running" || launched);
+  els.stateText.textContent = status.state ? (launched ? "运行中" : "待启动") : "未就绪";
+  els.kLaunched.textContent = launched ? "已启动" : "未启动";
+  els.kRound.textContent = status.round ?? "—";
+  els.kHb.textContent = status.at || (status.heartbeat && status.heartbeat.last_at) || "—";
+  els.kGuide.textContent = status.guide || "—";
+  const last = status.last_action;
+  els.kLast.textContent = last ? (typeof last === "string" ? last : (last.action || "—")) : "—";
+}
+async function refreshStatus(){
+  const r = await ask("agent.state");
+  if(r.ok && r.result && r.result.body) setStatus(r.result.body);
+  return r;
+}
+async function login(){
+  els.loginErr.classList.add("hidden");
+  const r = await cmd({op:"login", user: els.user.value.trim(), secret: els.pass.value});
+  if(!r.ok){ els.loginErr.textContent = r.why || "登录失败"; els.loginErr.classList.remove("hidden"); return; }
+  els.login.classList.add("hidden");
+  await refreshStatus();
+}
+
+async function send(){
+  const text = els.input.value.trim();
+  if(!text || busy) return;
+  els.input.value = ""; els.input.style.height = "auto";
+  add("user", text);
+  busy = true; render(); els.send.disabled = true; els.tipState.textContent = "DSH 正在回…";
+  try{
+    const r = await ask("agent.chat", {message: text});
+    if(r.ok && r.result && r.result.ok){
+      const body = r.result.body || {};
+      add("agent", body.reply || "（空回复）");
+      setStatus({...status, at: body.at, state: status.state || "running"});
+      if(body.error) els.tipState.textContent = "有错误：" + body.error;
+      else els.tipState.textContent = "就绪";
+    }else{
+      add("agent", "**没回上来**：" + esc(r.why || (r.result && (r.result.error || r.result.why)) || "未知错误"));
+      els.tipState.textContent = "错误";
+    }
+  }catch(e){
+    add("agent", "**网络错误**：" + esc(e.message));
+  }finally{
+    busy = false; render(); els.send.disabled = false; els.input.focus();
+    refreshStatus().catch(()=>{});
+  }
+}
+
+async function guide(text){
+  els.tipState.textContent = "发引导…";
+  const r = await ask("agent.guide", {instruction: text});
+  if(r.ok && r.result && r.result.body) setStatus(r.result.body);
+  els.tipState.textContent = r.ok ? "引导已交本体" : "引导失败";
+}
+async function launch(close){
+  const r = await ask(close ? "agent.close" : "agent.launch");
+  if(r.ok && r.result && r.result.body) setStatus({...status, ...r.result.body});
+  els.tipState.textContent = r.ok ? (close ? "窗口关闭请求已交本体" : "启动请求已交本体") : "请求失败";
+}
+function sse(){
+  try{
+    const es = new EventSource("/events");
+    es.onmessage = (ev)=>{
+      let d; try{d = JSON.parse(ev.data);}catch(e){return;}
+      if(d.type === "event"){
+        const e = d.event || {};
+        const line = document.createElement("div"); line.className = "ev";
+        line.textContent = `${e.at||""} ${e.kind_of||""} ${e.action||e.kind||""} ${e.ok===false?"✗":""}`;
+        els.events.prepend(line); while(els.events.children.length>40) els.events.lastChild.remove();
+      }else if(d.type === "frame"){
+        const f = d.frame || {};
+        const n = ((f.messages||[]).find(m=>m.updateComponents)||{}).updateComponents;
+        if(n && n.components){
+          const t = n.components.find(c=>c.component==="Text" && c.id && c.id.indexOf("title")<0);
+          if(t && t.text){ const line = document.createElement("div"); line.className="ev";
+            line.textContent = "A2UI: " + t.text.slice(0,140); els.events.prepend(line);
+            while(els.events.children.length>40) els.events.lastChild.remove(); }
+        }
+      }
+    };
+    es.onerror = ()=>{ els.tipState.textContent = "SSE 重连…"; };
+  }catch(e){}
+}
+
+function bind(){
+  els.send.onclick = send;
+  els.input.addEventListener("keydown", e=>{
+    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  els.input.addEventListener("input", ()=>{ els.input.style.height="auto"; els.input.style.height=Math.min(els.input.scrollHeight,180)+"px"; });
+  $("#btnLogin").onclick = login;
+  $("#btnRefresh").onclick = refreshStatus;
+  $("#btnLaunch").onclick = ()=>launch(false);
+  $("#btnClose").onclick = ()=>launch(true);
+  document.querySelectorAll(".guide").forEach(b=>b.onclick=()=>guide(b.dataset.guide));
+  $("#newChat").onclick = ()=>{
+    messages = []; localStorage.removeItem("dsh_messages");
+    add("agent", "新对话。你可以直接说，或者先在左侧给我一条引导。");
+  };
+}
+
+async function boot(){
+  bind(); loadHistory(); sse();
+  const p = await cmd({op:"ping"});
+  if(!p.has_ticket){ els.login.classList.remove("hidden"); els.stateText.textContent="未登录"; return; }
+  els.login.classList.add("hidden");
+  await refreshStatus();
+}
+boot();
+</script>
+</body>
+</html>

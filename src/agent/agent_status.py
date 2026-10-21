@@ -25,3 +25,12 @@ def guide_ack_frame(agent, build_frame):
         {"id": "g_t", "component": "Text", "text": "**已收到引导**"},
         {"id": "g_l", "component": "Text", "text": str(agent.guide)[:300]},
     ])
+
+
+def launch_frame(build_frame):
+    return build_frame([
+        {"id": "root", "component": "Column", "children": ["a_title", "a_line"]},
+        {"id": "a_title", "component": "Text", "text": "**智能体已启动**（经本体批准）"},
+        {"id": "a_line", "component": "Text",
+         "text": "我是 agent/dsh：每 45 秒看一次世界，结果画在这扇窗里。点右上角 × 关闭。"},
+    ])

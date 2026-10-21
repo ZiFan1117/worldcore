@@ -36,6 +36,7 @@ T_EVENT = "world/event"
 T_ACT = "world/ui/act"
 
 HTML = os.path.join(HERE, "browser.html")
+DSH_HTML = os.path.join(HERE, "dsh.html")
 
 
 def log(*a):
@@ -265,7 +266,9 @@ class WebApp:
         if op == "ask":
             if not self.ticket:
                 return {"ok": False, "why": "先登录"}
-            r = self.call(d.get("action") or "", d.get("params") or {}, ticket=self.ticket)
+            action = d.get("action") or ""
+            timeout = 120.0 if action == "agent.chat" else 15.0
+            r = self.call(action, d.get("params") or {}, ticket=self.ticket, timeout=timeout)
             return {"ok": bool(r.get("ok")), "result": r}
         if op == "confirm_resolve":
             # ★ 人点了弹窗：这条也要经本体（带票）——浏览器不自己发许可
@@ -303,6 +306,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         app = self.server.app
         path = urlsplit(self.path).path   # ★ 去掉查询串（?user=…&secret=… 仍走页面）
+        if path in ("/dsh", "/dsh.html"):
+            try:
+                with open(DSH_HTML, encoding="utf-8") as f:
+                    self._send(200, f.read(), "text/html; charset=utf-8")
+            except FileNotFoundError:
+                self._send(500, "dsh.html 不在", "text/plain; charset=utf-8")
+            return
         if path in ("/", "/index.html", "/voice.html"):
             try:
                 with open(HTML, encoding="utf-8") as f:

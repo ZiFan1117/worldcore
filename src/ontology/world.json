@@ -5718,6 +5718,51 @@
         "why": "DSH 控制台引导"
       },
       "metadata": {}
+    },
+    {
+      "id": "agent.chat",
+      "label": "和 DSH 对话",
+      "description": "★ Web 界面：人的消息经本体转给 DSH；DSH 回话经 world/exec/result 回本体，再回界面。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "invoke",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "message",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://presence",
+          "world://agent"
+        ],
+        "why": "DSH Web 对话"
+      },
+      "metadata": {}
     }
   ],
   "functions": [
