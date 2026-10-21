@@ -482,7 +482,8 @@ function bind(){
 }
 let timer=null;
 async function boot(){
-  els.headTitle.textContent=sessionTitle;renderSessions();bind();render();sse();
+  els.headTitle.textContent=sessionTitle;renderSessions();bind();render();
+  if(!new URLSearchParams(location.search).get("nosse")) sse();
   // ★ 先出登录卡（不让用户面对白屏）；有票/查询自动登录成功后再收起。
   els.login.classList.remove("hidden");
   els.loginErr.textContent="正在经本体登录…";els.loginErr.classList.remove("hidden");
@@ -495,7 +496,7 @@ async function boot(){
     else{els.loginErr.textContent="请登录";els.footState.textContent="未登录";return;}
   }else{els.login.classList.add("hidden");await refreshWorkspace();await refreshState();}
   if(timer)clearInterval(timer);
-  timer=setInterval(()=>{if(!busy)refreshWorkspace().catch(()=>{});},3000);
+  if(!q.get("nopoll")) timer=setInterval(()=>{if(!busy)refreshWorkspace().catch(()=>{});},3000);
 }
 boot();
 </script>
