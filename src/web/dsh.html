@@ -6,8 +6,8 @@
 <title>DeepSeek Harness · worldcore</title>
 <style>
 :root{
-  --bg:#fff; --side:#f7f7f8; --line:#e8e8e8; --text:#1a1a1a; --muted:#8b8b8b;
-  --accent:#4d6bfe; --accent-soft:#eef2ff; --bubble:#f4f4f5; --card:#fafafa;
+  --bg:#fff; --side:#f9fafb; --line:#0000001a; --text:#0f1115; --muted:#61666b;
+  --accent:#4176e6; --accent-soft:#e4edfd; --bubble:#f5f6f7; --card:#f9fafb;
   --green:#1a7f37; --red:#c0392b; --code:#f6f6f7;
 }
 @media(prefers-color-scheme:dark){
@@ -18,19 +18,19 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);
-  font:13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  font:14px/22px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0}
 .app{display:flex;height:100vh;overflow:hidden}
 /* ── left ── */
-.side{width:266px;flex:0 0 266px;background:var(--side);border-right:1px solid var(--line);
+.side{width:264px;flex:0 0 264px;background:var(--side);border-right:1px solid var(--line);
   display:flex;flex-direction:column;min-height:0}
 .titlebar{height:34px;display:flex;align-items:center;gap:16px;padding:0 14px;
   font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line);flex:0 0 34px}
 .titlebar b{font-weight:500;color:var(--text)}
 .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:9px}
 .whale{width:26px;height:26px;color:var(--text);flex:0 0 26px}
-.brand .name{font-weight:700;font-size:16px;letter-spacing:-.3px}
+.brand .name{font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:Montserrat,"Segoe UI",sans-serif}
 .brand .badge{font-size:9px;letter-spacing:.12em;border:1px solid var(--line);border-radius:4px;
   padding:2px 4px;color:var(--muted);margin-left:1px}
 .newchat{margin:0 12px 8px;height:34px;border:1px solid var(--line);background:var(--bg);
@@ -78,14 +78,14 @@ button{cursor:pointer;background:none;border:0}
   border-radius:2px 2px 0 0}
 .tab.cc{color:var(--muted)}
 .view{flex:1;min-height:0;overflow:auto}
-.view .inner{max-width:880px;margin:0 auto;padding:26px 28px 20px}
+.view .inner{max-width:840px;margin:0 auto;padding:24px 40px 20px}
 /* conversation */
 .msg{display:flex;margin:0 0 18px}
 .msg .who{display:none}
 .msg.user{justify-content:flex-end}
 .msg.user .bubble{background:var(--bubble);border-radius:14px;padding:9px 13px;max-width:76%;
   white-space:pre-wrap;overflow-wrap:anywhere}
-.msg.agent .bubble{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text)}
+.msg.agent .bubble{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text);font-size:14px}
 .msg.agent .bubble p{margin:0 0 8px}.msg.agent .bubble p:last-child{margin:0}
 .msg.agent .bubble b{font-weight:600}
 .msg.agent .bubble code{background:var(--code);border-radius:4px;padding:1px 4px;font-size:12px}
@@ -119,7 +119,7 @@ button{cursor:pointer;background:none;border:0}
   padding-top:10px}
 .toolsum b{font-weight:500;color:var(--text)}
 /* trace */
-.trace{max-width:880px;margin:0 auto;padding:22px 28px}
+.trace{max-width:840px;margin:0 auto;padding:24px 40px}
 .tr{border-left:2px solid var(--line);padding:0 0 16px 16px;margin-left:4px;position:relative}
 .tr:before{content:"";position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;
   background:var(--bg);border:2px solid var(--muted)}
@@ -129,8 +129,8 @@ button{cursor:pointer;background:none;border:0}
 .tr .tm{margin-left:auto;color:var(--muted);font-size:10.5px;font-weight:400}
 .tr .tb{color:var(--muted);font-size:11.5px;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
 /* composer */
-.composer{flex:0 0 auto;padding:0 28px 14px;background:var(--bg)}
-.compbox{max-width:880px;margin:0 auto;border:1px solid var(--line);background:var(--bg);
+.composer{flex:0 0 auto;padding:0 40px 16px;background:var(--bg)}
+.compbox{max-width:840px;margin:0 auto;border:1px solid var(--line);background:var(--bg);
   border-radius:13px;padding:9px 10px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .compbox:focus-within{border-color:#c9c9c9}
 .compbox textarea{width:100%;border:0;outline:0;resize:none;background:transparent;
@@ -146,7 +146,7 @@ button{cursor:pointer;background:none;border:0}
 .send{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;
   display:grid;place-items:center;margin-left:4px}
 .send:disabled{opacity:.4}
-.hint{max-width:880px;margin:5px auto 0;color:var(--muted);font-size:10.5px;
+.hint{max-width:840px;margin:5px auto 0;color:var(--muted);font-size:10.5px;
   display:flex;justify-content:space-between;gap:8px}
 /* login */
 .login{position:fixed;inset:0;background:rgba(0,0,0,.38);display:grid;place-items:center;z-index:20}
@@ -309,16 +309,15 @@ function fileCard(steps){
 function renderThread(){
   const steps = ws.steps || [];
   const actions = steps.filter(s=>s.kind==="action").slice(-10);
-  let h = `<div class="msg agent"><div class="bubble intro">你好，我是 <b>DSH</b>。这是你的 worldcore Agent。你可以直接发消息，或让我去做一件事：我的观察、工具动作、结果都会经本体回到这里。</div></div>`;
+  let h = "";
+  if(!messages.length && !steps.length){
+    h = `<div class="msg agent"><div class="bubble intro">你好，我是 <b>DSH</b>。这是你的 worldcore Agent。你可以直接发消息，或让我去做一件事：我的观察、工具动作、结果都会经本体回到这里。</div></div>`;
+  }
   messages.slice(-30).forEach(m=>{
     h += `<div class="msg ${m.role==="user"?"user":"agent"}"><div class="bubble">${m.role==="agent"?md(m.text):esc(m.text).replace(/\n/g,"<br>")}</div></div>`;
   });
   actions.forEach(s=>{h += toolCard(s);});
   h += fileCard(steps);
-  if(steps.length){
-    const last=steps[steps.length-1];
-    h += `<div class="toolsum">执行了 <b>${steps.filter(s=>s.kind==="action").length}</b> 个动作，观察 <b>${steps.filter(s=>s.kind==="observe").length}</b> 轮，渲染 <b>${steps.filter(s=>s.kind==="render").length}</b> 帧 · 最近：${esc(last.kind)} ${esc(nowTime(last.at))}</div>`;
-  }
   els.thread.innerHTML = h;
   const v=$("#chatView"); v.scrollTop=v.scrollHeight;
 }
