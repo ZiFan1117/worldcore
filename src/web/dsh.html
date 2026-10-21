@@ -490,6 +490,7 @@ async function boot(){
   const q=new URLSearchParams(location.search);
   if(q.get("user"))els.user.value=q.get("user");
   if(q.get("secret"))els.pass.value=q.get("secret");
+  if(q.get("snap")){els.login.classList.add("hidden");els.footState.textContent="DSH · 待启动";return;}
   const p=await cmd({op:"ping"});
   if(!p.has_ticket){
     if(q.get("user")){await login();}
