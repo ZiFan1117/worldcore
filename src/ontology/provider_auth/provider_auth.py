@@ -180,4 +180,9 @@ class SignedSession:
 
 def open_signed_session(conf):
     import zenoh
+    try:
+        from bus_auth import configure as _bus_configure
+        conf = _bus_configure(conf)
+    except Exception:                                      # noqa: BLE001
+        pass
     return SignedSession(zenoh.open(conf))

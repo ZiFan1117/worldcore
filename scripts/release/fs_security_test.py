@@ -5,11 +5,14 @@
 用法（VM）：
   python3 /root/aios/scripts/release/fs_security_test.py
 """
+import sys
 import json
 import os
 import time
 
 import zenoh
+sys.path.insert(0, "/usr/lib/aios/src/ontology")
+from bus_auth import open_bus  # noqa: E402
 
 T_ASK = "world/ask"
 T_ASK_RESULT = "world/ask/result"
@@ -21,7 +24,7 @@ class Bus:
         conf.insert_json5("mode", '"client"')
         conf.insert_json5("scouting/multicast/enabled", "false")
         conf.insert_json5("connect/endpoints", json.dumps(["tcp/127.0.0.1:7447"]))
-        self.z = zenoh.open(conf)
+        self.z = open_bus(conf)
         self.asks = {}
         self.z.declare_subscriber(T_ASK_RESULT, self._on)
 

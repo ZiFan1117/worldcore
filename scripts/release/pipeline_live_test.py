@@ -12,6 +12,7 @@
 用法（VM 上）：
   python3 /root/aios/scripts/release/pipeline_live_test.py --seconds 20
 """
+import sys
 import argparse
 import datetime
 import json
@@ -20,6 +21,8 @@ import socket
 import time
 
 import zenoh
+sys.path.insert(0, "/usr/lib/aios/src/ontology")
+from bus_auth import open_bus  # noqa: E402
 
 LEDGER = "/var/lib/aios/ontology/ledger.jsonl"
 T_ASK = "world/ask"
@@ -78,7 +81,7 @@ class Bus:
         conf.insert_json5("mode", '"client"')
         conf.insert_json5("scouting/multicast/enabled", "false")
         conf.insert_json5("connect/endpoints", json.dumps(["tcp/127.0.0.1:7447"]))
-        self.z = zenoh.open(conf)
+        self.z = open_bus(conf)
         self.asks, self.queries, self.events = {}, {}, []
         self.z.declare_subscriber(T_ASK_RESULT, lambda m: self._on(m, self.asks))
         self.z.declare_subscriber(T_QUERY_RESULT, lambda m: self._on(m, self.queries))

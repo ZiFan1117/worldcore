@@ -12,7 +12,7 @@ Type=simple
 #   ⇒ ★ 待办：要么把 zenohd 收进 aios-system，要么接受这处差异并把它写进发行说明。
 # ★ 总线自己的连接配置（★ 它 listen 不需要，但保持一致）
 Environment=ZENOH_CONFIG=/etc/aios/zenoh.json5
-ExecStart=/usr/lib/aios/zenohd --listen tcp/127.0.0.1:7447
+ExecStart=/usr/lib/aios/zenohd -c /etc/aios/zenoh.json5 --listen tcp/127.0.0.1:7447
 Restart=always
 RestartSec=3
 LimitNOFILE=65536

@@ -46,6 +46,67 @@ PY
   chmod 600 "$KEYDIR/$k.key"
 done
 
+echo "=== 1.6 总线 ACL（Zenoh user-password 认证）==="
+BUS_UNITS="aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse"
+install -d -m 0700 /etc/aios
+for f in /etc/aios/bus-client.secret /etc/aios/bus-router.secret; do
+  if [ ! -s "$f" ]; then
+    umask 077
+    python3 - "$f" <<'PY'
+import secrets
+import sys
+open(sys.argv[1], "w", encoding="utf-8").write(secrets.token_hex(32))
+PY
+  fi
+  chmod 600 "$f"
+done
+if [ -f /etc/aios/zenoh.json5 ]; then
+  cp -a /etc/aios/zenoh.json5 "/etc/aios/zenoh.json5.bak-$TS" 2>/dev/null || true
+fi
+python3 - "$BUS_UNITS" <<'PY'
+import json
+import sys
+
+units = sys.argv[1].split()
+def rd(p):
+    with open(p, encoding="utf-8") as f:
+        return f.read().strip()
+client_pw = rd("/etc/aios/bus-client.secret")
+router_pw = rd("/etc/aios/bus-router.secret")
+with open("/etc/aios/bus-credentials.txt", "w", encoding="utf-8") as f:
+    for u in units + ["tests"]:
+        f.write("%s:%s\n" % (u, client_pw))
+conf = {
+    "mode": "router",
+    "transport": {"auth": {"usrpwd": {
+        "user": "router", "password": router_pw,
+        "dictionary_file": "/etc/aios/bus-credentials.txt"}}},
+}
+with open("/etc/aios/zenoh.json5", "w", encoding="utf-8") as f:
+    json.dump(conf, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+with open("/etc/aios/bus-client.secret", "w", encoding="utf-8") as f:
+    f.write(client_pw)
+print("  client users: %d；router auth: user-password" % (len(units) + 1))
+PY
+chmod 600 /etc/aios/bus-credentials.txt /etc/aios/bus-client.secret /etc/aios/bus-router.secret
+for u in $BUS_UNITS; do
+  install -d -m 0755 "/etc/systemd/system/$u.service.d"
+  cat >"/etc/systemd/system/$u.service.d/60-bus-auth.conf" <<EOF
+[Service]
+Environment=AIOS_BUS_USER=$u
+EOF
+done
+install -d -m 0755 /etc/systemd/system/aios-bus.service.d
+rm -f /etc/systemd/system/aios-bus.service.d/99-bus-acl.conf
+cat >/etc/systemd/system/aios-bus.service.d/zz-bus-acl.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/lib/aios/zenohd -c /etc/aios/zenoh.json5 --listen tcp/127.0.0.1:7447 --listen ws/127.0.0.1:10001
+EOF
+systemctl daemon-reload
+echo "  drop-ins: $BUS_UNITS（bus 99-bus-acl 覆盖 VM override）"
+
 echo "=== 2 数据（映射表 ／ 本体法 ／ sysknife 件）==="
 mkdir -p "$PREFIX"
 for f in "$REPO"/scripts/release/computer/*; do

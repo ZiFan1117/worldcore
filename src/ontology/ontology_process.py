@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.dirname(HERE))     # src/ 根（foundry_ontology 目�
 from law.ontology_definition import build_aios_ontology  # noqa: E402
 from ingest.appear import ingest_appear  # noqa: E402
 from provider_auth import ProviderAuthError, auth_enabled, verify_message  # noqa: E402
+import bus_auth  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
@@ -271,7 +272,7 @@ def main():
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([ZENOH_ENDPOINT]))
-    session = zenoh.open(conf)
+    session = bus_auth.open_bus(conf)
     log("   连上了")
     w.publish = session.put        # ★ P8：事件流从这里推
     log("④ 订话题 …")

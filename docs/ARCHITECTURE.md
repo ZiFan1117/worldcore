@@ -1,6 +1,6 @@
 # worldcore 架构图（总览）
 
-> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 212（sys 156 ＋ 世界 56）／ 函数 8 ／ 判据 81 条 ／ 常驻单元 16 个。
+> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 212（sys 156 ＋ 世界 56）／ 函数 8 ／ 判据 82 条 ／ 常驻单元 16 个。
 > 图里所有进程都是独立 systemd 单元；所有消息走 zenoh 总线话题 `world/*`。
 
 ## 一、四层总览
@@ -218,8 +218,9 @@ flowchart TB
 1. **定义与实现分家**：法 `world.json` 是唯一权威，代码只装载它；改法=改声明件。
 2. **本体只做三件事**：认（闸）、判（许可/凭证）、记（账）；**不执行、不渲染、不碰机器**。
    - **provider 消息签名（独立文件夹）**：`src/ontology/provider_auth/` 给 provider → 本体的 `world/appear`/`register`/`exec/result` 加 HMAC 信封并验签；拒冒名/坏签名/重放；密钥在 `/usr/lib/aios/provider-keys/`，不进 `world.json`。
+   - **总线 ACL（连接级）**：Zenoh user-password + `/etc/aios/bus-credentials.txt`；合法单元用 systemd drop-in `AIOS_BUS_USER`，无凭据/错口令连不上；凭据 deploy 生成、root-only、不写进法。
 3. **一进程一夹**：每个进程有独立目录/单元/动作注册/回账；**出向只许 computer**（C19）。
 
 ---
 
-*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（81 条，每条自带会红的反例）。*
+*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（82 条，每条自带会红的反例）。*

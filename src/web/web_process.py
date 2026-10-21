@@ -24,6 +24,8 @@ from urllib.parse import urlsplit
 import zenoh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "ontology"))
+from bus_auth import open_bus  # noqa: E402
 BUS = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 PORT = int(os.environ.get("AIOS_WEB_PORT", "8765"))
 T_ASK = "world/ask"
@@ -429,7 +431,7 @@ def main():
     conf.insert_json5("mode", '"client"')
     conf.insert_json5("scouting/multicast/enabled", "false")
     conf.insert_json5("connect/endpoints", json.dumps([BUS]))
-    s = zenoh.open(conf)
+    s = open_bus(conf)
     app = WebApp(s)
     app.subscribe()
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
