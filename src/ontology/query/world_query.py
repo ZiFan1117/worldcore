@@ -15,6 +15,7 @@ import os
 import time
 
 from gate import identity
+from world_functions import NEEDS_VIEWER, dispatch as function_dispatch  # noqa: E402
 
 
 def read_ledger(path):
@@ -216,6 +217,22 @@ def handle(smp, w, session, log=print):
             data = {"count": len(evs), "total": len(rows), "bad_lines": bad_lines,
                     "viewer": viewer, "space": vspace, "events": evs,
                     "cursor": cursor}
+        elif kind == "function":
+            name = str(msg.get("name") or msg.get("function") or
+                       (msg.get("params") or {}).get("name") or "")
+            if not name:
+                raise ValueError("查函数要带 name")
+            if name not in w.ontology.functions:
+                raise ValueError("函数不在册：%s" % name)
+            _viewer = None
+            if name in NEEDS_VIEWER:
+                _viewer, _vspace, why_v = viewer_of(msg, w)
+                if _viewer is None:
+                    raise ValueError("这个函数要能核身份：%s" % why_v)
+            _ok, _body = function_dispatch(w, name, msg.get("params") or {}, _viewer)
+            if not _ok:
+                raise ValueError(str(_body))
+            data = {"function": name, "result": _body}
         elif kind == "overview":
             # ★★ 本体「一眼看全」：给本体窗口用（类/接口/关系/动作/个体/注册表/账）
             classes = {}

@@ -5304,165 +5304,105 @@
   ],
   "functions": [
     {
-      "id": "fn.notice.mute",
-      "label": "把一条通告静音",
-      "description": "动作 notice.mute 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "STRING"
-      },
+      "id": "fn.world.overview",
+      "label": "世界总览统计",
+      "description": "只读：类/接口/关系/动作/函数/个体/账行数（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.world.overview",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.notice.mute",
-        "inputs_raw": {
-          "subject": "enum(change,act,notice,job)"
-        },
-        "output_raw": "enum(change,act,notice,job)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.world.overview"
       }
     },
     {
-      "id": "fn.notice.unmute",
-      "label": "解除静音",
-      "description": "动作 notice.unmute 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "STRING"
-      },
+      "id": "fn.world.class_counts",
+      "label": "按类统计个体数",
+      "description": "只读：每个类的个体计数（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.world.class_counts",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.notice.unmute",
-        "inputs_raw": {
-          "subject": "enum(change,act,notice,job)"
-        },
-        "output_raw": "enum(change,act,notice,job)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.world.class_counts"
       }
     },
     {
-      "id": "fn.job.start",
-      "label": "起一个作业",
-      "description": "动作 job.start 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "STRING"
-      },
+      "id": "fn.ledger.stats",
+      "label": "账统计",
+      "description": "只读：账行/家族/种类/拒绝码/首末时间（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.ledger.stats",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.job.start",
-        "inputs_raw": {
-          "subject": "enum(change,act,notice,job)"
-        },
-        "output_raw": "enum(change,act,notice,job)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.ledger.stats"
       }
     },
     {
-      "id": "fn.job.finish",
-      "label": "结束一个作业",
-      "description": "动作 job.finish 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "STRING"
-      },
+      "id": "fn.action.stats",
+      "label": "动作统计",
+      "description": "只读：本体动作/注册表/计算机可用/不支持计数（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.action.stats",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.job.finish",
-        "inputs_raw": {
-          "subject": "enum(change,act,notice,job)"
-        },
-        "output_raw": "enum(change,act,notice,job)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.action.stats"
       }
     },
     {
-      "id": "fn.job.cancel",
-      "label": "取消一个作业",
-      "description": "动作 job.cancel 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
+      "id": "fn.object.get",
+      "label": "读一个对象",
+      "description": "只读：按 类+name 读一个对象属性（要票/已报到身份）",
       "input_types": {
-        "subject": "STRING"
+        "class": "STRING",
+        "name": "STRING"
       },
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.object.get",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.job.cancel",
-        "inputs_raw": {
-          "subject": "enum(change,act,notice,job)"
-        },
-        "output_raw": "enum(change,act,notice,job)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.object.get"
       }
     },
     {
-      "id": "fn.ledger.compact",
-      "label": "压实账本（不可逆）",
-      "description": "动作 ledger.compact 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
+      "id": "fn.object.find",
+      "label": "查找对象",
+      "description": "只读：按类+等值条件查找对象（要票/已报到身份；上限 100）",
       "input_types": {
-        "subject": "OBJECT_REFERENCE"
+        "class": "STRING",
+        "limit": "INTEGER"
       },
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.object.find",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.ledger.compact",
-        "inputs_raw": {
-          "subject": "ref(ledger)"
-        },
-        "output_raw": ""
+        "transport": "inproc",
+        "endpoint": "ontology:fn.object.find"
       }
     },
     {
-      "id": "fn.world.rekey",
-      "label": "换世界的钥匙材料（不可逆）",
-      "description": "动作 world.rekey 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "OBJECT_REFERENCE"
-      },
+      "id": "fn.file.stats",
+      "label": "宿主文件对象统计",
+      "description": "只读：file 个体的种类/根/总字节（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.file.stats",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.world.rekey",
-        "inputs_raw": {
-          "subject": "ref(world)"
-        },
-        "output_raw": ""
+        "transport": "inproc",
+        "endpoint": "ontology:fn.file.stats"
       }
     },
     {
-      "id": "fn.world.migrate",
-      "label": "迁移世界（不可逆）",
-      "description": "动作 world.migrate 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "OBJECT_REFERENCE"
-      },
+      "id": "fn.worldfs.stats",
+      "label": "worldfs 统计",
+      "description": "只读：wfile/wversion/wpath 的计数/状态/字节（统计面）",
+      "input_types": {},
       "output_type": null,
-      "implementation": null,
+      "implementation": "inproc:fn.worldfs.stats",
       "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.world.migrate",
-        "inputs_raw": {
-          "subject": "ref(world)"
-        },
-        "output_raw": ""
-      }
-    },
-    {
-      "id": "fn.presence.report",
-      "label": "在场者报告自己的状态（**申报面**；「有没有许可」不在这里定，由 `permissions.grants` ＋ `default: deny` 决定）",
-      "description": "动作 presence.report 的实现面（照 P 的 OntologyFunction.describe 形状；★ 不抄 implementation、不抄 effects）",
-      "input_types": {
-        "subject": "STRING"
-      },
-      "output_type": null,
-      "implementation": null,
-      "metadata": {
-        "transport": "bus",
-        "endpoint": "bus:world.fn.presence.report",
-        "inputs_raw": {
-          "subject": "enum(human,agent,application,service,device,workflow)"
-        },
-        "output_raw": "enum(human,agent,application,service,device,workflow)"
+        "transport": "inproc",
+        "endpoint": "ontology:fn.worldfs.stats"
       }
     }
   ]

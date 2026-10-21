@@ -15,6 +15,7 @@ from govern import governance
 from gate import identity
 from gate import permit
 from gate.world_codes import CONFIRM_ACTIONS, redact_params
+import ontology_builtins  # noqa: E402  本体内建动作（notice/job/presence/不支持）
 
 T_ASK_RESULT = "world/ask/result"
 T_EXEC = "world/exec"
@@ -111,6 +112,18 @@ def handle(smp, w, session, log=print):
                                                   "code": _a_code}, ensure_ascii=False))
             return
     # ★★ 闸③：许可 ＋ guard 弹窗（变更类：agent 请求 ⇒ 需人确认；人签的委托 ⇒ 放行）
+    # ★ 明确不支持的动作：在权限之前就回 UNSUPPORTED（它们没有副作用，不该被“路由不存在”糊住）
+    if name in ontology_builtins.UNSUPPORTED:
+        why_u = ontology_builtins.UNSUPPORTED[name]
+        w.stamp("act", kind_of="ask", action=name, actor=actor,
+                rid=msg.get("id"), params=redact_params(msg.get("params") or {}),
+                route="ontology")
+        at_u = w.reject("UNSUPPORTED", action=name, actor=actor, why=why_u)
+        session.put(T_ASK_RESULT, json.dumps({
+            "id": msg.get("id"), "at": at_u, "action": name, "ok": False,
+            "body": None, "code": "UNSUPPORTED", "why": why_u}, ensure_ascii=False))
+        return
+
     _ac = _actor_class(actor)
     _dele = None
     _confirmish = (name in CONFIRM_ACTIONS and _ac in ("agent", "presence")
@@ -214,6 +227,29 @@ def handle(smp, w, session, log=print):
             return
     # ★★ 本体【唯一发许可处】：先签发凭证 ⇒ 再把凭证号记进【本体的账】⇒ 转发时带上凭证
     # ★★ 路由（借书平台式多态）：动作声明了 applies_to.interface ⇒ 按【对象类型】的执行者走
+    # ★ 本体内建动作（notice/job/presence）与显式不支持的动作：不转给提供者
+    if ontology_builtins.handled(name):
+        _b_ok, _b_body = ontology_builtins.dispatch(
+            w, name, msg.get("params") or {}, actor)
+        w.stamp("act", kind_of="ask", action=name, actor=actor,
+                rid=msg.get("id"), params=redact_params(msg.get("params") or {}),
+                route="ontology")
+        if _b_ok:
+            at = w.stamp("act", kind_of="result", rid=msg.get("id"),
+                         action=name, ok=True, body=_b_body)
+            out_body = _b_body
+            code = None
+        else:
+            code = (_b_body or {}).get("code") or "REJECTED"
+            why_b = (_b_body or {}).get("why") or str(_b_body)
+            at = w.reject(code, action=name, actor=actor, why=why_b)
+            out_body, why_msg = None, why_b
+        session.put(T_ASK_RESULT, json.dumps({
+            "id": msg.get("id"), "at": at, "action": name, "ok": _b_ok,
+            "body": out_body, "code": code,
+            "why": None if _b_ok else why_msg}, ensure_ascii=False))
+        return
+
     _route = action_contract.route_for(w, name, reg, msg.get("params") or {})
     if not _route.get("kind"):
         w.reject("PROVIDER_NOT_DECLARED", action=name, actor=actor, why="没有可用的执行者路由")

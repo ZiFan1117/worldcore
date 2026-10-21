@@ -327,6 +327,10 @@ def _notice_and_forward(smp, w, session):
     at = w.stamp("act", kind_of="notice", notice_kind=kind,
                   by=msg.get("by"), about=msg.get("about"),
                   size=len(smp.payload.to_string()), **_extra)
+    # ★ notice.mute 的生效点：被静音的种类照样落账，但不再转发给界面
+    if kind in (getattr(w, "muted_notice_kinds", None) or set()):
+        log("通告 kind=%s 已被静音：记账但不转发" % kind)
+        return
     # ★★★ 「给谁看」—— ★ 作者裁（逐字）：「这不是有票吗？票不是决定了是给哪个人的吗？
     #    发布能不能给这个人看，那肯定是能的呀。那谁登录进来，你就给谁看呀」
     #    ★ 所以：★ 从 by 推出【这张画布属于谁】⇒ 盖上 to ⇒ 呈现拿【票】来对。
