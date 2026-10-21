@@ -197,6 +197,12 @@ C76 覆盖：
 - FUSE/POSIX 挂载；块级分块/压缩/加密；GC/配额；rename/move/符号链接；目录递归删除；
 - 二进制/超大文件（P1 文本 ≤1MB）；多写者并发冲突合并（SQLite 串行 + 单进程）。
 
+## 13. P1 验收结果
+
+- 已按本设计落地：`src/worldfs/`、`aios-worldfs` 单元、C76、VM 17/17 PASS；
+- 报告：[worldfs-report.md](worldfs-report.md)；
+- 实测修：`ReadWritePaths` 路径不存在导致 226/NAMESPACE → 改挂父目录+ExecStartPre 建根。
+
 ## 12. 阶段
 
 | 阶段 | 内容 |

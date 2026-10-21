@@ -3,7 +3,7 @@
 > 现取：2026-10-20 深夜。截止：**2026-10-21 02:00 Asia/Shanghai**（到点停）。
 > 目的：给 worldcore 补**底层缺的进程**，只借 AI-OS 的**形状/职责**（不搬 Rust 代码，AI-OS 的 `crates/` 已从本仓删除，设计在 `001…003` 规格里）。
 
-## 一、现状：我们已有的 14 个进程（含总线）
+## 一、现状：我们已有的 15 个进程（含总线）
 
 | # | 进程 | 目录 | 对应 AI-OS 层 |
 |---|---|---|---|
@@ -21,6 +21,7 @@
 | 12 | recovery 恢复边界（二期） | `src/recovery/`（`recovery.list/state`） | L1 |
 | 13 | network 网络面（二期） | `src/network/`（`network.list/state`） | L8 |
 | 14 | vault 保险库（二期） | `src/vault/`（`vault.list/state`，只给人） | L4 |
+| 15 | worldfs 语义文件系统（三期） | `src/worldfs/`（`worldfs.*`，blob/版本/指针） | L2 |
 
 **缺口（对着 AI-OS 层看）**：
 

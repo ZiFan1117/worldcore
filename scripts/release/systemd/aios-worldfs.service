@@ -15,10 +15,12 @@ Restart=always
 RestartSec=3
 LimitNOFILE=65536
 PrivateTmp=yes
-# ★ 只写 worldfs 自己的存储根；不碰宿主文件
+# ★ 只写 worldfs 自己的存储根；不碰宿主文件。
+#   注：ReadWritePaths 路径必须【启动前已存在】，否则 226/NAMESPACE；
+#   先挂父目录可写，程序只写 worldfs 子目录（ExecStartPre 建它）。
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/var/lib/aios/worldfs
+ReadWritePaths=/var/lib/aios
 NoNewPrivileges=yes
 
 [Install]

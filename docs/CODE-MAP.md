@@ -58,6 +58,7 @@
 | 打开 URL / 起浏览器 | `src/computer/computer_process.py` | `_open_url()`（出向只许这里，C19） |
 | 语义文件（只读：stat/list/hash/read_text） | `src/fs/fs_process.py` ＋ `fs_ops.py` | `file.*` / `fs.state`；白名单根、防符号链接逃逸、秘密/隐藏拒读 |
 | 时间面（世界时间，只读） | `src/clock/clock_process.py` ＋ `clock_ops.py` | `clock.now` / `clock.state`；时区/偏移/单调秒/开机 id；无 clock.set |
+| 语义文件系统 worldfs（独立进程） | `src/worldfs/worldfs_process.py` ＋ `worldfs_store.py`/`worldfs_ops.py` | `worldfs.list/stat/read/versions/state` 读；`write/mkdir/remove/restore` 写（人确认）；blob+版本+指针 |
 | 恢复边界（快照/分叉，只读） | `src/recovery/recovery_process.py` ＋ `recovery_ops.py` | `recovery.list` / `recovery.state`；读快照 meta、报 `snapshot` 个体；无 restore |
 | 保险库（秘密元数据，只读；只给人） | `src/vault/vault_process.py` ＋ `vault_ops.py` | `vault.list` / `vault.state`；值/路径不返回；无 `vault.get` |
 | 网络面（接口/计数器，只读） | `src/network/network_process.py` ＋ `network_ops.py` | `network.list` / `network.state`；读 `/sys/class/net`＋`/proc/net/dev`，接口报成 `link` 个体 |

@@ -1,0 +1,79 @@
+# worldfs P1 报告：语义文件系统（独立进程）
+
+> 现取：2026-10-21 晚。作者：「好的，那就专门建一个语义文件系统」「文件系统，单独进程」。
+> 设计件：[`worldfs-design.md`](worldfs-design.md)；本报告只写**做到了什么、怎么验、没做到什么**。
+
+## 一、交付
+
+| 件 | 现取 |
+|---|---|
+| 独立进程 | `src/worldfs/`（`aios-worldfs`，**第 15 个单元**）——不混 computer、不写宿主文件 |
+| 存储 | `/var/lib/aios/worldfs/`：`blobs/sha256/<前2>/<sha>`（内容寻址，原子写、只读）+ `worldfs.db`（SQLite：objects/versions/paths/txns，WAL+FULL） |
+| 语义 | 路径是视图，对象身份 `wobj_…` 与路径解耦；版本 `wver_…` 不可变；事务 `wtxn_…` |
+| 法 | 4 类（`worldfs`/`wfile`/`wversion`/`wpath`）；9 动作（读 5：list/stat/read/versions/state；写 4：write/mkdir/remove/restore） |
+| 写保护 | 4 个写动作进 `CONFIRM_ACTIONS`；读 scope 人+agent，写 scope 只给人；permit 一号一用；每次写落账 |
+| 判据 | **C76**（先写会红反例，`--self-test` 绿）：路径越界/相对/根写/根删/非空目录/坏 blob/缺 intent/未知动作全拒；写→blob+版本+指针；覆盖 seq+1；旧版本可回滚；同内容去重；对象身份稳定；写动作在 CONFIRM_ACTIONS；进程/单元/deploy/看门狗；接收端联动 |
+| 本机 | `python scripts/test/check.py` → **76/76 全绿**；法 **27 类 / 211 动作**（世界 55＋sys 156）/ 9 函数 |
+
+## 二、VM 验收（`worldfs_live_test.py`，17/17 PASS）
+
+```
+PASS 登录拿票
+PASS worldfs.state 可读（root=/var/lib/aios/worldfs）
+PASS worldfs.mkdir /worldfs/notes
+PASS worldfs.write 第一版（seq=1，blob sha 64 位）
+PASS 写入返回 blob/版本（ver=wver_…）
+PASS worldfs.read 内容 == hello world
+PASS stat 对象身份稳定（obj=wobj_…）
+PASS 覆盖产生 seq+1 且对象身份不变（seq=2，同 obj）
+PASS 版本历史 [1,2]
+PASS 回滚到旧版本且内容恢复（seq=1，text=hello world）
+PASS 同内容去重（blobs 2→2，dedup=true）
+PASS list 含 hello/dup
+PASS 删除后不可读（不存在）
+PASS 缺 intent 被拒（PARAM_MISSING）
+PASS 重启后数据仍在（text=hello world）
+PASS world/query kind=type 能查到 wpath（3 个）
+PASS 账里有 worldfs.write 成功记录（5 行）
+{"ok": true}
+```
+
+VM 现取：`aios-worldfs` **active**；15 单元全 active；存储根 384K；blobs 2 个；`aios-fs`/`aios-worldfs` 是两个独立单元。
+
+## 三、测出并修的真问题
+
+| 项 | 内容 |
+|---|---|
+| 现象 | 首次部署 `aios-worldfs` 起不来：`status=226/NAMESPACE`，`Failed to set up mount namespacing: /var/lib/aios/worldfs: No such file or directory` |
+| 根因 | `ReadWritePaths=/var/lib/aios/worldfs` 要求该路径在 **命名空间建立前就存在**；ExecStartPre 在命名空间之后才跑，救不了 |
+| 修复 | `ReadWritePaths=/var/lib/aios`（父目录已存在且可写）＋ `ExecStartPre=install -d /var/lib/aios/worldfs`；单元注释写明原因；VM 重启后 active |
+
+## 四、没做到的（如实）
+
+1. **没有 FUSE/POSIX 挂载**：现在只能通过 `world/ask worldfs.*` 访问，不是能 `cd/ls` 的挂载点（P2）；
+2. 文本 ≤1MB、单进程、无分块/压缩/加密/GC/配额；无 rename/move；目录不递归删；无二进制/大文件；
+3. 写动作目前**只给人**（agent 写会被权限拒；agent 若将来要写，先走确认+委托）；
+4. 人类直接 `world/ask worldfs.write` 视为“本人在场”，不会再弹一次确认；agent 请求才会走 `CONFIRM_ACTIONS` 的弹窗/委托路径；
+5. 账里 `worldfs.write` 的 `text` 参数未脱敏（P1 文本；后续按 privacy class 处理）。
+
+## 五、怎么复跑
+
+```bash
+# 本机
+python scripts/test/check.py
+python scripts/test/c76_worldfs.py --self-test
+# VM（部署后）
+python3 /root/aios/scripts/release/worldfs_live_test.py
+# 看存储/账
+ls -la /var/lib/aios/worldfs
+sqlite3 /var/lib/aios/worldfs/worldfs.db 'select count(*) from objects; select count(*) from versions;'
+grep -a worldfs.write /var/lib/aios/ontology/ledger.jsonl | tail -3
+```
+
+## 六、P2 建议
+
+1. **FUSE 只读挂载** `/worldfs`（能 `ls/cat`；写挂载另议）；
+2. 分块/去重块、GC、配额；大文件/二进制；
+3. rename/move（对象身份稳定，指针 move）；
+4. privacy class / 账参数脱敏；
+5. 写确认链路在桌面的实际弹窗验收（agent 写 + 人签）。
