@@ -27,17 +27,17 @@ button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0}
 .app{display:flex;height:100vh;overflow:hidden}
 /* ── left ── */
-.side{width:264px;flex:0 0 264px;background:var(--side);border-right:1px solid var(--line);
+.side{width:264px;flex:0 0 264px;background:var(--side);border-right:.5px solid var(--line);
   display:flex;flex-direction:column;min-height:0}
 .titlebar{height:34px;display:flex;align-items:center;gap:16px;padding:0 14px;
-  font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line);flex:0 0 34px}
+  font-size:11.5px;color:var(--muted);border-bottom:.5px solid var(--line);flex:0 0 34px}
 .titlebar b{font-weight:500;color:var(--text)}
 .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:9px}
 .whale{width:26px;height:26px;color:var(--text);flex:0 0 26px}
 .brand .name{font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:Montserrat,"Segoe UI",sans-serif}
-.brand .badge{font-size:9px;letter-spacing:.12em;border:1px solid var(--line);border-radius:4px;
+.brand .badge{font-size:9px;letter-spacing:.12em;border:.5px solid var(--line);border-radius:4px;
   padding:2px 4px;color:var(--muted);margin-left:1px}
-.newchat{margin:0 12px 8px;height:34px;border:1px solid var(--line);background:var(--bg);
+.newchat{margin:0 12px 8px;height:34px;border:.5px solid var(--line);background:var(--bg);
   border-radius:8px;display:flex;align-items:center;justify-content:center;gap:7px;
   font-size:12.5px;color:var(--text)}
 .newchat:hover{background:#fff}
@@ -57,17 +57,17 @@ button{cursor:pointer;background:none;border:0}
 .wsrow .age{margin-left:auto;color:var(--muted);font-size:10.5px;white-space:nowrap}
 .wsrow.active{background:rgba(0,0,0,.055)}
 .wsrow.active .t{font-weight:500}
-.wsrow .badge{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;
+.wsrow .badge{font-size:10px;color:var(--muted);border:.5px solid var(--line);border-radius:4px;
   padding:0 4px}
 .wsrow .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sidefoot{padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:7px;
+.sidefoot{padding:10px 16px;border-top:.5px solid var(--line);display:flex;align-items:center;gap:7px;
   color:var(--muted);font-size:11px}
 .dot{width:6px;height:6px;border-radius:50%;background:#bbb;flex:0 0 6px}
 .dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,.12)}
 /* ── main ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
 .head{height:48px;flex:0 0 48px;display:flex;align-items:center;gap:16px;padding:0 20px;
-  border-bottom:1px solid var(--line)}
+  border-bottom:.5px solid var(--line)}
 .head .title{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;max-width:360px}
 .chips{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:11.5px;margin-left:auto}
@@ -76,7 +76,7 @@ button{cursor:pointer;background:none;border:0}
 .chip b{font-weight:500;color:var(--text)}
 .chip .chev{font-size:10px;color:var(--muted);margin-left:-2px}
 .tabs{height:38px;flex:0 0 38px;display:flex;align-items:flex-end;gap:22px;padding:0 24px;
-  border-bottom:1px solid var(--line)}
+  border-bottom:.5px solid var(--line)}
 .tab{position:relative;padding:6px 0 9px;font-size:12.5px;color:var(--muted)}
 .tab.on{color:var(--accent);font-weight:600}
 .tab.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);
@@ -104,7 +104,7 @@ button{cursor:pointer;background:none;border:0}
 .roleline{display:flex;align-items:center;gap:8px;margin:2px 0 10px;color:var(--muted);font-size:11px}
 .roleline .avatar{width:18px;height:18px;border-radius:5px;background:var(--text);color:var(--bg);
   display:grid;place-items:center;font-size:10px;font-weight:800}
-.tool{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:9px 11px;
+.tool{border:.5px solid var(--line);background:var(--card);border-radius:9px;padding:9px 11px;
   margin:0 0 10px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
 .tool:hover{border-color:var(--accent)}
 .tool .ti{width:19px;height:19px;border-radius:5px;background:var(--bubble);display:grid;
@@ -117,7 +117,7 @@ button{cursor:pointer;background:none;border:0}
   font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);white-space:pre-wrap;
   max-height:180px;overflow:auto}
 .tool.open .td{display:block}
-.filecard{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin:0 0 16px;
+.filecard{border:.5px solid var(--line);border-radius:10px;padding:11px 13px;margin:0 0 16px;
   display:flex;gap:10px;align-items:flex-start;background:var(--bg)}
 .filecard .fi{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);
   display:grid;place-items:center;font-size:12px;flex:0 0 26px}
@@ -125,7 +125,7 @@ button{cursor:pointer;background:none;border:0}
 .filecard .fh .pm{font-weight:500;font-size:10.5px;color:var(--green);margin-left:7px}
 .filecard .fl{margin-top:5px;display:flex;flex-direction:column;gap:2px;color:var(--muted);font-size:11px}
 .filecard .fp{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:700px}
-.toolsum{color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);margin:12px 0 0;
+.toolsum{color:var(--muted);font-size:11.5px;border-top:.5px solid var(--line);margin:12px 0 0;
   padding-top:10px}
 .toolsum b{font-weight:500;color:var(--text)}
 .toolsumline{display:flex;align-items:flex-start;gap:7px;color:var(--muted);font-size:12.5px;
@@ -152,19 +152,19 @@ button{cursor:pointer;background:none;border:0}
 .tr .tb{color:var(--muted);font-size:11.5px;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
 /* composer */
 .composer{flex:0 0 auto;padding:0 40px 16px;background:var(--bg)}
-.compbox{max-width:748px;margin:0 auto;border:1px solid var(--line);background:var(--bg);
+.compbox{max-width:748px;margin:0 auto;border:.5px solid var(--line);background:var(--bg);
   border-radius:13px;padding:9px 10px 7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .compbox:focus-within{border-color:#c9c9c9}
 .compbox textarea{width:100%;border:0;outline:0;resize:none;background:transparent;
   min-height:44px;max-height:180px;font-size:13px;line-height:1.6;padding:1px 2px}
 .comptools{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap}
-.cbtn{border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:11px;color:var(--muted);
+.cbtn{border:.5px solid var(--line);border-radius:7px;padding:4px 8px;font-size:11px;color:var(--muted);
   display:flex;align-items:center;gap:4px;background:var(--bg)}
 .cbtn:hover{color:var(--accent);border-color:var(--accent)}
 .cbtn.on{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
 .pluswrap{position:relative}
 .plusbtn{width:28px;height:28px;justify-content:center;padding:0;font-size:17px;color:var(--muted)}
-.plusmenu{position:absolute;left:0;bottom:36px;width:190px;background:var(--bg);border:1px solid var(--line);
+.plusmenu{position:absolute;left:0;bottom:36px;width:190px;background:var(--bg);border:.5px solid var(--line);
   border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.12);padding:5px;z-index:5}
 .cmenuitem{display:block;width:100%;text-align:left;padding:7px 9px;border-radius:7px;font-size:12px;color:var(--text)}
 .cmenuitem:hover{background:var(--side)}
@@ -180,11 +180,11 @@ button{cursor:pointer;background:none;border:0}
   display:flex;justify-content:space-between;gap:8px}
 /* login */
 .login{position:fixed;inset:0;background:rgba(0,0,0,.38);display:grid;place-items:center;z-index:20}
-.login .card{width:340px;background:var(--bg);border:1px solid var(--line);border-radius:14px;
+.login .card{width:340px;background:var(--bg);border:.5px solid var(--line);border-radius:14px;
   padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
 .login .wh{width:26px;height:26px;margin-bottom:8px}
 .login h2{margin:0 0 3px;font-size:17px}.login p{margin:0 0 13px;color:var(--muted);font-size:12px}
-.login input{width:100%;margin:6px 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+.login input{width:100%;margin:6px 0;padding:8px 10px;border:.5px solid var(--line);border-radius:8px;
   background:var(--bg);color:var(--text);outline:0}
 .login input:focus{border-color:var(--accent)}
 .login .err{color:var(--red);font-size:11.5px;margin-top:5px}
