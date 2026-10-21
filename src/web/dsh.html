@@ -101,6 +101,11 @@ button{cursor:pointer;background:none;border:0}
 .msg.agent .bubble b{font-weight:600}
 .msg.agent .bubble code{background:var(--code);border-radius:4px;padding:1px 4px;font-size:12px}
 .msg .meta{display:none}
+.msg.agent .bubble{position:relative}
+.copybtn{position:absolute;top:-10px;right:8px;opacity:0;border:.5px solid var(--line);background:var(--bg);
+  color:var(--muted);border-radius:7px;padding:2px 7px;font-size:10.5px;transition:opacity .12s}
+.msg.agent:hover .copybtn{opacity:1}
+.copybtn:hover{color:var(--accent);border-color:var(--accent)}
 .intro{color:var(--text)}
 .roleline{display:flex;align-items:center;gap:8px;margin:2px 0 10px;color:var(--muted);font-size:11px}
 .roleline .avatar{width:18px;height:18px;border-radius:5px;background:var(--text);color:var(--bg);
@@ -384,11 +389,16 @@ function renderThread(){
       <div class="hp">给 DSH 发消息，或让我去做一件事。观察、工具动作、结果都会经本体回到这里。</div></div>`;
   }
   messages.slice(-30).forEach(m=>{
-    h += `<div class="msg ${m.role==="user"?"user":"agent"}"><div class="bubble">${m.role==="agent"?md(m.text):esc(m.text).replace(/\n/g,"<br>")}</div></div>`;
+    h += `<div class="msg ${m.role==="user"?"user":"agent"}"><div class="bubble">${m.role==="agent"?md(m.text):esc(m.text).replace(/\n/g,"<br>")}${m.role==="agent"?`<button class="copybtn" data-copy="${esc(m.text)}">复制</button>`:""}</div></div>`;
   });
   h += toolSummary(steps);
   h += fileCard(steps);
   els.thread.innerHTML = h;
+  els.thread.querySelectorAll(".copybtn").forEach(b=>b.onclick=(e)=>{
+    e.stopPropagation();
+    try{navigator.clipboard.writeText(b.dataset.copy||"");b.textContent="已复制";
+      setTimeout(()=>{b.textContent="复制";},900);}catch(err){}
+  });
   const v=$("#chatView"); v.scrollTop=v.scrollHeight;
 }
 function renderTrace(){
