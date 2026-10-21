@@ -43,6 +43,7 @@ sys.path.insert(0, HERE)                      # 本原子目录（ontology_defin
 sys.path.insert(0, os.path.dirname(HERE))     # src/ 根（foundry_ontology 目录）
 from law.ontology_definition import build_aios_ontology  # noqa: E402
 from ingest.appear import ingest_appear  # noqa: E402
+from provider_auth import ProviderAuthError, auth_enabled, verify_message  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
@@ -219,6 +220,14 @@ class World:
         except Exception as e:
             log("注册：消息不是 JSON（%s）" % e)
             return
+        if auth_enabled():
+            try:
+                verify_message("world/register", reg)
+            except ProviderAuthError as e:
+                self.reject(e.code, action="register", why=e.why)
+                log("注册被拒（%s）：%s" % (e.code, e.why))
+                return None
+        reg.pop("_auth", None)
         name = reg.get("action") or ""
         missing = [k for k in ("action", "function", "registered_by",
                                "registered_by_kind", "required_roles")
@@ -295,6 +304,14 @@ def _result_and_reply(smp, w, session):
         msg = json.loads(smp.payload.to_string())
     except Exception:
         return
+    if auth_enabled():
+        try:
+            verify_message("world/exec/result", msg)
+        except ProviderAuthError as e:
+            w.reject(e.code, action="exec/result", why=e.why)
+            log("结果被拒（%s）：%s" % (e.code, e.why))
+            return
+    msg.pop("_auth", None)
     _code = msg.get("code")
     at = w.stamp("act", kind_of="result", rid=msg.get("id"),
                   action=msg.get("action"), ok=msg.get("ok"), body=msg.get("body"),

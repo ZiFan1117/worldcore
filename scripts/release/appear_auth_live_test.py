@@ -140,6 +140,21 @@ def main():
               any(r.get("kind_of") == "appear" and "agent/auth-live" in str(r.get("subject"))
                   for r in new3), "accepted")
 
+        # 3b) 无签名 register / result 也被拒
+        bus.z.put("world/register", json.dumps({
+            "action": "clock.forged", "function": "forged",
+            "registered_by": "clock/forged", "registered_by_kind": "clock",
+            "required_roles": ["clock"]}, ensure_ascii=False))
+        bus.z.put("world/exec/result", json.dumps({
+            "id": "forged-result", "action": "clock.now", "ok": True,
+            "body": {"forged": True}, "by": "clock/forged"}, ensure_ascii=False))
+        time.sleep(1.5)
+        new4 = ledger_rows()[len(before):]
+        rej4 = [r for r in new4 if r.get("kind_of") == "reject"
+                and r.get("code") == "BAD_SIGNATURE"]
+        check("无签名 register/result 被拒", len(rej4) >= 2,
+              "rejects=%d" % len(rej4))
+
         # 4) 真 provider 仍在：clock 个体在
         a = bus.ask("auth-ticket", "identity.authenticate", {"user": "zhang", "secret": "0"})
         tk = ((a.get("body") or {}).get("ticket") or "") if a.get("ok") else ""
