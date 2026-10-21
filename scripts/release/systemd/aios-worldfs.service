@@ -1,0 +1,25 @@
+[Unit]
+Description=worldcore 语义文件系统 worldfs —— 对象/不可变版本/内容寻址/路径指针
+Documentation=https://ai-os.net/docs/worldfs
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/worldfs
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_WORLDFS_ROOT=/var/lib/aios/worldfs
+Environment=AIOS_WORLDFS_NAME=worldfs0
+ExecStartPre=/usr/bin/install -d -m 0750 /var/lib/aios/worldfs
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/worldfs/worldfs_process.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+PrivateTmp=yes
+# ★ 只写 worldfs 自己的存储根；不碰宿主文件
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/aios/worldfs
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

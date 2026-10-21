@@ -2174,6 +2174,332 @@
           "description": ""
         }
       ]
+    },
+    {
+      "id": "worldfs",
+      "label": "语义文件系统进程",
+      "description": "worldfs 进程：报自己的状态；世界路径 /worldfs 下的对象/版本/指针由它提供。",
+      "primary_key": "name",
+      "interfaces": [
+        "Identifiable",
+        "Stateful"
+      ],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://worldfs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:worldfs20261021_01",
+        "instance_mode": "one"
+      },
+      "properties": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "root",
+          "label": "root",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "存储根（/var/lib/aios/worldfs）"
+        },
+        {
+          "name": "objects",
+          "label": "objects",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "paths",
+          "label": "paths",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "wfile",
+      "label": "worldfs 对象",
+      "description": "逻辑文件对象（身份稳定，与路径解耦）；路径只是指向某版本的指针。",
+      "primary_key": "obj_id",
+      "interfaces": [],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://worldfs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:wfile20261021_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "obj_id",
+          "label": "obj_id",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "kind",
+          "label": "kind",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "label": "state",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "current_seq",
+          "label": "current_seq",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "blob_sha256",
+          "label": "blob_sha256",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "size",
+          "label": "size",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "updated_at",
+          "label": "updated_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "wversion",
+      "label": "worldfs 版本",
+      "description": "对象的一个不可变版本（seq 单调；内容 sha256 内容寻址）。",
+      "primary_key": "ver_id",
+      "interfaces": [],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://worldfs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:wversion20261021_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "ver_id",
+          "label": "ver_id",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "obj_id",
+          "label": "obj_id",
+          "type": "STRING",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "seq",
+          "label": "seq",
+          "type": "INTEGER",
+          "required": true,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "blob_sha256",
+          "label": "blob_sha256",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "size",
+          "label": "size",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "created_at",
+          "label": "created_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "created_by",
+          "label": "created_by",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "label": "intent",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "name",
+          "label": "name",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "版本标签（可读名，如 obj@seq）"
+        }
+      ]
+    },
+    {
+      "id": "wpath",
+      "label": "worldfs 路径视图",
+      "description": "路径 → (对象, 版本) 的指针视图；路径不是对象身份。",
+      "primary_key": "path",
+      "interfaces": [],
+      "provider": null,
+      "authority": {
+        "kind": "reported",
+        "reporters": [
+          "world://worldfs"
+        ]
+      },
+      "metadata": {
+        "wc_id": "wc:wpath20261021_01",
+        "instance_mode": "many"
+      },
+      "properties": [
+        {
+          "name": "path",
+          "label": "path",
+          "type": "STRING",
+          "required": true,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "obj_id",
+          "label": "obj_id",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "seq",
+          "label": "seq",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "kind",
+          "label": "kind",
+          "type": "STRING",
+          "required": false,
+          "primary": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "updated_at",
+          "label": "updated_at",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": ""
+        }
+      ]
     }
   ],
   "links": [
@@ -4474,6 +4800,504 @@
           "world://user"
         ],
         "why": "只读状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.list",
+      "label": "worldfs.list",
+      "description": "列 /worldfs 目录（路径视图）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "limit",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 目录"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.stat",
+      "label": "worldfs.stat",
+      "description": "读路径元数据（对象/版本/指针）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 元数据"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.read",
+      "label": "worldfs.read",
+      "description": "读文件文本（校验 sha256）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "max_bytes",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 内容"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.versions",
+      "label": "worldfs.versions",
+      "description": "读对象版本历史",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 版本"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.state",
+      "label": "worldfs.state",
+      "description": "读 worldfs 状态",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.write",
+      "label": "worldfs.write",
+      "description": "写文件（新 blob+新版本+移指针；人确认）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "change",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        },
+        {
+          "kind": "param_present",
+          "name": "text"
+        },
+        {
+          "kind": "param_present",
+          "name": "intent"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "base_seq",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "写必须人确认；产生不可变版本"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.mkdir",
+      "label": "worldfs.mkdir",
+      "description": "建目录（人确认）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "change",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        },
+        {
+          "kind": "param_present",
+          "name": "intent"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "建目录必须人确认"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.remove",
+      "label": "worldfs.remove",
+      "description": "删路径（对象退休；人确认）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "change",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        },
+        {
+          "kind": "param_present",
+          "name": "intent"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "删除必须人确认"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.restore",
+      "label": "worldfs.restore",
+      "description": "回滚路径指针到旧版本（人确认）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "change",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        },
+        {
+          "kind": "param_present",
+          "name": "seq"
+        },
+        {
+          "kind": "param_present",
+          "name": "intent"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "seq",
+          "type": "INTEGER",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "回滚必须人确认"
       },
       "metadata": {}
     }
