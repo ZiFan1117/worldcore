@@ -38,6 +38,7 @@ from ontology_window import OntologyMixin  # noqa: E402
 from agent_console_mixin import AgentConsoleMixin  # noqa: E402
 from space_util import act_context, surface_of  # noqa: E402
 from browser_url import DEFAULT_BROWSER_URL as BROWSER_URL  # noqa: E402
+from dsh_url import DEFAULT_DSH_URL as DSH_URL  # noqa: E402
 
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
@@ -55,10 +56,7 @@ T_RESULT = "world/exec/result"
 T_QUERY = "world/query"
 T_ASK_RESULT = "world/ask/result"
 T_QUERY_RESULT = "world/query/result"
-
-
 # ★★ 测试账号（作者令 2026-10-18：「先设定一个测试的用户名和密码吧，密码就是一个 0 就行」）
-
 # ★★ 个人空间对外的三个动作（★ 登录入口 ＋ 布局；摆放归它）
 ACTIONS = [
     {"action": "space.login",      "kind": "write", "why": "登录：验人、置空间 active、出桌面画布"},
@@ -313,7 +311,9 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
                 # ★ 本体窗口：并行查全部信息（overview/types/actions/history/events），带页签
                 self.open_ontology()
             elif icon == "ic_agent":
-                self.open_agent_console()
+                # ★ 桌面的「智能体」按钮：弹出完整 DSH 界面（web /dsh，经计算机开窗），
+                #   同时经本体让 agent 启动；A2UI 控制台仍可从界面/代码调用。
+                self._ask("app.open_url", {"url": DSH_URL}, "dsh")
                 self._ask("agent.launch", {}, "launch")
             elif icon == "ic_computer":
                 rid = self._ask("sys.GetHostState", {}, "computer")

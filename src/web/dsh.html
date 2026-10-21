@@ -324,8 +324,15 @@ function bind(){
 
 async function boot(){
   bind(); loadHistory(); sse();
+  const q = new URLSearchParams(location.search);
+  if(q.get("user")) els.user.value = q.get("user");
+  if(q.get("secret")) els.pass.value = q.get("secret");
   const p = await cmd({op:"ping"});
-  if(!p.has_ticket){ els.login.classList.remove("hidden"); els.stateText.textContent="未登录"; return; }
+  if(!p.has_ticket){
+    // 桌面「智能体」按钮会带 user/secret 打开；本机单人世界直接进，否则显示登录。
+    if(q.get("user") && q.get("secret")){ await login(); return; }
+    els.login.classList.remove("hidden"); els.stateText.textContent="未登录"; return;
+  }
   els.login.classList.add("hidden");
   await refreshStatus();
 }
