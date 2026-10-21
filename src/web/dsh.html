@@ -371,7 +371,8 @@ function renderThread(){
   const actions = steps.filter(s=>s.kind==="action").slice(-10);
   let h = "";
   if(!messages.length && !steps.length){
-    h = `<div class="msg agent"><div class="bubble intro">你好，我是 <b>DSH</b>。这是你的 worldcore Agent。你可以直接发消息，或让我去做一件事：我的观察、工具动作、结果都会经本体回到这里。</div></div>`;
+    h = `<div class="hero"><div class="hw">HARNESS</div><div class="hs">worldcore Agent</div>
+      <div class="hp">给 DSH 发消息，或让我去做一件事。观察、工具动作、结果都会经本体回到这里。</div></div>`;
   }
   messages.slice(-30).forEach(m=>{
     h += `<div class="msg ${m.role==="user"?"user":"agent"}"><div class="bubble">${m.role==="agent"?md(m.text):esc(m.text).replace(/\n/g,"<br>")}</div></div>`;
