@@ -1,6 +1,6 @@
 # worldcore 架构图（总览）
 
-> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 211（sys 156 ＋ 世界 55）／ 函数 8 ／ 判据 78 条 ／ 常驻单元 15 个。
+> 现取：2026-10-20（二期收口）。类 27 ／ 接口 4 ／ 关系 5 ／ 在册动作 212（sys 156 ＋ 世界 56）／ 函数 8 ／ 判据 79 条 ／ 常驻单元 16 个。
 > 图里所有进程都是独立 systemd 单元；所有消息走 zenoh 总线话题 `world/*`。
 
 ## 一、四层总览
@@ -8,7 +8,7 @@
 ```mermaid
 flowchart TB
   subgraph L1[① 定义面 · 法]
-    LAW["world.json<br/>23 类 / 4 接口 / 5 关系<br/>世界动作 55 ＋ sys 156 / 函数 8"]
+    LAW["world.json<br/>23 类 / 4 接口 / 5 关系<br/>世界动作 56 ＋ sys 156 / 函数 8"]
     LOADER["law_loader.py<br/>解析 → 校验 → 建本体"]
     EXPORT["export-law.py --check<br/>声明件 ≡ 运行中的法（C35）"]
     LAW --> LOADER
@@ -30,7 +30,7 @@ flowchart TB
 
   BUS[("zenoh 总线<br/>world/appear · register · ask · exec ·<br/>exec/result · ask/result · query · event · notice · ui/*")]
 
-  subgraph L3[③ 提供者进程（一进程一夹 · 15 个单元；含 fs/clock/recovery/network/vault/worldfs）]
+  subgraph L3[③ 提供者进程（一进程一夹 · 16 个单元；含 fs/clock/recovery/network/vault/worldfs/worldfs-fuse）]
     COMP["computer<br/>执行 156 条命令 / app.open_url<br/>实时指标采集上报（数据管道）"]
     PRES["presentation ＋ presentation-render<br/>合成画布 / Flutter 渲染（A2UI）"]
     SPACE["space<br/>桌面 / 窗口 / 场景 / 确认弹窗 / 本体窗口"]
@@ -168,7 +168,7 @@ flowchart TB
 
 - **worldfs（语义文件系统，独立进程）** `src/worldfs/`：自有命名空间 `/worldfs`、内容寻址 blob、不可变版本、路径指针；
   `worldfs.list/stat/read/versions/state`（人+agent）与 `worldfs.write/mkdir/remove/restore`（**人确认**；P1 只给人）；
-  存储 `/var/lib/aios/worldfs`（blobs + SQLite）；**不写宿主文件、不做 FUSE（P2）**；部署 `aios-worldfs.service`（15 单元之一）。
+  存储 `/var/lib/aios/worldfs`（blobs + SQLite）；**不写宿主文件、不做 FUSE（P2）**；部署 `aios-worldfs.service`（15 单元）与 **`aios-worldfs-fuse.service`**（16 单元，FUSE 只读挂载 `/aios/worldfs`）。
 
 - **vault（保险库）** `src/vault/`：`vault.list`/`vault.state`（只读秘密【元数据】；值从不进世界、从不返回）；
   借鉴 AI-OS L4 Vault；许可**只给人**（agent 不列库存）；**不打开任何秘密值文件**；部署 `aios-vault.service`（14 单元之一）。
@@ -221,4 +221,4 @@ flowchart TB
 
 ---
 
-*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（78 条，每条自带会红的反例）。*
+*本图与 `docs/CODE-MAP.md` 配套；判据见 `scripts/test/check.py`（79 条，每条自带会红的反例）。*

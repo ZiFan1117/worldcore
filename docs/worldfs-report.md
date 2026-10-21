@@ -67,6 +67,17 @@ VM 现取：`aios-worldfs` **active**；15 单元全 active；存储根 384K；b
 | **agent 写拒绝（运行时）** | `world_cli` 以 agent 身份 ask `worldfs.write` ⇒ `CONFIRM_REQUIRED`（confirmation=cf-…）；**路径未创建**（0 行） |
 | 人类写 | 走 `world/ask`＋permit＋账；本人直接请求视为在场（不再弹一次确认）；agent 请求才走弹窗/委托 |
 
+## 四又四分之三、P2：FUSE 只读挂载（2026-10-21 晚）
+
+| 项 | 现取 |
+|---|---|
+| 独立进程/单元 | `src/worldfs/worldfs_fuse.py`；`aios-worldfs-fuse.service`（**第 16 单元**） |
+| 挂载 | `/aios/worldfs` → worldfs 命名空间 `/worldfs`；内核 `mount` 可见 `fuse.worldfs (ro,...)` |
+| 实现 | ctypes 直调 libfuse3（无第三方 Python FUSE 包）；getattr/readdir/open/read/access；dir 0555、file 0444 |
+| VM 验收 | **11/11 PASS**：ls/cat；worldfs 动作写的新文件 FUSE 立刻读到；FUSE 写/删被拒（Read-only）；服务重启后挂载恢复且数据仍在 |
+| 遇到的坑 | ① opendir 最初复用了 open（对目录返回 EISDIR）→ 单独 opendir；② systemd 的 `PrivateTmp=yes` 会建私有挂载命名空间，FUSE 挂载宿主不可见 → `PrivateTmp=no`；`ProtectSystem` 也会关挂载进私有命名空间 → `ProtectSystem=no` + `PrivateMounts=no` |
+| 仍只读 | 写走 worldfs 动作（人确认+permit+账）；挂载是**只读投影**，不做写挂载 |
+
 ## 五、怎么复跑
 
 ```bash

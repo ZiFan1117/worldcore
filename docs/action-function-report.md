@@ -39,7 +39,7 @@
 | **C77** | 8 函数法登记/implementation/endpoint；统计函数可执行且与本体/对象库一致；读函数无票拒、带票能读；未知函数拒；查询只读（账行数不变） |
 | **C78** | 内建动作直接执行与 ask_path 带票执行；静音生效；参数错误码；不支持动作显式 `UNSUPPORTED`；ask_path 不再出现 `PROVIDER_NOT_DECLARED` |
 
-本机：`python scripts/test/check.py` → **78/78 全绿**；法 **27 类 / 211 动作 / 8 函数**。
+本机：`python scripts/test/check.py` → **78/78 全绿**；法 **27 类 / 212 动作 / 8 函数**。
 
 ## 三半、VM 现取（2026-10-21 20:05 +08:00，16/16 PASS）
 
@@ -48,7 +48,7 @@
 PASS fn.world.overview：classes=27 functions=8 individuals=74
 PASS fn.world.class_counts：sum=74
 PASS fn.ledger.stats：rows=26320（last_at 现取）
-PASS fn.action.stats：world_actions=211 registry=44
+PASS fn.action.stats：world_actions=212 registry=44
 PASS fn.file.stats：file 4（3 file + 1 dir），bytes=3859035
 PASS fn.worldfs.stats：wfile 3 / wversion 3 / wpath 3
 PASS 读函数无票被拒；带票可查（rows=1）

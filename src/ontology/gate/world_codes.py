@@ -48,6 +48,7 @@ CONFIRM_ACTIONS = (
     "sys.SignalProcess", "sys.LockUserAccount",
     # ★ worldfs 写动作（人确认；2026-10-21）
     "worldfs.write", "worldfs.mkdir", "worldfs.remove", "worldfs.restore",
+    "worldfs.rename",
 )
 
 

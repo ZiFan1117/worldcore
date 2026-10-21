@@ -5300,6 +5300,74 @@
         "why": "回滚必须人确认"
       },
       "metadata": {}
+    },
+    {
+      "id": "worldfs.rename",
+      "label": "worldfs.rename",
+      "description": "改名/移动路径指针（对象身份不变；人确认）",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "change",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [
+        {
+          "kind": "param_present",
+          "name": "path"
+        },
+        {
+          "kind": "param_present",
+          "name": "to"
+        },
+        {
+          "kind": "param_present",
+          "name": "intent"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "to",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "intent",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user"
+        ],
+        "scope": [
+          "world://user"
+        ],
+        "why": "改名/移动必须人确认"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

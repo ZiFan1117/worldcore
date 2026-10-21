@@ -1,0 +1,26 @@
+[Unit]
+Description=worldcore worldfs FUSE 只读挂载 —— /aios/worldfs 投影 worldfs:/worldfs
+Documentation=https://ai-os.net/docs/worldfs
+After=aios-worldfs.service
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+Environment=AIOS_WORLDFS_ROOT=/var/lib/aios/worldfs
+Environment=AIOS_WORLDFS_MOUNT=/aios/worldfs
+ExecStartPre=/usr/bin/install -d -m 0755 /aios/worldfs
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/worldfs/worldfs_fuse.py
+ExecStop=-/bin/umount -l /aios/worldfs
+Restart=on-failure
+RestartSec=3
+PrivateTmp=no
+# FUSE 需要 /dev/fuse（PrivateDevices 必须 no，默认就是 no）
+PrivateDevices=no
+# ★ 关键：FUSE 挂载必须出现在【宿主挂载命名空间】里；ProtectSystem/PrivateMounts 会把挂载关进私有命名空间
+#   （实测 full 时 mount 只在 unit 命名空间可见，宿主看不到）。所以这里显式关掉。
+PrivateMounts=no
+ProtectSystem=no
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

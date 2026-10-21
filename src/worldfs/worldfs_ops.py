@@ -9,7 +9,8 @@ from worldfs_store import WorldFSError, WorldFS
 
 READ_ACTIONS = ("worldfs.list", "worldfs.stat", "worldfs.read",
                 "worldfs.versions", "worldfs.state")
-WRITE_ACTIONS = ("worldfs.write", "worldfs.mkdir", "worldfs.remove", "worldfs.restore")
+WRITE_ACTIONS = ("worldfs.write", "worldfs.mkdir", "worldfs.remove",
+                 "worldfs.restore", "worldfs.rename")
 ALL_ACTIONS = READ_ACTIONS + WRITE_ACTIONS
 
 
@@ -51,6 +52,10 @@ def dispatch(store, action, params=None):
             return True, store.restore(params.get("path"), params.get("seq"),
                                        actor=params.get("_actor") or "world://worldfs/unknown",
                                        intent=_need_intent(params))
+        if action == "worldfs.rename":
+            return True, store.rename(params.get("path"), params.get("to"),
+                                      actor=params.get("_actor") or "world://worldfs/unknown",
+                                      intent=_need_intent(params))
     except WorldFSError as e:
         return False, str(e)
     except Exception as e:                                      # noqa: BLE001

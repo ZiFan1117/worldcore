@@ -39,6 +39,7 @@ ACTIONS = [
     {"action": "worldfs.mkdir", "kind": "change", "why": "建目录（人确认）"},
     {"action": "worldfs.remove", "kind": "change", "why": "删路径（对象退休；人确认）"},
     {"action": "worldfs.restore", "kind": "change", "why": "回滚指针到旧版本（人确认）"},
+    {"action": "worldfs.rename", "kind": "change", "why": "改名/移动路径指针（人确认；对象身份不变）"},
 ]
 
 
@@ -111,7 +112,8 @@ def _after_success(session, action, body):
     """★ 读/写成功后，把相关对象报成个体（供查询/事件）。"""
     if not isinstance(body, dict):
         return
-    if action in ("worldfs.write", "worldfs.mkdir", "worldfs.restore", "worldfs.remove"):
+    if action in ("worldfs.write", "worldfs.mkdir", "worldfs.restore",
+                  "worldfs.remove", "worldfs.rename"):
         _report_path(session, body)
         if action in ("worldfs.write", "worldfs.restore"):
             _report_version(session, {"ver_id": body.get("ver_id"), "obj_id": body.get("obj_id"),

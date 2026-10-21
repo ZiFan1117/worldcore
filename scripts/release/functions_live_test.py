@@ -117,7 +117,7 @@ def main():
               "rows=%r last_at=%r" % (lr.get("rows"), lr.get("last_at")))
         ac = fn("fn-ac", "fn.action.stats")
         ar = (ac.get("data") or {}).get("result") or {}
-        check("fn.action.stats", bool(ac.get("ok")) and ar.get("world_actions") == 211,
+        check("fn.action.stats", bool(ac.get("ok")) and ar.get("world_actions") == 212,
               "world_actions=%r registry=%r" % (ar.get("world_actions"), ar.get("registry_actions")))
         fs = fn("fn-fs", "fn.file.stats")
         check("fn.file.stats", bool(fs.get("ok")),

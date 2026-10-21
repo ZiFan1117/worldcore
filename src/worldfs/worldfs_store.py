@@ -378,6 +378,46 @@ class WorldFS:
             self._txn(c, "remove", path, r["obj_id"], before, before, intent)
             return {"path": path, "obj_id": r["obj_id"], "removed_seq": before, "kind": r["kind"]}
 
+    def rename(self, old_path, new_path, actor, intent):
+        """★ 改名/移动：只移动路径指针，对象身份不变；目录连同子树路径一起移动。"""
+        old_path = validate_path(old_path)
+        new_path = validate_path(new_path)
+        if old_path == new_path:
+            raise WorldFSError("新旧路径相同")
+        if new_path.startswith(old_path.rstrip("/") + "/"):
+            raise WorldFSError("不能把目录移到它自己里面")
+        if not intent:
+            raise WorldFSError("缺 intent（改名/移动必须说明意图）")
+        now = _now()
+        with self._conn() as c:
+            r = self._row(c, old_path)
+            self._parent_dir(c, new_path)
+            if c.execute("SELECT 1 FROM paths WHERE path=?", (new_path,)).fetchone():
+                raise WorldFSError("目标已存在：%s" % new_path)
+            rows = c.execute("SELECT * FROM paths ORDER BY length(path)").fetchall()
+            moved = []
+            if r["kind"] == "dir":
+                pref = old_path.rstrip("/") + "/"
+                for x in rows:
+                    if x["path"] == old_path or x["path"].startswith(pref):
+                        moved.append(x)
+            else:
+                moved = [r]
+            targets = []
+            for x in moved:
+                suffix = x["path"][len(old_path):]
+                targets.append((x, new_path + suffix))
+            for _x, tgt in targets:
+                if c.execute("SELECT 1 FROM paths WHERE path=?", (tgt,)).fetchone():
+                    raise WorldFSError("目标子树有冲突：%s" % tgt)
+            for x, tgt in targets:
+                c.execute("UPDATE paths SET path=?, updated_at=?, updated_by=? WHERE path=?",
+                          (tgt, now, actor, x["path"]))
+            self._txn(c, "rename", old_path, r["obj_id"], r["seq"], r["seq"],
+                      "%s -> %s" % (intent, new_path))
+            return {"old_path": old_path, "path": new_path, "obj_id": r["obj_id"],
+                    "seq": r["seq"], "kind": r["kind"], "moved": len(targets)}
+
     def restore(self, path, seq, actor, intent):
         path = validate_path(path)
         if not intent:
