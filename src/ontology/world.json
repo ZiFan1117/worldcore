@@ -2240,6 +2240,24 @@
           "primary": false,
           "options": null,
           "description": ""
+        },
+        {
+          "name": "epoch",
+          "label": "epoch",
+          "type": "INTEGER",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "技术/引用字段"
+        },
+        {
+          "name": "root_sha",
+          "label": "root_sha",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "技术/引用字段"
         }
       ]
     },
@@ -2323,6 +2341,15 @@
           "primary": false,
           "options": null,
           "description": ""
+        },
+        {
+          "name": "ref",
+          "label": "ref",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "技术/引用字段"
         }
       ]
     },
@@ -2397,6 +2424,15 @@
           "primary": false,
           "options": null,
           "description": "版本标签（obj@seq；技术标签，不是账）"
+        },
+        {
+          "name": "ref",
+          "label": "ref",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "技术/引用字段"
         }
       ]
     },
@@ -2453,6 +2489,15 @@
           "primary": true,
           "options": null,
           "description": ""
+        },
+        {
+          "name": "ref",
+          "label": "ref",
+          "type": "STRING",
+          "required": false,
+          "primary": false,
+          "options": null,
+          "description": "技术/引用字段"
         }
       ]
     }
@@ -5461,6 +5506,134 @@
           "world://agent/dsh"
         ],
         "why": "网络面只读：地址/路由/DNS/连接只读"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.snapshot",
+      "label": "worldfs.snapshot",
+      "description": "只读：世界对象/版本引用、路径历史、全局快照",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.history",
+      "label": "worldfs.history",
+      "description": "只读：世界对象/版本引用、路径历史、全局快照",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 状态"
+      },
+      "metadata": {}
+    },
+    {
+      "id": "worldfs.get",
+      "label": "worldfs.get",
+      "description": "只读：世界对象/版本引用、路径历史、全局快照",
+      "required_roles": [
+        "worldfs"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "has_entry",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [
+        {
+          "name": "ref",
+          "type": "STRING",
+          "required": true,
+          "options": null,
+          "description": ""
+        },
+        {
+          "name": "seq",
+          "type": "INTEGER",
+          "required": false,
+          "options": null,
+          "description": ""
+        }
+      ],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "scope": [
+          "world://user",
+          "world://agent/dsh"
+        ],
+        "why": "读 worldfs 状态"
       },
       "metadata": {}
     }

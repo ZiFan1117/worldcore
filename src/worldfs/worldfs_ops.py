@@ -29,6 +29,12 @@ def dispatch(store, action, params=None):
             return True, store.list(params.get("path") or "/worldfs", params.get("limit"))
         if action == "worldfs.stat":
             return True, store.stat(params.get("path"))
+        if action == "worldfs.snapshot":
+            return True, store.snapshot()
+        if action == "worldfs.history":
+            return True, store.history(params.get("path"))
+        if action == "worldfs.get":
+            return True, store.get_ref(params.get("ref"), params.get("seq"))
         if action == "worldfs.read":
             return True, store.read(params.get("path"), params.get("max_bytes"))
         if action == "worldfs.versions":

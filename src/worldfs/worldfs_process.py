@@ -41,6 +41,9 @@ ACTIONS = [
     {"action": "worldfs.remove", "kind": "change", "why": "删路径（对象退休；人确认）"},
     {"action": "worldfs.restore", "kind": "change", "why": "回滚指针到旧版本（人确认）"},
     {"action": "worldfs.rename", "kind": "change", "why": "改名/移动路径指针（人确认；对象身份不变）"},
+    {"action": "worldfs.snapshot", "kind": "read", "why": "读当前全局 epoch/root（只读快照）"},
+    {"action": "worldfs.history", "kind": "read", "why": "读某路径的追加历史（含墓碑）"},
+    {"action": "worldfs.get", "kind": "read", "why": "按 world://wfile/… 或 world://wversion/… 读对象/版本"},
 ]
 
 
@@ -52,6 +55,7 @@ def me(store):
     st = store.state()
     return {"class": "worldfs", "name": WFS_NAME, "state": "running",
             "root": st["root"], "objects": st["objects"], "paths": st["paths"],
+            "epoch": st.get("epoch"), "root_sha": st.get("root_sha"),
             "reporter": "world://worldfs/" + WFS_NAME}
 
 
@@ -85,12 +89,14 @@ def _report_path(session, st):
     if seq is None:
         seq = st.get("removed_seq")
     _put(session, {"class": "wpath", "path": path, "obj_id": st.get("obj_id"),
-                   "seq": seq, "kind": st.get("kind")})
+                   "seq": seq, "kind": st.get("kind"),
+                   "ref": "world://wfile/" + str(st.get("obj_id") or "")})
     name = path.rsplit("/", 1)[-1] or "worldfs"
     _put(session, {"class": "wfile", "obj_id": st.get("obj_id"), "name": name,
                    "kind": st.get("kind"), "state": st.get("obj_state") or "active",
                    "current_seq": seq, "blob_sha256": st.get("blob_sha256"),
-                   "size": int(st.get("size") or 0)})
+                   "size": int(st.get("size") or 0),
+                   "ref": "world://wfile/" + str(st.get("obj_id") or "")})
 
 
 def _report_version(session, ver):
@@ -100,7 +106,8 @@ def _report_version(session, ver):
                    "obj_id": ver.get("obj_id"), "seq": ver.get("seq"),
                    "name": "%s@%s" % (ver.get("obj_id"), ver.get("seq")),
                    "blob_sha256": ver.get("blob_sha256"),
-                   "size": int(ver.get("size") or 0)})
+                   "size": int(ver.get("size") or 0),
+                   "ref": "world://wversion/" + str(ver.get("ver_id"))})
 
 
 def _after_success(session, action, body):

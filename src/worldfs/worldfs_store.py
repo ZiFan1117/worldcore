@@ -18,10 +18,15 @@ actor/intent/时间/结果只在 world/ask、world/exec/result 与本体 ledger 
   w.read("/worldfs/a.txt")
 """
 import hashlib
+import json
 import os
 import sqlite3
 import uuid
 from datetime import datetime, timezone
+
+from worldfs_meta import (parent_of, root_of, meta as meta_fn, bump as bump_fn,
+                       history as history_fn, snapshot as snapshot_fn,
+                       get_ref as get_ref_fn)
 
 DEFAULT_ROOT = "/var/lib/aios/worldfs"
 NS_ROOT = "/worldfs"
@@ -29,18 +34,14 @@ MAX_TEXT = 1024 * 1024          # P1 文本上限 1MB
 MAX_SEGMENT = 128
 MAX_DEPTH = 32
 
-
 class WorldFSError(Exception):
     """worldfs 的业务错误（路径/越权/坏 blob/不存在…）。"""
-
 
 def _now():
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="microseconds")
 
-
 def _uid(prefix):
     return prefix + uuid.uuid4().hex
-
 
 def validate_path(path, allow_root=False):
     """★ 命名空间校验：/worldfs 下的绝对路径；返回规范化路径或抛 WorldFSError。"""
@@ -69,12 +70,6 @@ def validate_path(path, allow_root=False):
         if len(s) > MAX_SEGMENT:
             raise WorldFSError("path 段过长（>%d）" % MAX_SEGMENT)
     return path
-
-
-def parent_of(path):
-    p = path.rsplit("/", 1)[0]
-    return p or NS_ROOT
-
 
 class WorldFS:
     def __init__(self, root=None):
@@ -117,6 +112,20 @@ class WorldFS:
       seq INTEGER NOT NULL,
       kind TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS meta (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS path_events (
+      event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      epoch INTEGER NOT NULL,
+      path TEXT NOT NULL,
+      obj_id TEXT NOT NULL,
+      seq INTEGER NOT NULL,
+      kind TEXT NOT NULL,
+      state TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_events_path ON path_events(path, event_id);
     CREATE INDEX IF NOT EXISTS idx_versions_obj ON versions(obj_id, seq);
     CREATE INDEX IF NOT EXISTS idx_paths_obj ON paths(obj_id);
     """
@@ -126,44 +135,71 @@ class WorldFS:
         with self._conn() as c:
             if fresh:
                 c.executescript(self._SCHEMA)
-                c.execute("PRAGMA user_version=2")
-                return
-            cols = {r["name"] for r in c.execute("PRAGMA table_info(versions)")}
-            has_txns = c.execute("SELECT 1 FROM sqlite_master"
-                                 " WHERE type='table' AND name='txns'").fetchone()
-            if "created_by" not in cols and not has_txns:
+            else:
+                cols = {r["name"] for r in c.execute("PRAGMA table_info(versions)")}
+                has_txns = c.execute("SELECT 1 FROM sqlite_master"
+                                     " WHERE type='table' AND name='txns'").fetchone()
+                if "created_by" in cols or has_txns:
+                    # v1 → v2：只搬技术列，不搬任何账/审计列；txns 直接删
+                    c.executescript("""
+                    CREATE TABLE objects_v2 (
+                      obj_id TEXT PRIMARY KEY, kind TEXT NOT NULL,
+                      state TEXT NOT NULL, current_seq INTEGER NOT NULL DEFAULT 0);
+                    CREATE TABLE versions_v2 (
+                      ver_id TEXT PRIMARY KEY, obj_id TEXT NOT NULL, seq INTEGER NOT NULL,
+                      blob_sha256 TEXT NOT NULL, size INTEGER NOT NULL, UNIQUE(obj_id, seq));
+                    CREATE TABLE paths_v2 (
+                      path TEXT PRIMARY KEY, obj_id TEXT NOT NULL, seq INTEGER NOT NULL,
+                      kind TEXT NOT NULL);
+                    INSERT INTO objects_v2(obj_id,kind,state,current_seq)
+                      SELECT obj_id,kind,state,current_seq FROM objects;
+                    INSERT INTO versions_v2(ver_id,obj_id,seq,blob_sha256,size)
+                      SELECT ver_id,obj_id,seq,blob_sha256,size FROM versions;
+                    INSERT INTO paths_v2(path,obj_id,seq,kind)
+                      SELECT path,obj_id,seq,kind FROM paths;
+                    DROP TABLE objects;
+                    DROP TABLE versions;
+                    DROP TABLE paths;
+                    DROP TABLE IF EXISTS txns;
+                    ALTER TABLE objects_v2 RENAME TO objects;
+                    ALTER TABLE versions_v2 RENAME TO versions;
+                    ALTER TABLE paths_v2 RENAME TO paths;
+                    """)
+                    print("[worldfs] 本地账已撤：v1→v2（txns 删除，技术数据保留）")
                 c.executescript(self._SCHEMA)
-                c.execute("PRAGMA user_version=2")
-                return
-            # v1 → v2：只搬技术列，不搬任何账/审计列；txns 直接删
-            c.executescript("""
-            CREATE TABLE objects_v2 (
-              obj_id TEXT PRIMARY KEY, kind TEXT NOT NULL,
-              state TEXT NOT NULL, current_seq INTEGER NOT NULL DEFAULT 0);
-            CREATE TABLE versions_v2 (
-              ver_id TEXT PRIMARY KEY, obj_id TEXT NOT NULL, seq INTEGER NOT NULL,
-              blob_sha256 TEXT NOT NULL, size INTEGER NOT NULL, UNIQUE(obj_id, seq));
-            CREATE TABLE paths_v2 (
-              path TEXT PRIMARY KEY, obj_id TEXT NOT NULL, seq INTEGER NOT NULL,
-              kind TEXT NOT NULL);
-            INSERT INTO objects_v2(obj_id,kind,state,current_seq)
-              SELECT obj_id,kind,state,current_seq FROM objects;
-            INSERT INTO versions_v2(ver_id,obj_id,seq,blob_sha256,size)
-              SELECT ver_id,obj_id,seq,blob_sha256,size FROM versions;
-            INSERT INTO paths_v2(path,obj_id,seq,kind)
-              SELECT path,obj_id,seq,kind FROM paths;
-            DROP TABLE objects;
-            DROP TABLE versions;
-            DROP TABLE paths;
-            DROP TABLE IF EXISTS txns;
-            ALTER TABLE objects_v2 RENAME TO objects;
-            ALTER TABLE versions_v2 RENAME TO versions;
-            ALTER TABLE paths_v2 RENAME TO paths;
-            CREATE INDEX IF NOT EXISTS idx_versions_obj ON versions(obj_id, seq);
-            CREATE INDEX IF NOT EXISTS idx_paths_obj ON paths(obj_id);
-            """)
-            c.execute("PRAGMA user_version=2")
-            print("[worldfs] 本地账已撤：v1→v2（txns 删除，技术数据保留）")
+            meta = {r["key"]: r["value"] for r in c.execute("SELECT * FROM meta")}
+            if not meta.get("epoch"):
+                epoch = 1
+                root = root_of(c)
+                c.execute("INSERT OR REPLACE INTO meta(key,value) VALUES('epoch',?)", (str(epoch),))
+                c.execute("INSERT OR REPLACE INTO meta(key,value) VALUES('root_sha',?)", (root,))
+                if not c.execute("SELECT 1 FROM path_events LIMIT 1").fetchone():
+                    for r in c.execute("SELECT path,obj_id,seq,kind FROM paths ORDER BY path"):
+                        c.execute("INSERT INTO path_events(epoch,path,obj_id,seq,kind,state)"
+                                  " VALUES(?,?,?,?,?,'active')",
+                                  (epoch, r["path"], r["obj_id"], r["seq"], r["kind"]))
+            c.execute("PRAGMA user_version=3")
+
+    def _meta(self, c):
+        return meta_fn(c)
+
+    def _bump(self, c, events):
+        return bump_fn(c, events)
+
+    def history(self, path):
+        path = validate_path(path, allow_root=True)
+        with self._conn() as c:
+            return history_fn(c, path)
+
+    def snapshot(self):
+        return snapshot_fn(self.state())
+
+    def get_ref(self, ref, seq=None):
+        with self._conn() as c:
+            try:
+                return get_ref_fn(c, ref, seq)
+            except ValueError as e:
+                raise WorldFSError(str(e))
 
     def _ensure_root(self):
         with self._conn() as c:
@@ -177,6 +213,7 @@ class WorldFS:
                       " VALUES(?,?,?,?,?)", (ver, obj, 1, "", 0))
             c.execute("INSERT INTO paths(path,obj_id,seq,kind)"
                       " VALUES(?,?,?,?)", (NS_ROOT, obj, 1, "dir"))
+            self._bump(c, [(NS_ROOT, obj, 1, "dir", "active")])
 
     # ── blob ──
     def _blob_path(self, sha):
@@ -251,7 +288,8 @@ class WorldFS:
             v = self._version(c, r["obj_id"], r["seq"])
             return {"path": path, "obj_id": r["obj_id"], "kind": r["kind"], "seq": r["seq"],
                     "ver_id": v["ver_id"], "blob_sha256": v["blob_sha256"],
-                    "size": v["size"], "obj_state": r["obj_state"]}
+                    "size": v["size"], "obj_state": r["obj_state"],
+                    "ref": "world://wfile/" + r["obj_id"]}
 
     def read(self, path, max_bytes=65536):
         st = self.stat(path)
@@ -267,7 +305,8 @@ class WorldFS:
                 "ver_id": st["ver_id"], "blob_sha256": st["blob_sha256"],
                 "total_size": st["size"], "bytes_read": len(blob),
                 "truncated": len(data) > lim,
-                "text": blob.decode("utf-8", "replace")}
+                "text": blob.decode("utf-8", "replace"),
+                "ref": "world://wfile/" + st["obj_id"]}
 
     def list(self, path, limit=200):
         path = validate_path(path, allow_root=True)
@@ -285,7 +324,8 @@ class WorldFS:
                              (pref + "%",)).fetchall()
             rows = [r for r in rows if "/" not in r["path"][len(pref):]][:lim]
             entries = [{"name": r["path"].rsplit("/", 1)[-1], "path": r["path"],
-                        "obj_id": r["obj_id"], "seq": r["seq"], "kind": r["kind"]} for r in rows]
+                        "obj_id": r["obj_id"], "seq": r["seq"], "kind": r["kind"],
+                        "ref": "world://wfile/" + r["obj_id"]} for r in rows]
             return {"path": path, "kind": "dir", "count": len(entries), "limit": lim,
                     "entries": entries}
 
@@ -297,7 +337,8 @@ class WorldFS:
             return {"path": path, "obj_id": st["obj_id"],
                     "versions": [{"ver_id": r["ver_id"], "seq": r["seq"],
                                   "blob_sha256": r["blob_sha256"],
-                                  "size": r["size"]} for r in rows]}
+                                  "size": r["size"],
+                                  "ref": "world://wversion/" + r["ver_id"]} for r in rows]}
 
     def state(self):
         with self._conn() as c:
@@ -313,8 +354,11 @@ class WorldFS:
                     total += os.path.getsize(os.path.join(dp, f))
                 except OSError:
                     pass
+            epoch, root = self._meta(c)
+            events = c.execute("SELECT COUNT(*) AS n FROM path_events").fetchone()["n"]
         return {"root": self.root, "objects": objs, "paths": paths, "versions": vers,
-                "blobs": blobs, "blob_bytes": total}
+                "blobs": blobs, "blob_bytes": total, "epoch": epoch,
+                "root_sha": root, "path_events": events}
 
     # ── write API ──
     def write(self, path, text, actor, intent, base_seq=None):
@@ -351,9 +395,10 @@ class WorldFS:
             c.execute("INSERT OR REPLACE INTO paths(path,obj_id,seq,kind)"
                       " VALUES(?,?,?,?)", (path, obj, seq, "file"))
             c.execute("UPDATE objects SET current_seq=?, state='active' WHERE obj_id=?", (seq, obj))
+            self._bump(c, [(path, obj, seq, "file", "active")])
             return {"path": path, "obj_id": obj, "seq": seq, "ver_id": ver,
                     "blob_sha256": sha, "size": len(data), "before_seq": before,
-                    "dedup": dedup}
+                    "dedup": dedup, "ref": "world://wfile/" + obj}
 
     def mkdir(self, path, actor, intent):
         path = validate_path(path)
@@ -370,7 +415,9 @@ class WorldFS:
                       " VALUES(?,?,?,?,?)", (ver, obj, 1, "", 0))
             c.execute("INSERT INTO paths(path,obj_id,seq,kind)"
                       " VALUES(?,?,?,?)", (path, obj, 1, "dir"))
-            return {"path": path, "obj_id": obj, "seq": 1, "kind": "dir"}
+            self._bump(c, [(path, obj, 1, "dir", "active")])
+            return {"path": path, "obj_id": obj, "seq": 1, "kind": "dir",
+                    "ref": "world://wfile/" + obj}
 
     def remove(self, path, actor, intent):
         path = validate_path(path)
@@ -386,7 +433,9 @@ class WorldFS:
             before = r["seq"]
             c.execute("DELETE FROM paths WHERE path=?", (path,))
             c.execute("UPDATE objects SET state='retired' WHERE obj_id=?", (r["obj_id"],))
-            return {"path": path, "obj_id": r["obj_id"], "removed_seq": before, "kind": r["kind"]}
+            self._bump(c, [(path, r["obj_id"], before, r["kind"], "removed")])
+            return {"path": path, "obj_id": r["obj_id"], "removed_seq": before,
+                    "kind": r["kind"], "ref": "world://wfile/" + r["obj_id"]}
 
     def rename(self, old_path, new_path, actor, intent):
         """★ 改名/移动：只移动路径指针，对象身份不变；目录连同子树路径一起移动。"""
@@ -421,8 +470,14 @@ class WorldFS:
                     raise WorldFSError("目标子树有冲突：%s" % tgt)
             for x, tgt in targets:
                 c.execute("UPDATE paths SET path=? WHERE path=?", (tgt, x["path"]))
+            ev = []
+            for x, tgt in targets:
+                ev.append((x["path"], x["obj_id"], x["seq"], x["kind"], "removed"))
+                ev.append((tgt, x["obj_id"], x["seq"], x["kind"], "active"))
+            self._bump(c, ev)
             return {"old_path": old_path, "path": new_path, "obj_id": r["obj_id"],
-                    "seq": r["seq"], "kind": r["kind"], "moved": len(targets)}
+                    "seq": r["seq"], "kind": r["kind"], "moved": len(targets),
+                    "ref": "world://wfile/" + r["obj_id"]}
 
     def restore(self, path, seq, actor, intent):
         path = validate_path(path)
@@ -439,5 +494,7 @@ class WorldFS:
                 self.get_blob(v["blob_sha256"], v["size"])       # 回滚前验 blob 完好
             before = r["seq"]
             c.execute("UPDATE paths SET seq=? WHERE path=?", (seq, path))
+            self._bump(c, [(path, r["obj_id"], seq, r["kind"], "active")])
             return {"path": path, "obj_id": r["obj_id"], "seq": seq,
-                    "before_seq": before, "ver_id": v["ver_id"]}
+                    "before_seq": before, "ver_id": v["ver_id"],
+                    "ref": "world://wfile/" + r["obj_id"]}

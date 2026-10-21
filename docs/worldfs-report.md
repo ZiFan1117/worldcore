@@ -90,6 +90,18 @@ VM 现取：`aios-worldfs` **active**；16 单元全 active；存储根 384K；b
 | 遇到的坑 | ① opendir 最初复用了 open（对目录返回 EISDIR）→ 单独 opendir；② systemd 的 `PrivateTmp=yes` 会建私有挂载命名空间，FUSE 挂载宿主不可见 → `PrivateTmp=no`；`ProtectSystem` 也会关挂载进私有命名空间 → `ProtectSystem=no` + `PrivateMounts=no` |
 | 仍只读 | 写走 worldfs 动作（人确认+permit+账）；挂载是**只读投影**，不做写挂载 |
 
+
+## 四又五分之四、P3 最小核心：epoch/root/墓碑/引用（T-528）
+
+| 件 | 現取 |
+|---|---|
+| 全局 epoch/root | `meta(epoch,root_sha)`；每次写/删/改/回滚 epoch+1、root 重算；`worldfs.state`/`snapshot` 带 |
+| append-only paths＋墓碑 | `path_events(event_id,epoch,path,obj_id,seq,kind,state)` 只 INSERT；remove 留 `removed`；`worldfs.history` 可查 |
+| world 对象/版本引用 | 响应带 `world://wfile/<obj>` / `world://wversion/<ver>`；`worldfs.get` 按 ref 取 |
+| VM | 10/10 PASS：epoch 3→4、root 变、history active/removed、get ref、删后对象可取、旧内容仍可读 |
+
+仍没做：path 当前表仍是可变视图（历史已 append-only）；snapshot 是只读快照，不落表；`world_snapshot` 尚未打包 worldfs manifest。
+
 ## 五、怎么复跑
 
 ```bash
