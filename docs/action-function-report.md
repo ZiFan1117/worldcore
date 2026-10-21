@@ -41,6 +41,23 @@
 
 本机：`python scripts/test/check.py` → **78/78 全绿**；法 **27 类 / 211 动作 / 8 函数**。
 
+## 三半、VM 现取（2026-10-21 20:05 +08:00，16/16 PASS）
+
+```
+15/15 单元 active（aios-ontology、aios-worldfs 都在）
+PASS fn.world.overview：classes=27 functions=8 individuals=74
+PASS fn.world.class_counts：sum=74
+PASS fn.ledger.stats：rows=26320（last_at 现取）
+PASS fn.action.stats：world_actions=211 registry=44
+PASS fn.file.stats：file 4（3 file + 1 dir），bytes=3859035
+PASS fn.worldfs.stats：wfile 3 / wversion 3 / wpath 3
+PASS 读函数无票被拒；带票可查（rows=1）
+PASS function 查询只读（账里 qfn-* 查询行=0）
+PASS notice.mute / job.start / job.finish
+PASS ledger.compact ⇒ code=UNSUPPORTED（账只增不改；已落账 3 行）
+PASS 无新 PROVIDER_NOT_DECLARED（历史 1 行，前后不增）
+```
+
 ## 四、没做到的（如实）
 
 1. 作业/在场/静音是**本体内存状态**，不持久化（重启清空）；P2 可落对象/账恢复；
