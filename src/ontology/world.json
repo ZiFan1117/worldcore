@@ -5763,6 +5763,43 @@
         "why": "DSH Web 对话"
       },
       "metadata": {}
+    },
+    {
+      "id": "agent.workspace",
+      "label": "读 Agent 工作台",
+      "description": "★ 完整 Agent 界面只读：状态＋观察/计划/动作/渲染步骤（全经本体问 agent）。",
+      "required_roles": [
+        "user",
+        "agent"
+      ],
+      "applies_to": null,
+      "kind": "read",
+      "implemented": "agent_llm.py",
+      "reversible": true,
+      "on_failure": "reject",
+      "effects": [
+        {
+          "kind": "forward"
+        },
+        {
+          "kind": "ledger"
+        }
+      ],
+      "preconditions": [],
+      "parameters": [],
+      "grant": {
+        "who": [
+          "world://user",
+          "world://agent"
+        ],
+        "scope": [
+          "world://user",
+          "world://presence",
+          "world://agent"
+        ],
+        "why": "DSH Agent 工作台"
+      },
+      "metadata": {}
     }
   ],
   "functions": [

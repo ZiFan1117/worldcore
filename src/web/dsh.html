@@ -3,150 +3,186 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>DSH · worldcore</title>
+<title>DSH Agent 工作台 · worldcore</title>
 <style>
-:root{
-  --bg:#f7f8fa; --panel:#fff; --sidebar:#f1f3f6; --text:#1f2328;
-  --muted:#6a737d; --line:#e3e6ea; --accent:#2f6fed; --accent-soft:#e8f0ff;
-  --user:#2f6fed; --agent:#eef1f5; --code:#f0f2f5; --danger:#c0392b; --ok:#1a7f37;
-}
-@media (prefers-color-scheme: dark){
-  :root{--bg:#0f1115; --panel:#171a21; --sidebar:#11141a; --text:#e6e9ef;
-    --muted:#98a2b3; --line:#28303c; --accent:#7aa2ff; --accent-soft:#1c2a44;
-    --user:#3f6fd8; --agent:#1e242e; --code:#11151c; --ok:#3fb950;}
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
-  font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
+:root{--bg:#f6f7f9;--panel:#fff;--side:#f0f2f5;--text:#1f2328;--muted:#697386;--line:#e2e5ea;
+  --acc:#2f6fed;--acc2:#e8f0ff;--ok:#1a7f37;--warn:#9a6700;--danger:#c0392b;--code:#f0f2f5}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1116;--panel:#171b22;--side:#11151c;--text:#e6e9ef;
+  --muted:#94a0b3;--line:#28303c;--acc:#7aa2ff;--acc2:#1a2842;--ok:#3fb950;--warn:#d29922;
+  --danger:#f85149;--code:#0b0f15}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);
+ font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}
 .app{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:272px;flex:0 0 272px;background:var(--sidebar);border-right:1px solid var(--line);
-  display:flex;flex-direction:column;padding:14px}
-.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px;margin-bottom:12px}
+.side{width:252px;flex:0 0 252px;background:var(--side);border-right:1px solid var(--line);
+ display:flex;flex-direction:column;padding:14px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;margin-bottom:4px}
 .logo{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#2f6fed,#7aa2ff);
-  display:grid;place-items:center;color:#fff;font-size:14px}
-.brand small{color:var(--muted);font-weight:500;font-size:11px}
-.newchat{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);
-  border-radius:10px;padding:9px;text-align:left;margin-bottom:14px}
-.sect{font-size:11px;color:var(--muted);letter-spacing:.06em;margin:12px 0 6px;text-transform:uppercase}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 11px}
-.kv{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px}
-.kv span:first-child{color:var(--muted)}
-.kv b{font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.statusline{display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:8px}
-.dot{width:8px;height:8px;border-radius:50%;background:#bbb}
-.dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(26,127,55,.12)}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:9px;
-  padding:7px 8px;font-size:12px}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+ display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800}
+.sub{color:var(--muted);font-size:11px;margin:0 0 12px 37px}
+.sect{font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:14px 0 6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;font-size:12px}
+.row .k{color:var(--muted)}.row .v{font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#999;display:inline-block;margin-right:6px}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(63,185,80,.13)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:6px 8px;font-size:12px}
+.btn:hover{border-color:var(--acc);color:var(--acc)}.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn.wide{grid-column:1/-1}
-.guides{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.guides{display:flex;flex-direction:column;gap:5px}
 .guide{text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--text);
-  border-radius:9px;padding:7px 9px;font-size:12px}
-.guide:hover{border-color:var(--accent);color:var(--accent)}
-.events{flex:1;overflow:auto;margin-top:6px;min-height:60px}
-.ev{font-size:11px;color:var(--muted);border-bottom:1px dashed var(--line);padding:5px 0;word-break:break-all}
+ border-radius:8px;padding:6px 8px;font-size:12px}.guide:hover{border-color:var(--acc);color:var(--acc)}
+.events{flex:1;overflow:auto;min-height:50px;margin-top:4px}
+.ev{font-size:10.5px;color:var(--muted);border-bottom:1px dashed var(--line);padding:4px 0;word-break:break-all}
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
-.top{height:58px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;
-  align-items:center;justify-content:space-between;padding:0 20px}
-.top .title{font-weight:650;display:flex;gap:9px;align-items:center}
+.top{height:54px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;align-items:center;
+ justify-content:space-between;padding:0 18px}
+.top .t{font-weight:650;display:flex;gap:10px;align-items:center}
+.tabbar{display:flex;gap:2px;margin-left:18px}
+.tab{border:0;background:transparent;color:var(--muted);padding:6px 10px;border-radius:7px;font-size:12px}
+.tab.on{background:var(--acc2);color:var(--acc);font-weight:600}
 .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
 .pill.ok{color:var(--ok);border-color:var(--ok)}
-.chat{flex:1;overflow:auto;padding:22px 16px 8px}
-.thread{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.msg{display:flex;gap:10px;align-items:flex-start}
-.msg .av{width:28px;height:28px;flex:0 0 28px;border-radius:8px;display:grid;place-items:center;
-  font-size:12px;font-weight:700;color:#fff;background:#6a737d}
-.msg.user .av{background:var(--user)}
-.msg.agent .av{background:linear-gradient(135deg,#2f6fed,#7aa2ff)}
-.bubble{background:var(--agent);border:1px solid var(--line);border-radius:12px;
-  padding:10px 13px;max-width:calc(100% - 40px);overflow-wrap:anywhere}
-.msg.user .bubble{background:var(--accent-soft);border-color:transparent}
-.bubble p{margin:0 0 8px}.bubble p:last-child{margin-bottom:0}
-.bubble pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:9px;
-  overflow:auto;font-size:12px;margin:8px 0}
-.bubble code{background:var(--code);border-radius:4px;padding:1px 4px;font-size:12px}
-.bubble pre code{padding:0;background:none}
-.bubble a{color:var(--accent)}
-.meta{font-size:11px;color:var(--muted);margin-top:4px}
-.composer{border-top:1px solid var(--line);background:var(--panel);padding:12px 16px 16px}
-.box{max-width:820px;margin:0 auto;border:1px solid var(--line);border-radius:14px;
-  padding:10px;background:var(--bg);display:flex;gap:8px;align-items:flex-end}
-.box textarea{flex:1;border:0;outline:0;background:transparent;color:var(--text);
-  resize:none;max-height:180px;min-height:24px;line-height:1.5}
-.send{width:36px;height:36px;border:0;border-radius:10px;background:var(--accent);color:#fff;
-  font-size:17px}
-.send:disabled{opacity:.45;cursor:default}
-.tip{max-width:820px;margin:6px auto 0;color:var(--muted);font-size:11px;
-  display:flex;justify-content:space-between;gap:8px}
-.err{color:var(--danger);font-size:12px}
-.loading{display:inline-flex;gap:4px;align-items:center;color:var(--muted);font-size:12px}
-.loading i{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:b 1s infinite}
-.loading i:nth-child(2){animation-delay:.15s}.loading i:nth-child(3){animation-delay:.3s}
-@keyframes b{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
-.login{position:fixed;inset:0;background:rgba(15,17,21,.55);display:grid;place-items:center;z-index:9}
-.login .card{width:340px;padding:20px}
-.login h2{margin:0 0 6px;font-size:18px}
-.login p{margin:0 0 14px;color:var(--muted);font-size:12px}
-.login input{width:100%;margin:6px 0;padding:9px 10px;border:1px solid var(--line);
-  border-radius:9px;background:var(--bg);color:var(--text)}
-.hidden{display:none!important}
-@media(max-width:760px){.sidebar{display:none}.top{padding:0 12px}}
+.workspace{flex:1;display:flex;min-height:0}
+.center{flex:1;overflow:auto;padding:16px 18px;min-width:0}
+.right{width:310px;flex:0 0 310px;border-left:1px solid var(--line);background:var(--panel);
+ overflow:auto;padding:14px}
+.thread{max-width:900px;margin:0 auto}
+.taskbar{max-width:900px;margin:0 auto 14px;background:var(--panel);border:1px solid var(--line);
+ border-radius:12px;padding:10px}
+.taskbar textarea{width:100%;border:0;outline:0;background:transparent;color:var(--text);resize:vertical;min-height:40px}
+.taskbar .sendrow{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.muted{color:var(--muted);font-size:11px}
+.step{border:1px solid var(--line);background:var(--panel);border-radius:12px;margin:0 0 10px;
+ overflow:hidden;cursor:pointer}
+.step:hover{border-color:var(--acc)}
+.step .head{display:flex;align-items:center;gap:9px;padding:9px 12px}
+.step .ico{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:12px;
+ background:var(--acc2);color:var(--acc);flex:0 0 24px}
+.step.observe .ico{background:#eef7ee;color:var(--ok)}
+.step.plan .ico{background:#fff4d6;color:var(--warn)}
+.step.action .ico{background:#e8f0ff;color:var(--acc)}
+.step.render .ico{background:#f0e8ff;color:#8250df}
+.step .title{font-weight:600;font-size:12.5px}.step .meta{color:var(--muted);font-size:11px;margin-left:auto}
+.step .body{padding:0 12px 10px 45px;color:var(--muted);font-size:12px;white-space:pre-wrap;word-break:break-word}
+.step .body b{color:var(--text)}
+.kv{display:grid;grid-template-columns:86px 1fr;gap:4px 8px;font-size:12px;margin:6px 0}
+.kv .k{color:var(--muted)}.kv .v{word-break:break-word}
+.codebox{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:8px;
+ font:11.5px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;max-height:180px;overflow:auto;white-space:pre-wrap}
+.chatbox{display:flex;flex-direction:column;gap:7px;margin-top:8px;max-height:380px;overflow:auto}
+.msg{padding:7px 9px;border-radius:9px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.msg.user{background:var(--acc2)}.msg.agent{background:var(--side);border:1px solid var(--line)}
+.chatin{display:flex;gap:6px;margin-top:7px}
+.chatin input{flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);color:var(--text)}
+.empty{color:var(--muted);text-align:center;padding:36px 10px;font-size:12px}
+.tasks{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow:auto}
+.task{font-size:11.5px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;
+ background:var(--panel);display:flex;gap:6px;align-items:flex-start}
+.task .dot{width:6px;height:6px;flex:0 0 6px;margin-top:5px}
+.login{position:fixed;inset:0;background:rgba(10,12,16,.58);display:grid;place-items:center;z-index:20}
+.login .card{width:350px;padding:20px}.login h2{margin:0 0 6px;font-size:18px}
+.login p{margin:0 0 12px;color:var(--muted);font-size:12px}
+.login input{width:100%;margin:6px 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+ background:var(--bg);color:var(--text)}
+.err{color:var(--danger);font-size:12px}.hidden{display:none!important}
+@media(max-width:980px){.right{display:none}.side{width:210px;flex-basis:210px}}
+@media(max-width:720px){.side{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <div class="brand"><div class="logo">D</div><div>DSH<small><br>worldcore · DeepSeek 式对话</small></div></div>
-    <button class="newchat" id="newChat">＋ 新对话</button>
-    <div class="sect">状态</div>
+  <aside class="side">
+    <div class="brand"><div class="logo">D</div><div>DSH <span class="muted">Agent</span></div></div>
+    <div class="sub">DeepSeek Harness · worldcore</div>
+    <div class="sect">Agent 状态</div>
     <div class="card">
-      <div class="statusline"><span class="dot" id="dot"></span><span id="stateText">未登录</span></div>
-      <div class="kv"><span>窗口</span><b id="kLaunched">—</b></div>
-      <div class="kv"><span>轮次</span><b id="kRound">—</b></div>
-      <div class="kv"><span>心跳</span><b id="kHb">—</b></div>
-      <div class="kv"><span>当前引导</span><b id="kGuide">—</b></div>
-      <div class="kv"><span>最近动作</span><b id="kLast">—</b></div>
+      <div class="row"><span class="k"><span class="dot" id="dot"></span>运行</span><span class="v" id="vState">未登录</span></div>
+      <div class="row"><span class="k">窗口</span><span class="v" id="vLaunched">—</span></div>
+      <div class="row"><span class="k">轮次</span><span class="v" id="vRound">—</span></div>
+      <div class="row"><span class="k">心跳</span><span class="v" id="vHb">—</span></div>
+      <div class="row"><span class="k">当前引导</span><span class="v" id="vGuide">—</span></div>
+      <div class="row"><span class="k">最近动作</span><span class="v" id="vLast">—</span></div>
       <div class="btns">
         <button class="btn" id="btnLaunch">启动</button>
-        <button class="btn" id="btnClose">关闭窗口</button>
-        <button class="btn wide" id="btnRefresh">刷新状态</button>
+        <button class="btn" id="btnClose">停窗口</button>
+        <button class="btn wide" id="btnRefresh">刷新工作台</button>
       </div>
     </div>
-    <div class="sect">引导 DSH</div>
+    <div class="sect">给 Agent 引导</div>
     <div class="guides">
       <button class="guide" data-guide="先看世界状态、可用动作和最近事件，再决定下一步；不要重复最近动作。">先看世界</button>
-      <button class="guide" data-guide="用 file.* 只读动作看看 /var/lib/aios 与 /root/aios。">看文件</button>
-      <button class="guide" data-guide="用 network.addresses、network.routes、network.connections 看看本机网络。">看网络</button>
+      <button class="guide" data-guide="用 file.* 只读动作看看 /var/lib/aios 与 /root/aios，找出值得注意的文件。">看文件</button>
+      <button class="guide" data-guide="用 network.addresses、network.routes、network.connections 检查本机网络。">看网络</button>
+      <button class="guide" data-guide="检查世界快照与恢复边界，报告当前 epoch/root 和最近快照。">看快照</button>
     </div>
+    <div class="sect">任务</div>
+    <div class="tasks" id="tasks"><div class="muted">还没有任务。在中间给 DSH 下一条。</div></div>
     <div class="sect">世界事件</div>
     <div class="events" id="events"><div class="ev">等待事件…</div></div>
   </aside>
 
   <main class="main">
     <header class="top">
-      <div class="title"><span class="logo" style="width:24px;height:24px;border-radius:7px">D</span>
-        DSH <span class="pill" id="modelPill">deepseek-chat</span></div>
-      <div class="pill ok" id="connPill">本地世界</div>
-    </header>
-    <div class="chat" id="chat"><div class="thread" id="thread"></div></div>
-    <div class="composer">
-      <div class="box">
-        <textarea id="input" rows="1" placeholder="给 DSH 发消息…（Enter 发送，Shift+Enter 换行）"></textarea>
-        <button class="send" id="send" title="发送">↑</button>
+      <div class="t"><span class="logo" style="width:23px;height:23px;border-radius:7px">D</span>
+        DSH Agent 工作台
+        <div class="tabbar">
+          <button class="tab on" data-view="workflow">工作流</button>
+          <button class="tab" data-view="chat">对话</button>
+        </div>
       </div>
-      <div class="tip"><span>所有对话与动作都经本体；DSH 不直连界面。</span><span id="tipState">就绪</span></div>
+      <div><span class="pill" id="modelPill">deepseek-chat</span>
+        <span class="pill ok" id="connPill">本体连接</span></div>
+    </header>
+
+    <div class="workspace">
+      <section class="center" id="center">
+        <div id="workflowView">
+          <div class="taskbar">
+            <textarea id="taskInput" rows="2" placeholder="给 DSH 一个任务或引导：例如「看看这台机器的磁盘和网络，报告异常」"></textarea>
+            <div class="sendrow">
+              <span class="muted">任务经本体转给 agent；agent 的动作、结果、渲染都回工作台。</span>
+              <button class="btn primary" id="btnTask">交给 Agent</button>
+            </div>
+          </div>
+          <div class="thread" id="steps"><div class="empty">还没有步骤。启动 Agent 并给它一条任务。</div></div>
+        </div>
+        <div id="chatView" class="hidden">
+          <div class="thread">
+            <div class="chatbox" id="chatlog"></div>
+            <div class="chatin">
+              <input id="chatInput" placeholder="直接和 DSH 说话…"/>
+              <button class="btn primary" id="btnChat">发送</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right">
+        <div class="sect">当前检查器</div>
+        <div class="card" id="inspector"><div class="muted">选一个步骤查看详情。</div></div>
+        <div class="sect">Agent 进程</div>
+        <div class="card">
+          <div class="kv"><span class="k">名字</span><span class="v" id="iName">dsh</span></div>
+          <div class="kv"><span class="k">DID</span><span class="v" id="iDid">—</span></div>
+          <div class="kv"><span class="k">阶段</span><span class="v" id="iPhase">—</span></div>
+          <div class="kv"><span class="k">最近步</span><span class="v" id="iStep">—</span></div>
+        </div>
+        <div class="sect">说明</div>
+        <div class="card muted">
+          这是完整 Agent 工作台，不是聊天壳：观察、计划、工具动作、结果、A2UI 渲染都是步骤。
+          所有步骤/动作经本体；界面只读和发请求。
+        </div>
+      </aside>
     </div>
   </main>
 </div>
 
 <div class="login hidden" id="login">
   <div class="card">
-    <h2>进入 DSH</h2>
-    <p>用你的 worldcore 身份登录；票由本体发。</p>
+    <h2>进入 DSH Agent 工作台</h2>
+    <p>用 worldcore 身份登录；票由本体发。</p>
     <input id="user" value="zhang" placeholder="用户名"/>
     <input id="pass" type="password" value="0" placeholder="密码"/>
     <div class="err hidden" id="loginErr"></div>
@@ -157,184 +193,185 @@ button{cursor:pointer}
 </div>
 
 <script>
-const $ = (s) => document.querySelector(s);
+const $ = s => document.querySelector(s);
 const els = {
-  thread: $("#thread"), chat: $("#chat"), input: $("#input"), send: $("#send"),
-  dot: $("#dot"), stateText: $("#stateText"), kLaunched: $("#kLaunched"),
-  kRound: $("#kRound"), kHb: $("#kHb"), kGuide: $("#kGuide"), kLast: $("#kLast"),
-  events: $("#events"), login: $("#login"), loginErr: $("#loginErr"),
-  user: $("#user"), pass: $("#pass"), tipState: $("#tipState"),
+  dot:$("#dot"), vState:$("#vState"), vLaunched:$("#vLaunched"), vRound:$("#vRound"),
+  vHb:$("#vHb"), vGuide:$("#vGuide"), vLast:$("#vLast"), tasks:$("#tasks"), events:$("#events"),
+  steps:$("#steps"), inspector:$("#inspector"), iName:$("#iName"), iDid:$("#iDid"),
+  iPhase:$("#iPhase"), iStep:$("#iStep"), login:$("#login"), loginErr:$("#loginErr"),
+  loginUser:$("#user"), loginPass:$("#pass"), taskInput:$("#taskInput"),
+  chatlog:$("#chatlog"), chatInput:$("#chatInput"),
 };
-let messages = [];
-let busy = false;
-let status = {};
+let workspace = {agent:{}, steps:[]};
+let selected = null, view = "workflow", busy = false;
+let tasks = [], chats = [];
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function md(s){
-  let h = esc(s);
-  h = h.replace(/```([\s\S]*?)```/g, (_,c)=>`<pre><code>${c.replace(/^\n+|\n+$/g,"")}</code></pre>`);
-  h = h.replace(/`([^`]+)`/g,"<code>$1</code>");
-  h = h.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
-  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-  return h.split(/\n{2,}/).map(p=>`<p>${p.replace(/\n/g,"<br>")}</p>`).join("");
-}
-function now(){return new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});}
+function short(s,n=160){s=String(s??"");return s.length>n?s.slice(0,n)+"…":s;}
+function fmtAt(a){return a?String(a).replace("T"," ").slice(0,19):"—";}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;}}
 
-function render(){
-  els.thread.innerHTML = messages.map(m=>`
-    <div class="msg ${m.role}">
-      <div class="av">${m.role==="user"?"你":"D"}</div>
-      <div class="bubble">${m.role==="agent"?md(m.content):`<p>${esc(m.content).replace(/\n/g,"<br>")}</p>`}
-        <div class="meta">${m.role==="user"?"你":"DSH"} · ${esc(m.at||"")}</div>
-      </div>
-    </div>`).join("") + (busy ? `<div class="msg agent"><div class="av">D</div><div class="bubble"><span class="loading"><i></i><i></i><i></i> DSH 在经本体思考…</span></div></div>` : "");
-  els.chat.scrollTop = els.chat.scrollHeight;
+function status(st){
+  workspace.agent = st || workspace.agent || {};
+  const a = workspace.agent;
+  els.dot.classList.toggle("on", a.state === "running" || a.launched);
+  els.vState.textContent = a.state ? (a.launched?"运行中":"待启动") : "—";
+  els.vLaunched.textContent = a.launched ? "已启动" : "未启动";
+  els.vRound.textContent = a.round ?? "—";
+  els.vHb.textContent = fmtAt(a.at || (a.heartbeat&&a.heartbeat.last_at));
+  els.vGuide.textContent = a.guide || "—";
+  const last=a.last_action; els.vLast.textContent = last?(last.action||last):"—";
+  els.iName.textContent = a.name || "dsh";
+  els.iDid.textContent = a.did || "—";
+  els.iPhase.textContent = a.phase || "—";
+  const lastStep = (workspace.steps||[]).slice(-1)[0];
+  els.iStep.textContent = lastStep ? (lastStep.kind + " · " + fmtAt(lastStep.at)) : "—";
 }
-
-function add(role, content){
-  messages.push({role, content, at: now()});
-  if(messages.length > 200) messages = messages.slice(-200);
-  localStorage.setItem("dsh_messages", JSON.stringify(messages));
-  render();
+function stepCard(s,i){
+  const kind = s.kind || "step";
+  const ico = {observe:"◎", plan:"◇", action:"▶", render:"▣"}[kind] || "•";
+  let title = kind, body = "";
+  if(kind==="observe"){title="观察世界";body=`round=${s.round??"?"}  world_ok=${s.world_ok}  surfaces=${s.screen_count??"?"}`;}
+  else if(kind==="plan"){title="决定下一步";body=`${s.action||"（不动作）"}${s.why?"  — "+s.why:""}\n${s.params?JSON.stringify(s.params):""}`;}
+  else if(kind==="action"){title=`工具动作：${s.action||"?"}`;body=`ok=${s.ok}\n${s.body||""}`;}
+  else if(kind==="render"){title="渲染 A2UI";body=`组件 ${s.components??"?"} 个`;}
+  else {body=JSON.stringify(s);}
+  return `<div class="step ${esc(kind)}" data-i="${i}">
+    <div class="head"><span class="ico">${ico}</span><span class="title">${esc(title)}</span>
+      <span class="meta">${esc(fmtAt(s.at))}</span></div>
+    <div class="body">${esc(short(body,500))}</div></div>`;
 }
-
-function loadHistory(){
-  try{
-    const raw = localStorage.getItem("dsh_messages");
-    if(raw) messages = JSON.parse(raw) || [];
-  }catch(e){ messages = []; }
-  if(!messages.length){
-    messages = [{role:"agent", content:"你好，我是 **DSH**。这是你的 worldcore 智能体界面。\n\n你可以直接问我；我的动作、许可、回话都经本体。左侧能看状态、给我引导、启动或关闭窗口。", at: now()}];
-  }
-  render();
+function renderSteps(){
+  const steps = workspace.steps || [];
+  if(!steps.length){ els.steps.innerHTML = `<div class="empty">还没有步骤。启动 Agent 并给它一条任务。</div>`; return; }
+  els.steps.innerHTML = steps.map(stepCard).join("");
+  els.steps.querySelectorAll(".step").forEach(el=>el.onclick=()=>inspect(Number(el.dataset.i)));
 }
+function inspect(i){
+  selected = (workspace.steps||[])[i]; if(!selected) return;
+  const s=selected;
+  let body = `<div class="kv"><span class="k">kind</span><span class="v">${esc(s.kind)}</span></div>
+    <div class="kv"><span class="k">at</span><span class="v">${esc(fmtAt(s.at))}</span></div>`;
+  for(const [k,v] of Object.entries(s)){ if(["kind","at"].includes(k)) continue;
+    body += `<div class="kv"><span class="k">${esc(k)}</span><span class="v">${esc(short(typeof v==="object"?JSON.stringify(v):v,300))}</span></div>`; }
+  if(s.body) body += `<div class="codebox">${esc(s.body)}</div>`;
+  els.inspector.innerHTML = body;
+}
+function renderTasks(){
+  if(!tasks.length){els.tasks.innerHTML='<div class="muted">还没有任务。在中间给 DSH 下一条。</div>';return;}
+  els.tasks.innerHTML = tasks.slice(-8).map(t=>`<div class="task"><span class="dot" style="background:var(--acc)"></span><span>${esc(t.text)}</span></div>`).join("");
+}
+function renderChat(){
+  els.chatlog.innerHTML = chats.slice(-12).map(m=>`<div class="msg ${m.role==="user"?"user":"agent"}">${esc(m.text)}</div>`).join("")
+    || '<div class="muted">还没有对话。这里只是入口；主要看工作流。</div>';
+}
+function render(){ status(workspace.agent); renderSteps(); renderTasks(); renderChat(); }
 
 async function cmd(payload){
-  const r = await fetch("/cmd", {method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(payload)});
+  const r = await fetch("/cmd",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)});
   return await r.json();
 }
-async function ask(action, params){
-  return await cmd({op:"ask", action, params: params||{}});
+async function ask(action,params){ return await cmd({op:"ask",action,params:params||{}}); }
+async function refreshWorkspace(){
+  const r = await ask("agent.workspace");
+  if(r.ok && r.result && r.result.body){
+    workspace = r.result.body;
+    status(workspace.agent); renderSteps();
+    els.iStep.textContent = (workspace.steps||[]).length ? "steps=" + workspace.steps.length : "—";
+  }
+  return r;
 }
-
-function setStatus(st){
-  status = st || {};
-  const launched = !!status.launched;
-  els.dot.classList.toggle("on", status.state === "running" || launched);
-  els.stateText.textContent = status.state ? (launched ? "运行中" : "待启动") : "未就绪";
-  els.kLaunched.textContent = launched ? "已启动" : "未启动";
-  els.kRound.textContent = status.round ?? "—";
-  els.kHb.textContent = status.at || (status.heartbeat && status.heartbeat.last_at) || "—";
-  els.kGuide.textContent = status.guide || "—";
-  const last = status.last_action;
-  els.kLast.textContent = last ? (typeof last === "string" ? last : (last.action || "—")) : "—";
-}
-async function refreshStatus(){
+async function refreshState(){
   const r = await ask("agent.state");
-  if(r.ok && r.result && r.result.body) setStatus(r.result.body);
+  if(r.ok && r.result && r.result.body) status(r.result.body);
   return r;
 }
 async function login(){
   els.loginErr.classList.add("hidden");
-  const r = await cmd({op:"login", user: els.user.value.trim(), secret: els.pass.value});
-  if(!r.ok){ els.loginErr.textContent = r.why || "登录失败"; els.loginErr.classList.remove("hidden"); return; }
+  const r = await cmd({op:"login",user:els.loginUser.value.trim(),secret:els.loginPass.value});
+  if(!r.ok){els.loginErr.textContent=r.why||"登录失败";els.loginErr.classList.remove("hidden");return;}
   els.login.classList.add("hidden");
-  await refreshStatus();
+  await refreshWorkspace(); await refreshState();
 }
-
-async function send(){
-  const text = els.input.value.trim();
-  if(!text || busy) return;
-  els.input.value = ""; els.input.style.height = "auto";
-  add("user", text);
-  busy = true; render(); els.send.disabled = true; els.tipState.textContent = "DSH 正在回…";
-  try{
-    const r = await ask("agent.chat", {message: text});
-    if(r.ok && r.result && r.result.ok){
-      const body = r.result.body || {};
-      add("agent", body.reply || "（空回复）");
-      setStatus({...status, at: body.at, state: status.state || "running"});
-      if(body.error) els.tipState.textContent = "有错误：" + body.error;
-      else els.tipState.textContent = "就绪";
-    }else{
-      add("agent", "**没回上来**：" + esc(r.why || (r.result && (r.result.error || r.result.why)) || "未知错误"));
-      els.tipState.textContent = "错误";
-    }
-  }catch(e){
-    add("agent", "**网络错误**：" + esc(e.message));
-  }finally{
-    busy = false; render(); els.send.disabled = false; els.input.focus();
-    refreshStatus().catch(()=>{});
-  }
-}
-
-async function guide(text){
-  els.tipState.textContent = "发引导…";
-  const r = await ask("agent.guide", {instruction: text});
-  if(r.ok && r.result && r.result.body) setStatus(r.result.body);
-  els.tipState.textContent = r.ok ? "引导已交本体" : "引导失败";
+async function submitTask(){
+  const text=els.taskInput.value.trim(); if(!text||busy) return;
+  els.taskInput.value=""; tasks.push({text,at:new Date().toISOString()}); store("dsh_tasks",tasks); renderTasks();
+  busy=true;
+  const r=await ask("agent.guide",{instruction:text});
+  if(r.ok && r.result && r.result.body) status(r.result.body);
+  busy=false; await refreshWorkspace();
 }
 async function launch(close){
-  const r = await ask(close ? "agent.close" : "agent.launch");
-  if(r.ok && r.result && r.result.body) setStatus({...status, ...r.result.body});
-  els.tipState.textContent = r.ok ? (close ? "窗口关闭请求已交本体" : "启动请求已交本体") : "请求失败";
+  const r=await ask(close?"agent.close":"agent.launch");
+  if(r.ok && r.result && r.result.body) status({...workspace.agent,...r.result.body});
+  await refreshState();
+}
+async function chatSend(){
+  const text=els.chatInput.value.trim(); if(!text||busy) return;
+  els.chatInput.value=""; chats.push({role:"user",text}); store("dsh_chats",chats); renderChat();
+  busy=true;
+  const r=await ask("agent.chat",{message:text});
+  if(r.ok && r.result && r.result.ok){ chats.push({role:"agent",text:((r.result.body||{}).reply)||"（空）"}); }
+  else chats.push({role:"agent",text:"没回上来："+(r.why||"")});
+  store("dsh_chats",chats); busy=false; renderChat();
 }
 function sse(){
   try{
-    const es = new EventSource("/events");
-    es.onmessage = (ev)=>{
-      let d; try{d = JSON.parse(ev.data);}catch(e){return;}
-      if(d.type === "event"){
-        const e = d.event || {};
-        const line = document.createElement("div"); line.className = "ev";
-        line.textContent = `${e.at||""} ${e.kind_of||""} ${e.action||e.kind||""} ${e.ok===false?"✗":""}`;
-        els.events.prepend(line); while(els.events.children.length>40) els.events.lastChild.remove();
-      }else if(d.type === "frame"){
-        const f = d.frame || {};
-        const n = ((f.messages||[]).find(m=>m.updateComponents)||{}).updateComponents;
-        if(n && n.components){
-          const t = n.components.find(c=>c.component==="Text" && c.id && c.id.indexOf("title")<0);
-          if(t && t.text){ const line = document.createElement("div"); line.className="ev";
-            line.textContent = "A2UI: " + t.text.slice(0,140); els.events.prepend(line);
-            while(els.events.children.length>40) els.events.lastChild.remove(); }
-        }
+    const es=new EventSource("/events");
+    es.onmessage=ev=>{
+      let d;try{d=JSON.parse(ev.data);}catch(e){return;}
+      if(d.type==="event"){
+        const e=d.event||{};
+        const line=document.createElement("div");line.className="ev";
+        line.textContent=`${fmtAt(e.at)} ${e.kind_of||""} ${e.action||e.kind||""} ${e.ok===false?"✗":""}`;
+        els.events.prepend(line);while(els.events.children.length>50)els.events.lastChild.remove();
+      }else if(d.type==="frame"){
+        const f=d.frame||{}, u=((f.messages||[]).find(m=>m.updateComponents)||{}).updateComponents;
+        if(u&&u.components){const t=u.components.find(c=>c.component==="Text"&&c.text);
+          if(t){const line=document.createElement("div");line.className="ev";
+            line.textContent="A2UI: "+short(t.text,100);els.events.prepend(line);
+            while(els.events.children.length>50)els.events.lastChild.remove();}}
       }
     };
-    es.onerror = ()=>{ els.tipState.textContent = "SSE 重连…"; };
   }catch(e){}
 }
-
 function bind(){
-  els.send.onclick = send;
-  els.input.addEventListener("keydown", e=>{
-    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  $("#btnLogin").onclick=login;
+  $("#btnRefresh").onclick=async()=>{await refreshWorkspace();await refreshState();};
+  $("#btnLaunch").onclick=()=>launch(false);
+  $("#btnClose").onclick=()=>launch(true);
+  $("#btnTask").onclick=submitTask;
+  els.taskInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitTask();}});
+  $("#btnChat").onclick=chatSend;
+  els.chatInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();chatSend();}});
+  document.querySelectorAll(".guide").forEach(b=>b.onclick=async()=>{
+    const r=await ask("agent.guide",{instruction:b.dataset.guide});
+    if(r.ok&&r.result&&r.result.body)status(r.result.body);
+    await refreshWorkspace();
   });
-  els.input.addEventListener("input", ()=>{ els.input.style.height="auto"; els.input.style.height=Math.min(els.input.scrollHeight,180)+"px"; });
-  $("#btnLogin").onclick = login;
-  $("#btnRefresh").onclick = refreshStatus;
-  $("#btnLaunch").onclick = ()=>launch(false);
-  $("#btnClose").onclick = ()=>launch(true);
-  document.querySelectorAll(".guide").forEach(b=>b.onclick=()=>guide(b.dataset.guide));
-  $("#newChat").onclick = ()=>{
-    messages = []; localStorage.removeItem("dsh_messages");
-    add("agent", "新对话。你可以直接说，或者先在左侧给我一条引导。");
-  };
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+    view=b.dataset.view;
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));
+    $("#workflowView").classList.toggle("hidden",view!=="workflow");
+    $("#chatView").classList.toggle("hidden",view!=="chat");
+  });
 }
-
+let tick=null;
 async function boot(){
-  bind(); loadHistory(); sse();
-  const q = new URLSearchParams(location.search);
-  if(q.get("user")) els.user.value = q.get("user");
-  if(q.get("secret")) els.pass.value = q.get("secret");
-  const p = await cmd({op:"ping"});
+  tasks=load("dsh_tasks",[]); chats=load("dsh_chats",[]);
+  bind(); renderTasks(); renderChat(); sse();
+  const q=new URLSearchParams(location.search);
+  if(q.get("user"))els.loginUser.value=q.get("user");
+  if(q.get("secret"))els.loginPass.value=q.get("secret");
+  const p=await cmd({op:"ping"});
   if(!p.has_ticket){
-    // 桌面「智能体」按钮会带 user/secret 打开；本机单人世界直接进，否则显示登录。
-    if(q.get("user") && q.get("secret")){ await login(); return; }
-    els.login.classList.remove("hidden"); els.stateText.textContent="未登录"; return;
-  }
-  els.login.classList.add("hidden");
-  await refreshStatus();
+    if(q.get("user")&&q.get("secret")){await login();}
+    else{els.login.classList.remove("hidden");els.vState.textContent="未登录";return;}
+  }else{els.login.classList.add("hidden");await refreshWorkspace();await refreshState();}
+  if(tick)clearInterval(tick);
+  tick=setInterval(()=>{if(!busy)refreshWorkspace().catch(()=>{});},3000);
 }
 boot();
 </script>

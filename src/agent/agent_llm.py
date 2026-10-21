@@ -38,16 +38,15 @@ from window_frame import wrap_window  # noqa: E402  ★ 统一窗口壳
 from agent_status import status as _status, guide_ack_frame as _guide_ack_frame  # noqa: E402
 from agent_status import launch_frame as _launch_frame  # noqa: E402
 from agent_chat import ask_chat as _ask_chat, chat_reply as _chat_reply  # noqa: E402
-
+from agent_workspace import step as _step_ev, workspace as _workspace  # noqa: E402
+from agent_register import register as _register  # noqa: E402
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NAME = os.environ.get("AIOS_AGENT_NAME", "dsh")
 DID = os.environ.get("AIOS_AGENT_DID", "did:aios:agent:" + NAME)
 ROUND = int(os.environ.get("AIOS_AGENT_ROUND", "45"))
-
 LLM_URL = os.environ.get("AIOS_LLM_URL", "https://api.deepseek.com/chat/completions")
 LLM_MODEL = os.environ.get("AIOS_LLM_MODEL", "deepseek-chat")
 LLM_KEY = os.environ.get("AIOS_LLM_KEY") or os.environ.get("DEEPSEEK_API_KEY") or ""
-
 T_APPEAR = "world/appear"
 T_ASK = "world/ask"
 T_ASK_RESULT = "world/ask/result"
@@ -84,7 +83,6 @@ def ask_llm(system, user, max_tokens=900):
     except Exception as e:
         return None, "%s: %s" % (type(e).__name__, str(e)[:200])
 HB = os.environ.get("AIOS_AGENT_HB", "/run/aios/agent-heartbeat.json")
-
 class Agent:
     def __init__(self, session):
         self.s = session
@@ -95,10 +93,10 @@ class Agent:
         self.events = []           # ★（P8）世界推来的事件（最近 30 条）
         self.guide = ""          # ★ 人通过控制台给的引导（经本体到 agent）
         self.chat_log = []       # ★ web 对话记录（仅进程内存；不落账）
+        self.steps = []          # ★ Agent 工作台：观察/计划/动作/渲染步骤
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
         self._write_heartbeat()
-
     def _write_heartbeat(self, extra=None):
         """★（P7）把「agent 进程还活着/在做什么」写到一个可读文件（给人/浏览器看）。"""
         try:
@@ -118,14 +116,12 @@ class Agent:
                 json.dump(hb, f, ensure_ascii=False)
         except Exception as e:
             log("⚠ 心跳写失败：%s" % e)
-
     def appear(self):
         self.s.put(T_APPEAR, json.dumps({
             "class": "agent", "name": NAME, "did": DID,
             "reporter": "world://agent/" + NAME,
             "manifest": "src/agent/agent_llm.py（模型驱动；★ 全走本体）", "state": "running"}))
         log("① 发 appear：agent/%s" % NAME)
-
     def query(self, **kw):
         rid = "l-" + uuid.uuid4().hex[:8]
         kw["id"] = rid
@@ -136,7 +132,6 @@ class Agent:
                 return self.query_results.pop(rid)
             time.sleep(0.1)
         return {"ok": False, "why": "查询超时"}
-
     def act(self, action, params=None, timeout=25):
         rid = "l-" + uuid.uuid4().hex[:8]
         self.s.put(T_ASK, json.dumps({
@@ -147,7 +142,6 @@ class Agent:
                 return self.ask_results.pop(rid)
             time.sleep(0.1)
         return {"ok": False, "why": "动作超时"}
-
     def screen_state(self):
         """★ 问界面「现在屏上有什么」——★ 经本体问呈现与空间（不用截图）。
 
@@ -228,19 +222,15 @@ class Agent:
     def chat_reply(self, message):
         return _chat_reply(self, message, self._chat_ask)
 
+    def _step(self, kind, **kw):
+        return _step_ev(self, kind, **kw)
+
+    def workspace(self):
+        return _workspace(self, _status, NAME, DID)
+
     def register(self):
-        """★ 谁启动谁注册：窗口动作由 agent 提供 ⇒ 本体把 agent.launch/close 转给我。"""
-        for aid in ("agent.launch", "agent.close", "agent.state", "agent.guide", "agent.chat"):
-            self.s.put(T_REGISTER, json.dumps({
-                "action": aid,
-                "function": aid.split(".", 1)[-1],
-                "registered_by": "agent/" + NAME,
-                "registered_by_kind": "agent",
-                "required_roles": ["agent"],
-                "kind": ("read" if aid == "agent.state" else "invoke"),
-                "why": "应用窗口：谁启动谁注册",
-            }, ensure_ascii=False))
-        log("① 注册应用动作：launch／close／state／guide（route=agent）")
+        _register(self.s, NAME, T_REGISTER)
+        log("① 注册应用动作：launch／close／state／guide／chat／workspace（route=agent）")
 
     def build_launch_frame(self):
         return _launch_frame(build_frame)
@@ -355,7 +345,7 @@ def main():
         if d.get("route") and d.get("route") != "agent":
             return
         aid = d.get("action") or ""
-        if aid not in ("agent.launch", "agent.close", "agent.state", "agent.guide", "agent.chat"):
+        if aid not in ("agent.launch", "agent.close", "agent.state", "agent.guide", "agent.chat", "agent.workspace"):
             return
         params = d.get("params") or {}
         ok, why = permit.verify(d.get("permit"), aid, params)
@@ -381,6 +371,8 @@ def main():
             result = a.status()
         elif aid == "agent.chat":
             result = a.chat_reply(params.get("message") or "")
+        elif aid == "agent.workspace":
+            result = a.workspace()
         else:
             ins = str(params.get("instruction") or "").strip()
             if not ins:
@@ -422,6 +414,8 @@ def main():
         log("① 问世界：ok=%s；看屏：surfaces=%s"
             % (world.get("ok"),
                str((screen.get("surfaces") or {}))[:120]))
+        a._step("observe", round=rnd, world_ok=bool(world.get("ok")),
+                screen_count=((screen.get("surfaces") or {}).get("count")))
         acts_data = acts.get("data") or {}
         # ★★★ 只把【本机可用】的动作给模型（★ 不截断！截断了它会以为清单不全而拒绝动手）
         avail = list(acts_data.get("available") or [])
@@ -454,6 +448,8 @@ def main():
             continue
         action = (plan or {}).get("action") or ""
         log("② 模型决定：%s  params=%s  why=%s" % (action, plan.get("params"), plan.get("why")))
+        a._step("plan", round=rnd, action=action, params=plan.get("params"),
+                why=plan.get("why"))
         result = None
         if action:
             result = a.act(action, plan.get("params") or {})
@@ -461,6 +457,9 @@ def main():
             a.recent_actions.append({"action": action,
                                      "ok": bool((result or {}).get("ok"))})
             a.recent_actions = a.recent_actions[-30:]
+            a._step("action", action=action, params=plan.get("params"),
+                    ok=bool((result or {}).get("ok")),
+                    body=str((result or {}).get("body") or (result or {}).get("error") or "")[:400])
         payload = json.dumps({"world": world.get("data"),
                               "did": action, "params": plan.get("params"),
                               "ok": (result or {}).get("ok"),
@@ -492,6 +491,7 @@ def main():
                 time.sleep(ROUND)
                 continue
         a.notice(frame, "模型画的界面")
+        a._step("render", components=len(comps))
         log("④ 发帧（★ 经本体 world/notice）：%d 个组件" % len(comps))
         time.sleep(ROUND)
 
