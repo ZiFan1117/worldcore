@@ -313,6 +313,13 @@ class Handler(BaseHTTPRequestHandler):
             except FileNotFoundError:
                 self._send(500, "dsh.html 不在", "text/plain; charset=utf-8")
             return
+        if path == "/favicon.svg":
+            try:
+                with open(os.path.join(HERE, "favicon.svg"), "rb") as f:
+                    self._send(200, f.read(), "image/svg+xml")
+            except FileNotFoundError:
+                self._send(404, "favicon not found", "text/plain; charset=utf-8")
+            return
         if path.startswith("/fonts/"):
             name = os.path.basename(path)
             if name in ("montserrat-regular.woff2", "montserrat-medium.woff2"):
