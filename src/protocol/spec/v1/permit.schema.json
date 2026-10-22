@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "world://protocol/v1/permit.schema.json",
+  "title": "worldcore permit protocol v1",
+  "description": "本体签发的能力票据：绑定 action/params/actor/期限/签名。不是 MCP token。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "id", "action", "fp", "actor", "at", "exp", "sig"],
+  "properties": {
+    "v": {"const": 1},
+    "id": {"type": "string", "minLength": 1},
+    "action": {"type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"},
+    "fp": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "actor": {"type": "string", "minLength": 1, "pattern": "^world://"},
+    "at": {"type": "integer"},
+    "exp": {"type": "integer"},
+    "sig": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provider": {"type": "string", "pattern": "^world://"},
+    "session_id": {"type": "string"}
+  }
+}
