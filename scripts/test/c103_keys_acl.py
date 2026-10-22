@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from protocol.keys import TOPICS, validate_topics, ROLES  # noqa: E402
+from protocol.keys import TOPICS, validate_topics, ROLES, LEGACY  # noqa: E402
 
 
 def main():
@@ -30,6 +30,14 @@ def main():
             bad.append("%s 不以 world/ 开头" % name)
         if spec["topic"] != spec["topic"].lower():
             bad.append("%s 含大写" % name)
+
+    legacy_seen = set()
+    for name, topic in LEGACY.items():
+        if not topic.startswith("world/") or topic != topic.lower():
+            bad.append("legacy %s 非法：%s" % (name, topic))
+        if topic in legacy_seen:
+            bad.append("legacy 重复：%s" % topic)
+        legacy_seen.add(topic)
 
     broken = dict(TOPICS)
     broken["bad"] = {"topic": "mcp/tools", "publish": ["caller"], "subscribe": ["ontology"]}

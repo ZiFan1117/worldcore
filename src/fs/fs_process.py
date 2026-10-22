@@ -25,13 +25,14 @@ import fs_ops  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
 from protocol import sdk as protocol_sdk  # noqa: E402
+from protocol.keys import LEGACY as TOPIC  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 FS_NAME = os.environ.get("AIOS_FS_NAME") or "fs0"
-T_APPEAR = "world/appear"
-T_REGISTER = "world/register"
-T_EXEC = "world/exec"
-T_RESULT = "world/exec/result"
+T_APPEAR = TOPIC["appear"]
+T_REGISTER = TOPIC["register"]
+T_EXEC = TOPIC["exec"]
+T_RESULT = TOPIC["exec_result"]
 
 ME = {"class": "fs", "name": FS_NAME, "state": "running",
       "roots": ":".join(fs_ops.roots()),

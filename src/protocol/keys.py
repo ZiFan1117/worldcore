@@ -71,6 +71,26 @@ TOPICS = {
 
 T = {name: spec["topic"] for name, spec in TOPICS.items()}
 
+# 旧线格式的兼容 key（迁移期唯一出处；进程不许再手写这些字符串）。
+LEGACY = {
+    "appear": "world/appear",
+    "alive": "world/alive",
+    "register": "world/register",
+    "register_result": "world/register/result",
+    "ask": "world/ask",
+    "ask_result": "world/ask/result",
+    "exec": "world/exec",
+    "exec_result": "world/exec/result",
+    "query": "world/query",
+    "query_result": "world/query/result",
+    "notice": "world/notice",
+    "event": "world/event",
+    "ui_frame": "world/ui/frame",
+    "ui_act": "world/ui/act",
+    "permit_consume": "world/permit/consume",
+    "permit_consume_result": "world/permit/consume/result",
+}
+
 
 def validate_topics(topics: dict) -> list:
     """返回错误码列表；空列表＝合法。"""
