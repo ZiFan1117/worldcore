@@ -254,8 +254,19 @@ class World:
                     "function": b.get("function"),
                     "registered_by": individual.get("id"),
                     "registered_by_kind": b.get("registered_by_kind") or individual.get("object_type") or "provider",
-                    "required_roles": b.get("required_roles") or [individual.get("object_type") or "provider"],
+                    "required_roles": b.get("required_roles") if "required_roles" in b else [individual.get("object_type") or "provider"],
                 }
+                from protocol.binding import validate_binding
+                if old.get("action") not in self.ontology.action_types:
+                    last = self._accept_binding(old)
+                    continue
+                berr = validate_binding(old, set(self.ontology.action_types))
+                if berr:
+                    seq = self.reject("BINDING_INVALID", action=old.get("action"),
+                                      actor=old.get("registered_by"), why="；".join(berr), body=old)
+                    log("注册被拒（BINDING_INVALID）：%s" % "；".join(berr))
+                    last = seq
+                    continue
                 last = self._accept_binding(old)
             return last
         return self._accept_binding(reg)
