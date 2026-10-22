@@ -1,0 +1,32 @@
+{
+  "task": "T-596",
+  "what": "P2 provider 接线清单判据落地；本机 gate 115",
+  "at": "2026-10-23T01:25:55+08:00",
+  "gate": "115/115 green",
+  "providers_with_p2_exec": [
+    "fs",
+    "clock",
+    "network",
+    "recovery",
+    "vault",
+    "worldfs",
+    "space",
+    "presentation"
+  ],
+  "not_connected": ["computer"],
+  "vm_last_deployed": {
+    "commit": "f67ead7",
+    "units": "11 active",
+    "p2_smoke": {
+      "file.stat": 0,
+      "clock.now": 0,
+      "network.state": 0,
+      "recovery.state": 0,
+      "vault.state": 0,
+      "worldfs.state": 0,
+      "space.state": 0,
+      "presentation.state": 0
+    }
+  },
+  "limits": "C121 只证接线存在，不证每个动作都 smoke；写动作 guard/票链路未验；computer 未接。"
+}
