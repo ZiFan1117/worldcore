@@ -46,6 +46,10 @@ def handle_call(smp, w, session, log=print):
         if not ok:
             _reply_error(session, actor, msg.get("id"), code, why_p)
             return
+        okp, why_p, code_p, _declared = action_contract.check_preconditions(at, w, params)
+        if not okp:
+            _reply_error(session, actor, msg.get("id"), code_p, why_p)
+            return
     allowed, why_c = w.can_execute(actor, action)
     if not allowed:
         _reply_error(session, actor, msg.get("id"), "PERMISSION_DENIED", why_c)
