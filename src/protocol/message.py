@@ -67,9 +67,14 @@ def _semantic(msg: Any) -> list:
         individual = data.get("individual")
         if not isinstance(individual, dict) or not _is_world_ref(individual.get("id")):
             errors.append("REGISTER_INDIVIDUAL")
-        for section in ("functions", "actions", "data_sources"):
+        for section in ("functions", "actions", "data_sources", "bindings"):
             if section in data and not isinstance(data.get(section), list):
                 errors.append("REGISTER_%s" % section.upper())
+        bindings = data.get("bindings")
+        if isinstance(bindings, list):
+            for b in bindings:
+                if not isinstance(b, dict) or not b.get("action") or not b.get("function"):
+                    errors.append("REGISTER_BINDING")
     elif mtype == "registered":
         if not isinstance(data.get("ok"), bool):
             errors.append("REGISTERED_OK")

@@ -30,13 +30,16 @@ def _msg(mtype, src, dst, data, msg_id=None):
     return msg
 
 
-def build_register(src, dst, individual, functions=None, actions=None, data_sources=None):
+def build_register(src, dst, individual, functions=None, actions=None, data_sources=None,
+                   bindings=None):
     data = {
         "individual": individual,
         "functions": list(functions or []),
         "actions": list(actions or []),
         "data_sources": list(data_sources or []),
     }
+    if bindings is not None:
+        data["bindings"] = list(bindings)
     return _msg("register", src, dst, data)
 
 

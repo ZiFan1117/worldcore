@@ -230,6 +230,38 @@ class World:
                 log("注册被拒（%s）：%s" % (e.code, e.why))
                 return None
         reg.pop("_auth", None)
+        # P2 register envelope: individual + bindings（旧五格消息仍兼容）
+        if reg.get("protocol") == "world.message.v1":
+            try:
+                from protocol.message import require_message
+                require_message(reg)
+            except Exception as e:  # noqa: BLE001
+                seq = self.reject("BAD_MESSAGE", action="register", why="注册信封不合法：%s" % e)
+                log("注册被拒（BAD_MESSAGE）：%s" % e)
+                return seq
+            data = reg.get("data") or {}
+            individual = data.get("individual") or {}
+            bindings = data.get("bindings") or []
+            if not individual.get("id") or not bindings:
+                seq = self.reject("REGISTER_INCOMPLETE", action="register",
+                                  why="register 要 individual.id + bindings")
+                log("注册被拒（REGISTER_INCOMPLETE）：缺 individual/bindings")
+                return seq
+            last = None
+            for b in bindings:
+                old = {
+                    "action": b.get("action"),
+                    "function": b.get("function"),
+                    "registered_by": individual.get("id"),
+                    "registered_by_kind": b.get("registered_by_kind") or individual.get("object_type") or "provider",
+                    "required_roles": b.get("required_roles") or [individual.get("object_type") or "provider"],
+                }
+                last = self._accept_binding(old)
+            return last
+        return self._accept_binding(reg)
+
+    def _accept_binding(self, reg):
+        """注册表只登记“law 已有 action 的 provider 绑定”，不新增 world action。"""
         name = reg.get("action") or ""
         # ★★ 2026-10-23 修：动作只来自 law；注册表只能登记“绑定”，不能新增 world action。
         if name and name not in self.ontology.action_types:

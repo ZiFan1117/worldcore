@@ -24,6 +24,7 @@ import zenoh  # noqa: E402
 import fs_ops  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol import sdk as protocol_sdk  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 FS_NAME = os.environ.get("AIOS_FS_NAME") or "fs0"
@@ -51,16 +52,19 @@ def log(*a):
 
 
 def register_actions(session):
-    for a in ACTIONS:
-        session.put(T_REGISTER, json.dumps({
-            "action": a["action"],
-            "function": a["action"].split(".", 1)[-1],
-            "registered_by": "fs/" + FS_NAME,
-            "registered_by_kind": "fs",
-            "required_roles": ["fs"],
-            "kind": a["kind"],
-            "why": a["why"],
-        }, ensure_ascii=False))
+    bindings = [{
+        "action": a["action"],
+        "function": a["action"].split(".", 1)[-1],
+        "required_roles": ["fs"],
+        "registered_by_kind": "fs",
+    } for a in ACTIONS]
+    msg = protocol_sdk.build_register(
+        "world://fs/" + FS_NAME,
+        "world://ontology",
+        {"id": "world://fs/" + FS_NAME, "object_type": "fs"},
+        bindings=bindings,
+    )
+    session.put(T_REGISTER, protocol_sdk.encode(msg))
     log("① 注册动作 %d 个：%s" % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
 
 
