@@ -1,0 +1,33 @@
+{
+  "task": "T-577",
+  "what": "VM 上跑通 P2 call 竖切：world/call → ontology → world/call/exec → fs → world/call/exec/result → world/call/result",
+  "at": "2026-10-23T00:41:58+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "command": "AIOS_BUS_USER=tests python3 /root/_p2_smoke.py",
+  "rc": 0,
+  "output": {
+    "protocol": "world.message.v1",
+    "v": 1,
+    "type": "result",
+    "id": "call-5c17f59cfd82",
+    "from": "world://ontology",
+    "to": "world://user/zhang",
+    "data": {
+      "ok": true,
+      "result": {
+        "path": "/etc/aios/zenoh.json5",
+        "name": "zenoh.json5",
+        "size": 1879,
+        "kind": "file",
+        "root": "/etc/aios",
+        "mtime": "2026-10-22T18:41:27+02:00",
+        "sha256": "366f3c5f989e7d5cd4b8739a46565e0c8caf6cf45cc97b408591102ec99d4a7a"
+      }
+    }
+  },
+  "units": {
+    "aios-fs": "active",
+    "aios-ontology": "active"
+  },
+  "limits": "只验 world action file.stat；agent 客户端未接；state 未接。"
+}
