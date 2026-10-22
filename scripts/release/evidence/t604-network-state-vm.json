@@ -1,0 +1,11 @@
+{
+  "task": "T-604",
+  "what": "network 真发 P2 state_report；ontology 收下",
+  "at": "2026-10-23T01:50:45+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "ontology_log": "[本体] P2 state world://network/network0 rev=1 ⇒ 2026-10-22T19:50:45+02:00（ok）",
+  "network_unit": "active",
+  "ontology_unit": "active",
+  "gate": "116/116 green",
+  "limits": "只报 law 已声明属性 state/interfaces/up/rx_bytes/tx_bytes/collected_at；未接 state_apply。"
+}

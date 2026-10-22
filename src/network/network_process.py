@@ -22,6 +22,8 @@ from provider_auth import open_signed_session  # noqa: E402
 from protocol.keys import LEGACY as TOPIC  # noqa: E402
 from protocol.registration import provider_register  # noqa: E402
 from protocol.provider_p2 import install as install_p2  # noqa: E402
+from protocol import sdk as protocol_sdk  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NET_NAME = os.environ.get("AIOS_NETWORK_NAME") or "network0"
@@ -114,10 +116,22 @@ def main():
     session.declare_subscriber(T_EXEC, on_exec)
     install_p2(session, "network", NET_NAME, network_ops.dispatch)
     log("④ 订上 %s（route=network）＋ P2 call_exec" % T_EXEC)
+    rev = 0
     while True:
         time.sleep(60)
         session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
         report_links(session)
+        ok, st = network_ops.state()
+        if ok:
+            rev += 1
+            msg = protocol_sdk.build_state_report(
+                "world://network/" + NET_NAME, "world://ontology",
+                "world://network/" + NET_NAME, rev,
+                {k: st.get(k) for k in ("state", "interfaces", "up", "rx_bytes",
+                                        "tx_bytes", "collected_at") if k in st})
+            session.put(P2_TOPIC["state_report"], protocol_sdk.encode(msg))
+            log("⑤ P2 state rev=%d（interfaces=%s up=%s）"
+                % (rev, st.get("interfaces"), st.get("up")))
 
 
 if __name__ == "__main__":
