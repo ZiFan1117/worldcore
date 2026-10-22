@@ -143,6 +143,9 @@ def main():
         if msg.get("type") != "call":
             return
         data = msg.get("data") or {}
+        route = data.get("route")
+        if route and route != "fs":
+            return
         action = data.get("fn") or ""
         params = data.get("args") if isinstance(data.get("args"), dict) else {}
         rid = msg.get("id") or ""

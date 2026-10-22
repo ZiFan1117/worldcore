@@ -1,0 +1,30 @@
+{
+  "task": "T-591",
+  "what": "修 fs P2 exec 抢路由 bug；VM 验证 P2 call 可到 fs/clock/network/recovery/vault",
+  "at": "2026-10-23T01:12:44+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "5aa027d + fs route fix",
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "p2_smoke": {
+    "file.stat": {"rc": 0, "ok": true},
+    "clock.now": {"rc": 0, "ok": true},
+    "network.state": {"rc": 0, "ok": true, "interfaces": 2, "up": 1},
+    "recovery.state": {"rc": 0, "ok": true, "snapshots": 24, "forks": 1},
+    "vault.state": {"rc": 0, "ok": true, "secrets": 2, "active": 2}
+  },
+  "bug": "fs.on_p2_exec 原先不按 route 过滤，收到 recovery.state 后回 EXEC_FAILED「不认识的动作」；先到先回抢答。修：route 非 fs 直接 return。",
+  "gate": "114/114 green",
+  "limits": "space/presentation/worldfs/computer 未接 P2 exec；P2 结果未触发 provider report 副作用。"
+}
