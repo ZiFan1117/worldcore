@@ -59,8 +59,30 @@ def _canonical(topic, payload):
     return raw.encode("utf-8")
 
 
+def _envelope_kind(payload):
+    """P2 信封的 provider kind：bindings 的 registered_by_kind / individual.object_type / from 的类。"""
+    if payload.get("protocol") != "world.message.v1":
+        return ""
+    data = payload.get("data") or {}
+    for b in data.get("bindings") or []:
+        if isinstance(b, dict) and b.get("registered_by_kind"):
+            return b["registered_by_kind"]
+    ind = data.get("individual") or {}
+    if isinstance(ind, dict) and ind.get("object_type"):
+        return ind["object_type"]
+    src = payload.get("from") or ""
+    if src.startswith("world://"):
+        parts = src[len("world://"):].split("/")
+        if parts and parts[0]:
+            return parts[0]
+    return ""
+
+
 def kind_of(payload):
-    """从消息本身推断 provider kind（兼容 appear/register/result 三种形状）。"""
+    """从消息本身推断 provider kind（兼容 appear/register/result/P2 信封）。"""
+    env_kind = _envelope_kind(payload)
+    if env_kind:
+        return env_kind
     rep = payload.get("reporter") or ""
     if rep.startswith("world://"):
         parts = rep[len("world://"):].split("/")
@@ -83,6 +105,10 @@ def kind_of(payload):
 
 def _kind_matches(kind, payload):
     """★ 签名 kind 必须与消息里的自称一致；防“clock 的 key 冒充 vault”。"""
+    env_kind = _envelope_kind(payload)
+    if env_kind and env_kind != kind:
+        raise ProviderAuthError("REPORTER_KEY_MISMATCH",
+                                "P2 envelope kind=%r 与签名 kind=%r 不符" % (env_kind, kind))
     rep = payload.get("reporter") or ""
     if rep.startswith("world://"):
         got = rep[len("world://"):].split("/")[0]
