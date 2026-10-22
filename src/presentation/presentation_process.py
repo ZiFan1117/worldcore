@@ -34,9 +34,12 @@ from login_frame import login_frame
 from frame_schema import A2UI_COMPONENTS, A2UI_WHITELIST_FROM, validate_frame  # noqa: F401
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "..", "ontology"))
+sys.path.insert(0, os.path.join(_HERE, ".."))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol.registration import provider_register  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -185,19 +188,8 @@ class Presentation:
 
     # ── 注册动作（★ 本体据此把 presentation.* 转给我）──────────────
     def register_actions(self):
-        # ★★ 本体 on_register 要的五格：action / function / registered_by / registered_by_kind / required_roles
-        #   （现取 ontology_process.py on_register：「missing = [k for k in (...) if not reg.get(k)]」）
-        for a in ACTIONS:
-            self.s.put("world/register", json.dumps({
-                "action": a["action"],
-                "function": a["action"].split(".", 1)[-1],
-                "registered_by": "presentation/" + SCREEN,
-                "registered_by_kind": "presentation",
-                "required_roles": ["presentation"],
-                "kind": a["kind"],
-                "why": a["why"],
-            }, ensure_ascii=False))
-        log("① 注册动作 %d 个（★ 按本体五格）：%s"
+        provider_register(self.s, "world/register", "presentation", SCREEN, ACTIONS)
+        log("① 注册动作 %d 个（P2 信封）：%s"
             % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
 
     # ── 执行（★ 别人经本体转过来的 presentation.*）───────────────

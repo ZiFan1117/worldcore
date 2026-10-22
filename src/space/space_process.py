@@ -45,6 +45,8 @@ from dsh_url import DEFAULT_DSH_URL as DSH_URL  # noqa: E402
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+sys.path.insert(0, os.path.join(_HERE, ".."))
+from protocol.registration import provider_register  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_EVENT = "world/event"
@@ -113,17 +115,7 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
         log("① 个体：space/%s（owner=%s，%s）" % (ME["name"], ME["owner"], self.state))
 
     def register_actions(self):
-        # ★★ 本体 on_register 要的五格
-        for a in ACTIONS:
-            self.s.put(T_REGISTER, json.dumps({
-                "action": a["action"],
-                "function": a["action"].split(".", 1)[-1],
-                "registered_by": "space/" + USER,
-                "registered_by_kind": "space",
-                "required_roles": ["space"],
-                "kind": a["kind"],
-                "why": a["why"],
-            }, ensure_ascii=False))
+        provider_register(self.s, T_REGISTER, "space", USER, ACTIONS)
         log("① 注册动作 %d 个：%s" % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
 
     def on_exec(self, sample):
