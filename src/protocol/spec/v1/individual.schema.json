@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "world://protocol/v1/individual.schema.json",
+  "title": "worldcore individual registration v1",
+  "description": "给 law 已有对象类型赋值；不新增对象类型。属性可带 mutable/authority/read_only。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "individual"],
+  "properties": {
+    "protocol": {"const": "world.individual.v1"},
+    "individual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "object_type", "properties"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "pattern": "^world://"},
+        "object_type": {"type": "string", "minLength": 1},
+        "properties": {"type": "object"},
+        "interfaces": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "property_meta": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["authority"],
+        "properties": {
+          "mutable": {"type": "boolean"},
+          "authority": {"enum": ["software", "ontology"]},
+          "read_only": {"type": "boolean"}
+        }
+      }
+    },
+    "external_interfaces": {"type": "array"}
+  }
+}
