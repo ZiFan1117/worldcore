@@ -52,7 +52,7 @@ def _semantic(a: Any) -> list:
     if not isinstance(a.get("required_roles"), list) or not a.get("required_roles"):
         errors.append("BAD_ROLES")
     effects = a.get("effects")
-    if not isinstance(effects, list) or not effects:
+    if not isinstance(effects, list):
         errors.append("BAD_EFFECTS")
     else:
         for e in effects:
