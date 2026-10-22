@@ -1,0 +1,27 @@
+{
+  "task": "T-599",
+  "what": "部署 T-598（P2 拒绝变更类动作）后 VM 验证",
+  "at": "2026-10-23T01:34:51+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "592598e",
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active",
+    "aios-computer": "active"
+  },
+  "p2_smoke": {
+    "file.stat": {"rc": 0},
+    "multi4": {"rc": 0, "actions": ["presentation.state", "space.state"]}
+  },
+  "gate": "115/115 green",
+  "limits": "只 smoke 了 file.stat + presentation.state/space.state；CONFIRM_ACTIONS 的 P2 拒绝路径没有真机可 smoke 的已注册 provider。"
+}
