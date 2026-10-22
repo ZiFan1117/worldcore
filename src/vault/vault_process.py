@@ -22,6 +22,7 @@ from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
 from protocol.keys import LEGACY as TOPIC  # noqa: E402
 from protocol.registration import provider_register  # noqa: E402
+from protocol.provider_p2 import install as install_p2  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 VAULT_NAME = os.environ.get("AIOS_VAULT_NAME") or "vault0"
@@ -110,7 +111,8 @@ def main():
             ensure_ascii=False))
 
     session.declare_subscriber(T_EXEC, on_exec)
-    log("④ 订上 %s（route=vault）" % T_EXEC)
+    install_p2(session, "vault", VAULT_NAME, vault_ops.dispatch)
+    log("④ 订上 %s（route=vault）＋ P2 call_exec" % T_EXEC)
     while True:
         time.sleep(300)
         session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
