@@ -43,10 +43,12 @@ from dsh_url import DEFAULT_DSH_URL as DSH_URL  # noqa: E402
 
 # ★★ 本体发的审批凭据（与计算机同一把钥匙）—— 收 world/exec 前必须验。
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
+sys.path.insert(0, os.path.join(_HERE, ".."))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
 sys.path.insert(0, os.path.join(_HERE, ".."))
 from protocol.registration import provider_register  # noqa: E402
+from protocol.provider_p2 import install as install_p2  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_EVENT = "world/event"
@@ -472,6 +474,7 @@ def main():
     s.declare_subscriber(T_ACT, sp.on_act)
     s.declare_subscriber(T_NOTICE, sp.on_frame)
     s.declare_subscriber(T_EXEC, sp.on_exec)
+    install_p2(s, "space", USER, sp.dispatch)
     s.declare_subscriber("world/ui/frame", sp.on_envelope)   # ★ 别人给的画布 ⇒ 我摆
     s.declare_subscriber(T_ASK_RESULT, sp.on_ask_result)     # ★ 空间的请求回话（这台机器）
     s.declare_subscriber(T_QUERY_RESULT, sp.on_query_result) # ★ 查世界的回话（能做什么）

@@ -1,0 +1,29 @@
+{
+  "task": "T-593",
+  "what": "space 接 P2 exec；VM smoke 六动作全绿",
+  "at": "2026-10-23T01:20:29+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "6e8d9e2 + space P2",
+  "p2_smoke": {
+    "space.state": {"rc": 0, "ok": true, "user": "zhang", "state": "active"},
+    "network.state": {"rc": 0, "ok": true},
+    "recovery.state": {"rc": 0, "ok": true},
+    "vault.state": {"rc": 0, "ok": true},
+    "worldfs.state": {"rc": 0, "ok": true}
+  },
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "gate": "114/114 green",
+  "limits": "presentation/computer 未接 P2 exec；P2 未触发 report 副作用。"
+}
