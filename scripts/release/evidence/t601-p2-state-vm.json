@@ -1,0 +1,18 @@
+{
+  "task": "T-601",
+  "what": "P2 state_report 真机 smoke：state_report → ontology → state_ack",
+  "at": "2026-10-23T01:40:00+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "command": "AIOS_BUS_USER=tests python3 /root/_p2_state.py",
+  "rc": 0,
+  "output": {
+    "protocol": "world.message.v1",
+    "type": "state_ack",
+    "from": "world://ontology",
+    "to": "world://app/smoke",
+    "data": {"rev": 1, "ok": true}
+  },
+  "file_stat_rc": 0,
+  "gate": "116/116 green",
+  "limits": "无 provider 真发 state_report；未接 state_apply；未改 ObjectStore。"
+}
