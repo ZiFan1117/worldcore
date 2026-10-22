@@ -1,0 +1,25 @@
+{
+  "task": "T-594",
+  "what": "presentation 接 P2 exec；VM presentation.state / space.state 均 ok",
+  "at": "2026-10-23T01:22:45+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "p2_smoke": {
+    "presentation.state": {"rc": 0, "ok": true, "count": 1, "surface": "surface/login-screen0"},
+    "space.state": {"rc": 0, "ok": true}
+  },
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "gate": "114/114 green",
+  "limits": "computer 未接 P2 exec；P2 未触发 report 副作用。"
+}

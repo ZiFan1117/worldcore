@@ -40,6 +40,7 @@ sys.path.insert(0, os.path.join(_HERE, ".."))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
 from protocol.registration import provider_register  # noqa: E402
+from protocol.provider_p2 import install as install_p2  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_ACT = "world/ui/act"
@@ -461,6 +462,7 @@ def main():
     p.register_actions()
     s.declare_subscriber("world/ui/frame", p.on_notice)   # ★ 只收【本体转来的】（★ 不直接抄广播）
     s.declare_subscriber(T_EXEC, p.on_exec)
+    install_p2(s, "presentation", SCREEN, p.dispatch)
     # ★★ 本体的回话（★ 认证拿到票后，凭票进空间）
     s.declare_subscriber("world/ask/result", p.on_ask_result)
     log("④ 订 %s ＋ %s" % (T_NOTICE, T_EXEC))
