@@ -49,6 +49,8 @@ from provider_auth import open_signed_session  # noqa: E402
 sys.path.insert(0, os.path.join(_HERE, ".."))
 from protocol.registration import provider_register  # noqa: E402
 from protocol.provider_p2 import install as install_p2  # noqa: E402
+from protocol import sdk as protocol_sdk  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
 
 T_NOTICE = "world/notice"
 T_EVENT = "world/event"
@@ -78,7 +80,6 @@ STATE = os.environ.get("AIOS_SPACE_STATE") or "active"
 
 ME = {"class": "space", "name": USER, "owner": USER, "state": STATE,
       "reporter": "world://space/" + USER}
-
 
 def log(*a):
     print("[个人空间]", *a, flush=True)
@@ -466,6 +467,11 @@ def main():
     sp = Space(s)
     sp.announce()
     sp.register_actions()
+    _st = protocol_sdk.build_state_report(
+        "world://space/" + USER, "world://ontology", "world://space/" + USER, 1,
+        {"state": sp.state})
+    s.put(P2_TOPIC["state_report"], protocol_sdk.encode(_st))
+    log("① P2 state rev=1（state=%s）" % sp.state)
     # ★★ 作者令：登录界面先出来 ⇒ 桌面【等登录过了再出】（★ AIOS_SPACE_DRAW_AT_BOOT=1 可让它一启动就出）
     if os.environ.get("AIOS_SPACE_DRAW_AT_BOOT") == "1":
         sp.draw()
