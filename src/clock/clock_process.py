@@ -22,6 +22,7 @@ import zenoh  # noqa: E402
 import clock_ops  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol.registration import provider_register  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 CLOCK_NAME = os.environ.get("AIOS_CLOCK_NAME") or "clock0"
@@ -48,16 +49,7 @@ def me():
 
 
 def register_actions(session):
-    for a in ACTIONS:
-        session.put(T_REGISTER, json.dumps({
-            "action": a["action"],
-            "function": a["action"].split(".", 1)[-1],
-            "registered_by": "clock/" + CLOCK_NAME,
-            "registered_by_kind": "clock",
-            "required_roles": ["clock"],
-            "kind": a["kind"],
-            "why": a["why"],
-        }, ensure_ascii=False))
+    provider_register(session, T_REGISTER, "clock", CLOCK_NAME, ACTIONS)
     log("① 注册动作 %d 个：%s" % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
 
 

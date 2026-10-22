@@ -21,6 +21,7 @@ import worldfs_ops  # noqa: E402
 from worldfs_store import WorldFS  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol.registration import provider_register  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 WFS_NAME = os.environ.get("AIOS_WORLDFS_NAME") or "worldfs0"
@@ -60,14 +61,7 @@ def me(store):
 
 
 def register_actions(session):
-    for a in ACTIONS:
-        session.put(T_REGISTER, json.dumps({
-            "action": a["action"], "function": a["action"].split(".", 1)[-1],
-            "registered_by": "worldfs/" + WFS_NAME,
-            "registered_by_kind": "worldfs",
-            "required_roles": ["worldfs"],
-            "kind": a["kind"], "why": a["why"],
-        }, ensure_ascii=False))
+    provider_register(session, T_REGISTER, "worldfs", WFS_NAME, ACTIONS)
     log("① 注册动作 %d 个：%s" % (len(ACTIONS), "／".join(a["action"] for a in ACTIONS)))
 
 
