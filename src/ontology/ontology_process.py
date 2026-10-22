@@ -288,6 +288,9 @@ class World:
                    if not reg.get(k)]
         ok = not missing
         why = "收下" if ok else ("缺格 " + ",".join(missing))
+        if ok and self.registry.get(name) == reg:
+            log("注册 %s 已存在（幂等，不重复写盘；在册 %d 条）" % (name, len(self.registry)))
+            return None
         if ok:
             seq = self.stamp("act", kind_of="register", actor=reg.get("registered_by", "?"),
                              action=name, ok=True, why=why, body=reg)
