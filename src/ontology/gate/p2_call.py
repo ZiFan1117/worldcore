@@ -8,6 +8,7 @@ import json
 
 from gate import action_contract
 from gate import permit
+from gate.world_codes import CONFIRM_ACTIONS
 from protocol import sdk
 from protocol.keys import T
 from protocol.message import require_message
@@ -50,6 +51,10 @@ def handle_call(smp, w, session, log=print):
         if not okp:
             _reply_error(session, actor, msg.get("id"), code_p, why_p)
             return
+    if action in CONFIRM_ACTIONS:
+        _reply_error(session, actor, msg.get("id"), "CONFIRM_REQUIRED",
+                     "P2 call 尚未接人确认链；变更类动作请走 world/ask")
+        return
     allowed, why_c = w.can_execute(actor, action)
     if not allowed:
         _reply_error(session, actor, msg.get("id"), "PERMISSION_DENIED", why_c)
