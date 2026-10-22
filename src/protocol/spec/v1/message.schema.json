@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "world://protocol/v1/message.schema.json",
+  "title": "worldcore message protocol v1",
+  "description": "我们自己的消息协议：register/call/result/state/event。不是 MCP。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "v", "type", "id", "from", "to", "data"],
+  "properties": {
+    "protocol": {"const": "world.message.v1"},
+    "v": {"const": 1},
+    "type": {
+      "enum": ["register", "registered", "call", "result", "state_report", "state_apply", "state_ack", "event"]
+    },
+    "id": {"type": "string", "minLength": 1},
+    "from": {"type": "string", "minLength": 1, "pattern": "^world://"},
+    "to": {"type": "string", "minLength": 1, "pattern": "^world://"},
+    "trace_id": {"type": "string"},
+    "session_id": {"type": "string"},
+    "data": {"type": "object"}
+  }
+}
