@@ -1,0 +1,28 @@
+{
+  "task": "T-592",
+  "what": "worldfs 接 P2 exec；VM smoke 五 provider state 全绿",
+  "at": "2026-10-23T01:16:51+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "11380bd + worldfs P2",
+  "p2_smoke": {
+    "network.state": {"rc": 0, "ok": true, "interfaces": 2, "up": 1},
+    "recovery.state": {"rc": 0, "ok": true, "snapshots": 24, "forks": 1},
+    "vault.state": {"rc": 0, "ok": true, "secrets": 2, "active": 2},
+    "worldfs.state": {"rc": 0, "ok": true, "objects": 11, "paths": 11, "versions": 35, "epoch": 7}
+  },
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "gate": "114/114 green",
+  "limits": "space/presentation/computer 未接 P2 exec；P2 未触发 report 副作用。"
+}
