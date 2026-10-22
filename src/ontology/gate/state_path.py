@@ -28,6 +28,17 @@ def handle_report(smp, w, session, log=print):
     ind = data.get("individual") or ""
     rev = data.get("rev")
     changes = data.get("changes") or {}
+    revs = getattr(w, "_state_rev", None)
+    if revs is None:
+        revs = {}
+        w._state_rev = revs
+    if isinstance(rev, int) and rev <= revs.get(ind, 0):
+        w.reject("STATE_REV_STALE", action="state_report",
+                 why="state rev 必须单调递增：%s 收到 %s（上次 %s）"
+                     % (ind, rev, revs.get(ind)))
+        return
+    if isinstance(rev, int):
+        revs[ind] = rev
     cache = getattr(w, "_state_cache", None)
     if cache is None:
         cache = {}

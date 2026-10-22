@@ -31,6 +31,11 @@ def main():
         bad.append("没有回 state_ack")
 
     s.puts.clear()
+    state_path.handle_report(H.Sample(sdk.encode(msg)), w, s)
+    if any(t == "world/state/ack" for t, _ in s.puts):
+        bad.append("同 rev 重复 report 还回 ack")
+
+    s.puts.clear()
     try:
         sdk.build_state_report("world://app/x", "world://ontology",
                                "world://app/x", 2, [])
