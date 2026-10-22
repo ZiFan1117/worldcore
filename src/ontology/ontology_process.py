@@ -231,6 +231,13 @@ class World:
                 return None
         reg.pop("_auth", None)
         name = reg.get("action") or ""
+        # ★★ 2026-10-23 修：动作只来自 law；注册表只能登记“绑定”，不能新增 world action。
+        if name and name not in self.ontology.action_types:
+            why = "动作不在 law：%s" % name
+            seq = self.reject("UNKNOWN_ACTION", action=name,
+                              actor=reg.get("registered_by", "?"), why=why, body=reg)
+            log("注册被拒（UNKNOWN_ACTION）：%s（在册 %d 条）" % (why, len(self.registry)))
+            return seq
         missing = [k for k in ("action", "function", "registered_by",
                                "registered_by_kind", "required_roles")
                    if not reg.get(k)]
