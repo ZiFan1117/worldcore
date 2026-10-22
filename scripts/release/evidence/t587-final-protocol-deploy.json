@@ -1,0 +1,28 @@
+{
+  "task": "T-587",
+  "what": "最终协议构建部署：11 单元 active，P2 call rc=0，本机 gate 112/112",
+  "at": "2026-10-23T00:59:07+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "7ccee28",
+  "gate": "112/112 green",
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "p2_call_smoke": {
+    "command": "AIOS_BUS_USER=tests python3 /root/_p2_smoke.py",
+    "rc": 0,
+    "ok": true,
+    "path": "/etc/aios/zenoh.json5"
+  },
+  "limits": "exec/result 旧路径仍在；state handler 未接；agent 只 file./fs. 走 P2 call；space/presentation/worldfs 保留字面 topic 以守静态判据。"
+}
