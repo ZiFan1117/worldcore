@@ -1,0 +1,14 @@
+{
+  "task": "T-603",
+  "what": "clock 真发 P2 state_report；ontology 收下并落账/回 ack",
+  "at": "2026-10-23T01:46:01+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "clock_log": "[时间面] ④ 报时＋P2 state rev=1：2026-10-22T19:46:01+02:00（单调 319313s）",
+  "ontology_log": "[本体] P2 state world://clock/clock0 rev=1 ⇒ 2026-10-22T19:46:01+02:00（ok）",
+  "gate": "116/116 green",
+  "units": {
+    "aios-clock": "active",
+    "aios-ontology": "active"
+  },
+  "limits": "state_report 写的是 law 已声明的 now/monotonic_seconds；未接 state_apply；未改 ObjectStore。"
+}

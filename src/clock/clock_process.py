@@ -25,6 +25,8 @@ from provider_auth import open_signed_session  # noqa: E402
 from protocol.keys import LEGACY as TOPIC  # noqa: E402
 from protocol.registration import provider_register  # noqa: E402
 from protocol.provider_p2 import install as install_p2  # noqa: E402
+from protocol import sdk as protocol_sdk  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 CLOCK_NAME = os.environ.get("AIOS_CLOCK_NAME") or "clock0"
@@ -98,14 +100,22 @@ def main():
     install_p2(session, "clock", CLOCK_NAME, clock_ops.dispatch)
     log("③ 订上 %s（route=clock）＋ P2 call_exec" % T_EXEC)
     tick = 0
+    rev = 0
     while True:
         time.sleep(1)
         tick += 1
         clock_ops.write_state()          # ★ 每秒更新时钟权威快照（本体 ledger 读它）
         if tick % 60 == 0:
             session.put(T_APPEAR, json.dumps(me(), ensure_ascii=False))
-            log("④ 报时：%s（单调 %ss）" % (clock_ops.now().get("now"),
-                                            clock_ops.now().get("monotonic_seconds")))
+            rev += 1
+            now = clock_ops.now()
+            msg = protocol_sdk.build_state_report(
+                "world://clock/" + CLOCK_NAME, "world://ontology",
+                "world://clock/" + CLOCK_NAME, rev,
+                {"now": now.get("now"), "monotonic_seconds": now.get("monotonic_seconds")})
+            session.put(P2_TOPIC["state_report"], protocol_sdk.encode(msg))
+            log("④ 报时＋P2 state rev=%d：%s（单调 %ss）"
+                % (rev, now.get("now"), now.get("monotonic_seconds")))
 
 
 if __name__ == "__main__":
