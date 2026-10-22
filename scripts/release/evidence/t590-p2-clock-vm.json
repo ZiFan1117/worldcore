@@ -1,0 +1,39 @@
+{
+  "task": "T-590",
+  "what": "VM 验证 P2 call 可路由到 clock（provider_p2 通用适配）",
+  "at": "2026-10-23T01:09:56+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "5aa027d",
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active"
+  },
+  "p2_clock": {
+    "command": "AIOS_BUS_USER=tests python3 /root/_p2_clock.py",
+    "rc": 0,
+    "ok": true,
+    "result": {
+      "name": "clock0",
+      "state": "running",
+      "now": "2026-10-22T19:09:56+02:00",
+      "utc_offset": "+02:00",
+      "boot_id": "96ff89be-bf63-4d21-a058-f7258c643ce2",
+      "monotonic_seconds": 317147
+    }
+  },
+  "p2_file": {
+    "command": "AIOS_BUS_USER=tests python3 /root/_p2_smoke.py",
+    "rc": 0,
+    "ok": true
+  },
+  "limits": "只验 clock.now 和 file.stat；network/recovery/vault 已装适配但未逐个 smoke；space/presentation/worldfs/computer 未接 P2 exec。"
+}
