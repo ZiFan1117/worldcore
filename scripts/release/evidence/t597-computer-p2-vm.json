@@ -1,0 +1,23 @@
+{
+  "task": "T-597",
+  "what": "computer 接 P2 exec；全量部署 12 单元 active",
+  "at": "2026-10-23T01:38:00+08:00",
+  "host": "VM 127.0.0.1:2223 /usr/lib/aios",
+  "commit": "abadd54 + computer P2",
+  "units": {
+    "aios-bus": "active",
+    "aios-ontology": "active",
+    "aios-fs": "active",
+    "aios-agent": "active",
+    "aios-clock": "active",
+    "aios-network": "active",
+    "aios-recovery": "active",
+    "aios-vault": "active",
+    "aios-worldfs": "active",
+    "aios-space": "active",
+    "aios-presentation": "active",
+    "aios-computer": "active"
+  },
+  "gate": "115/115 green",
+  "limits": "computer 的 P2 exec 未做动作 smoke（computer 没有只读 action；app.open_url/object.retire 有副作用，不敢 smoke）。C121 只证接线。"
+}

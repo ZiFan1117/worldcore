@@ -14,6 +14,7 @@ FILES = [
     ("src/worldfs/worldfs_process.py", "install_p2("),
     ("src/space/space_process.py", "install_p2("),
     ("src/presentation/presentation_process.py", "install_p2("),
+    ("src/computer/computer_process.py", "on_p2_exec"),
 ]
 
 

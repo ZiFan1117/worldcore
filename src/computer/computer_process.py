@@ -30,8 +30,11 @@ import zenoh
 # ★★ 本体发的审批凭据（permit.py 住在 src/ontology/）—— 执行器收指令前【必须验】它。
 import sys as _sys
 _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ontology"))
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol import sdk as protocol_sdk  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
 
 T_APPEAR = "world/appear"
 T_ALIVE = "world/alive"
@@ -365,7 +368,27 @@ def main():
         log("回话 %s ⇒ ok=%s（★ 先回本体 %s）" % (out.get("action"), out.get("ok"), T_RESULT))
         session.put(T_RESULT, json.dumps(out, ensure_ascii=False))
 
+    def on_p2_exec(smp):
+        msg = protocol_sdk.parse(smp.payload.to_string())
+        if msg.get("type") != "call":
+            return
+        data = msg.get("data") or {}
+        route = data.get("route")
+        if route not in (None, "", "computer", "world"):
+            return
+        out = handle_exec({"id": msg.get("id"), "action": data.get("fn") or "",
+                           "params": data.get("args") if isinstance(data.get("args"), dict) else {},
+                           "permit": data.get("permit")}, rows, session)
+        ok = bool(out.get("ok"))
+        res = protocol_sdk.build_result("world://computer/" + COMPUTER_NAME, "world://ontology",
+                                        msg.get("id"), ok,
+                                        result=out.get("body") if ok else None,
+                                        error=None if ok else {"code": out.get("code") or "EXEC_FAILED",
+                                                               "detail": out.get("error")})
+        session.put(P2_TOPIC["call_exec_result"], protocol_sdk.encode(res))
+
     session.declare_subscriber(T_EXEC, on_exec)
+    session.declare_subscriber(P2_TOPIC["call_exec"], on_p2_exec)
     # ★ 数据管道：底层事实每 10 秒上报本体（采集 → 映射 → 上报）
     threading.Thread(target=metrics_loop,
                      args=(session, ME, T_APPEAR, COMPUTER_NAME),
