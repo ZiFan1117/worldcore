@@ -19,14 +19,15 @@ import zenoh  # noqa: E402
 import network_ops  # noqa: E402
 from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
+from protocol.keys import LEGACY as TOPIC  # noqa: E402
 from protocol.registration import provider_register  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NET_NAME = os.environ.get("AIOS_NETWORK_NAME") or "network0"
-T_APPEAR = "world/appear"
-T_REGISTER = "world/register"
-T_EXEC = "world/exec"
-T_RESULT = "world/exec/result"
+T_APPEAR = TOPIC["appear"]
+T_REGISTER = TOPIC["register"]
+T_EXEC = TOPIC["exec"]
+T_RESULT = TOPIC["exec_result"]
 
 ACTIONS = [
     {"action": "network.list", "kind": "read", "why": "列网络接口与计数器（只读）"},
