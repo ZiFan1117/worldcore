@@ -51,7 +51,8 @@ def build_registered(src, dst, req_id, ok, why=None):
 
 
 def build_call(src, dst, fn, args, msg_id=None):
-    return _msg("call", src, dst, {"fn": fn, "args": list(args)}, msg_id=msg_id)
+    args_value = dict(args) if isinstance(args, dict) else list(args)
+    return _msg("call", src, dst, {"fn": fn, "args": args_value}, msg_id=msg_id)
 
 
 def build_result(src, dst, req_id, ok, result=None, error=None, state_changes=None):

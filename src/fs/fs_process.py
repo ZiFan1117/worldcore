@@ -26,6 +26,7 @@ from gate.permit import verify, consume_via_ontology  # noqa: E402
 from provider_auth import open_signed_session  # noqa: E402
 from protocol import sdk as protocol_sdk  # noqa: E402
 from protocol.keys import LEGACY as TOPIC  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
 
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 FS_NAME = os.environ.get("AIOS_FS_NAME") or "fs0"
@@ -133,8 +134,36 @@ def main():
             "error": None if ok2 else body,
             "by": "fs/" + FS_NAME}, ensure_ascii=False))
 
+    def on_p2_exec(smp):
+        """P2 call 路径：ontology → world/call/exec → fs → world/call/exec/result。"""
+        try:
+            msg = protocol_sdk.parse(smp.payload.to_string())
+        except Exception:
+            return
+        if msg.get("type") != "call":
+            return
+        data = msg.get("data") or {}
+        action = data.get("fn") or ""
+        params = data.get("args") if isinstance(data.get("args"), dict) else {}
+        rid = msg.get("id") or ""
+        ok, why = verify(data.get("permit"), action, params)
+        if ok:
+            ok, why = consume_via_ontology(session, data.get("permit"), action, params)
+        if not ok:
+            out = protocol_sdk.build_result("world://fs/" + FS_NAME, "world://ontology",
+                                            rid, False, error={"code": "PERMIT_DENIED", "detail": why})
+            session.put(P2_TOPIC["call_exec_result"], protocol_sdk.encode(out))
+            return
+        ok2, body = execute(action, params)
+        out = protocol_sdk.build_result("world://fs/" + FS_NAME, "world://ontology",
+                                        rid, ok2, result=body if ok2 else None,
+                                        error=None if ok2 else {"code": "EXEC_FAILED", "detail": body})
+        session.put(P2_TOPIC["call_exec_result"], protocol_sdk.encode(out))
+        log("P2 执行 %s ⇒ ok=%s" % (action, ok2))
+
     session.declare_subscriber(T_EXEC, on_exec)
-    log("③ 订上 %s（route=fs）" % T_EXEC)
+    session.declare_subscriber(P2_TOPIC["call_exec"], on_p2_exec)
+    log("③ 订上 %s（route=fs）＋ P2 call_exec" % T_EXEC)
     while True:
         time.sleep(1)
 

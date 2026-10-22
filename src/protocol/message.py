@@ -81,7 +81,7 @@ def _semantic(msg: Any) -> list:
     elif mtype == "call":
         if not isinstance(data.get("fn"), str) or not data.get("fn"):
             errors.append("CALL_FN")
-        if not isinstance(data.get("args"), list):
+        if not isinstance(data.get("args"), (list, dict)):
             errors.append("CALL_ARGS")
     elif mtype == "result":
         if not isinstance(data.get("ok"), bool):

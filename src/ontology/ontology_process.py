@@ -47,6 +47,8 @@ from provider_auth import ProviderAuthError, auth_enabled, verify_message  # noq
 import bus_auth  # noqa: E402
 import world_clock  # noqa: E402
 from foundry_ontology.engine.object_store import ObjectStore  # noqa: E402
+from protocol.keys import T as P2_TOPIC  # noqa: E402
+from gate import p2_call  # noqa: E402
 
 # ★★★ 2026-10-17 裁（作者逐字）：「使用他全套的东西呀，包括这个 link 啥的都用呀」
 #   ⇒ ABox 接上：个体不再只活在账里，而是【真的存在 ObjectStore 里】（SQLite 持久化）。
@@ -335,6 +337,9 @@ def main():
     session.declare_subscriber(T_NOTICE, lambda s: _notice_and_forward(s, w, session))
     # ★★ 一号一用：执行器来问「这张凭证用过没有」—— 记账在本体（见 permit.consume）
     session.declare_subscriber(permit.T_CONSUME, lambda s: permit.handle_consume(s, w, session, log))
+    session.declare_subscriber(P2_TOPIC["call"], lambda s: p2_call.handle_call(s, w, session, log))
+    session.declare_subscriber(P2_TOPIC["call_exec_result"], lambda s: p2_call.handle_result(s, w, session, log))
+    log("   订上了 P2 call／call_exec_result")
     log("   订上了：%s ／ %s ／ %s ／ %s ／ %s ／ %s" % (T_REGISTER, T_APPEAR, T_ASK, T_EXEC_RESULT, T_QUERY, T_NOTICE))
     log("★ 本体进程起来了 —— 只认、只盖章、只转、只记")
     try:

@@ -82,7 +82,7 @@ def main():
     if msg:
         bad.append("call fn：" + msg)
 
-    x = dict(valid[0]); x["data"] = {"fn": "add", "args": {"a": 1}}
+    x = dict(valid[0]); x["data"] = {"fn": "add", "args": "1,1"}
     msg = expect_reject(x, "CALL_ARGS")
     if msg:
         bad.append("call args：" + msg)
