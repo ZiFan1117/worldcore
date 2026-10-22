@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "world://protocol/v1/action_contract.schema.json",
+  "title": "worldcore action contract v1",
+  "description": "世界动作契约：只在本体 law 中定义，软件安装不新增。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "label", "description", "required_roles", "kind", "effects",
+               "preconditions", "parameters", "grant", "metadata"],
+  "properties": {
+    "id": {"type": "string", "minLength": 3, "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"},
+    "version": {"type": "integer", "minimum": 1},
+    "label": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "required_roles": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "applies_to": {"type": ["object", "null"]},
+    "kind": {"enum": ["invoke", "read", "write", "change", "config"]},
+    "implemented": {"type": "string"},
+    "reversible": {"type": "boolean"},
+    "on_failure": {"enum": ["reject"]},
+    "effects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["kind"],
+        "properties": {"kind": {"enum": ["forward", "ledger", "state_change", "provider_report", "ticket_issued", "notify"]}},
+        "additionalProperties": true
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind"],
+        "properties": {
+          "kind": {"enum": ["param_present", "param_in", "subject_implements", "subject_exists", "provider_declared", "provider_checks", "actor_in_scope", "actor_appeared"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "parameters": {"type": "array", "items": {"$ref": "#/definitions/parameter"}},
+    "grant": {
+      "type": "object",
+      "required": ["who", "scope"],
+      "properties": {
+        "who": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "scope": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "why": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "metadata": {"type": "object"}
+  },
+  "definitions": {
+    "parameter": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]*$"},
+        "type": {"enum": ["STRING", "INTEGER", "FLOAT", "NUMBER", "BOOLEAN", "OBJECT", "OBJECT_REFERENCE", "ARRAY", "NULL"]},
+        "required": {"type": "boolean"},
+        "options": {"type": ["array", "null"]},
+        "description": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  }
+}
