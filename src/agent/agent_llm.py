@@ -40,6 +40,7 @@ from agent_status import launch_frame as _launch_frame  # noqa: E402
 from agent_chat import ask_chat as _ask_chat, chat_reply as _chat_reply  # noqa: E402
 from agent_workspace import step as _step_ev, workspace as _workspace  # noqa: E402
 from agent_register import register as _register  # noqa: E402
+import agent_p2 as _agent_p2  # noqa: E402
 ENDPOINT = os.environ.get("AIOS_BUS", "tcp/127.0.0.1:7447")
 NAME = os.environ.get("AIOS_AGENT_NAME", "dsh")
 DID = os.environ.get("AIOS_AGENT_DID", "did:aios:agent:" + NAME)
@@ -97,6 +98,7 @@ class Agent:
         self.hb_path = HB          # ★（P7）进程可观测：心跳文件
         self.started_at = time.time()
         self.round = 0           # ★ 最近一轮（status 用，不被心跳覆盖）
+        self.p2_results = {}; self.p2_name = NAME
         self._write_heartbeat()
     def _write_heartbeat(self, extra=None):
         """★（P7）把「agent 进程还活着/在做什么」写到一个可读文件（给人/浏览器看）。"""
@@ -134,6 +136,7 @@ class Agent:
             time.sleep(0.1)
         return {"ok": False, "why": "查询超时"}
     def act(self, action, params=None, timeout=25):
+        if action.startswith(("file.", "fs.")): return _agent_p2.act(self, action, params, timeout)
         rid = "l-" + uuid.uuid4().hex[:8]
         self.s.put(T_ASK, json.dumps({
             "id": rid, "action": action, "actor": "world://agent/" + NAME,
@@ -270,7 +273,6 @@ SYS_DRAW = (
     "★ 每个组件 id 唯一。★ 最多 15 个组件。\n"
     "★ 严格输出 JSON：{\"components\": [...]}"
 )
-
 def _frame_problems(frame):
     """★ 发之前自己按 A2UI 目录核一遍（与呈现同一份 frame_schema）——不合就不发。
 
@@ -283,7 +285,6 @@ def _frame_problems(frame):
         return frame_schema.validate_frame(frame)
     except Exception as e:
         return ["核不了帧（%s: %s）" % (type(e).__name__, str(e)[:120])]
-
 def build_frame(comps):
     """★ 把内容组件包成一帧：surface ＝ agent/<名字>；★ 统一套【窗口壳】（标题栏＋缩放/关闭）。"""
     surface = "agent/%s" % NAME
@@ -322,6 +323,7 @@ def main():
 
     session.declare_subscriber(T_ASK_RESULT, on_ask)
     session.declare_subscriber(T_QUERY_RESULT, on_query)
+    _agent_p2.install(session, a)
     time.sleep(1.5)
     a.appear()
     time.sleep(2.0)
