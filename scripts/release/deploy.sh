@@ -47,7 +47,7 @@ PY
 done
 
 echo "=== 1.6 总线 ACL（Zenoh user-password 认证）==="
-BUS_UNITS="aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse"
+BUS_UNITS="aios-ontology aios-guard aios-web aios-gateway aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse"
 install -d -m 0700 /etc/aios
 for f in /etc/aios/bus-client.secret /etc/aios/bus-router.secret; do
   if [ ! -s "$f" ]; then
@@ -171,7 +171,7 @@ fi
 restorecon /usr/lib/aios/permit.key 2>/dev/null || true
 
 echo "=== 3 systemd 单元 ==="
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-gateway aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
   s="$REPO/scripts/release/systemd/$u.service"
   if [ -f "$s" ]; then
     [ -f "$UNITDIR/$u.service" ] && cp -a "$UNITDIR/$u.service" "/etc/systemd/system/$u.service.bak-$TS"
@@ -210,12 +210,12 @@ if [ $RESTART -eq 0 ]; then echo "=== 5 不重启（--no-restart）==="; exit 0;
 echo "=== 5 重启 ==="
 systemctl stop aios-carrier 2>/dev/null || true
 systemctl disable aios-carrier 2>/dev/null || true
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-gateway aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
   systemctl restart "$u" 2>/dev/null || systemctl start "$u" 2>/dev/null || true
   sleep 1
 done
 sleep 4
-for u in aios-bus aios-ontology aios-guard aios-web aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
+for u in aios-bus aios-ontology aios-guard aios-web aios-gateway aios-computer aios-presentation aios-presentation-render aios-space aios-agent aios-fs aios-clock aios-recovery aios-network aios-vault aios-worldfs aios-worldfs-fuse; do
   printf '  %-24s %s\n' "$u" "$(systemctl is-active "$u")"
 done
 

@@ -1,0 +1,21 @@
+[Unit]
+Description=worldcore 世界薄网关（HTTP＋JSON-RPC 2.0 ⇒ world/query／world/ask；只翻译，不治理）
+After=network-online.target aios-ontology.service aios-bus.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/lib/aios/src/gateway
+Environment=AIOS_BUS=tcp/127.0.0.1:7447
+Environment=AIOS_GATEWAY_PORT=8780
+Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUNBUFFERED=1
+# ★ 只听环回：外部（宿主上的 DSH 插件）经本机进世界，不直接对外暴露。
+ExecStart=/usr/bin/python3 /usr/lib/aios/src/gateway/world_gateway.py
+Restart=always
+RestartSec=5
+Nice=5
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
