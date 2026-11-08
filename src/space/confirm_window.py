@@ -74,12 +74,20 @@ class ConfirmMixin:
             self.pending_confirmation = None
             if self.own.pop(sid, None) is not None:
                 self.draw()
+            self._refresh_panel()
             return
         c = q[-1]
         self.pending_confirmation = {"name": str(c.get("name") or ""), "confirmation": c, "sid": sid}
         self.own[sid] = {"frame": confirm_window_frame(sid, c, waiting=len(q) - 1),
                          "rect": [340, 120, 600, 300]}
         self.draw()
+        self._refresh_panel()
+
+    def _refresh_panel(self):
+        """★ 委托监督面板开着就叫它重画（待确认条数变了要看得见）；没开就什么都不做。"""
+        refresh = getattr(self, "refresh_panel_if_open", None)
+        if callable(refresh):
+            refresh()
 
     def resolve_confirmation(self, name, decision):
         """★ 人点了一条：★ 以人的身份、带票回本体 `confirm.resolve`（★ 桌面不自己发许可），再换下一条。"""

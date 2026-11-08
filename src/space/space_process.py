@@ -36,6 +36,7 @@ from confirm_window import ConfirmMixin  # noqa: E402
 # ★ 委托任务卡 ／ 进度事件流（C125；两块画布、各一文件）—— ★ 要放在 presentation 路径进来之后
 from delegation_frame import DelegationMixin  # noqa: E402
 from progress_frame import ProgressMixin  # noqa: E402
+from delegation_panel import DelegationPanelMixin  # noqa: E402（C126 委托监督面板）
 from ontology_window import OntologyMixin  # noqa: E402
 from agent_console_mixin import AgentConsoleMixin  # noqa: E402
 from space_util import act_context, surface_of, own_window_frame  # noqa: E402
@@ -88,7 +89,7 @@ def log(*a):
 
 
 class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
-            LifecycleMixin, ConfirmMixin, OntologyMixin):
+            DelegationPanelMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
@@ -283,8 +284,8 @@ class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
             self.resolve_confirmation(cname, decision)
             log("③ 桌面确认：%s => %s（经本体带票）" % (cname, decision))
             return
-        # ── ★ C125：两块委托画布的按钮（★ 一律经本体：world/ask job.*；画布不改本地状态）──
-        if self.handle_canvas_event(name, ctx):
+        # ── ★ C125／C126：委托侧的按钮（画布刷新；总览刷新＝再查；打开 DSH＝world/ask）──
+        if self.handle_canvas_event(name, ctx) or self.handle_panel_event(name, ctx):
             return
         if name == "space.icon_clicked":
             icon = ctx.get("icon") or d.get("component") or ""
@@ -308,8 +309,8 @@ class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
                 self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "actions"}, ensure_ascii=False))
             elif icon == "ic_activity":
                 self.toggle_activity()
-            elif icon in ("ic_delegation", "ic_progress"):
-                # ★ C125：任务卡／进度流（先查再画）
+            elif icon in ("ic_delegation", "ic_progress", "ic_delegation_panel"):
+                # ★ C125／C126：任务卡／进度流／委托监督（先查再画）
                 self.open_canvas(icon)
             elif icon == "ic_browser":
                 # ★ 桌面图标「语义浏览器」⇒ 经本体发 sys.OpenBrowser（带票）；
@@ -352,8 +353,7 @@ class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
         p = self.pending.pop(d.get("id") or "", None)
         if not p:
             return
-        if p.get("kind") == "job":
-            self.on_job_result(d)
+        if self.handle_delegation_ask_result(p.get("kind"), d):
             return
         if not d.get("ok"):
             log("④ 回话失败：%s（%s）" % (p.get("kind"), d.get("why") or d.get("code")))
@@ -388,8 +388,8 @@ class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
         if not p:
             return
         _k = str(p.get("kind") or "")
-        # ★ C125：两块委托画布的查询回话（★ 帧只用回话里的数据画）
-        if self.canvas_result(_k, d):
+        # ★ C125／C126：画布与委托总览的查询回话（★ 帧只用回话里的数据画）
+        if self.canvas_result(_k, d) or self.panel_result(_k, d):
             return
         if _k.startswith("ontology-"):
             if d.get("ok"):

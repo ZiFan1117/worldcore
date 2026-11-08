@@ -1,5 +1,22 @@
 # -*- coding: utf-8 -*-
-"""★ 个人空间的小工具（C27 拆分：一文件一块）——动作上下文 / 画布 surfaceId 的取值。"""
+"""★ 个人空间的小工具（C27 拆分：一文件一块）——动作上下文／画布 surfaceId 的取值／向本体查一次。"""
+import json
+import time
+
+
+def query_world(sp, kind, limit, tag):
+    """★ 向本体查一次（任务卡／进度流／委托总览**共用这一条取数方式**，不许各造一套）。
+
+    ★ 一律带票（匿名翻不了账）；`pending[rid]` 记下这是哪一路回话；
+    ★ 只把请求发出去：**回话到了才画**（谁画谁负责，本函数不碰帧）。
+    """
+    rid = "sp-%s-%d" % (tag, int(time.time() * 1000))
+    sp.pending[rid] = {"kind": tag}
+    q = {"id": rid, "kind": kind, "limit": limit}
+    if getattr(sp, "ticket", ""):
+        q["ticket"] = sp.ticket
+    sp.s.put("world/query", json.dumps(q, ensure_ascii=False))
+    return rid
 
 
 def act_context(action):

@@ -15,10 +15,8 @@
   · 本画布：`world/query kind=events` 从【账】翻出来的快照（掉线以后也看得到、可刷新）。
   ★ 所以本画布不订阅事件、不自己攒状态 —— 它画什么，完全由查询回话决定。
 """
-import json
-import time
-
 from window_frame import wrap_window
+from space_util import query_world
 
 SID_PREFIX = "space/progress-"
 CATALOG_ID = "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
@@ -116,12 +114,7 @@ class ProgressMixin:
 
     def open_progress(self):
         """★ 打开／刷新进度画布：★ 先向本体查（`world/query kind=events`），★ 回话到了才出帧。"""
-        rid = "sp-pg-%d" % int(time.time() * 1000)
-        self.pending[rid] = {"kind": "progress"}
-        q = {"id": rid, "kind": "events", "limit": 60}
-        if getattr(self, "ticket", ""):
-            q["ticket"] = self.ticket
-        self.s.put("world/query", json.dumps(q, ensure_ascii=False))
+        rid = query_world(self, "events", 60, "progress")
         print("[个人空间] ② 查进度事件（world/query kind=events，id=%s）" % rid, flush=True)
 
     def on_progress_result(self, data):

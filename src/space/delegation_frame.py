@@ -14,10 +14,8 @@
   ★ 结果行（`kind_of=result`）**没有 actor** ⇒ 读闸不向普通人公开（现取）；
     ⇒ 这里只画能看到的那部分，**不替世界补字段、不跨行猜状态**。
 """
-import json
-import time
-
 from window_frame import wrap_window
+from space_util import query_world
 
 SID_PREFIX = "space/delegation-"
 CATALOG_ID = "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
@@ -168,12 +166,7 @@ class DelegationMixin:
 
     def open_delegation(self):
         """★ 打开／刷新任务卡：★ 先向本体查（`world/query kind=history`），★ 回话到了才出帧。"""
-        rid = "sp-dl-%d" % int(time.time() * 1000)
-        self.pending[rid] = {"kind": "delegation"}
-        q = {"id": rid, "kind": "history", "limit": 200}
-        if getattr(self, "ticket", ""):
-            q["ticket"] = self.ticket
-        self.s.put("world/query", json.dumps(q, ensure_ascii=False))
+        rid = query_world(self, "history", 200, "delegation")
         print("[个人空间] ② 查委托任务（world/query kind=history，id=%s）" % rid, flush=True)
 
     def on_delegation_result(self, data):
@@ -205,11 +198,13 @@ class DelegationMixin:
 
     # ── 接线（★ 从这里挪出来，是为了 space_process 不超 C27 的行数）──
     def open_canvas(self, icon):
-        """★ 桌面图标 ⇒ 打开哪块画布（ic_delegation／ic_progress）。"""
+        """★ 桌面图标 ⇒ 打开哪块画布（ic_delegation／ic_progress／ic_delegation_panel）。"""
         if icon == "ic_delegation":
             self.open_delegation()
         elif icon == "ic_progress":
             self.open_progress()
+        elif icon == "ic_delegation_panel":
+            self.open_delegation_panel()
 
     def handle_canvas_event(self, name, ctx):
         """★ 两块画布的按钮：刷新＝再查；job.* ＝ world/ask。返回 True＝已处理。"""
