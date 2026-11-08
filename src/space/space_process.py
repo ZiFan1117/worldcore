@@ -32,11 +32,13 @@ from scenes import save_scene   # ★ P3 场景文件化（C27 拆文件）
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "presentation"))
-from window_frame import wrap_window  # noqa: E402
 from confirm_window import ConfirmMixin  # noqa: E402
+# ★ 委托任务卡 ／ 进度事件流（C125；两块画布、各一文件）—— ★ 要放在 presentation 路径进来之后
+from delegation_frame import DelegationMixin  # noqa: E402
+from progress_frame import ProgressMixin  # noqa: E402
 from ontology_window import OntologyMixin  # noqa: E402
 from agent_console_mixin import AgentConsoleMixin  # noqa: E402
-from space_util import act_context, surface_of  # noqa: E402
+from space_util import act_context, surface_of, own_window_frame  # noqa: E402
 from browser_url import DEFAULT_BROWSER_URL as BROWSER_URL  # noqa: E402
 from dsh_url import DEFAULT_DSH_URL as DSH_URL  # noqa: E402
 
@@ -85,7 +87,8 @@ def log(*a):
     print("[个人空间]", *a, flush=True)
 
 
-class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, OntologyMixin):
+class Space(AgentConsoleMixin, ActivityMixin, DelegationMixin, ProgressMixin,
+            LifecycleMixin, ConfirmMixin, OntologyMixin):
     def __init__(self, session):
         self.s = session
         self.surface_id = "surface/desktop-" + USER
@@ -212,17 +215,6 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
             return True, getattr(self, "layout", None) or {"layers": []}
         return False, "不认识的动作 %s" % act
 
-    def _own_window_frame(self, sid, title, lines):
-        """★ 空间自己的一扇窗（这台机器/能做什么）：统一窗口壳，内容＝几行字。"""
-        comps = [{"id": "root", "component": "Column",
-                  "children": ["o_%d" % i for i in range(len(lines))]}]
-        for i, line in enumerate(lines):
-            comps.append({"id": "o_%d" % i, "component": "Text", "text": line})
-        return {"version": "v1.0", "name": title, "messages": [
-            {"version": "v1.0", "createSurface": {"surfaceId": sid}},
-            {"version": "v1.0", "updateComponents": {
-                "surfaceId": sid, "components": wrap_window(title, comps, sid)}}]}
-
     def draw(self):
         extra = [{"surface": k, "rect": v} for k, v in self.guests.items()]
         extra += [{"surface": k, "rect": v["rect"]} for k, v in self.own.items()]
@@ -285,17 +277,14 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
             return
         if name == "confirm.decide":
             # ★ 桌面弹窗上点「拒绝/允许一次/允许并委托」⇒ 以人的身份回本体 confirm.resolve（带票）
+            #   ★ 排队在 confirm_window.ConfirmMixin：签完一条自动换下一条（不再顶掉前一条）
             cname = str(ctx.get("confirmation") or "")
             decision = str(ctx.get("decision") or "deny")
-            sid = "space/confirm-" + USER
-            self.own.pop(sid, None)
-            self.pending_confirmation = None
-            rid = self._ask("confirm.resolve",
-                            {"name": cname, "decision": decision, "reason": "桌面弹窗确认"},
-                            "cf")
-            self.pending[rid] = {"kind": "confirm"}
+            self.resolve_confirmation(cname, decision)
             log("③ 桌面确认：%s => %s（经本体带票）" % (cname, decision))
-            self.draw()
+            return
+        # ── ★ C125：两块委托画布的按钮（★ 一律经本体：world/ask job.*；画布不改本地状态）──
+        if self.handle_canvas_event(name, ctx):
             return
         if name == "space.icon_clicked":
             icon = ctx.get("icon") or d.get("component") or ""
@@ -319,6 +308,9 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
                 self.s.put(T_QUERY, json.dumps({"id": rid, "kind": "actions"}, ensure_ascii=False))
             elif icon == "ic_activity":
                 self.toggle_activity()
+            elif icon in ("ic_delegation", "ic_progress"):
+                # ★ C125：任务卡／进度流（先查再画）
+                self.open_canvas(icon)
             elif icon == "ic_browser":
                 # ★ 桌面图标「语义浏览器」⇒ 经本体发 sys.OpenBrowser（带票）；
                 #   ★ 出向（起程序）只许计算机做，空间不碰 subprocess（C19）。
@@ -360,6 +352,9 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
         p = self.pending.pop(d.get("id") or "", None)
         if not p:
             return
+        if p.get("kind") == "job":
+            self.on_job_result(d)
+            return
         if not d.get("ok"):
             log("④ 回话失败：%s（%s）" % (p.get("kind"), d.get("why") or d.get("code")))
             return
@@ -377,7 +372,7 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
             text = json.dumps(body, ensure_ascii=False)[:900] if isinstance(body, (dict, list)) \
                 else str(body)[:900]
             sid = "space/tools-" + USER
-            self.own[sid] = {"frame": self._own_window_frame(
+            self.own[sid] = {"frame": own_window_frame(
                 sid, "这台机器（经本体）", ["**sys.GetHostState 的结果**", text]),
                 "rect": [640, 40, 620, 300]}
             log("② 这台机器窗口 ⇒ 出（经本体拿到的结果）")
@@ -393,6 +388,9 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
         if not p:
             return
         _k = str(p.get("kind") or "")
+        # ★ C125：两块委托画布的查询回话（★ 帧只用回话里的数据画）
+        if self.canvas_result(_k, d):
+            return
         if _k.startswith("ontology-"):
             if d.get("ok"):
                 self.on_ontology_result(_k[len("ontology-"):], d.get("data") or {})
@@ -409,7 +407,7 @@ class Space(AgentConsoleMixin, ActivityMixin, LifecycleMixin, ConfirmMixin, Onto
         lines = ["**这个世界里在册的动作**（world/query kind=actions）",
                  "可用 %d 个：" % len(avail),
                  "、".join(str(x) for x in avail[:12])]
-        self.own[sid] = {"frame": self._own_window_frame(sid, "能做什么", lines),
+        self.own[sid] = {"frame": own_window_frame(sid, "能做什么", lines),
                          "rect": [640, 40, 620, 300]}
         log("② 能做什么窗口 ⇒ 出（%d 个动作）" % len(avail))
         self.draw()

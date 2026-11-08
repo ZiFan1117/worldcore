@@ -24,3 +24,16 @@ def surface_of(frame):
         if cs.get("surfaceId"):
             return cs.get("surfaceId")
     return None
+
+
+def own_window_frame(sid, title, lines):
+    """★ 空间自己的一扇窗（统一窗口壳；内容＝几行字）—— 从 space_process 挪来（C27 行数）。"""
+    from window_frame import wrap_window
+    comps = [{"id": "root", "component": "Column",
+              "children": ["o_%d" % i for i in range(len(lines))]}]
+    for i, line in enumerate(lines):
+        comps.append({"id": "o_%d" % i, "component": "Text", "text": line})
+    return {"version": "v1.0", "name": title, "messages": [
+        {"version": "v1.0", "createSurface": {"surfaceId": sid}},
+        {"version": "v1.0", "updateComponents": {
+            "surfaceId": sid, "components": wrap_window(title, comps, sid)}}]}

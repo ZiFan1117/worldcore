@@ -8,6 +8,8 @@ import json
 import os
 import time
 
+from space_util import own_window_frame   # ★ 统一窗口壳（C27 行数：从 space_process 挪出）
+
 def _cursor_dir():
     return os.environ.get("AIOS_CURSOR_DIR", "/var/lib/aios/cursors")
 
@@ -78,7 +80,7 @@ class ActivityMixin:
                                                    e.get("action") or "", tail))
         if len(lines) == 1:
             lines.append("（还没有事件）")
-        self.own[sid] = {"frame": self._own_window_frame(sid, "活动 · 实时", lines),
+        self.own[sid] = {"frame": own_window_frame(sid, "活动 · 实时", lines),
                          "rect": [40, 300, 560, 420]}
         self.draw()
 

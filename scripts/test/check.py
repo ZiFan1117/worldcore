@@ -138,6 +138,7 @@ CRITERIA = [
     "c122_state_report.py",
     "c123_world_gateway.py",
     "c124_dsh_world_plugin.py",
+    "c125_delegation_canvases.py",
 ]
 
 
