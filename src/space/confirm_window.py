@@ -30,9 +30,9 @@ def confirm_window_frame(sid, c):
                       "action": {"event": {
                           "name": "confirm.decide",
                           "context": {"confirmation": name, "decision": decision}}}})
-    return {"version": "v0.9", "name": "guard 确认", "messages": [
-        {"version": "v0.9", "createSurface": {"surfaceId": sid}},
-        {"version": "v0.9", "updateComponents": {
+    return {"version": "v1.0", "name": "guard 确认", "messages": [
+        {"version": "v1.0", "createSurface": {"surfaceId": sid}},
+        {"version": "v1.0", "updateComponents": {
             "surfaceId": sid,
             "components": wrap_window("guard 确认", comps, sid)}}]}
 

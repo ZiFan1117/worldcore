@@ -156,6 +156,10 @@ class _RenderScreenState extends State<RenderScreen> {
     for (final m in (frame['messages'] as List? ?? const [])) {
       if (m is! Map) continue;
       final mm = Map<String, dynamic>.from(m);
+      // ★ 能力降级（不是帧的生产口径）：Flutter genui 0.10.4 只到 A2UI v0.9
+      //   ⇒ 这里把**喂给 genui 的每一帧**改成 v0.9 并换回 v0_9 目录 URL。
+      //   帧的生产方一律出 v1.0（判据 C53 盯 .py 的 version/catalogId）；
+      //   等 genui 支持 v1.0 后再删掉这一段降级。
       mm['version'] = 'v0.9';
       final cs = mm['createSurface'];
       if (cs is Map) {

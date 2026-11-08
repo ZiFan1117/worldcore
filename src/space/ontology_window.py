@@ -231,9 +231,9 @@ class OntologyMixin:
                           "children": ["ont_prev_b", "ont_page_text", "ont_next_b"]})
             comps[0]["children"].append("ont_pager")
         self._ont_comps = None
-        frame = {"version": "v0.9", "name": "本体 · 世界全貌", "messages": [
-            {"version": "v0.9", "createSurface": {"surfaceId": sid}},
-            {"version": "v0.9", "updateComponents": {
+        frame = {"version": "v1.0", "name": "本体 · 世界全貌", "messages": [
+            {"version": "v1.0", "createSurface": {"surfaceId": sid}},
+            {"version": "v1.0", "updateComponents": {
                 "surfaceId": sid,
                 "components": wrap_window("本体 · 世界全貌", comps, sid)}}]}
         self.own[sid] = {"frame": frame, "rect": [120, 84, 1040, 640]}
