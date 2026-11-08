@@ -1,0 +1,16 @@
+# ★★★ dsh-worldcore 的 profile patch —— ★ 本文件【不会被自动加载】，只是给人抄的落点。
+#
+# ★ 本插件【不自动安装】：本文件在本包装内，DSH 只读 profile 目录下那份
+#   `~/.dsh/profiles/<profile>/cordis.patch.yml`。⇒ 安装时要【人】把下面的 insert 条目
+#   并入那一份（并入 ≠ 本包装自己生效）。
+#
+# ★ 装之前先备份（硬规矩）：`.dsh/sessions` 与 `.dsh/storages`。
+#
+# ★ 落点（人做，不是插件做）：
+#   ① dsh plugin add <本目录绝对路径>   （＝在 profile 里 pnpm add 这个本地包）
+#   ② 把下面的 insert 条目并入 profile 的 cordis.patch.yml
+#   ③ 重启宿主（新工具 world_query／world_ask 才会出现）
+
+- insert:
+    - id: dsh-worldcore
+      name: "dsh-plugin-dsh-worldcore"

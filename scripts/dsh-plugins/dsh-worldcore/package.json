@@ -1,0 +1,11 @@
+{
+  "name": "dsh-plugin-dsh-worldcore",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "description": "worldcore 世界插件（宿主侧）—— 只经世界薄网关发 world.query／world.ask，不治理、不直连总线、不自造拒绝码",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.1"
+  }
+}

@@ -137,6 +137,7 @@ CRITERIA = [
     "c121_p2_provider_install.py",
     "c122_state_report.py",
     "c123_world_gateway.py",
+    "c124_dsh_world_plugin.py",
 ]
 
 
